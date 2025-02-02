@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devis</title>
+    {% load static %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 200px;
+        }
+        .header h1 {
+            margin: 10px 0;
+        }
+        .client-info, .devis-info {
+            margin-bottom: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+
+        }
+        .client-info h2, .devis-info h2 {
+            margin-bottom: 10px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .total p {
+            margin: 5px 0;
+        }
+        .print-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+        @media print {
+            body {
+                background-color: #fff;
+                margin: 0;
+                padding: 0;
+                font-size: 12pt;
+            }
+            .container {
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                box-shadow: none;
+            }
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{% static 'images/logo.png' %}" alt="Logo de l'entreprise">
+            <h1>Devis</h1>
+        </div>
+        <div class="client-info">
+            <h2>Informations du Client</h2>
+            <p><strong>Nom:</strong> {{ devis.client.nom }}</p>
+            <p><strong>Prénom:</strong> {{ devis.client.prenom }}</p>
+            <p><strong>Email:</strong> {{ devis.client.email }}</p>
+            <p><strong>Téléphone:</strong> {{ devis.client.telephone }}</p>
+            <p><strong>Adresse:</strong> {{ devis.client.adresse }}</p>
+        </div>
+        <div class="devis-info">
+            <h2>Détails du Devis</h2>
+            <p><strong>Date de Création:</strong> {{ devis.date_de_creation }}</p>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Description</th>
+                    <th>Prix</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in devis.service.all %}
+                    <tr>
+                        <td>{{ service.nom }}</td>
+                        <td>{{ service.description }}</td>
+                        <td>{{ service.prix }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="initial">
+            <p><strong>Prix initial:</strong> {{ devis.prix_initial }}€</p>
+        </div>
+        <div class="reduction">
+            <p><strong>Remise:</strong> {{ devis.reduction }}%</p>
+        </div>
+         <div class="total">
+            <p><strong>Prix Total:</strong> {{ devis.prix_total }}€</p>
+        </div>
+        <div class="print-button">
+            <button onclick="window.print()">Imprimer le Devis</button>
+        </div>
+    </div>
+</body>
+</html>

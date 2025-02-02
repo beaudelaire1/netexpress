@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="script" href="{% static 'js/main.js' %}">
+    <script src="main.js"></script>
+
+</head>
+<body>
+    <!-- En-tête -->
+    <header>
+        <div class="logo" >
+            <img src="{% static 'images/logo.png' %}" alt="Logo Nettoyage Express" >
+            <h1>Nettoyage Express</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#services">Nos Services</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenu principal -->
+    <main>
+        <!-- Section Hero -->
+        <section id="hero">
+            <h2>Votre solution complète pour l'entretien et les travaux</h2>
+            <p>Nettoyage, peinture, rénovation - Nous gérons tous vos projets</p>
+            <a href="{% url 'contact' %}" class="cta-button" aria-label="Demander un devis">Demander un devis</a>
+        </section>
+
+        <section id="im_accueil">
+            <div class="image-accueil"> 
+            <img src="{% static 'images/accueil.jpg' %}" alt="nettoyage espace vert">
+            <img src="{% static 'images/bebrou.jpg' %}" alt="debroussailleuse">
+            <img src="{% static 'images/peinture.jpg' %}" alt="peinture">
+            </div>
+
+        </section>
+
+        <!-- Section Services -->
+        <section id="services">
+            <h2>Nos Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3> <a href="{% url 'nettoyage' %}" >Nettoyage</a></h3>
+                    <p>Nettoyage résidentiel et commercial</p>
+                </div>
+                <div class="service-card">
+                    <h3> <a href="{% url 'peinture' %}"> Peinture</a></h3>
+                    <p>Intérieur et extérieur, résidentiel et professionnel</p>
+                </div>
+                <div class="service-card">
+                    <h3> <a href="{% url 'bricolage' %}" >Bricolage</a></h3>
+                    <p>Petits travaux de rénovation</p>
+                </div>
+                <div class="service-card">
+                    <h3> <a href="{% url 'renovation' %}">Rénovation</a></h3>
+                    <p>Transformation complète de vos espaces</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pied de page -->
+    <footer>
+        <div class="contact-info">
+            <h3>Contact</h3>
+            <p>Fixe: 📞 05 94 30 23 68</p>
+            <p>Mobile: 📞 06 94 46 20 12</p>
+            <p>✉️ <a href="mailto:n.express@orange.fr">n.express@orange.fr</a></p>
+            <p>753, Chemin de la Désirée </p>
+            <p>97351 Matoury</p>
+        </div>
+        <div class="legal">
+            <p>&copy; 2024 Nettoyage Express - Tous droits réservés</p>
+        </div>
+    </footer>
+    <!--<script src="{% static 'js/main.js' %}"></script> -->
+</body>
+</html>

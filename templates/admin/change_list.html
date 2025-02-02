@@ -1,0 +1,141 @@
+{% extends "admin/change_list.html" %}
+{% load static i18n %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="{% static 'admin/css/custom_change_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="change-list-container">
+    <h1 style="color: #007e47;">{{ opts.verbose_name_plural|capfirst }}</h1>
+
+        {% if not is_popup %}
+        <ul class="object-tools">
+            {% block object-tools-items %}
+                <!-- Vérification des permissions avant d'afficher les liens -->
+                {% if has_add_permission %}
+                    <!-- Lien pour ajouter un client -->
+                    <li>
+                        <a href="{% url 'admin:luxama_client_add' %}" class="addlink">
+                            {% blocktrans %}Ajouter un client{% endblocktrans %}
+                        </a>
+                    </li>
+
+                    <!-- Lien pour ajouter une tâche -->
+                    <li>
+                        <a href="{% url 'admin:luxama_tache_add' %}" class="addlink">
+                            {% blocktrans %}Ajouter une tâche{% endblocktrans %}
+                        </a>
+                    </li>
+
+                    <!-- Lien pour ajouter un devis -->
+                    <li>
+                        <a href="{% url 'admin:luxama_devis_add' %}" class="addlink">
+                            {% blocktrans %}Ajouter un devis{% endblocktrans %}
+                        </a>
+                    </li>
+
+                    <!-- Lien pour ajouter un service -->
+                    <li>
+                        <a href="{% url 'admin:luxama_service_add' %}" class="addlink">
+                            {% blocktrans %}Ajouter un service{% endblocktrans %}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endblock %}
+        </ul>
+    {% endif %}
+    <div class="result-list">
+        {{ block.super }}
+    </div>
+</div>
+
+<script type="text/javascript">
+    // Gestion de l'interaction avec le menu déroulant
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+
+        dropdownToggle.addEventListener('click', function (e) {
+            e.stopPropagation(); // Empêche la propagation de l'événement
+            dropdownMenu.classList.toggle('show');
+        });
+
+        // Fermer le menu si on clique en dehors
+        document.addEventListener('click', function (e) {
+            if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+    });
+</script>
+
+<style>
+    .object-tools {
+        margin-bottom: 20px;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-toggle {
+        background-color: #007e47;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .dropdown-toggle:hover {
+        background-color: #005f36;
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        background-color: white;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+        z-index: 1000;
+        margin-top: 10px;
+    }
+
+    .dropdown-menu.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: black;
+        transition: background-color 0.3s ease;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .addlink {
+        color: #007e47;
+        text-decoration: none;
+        background-color: 007e47;
+
+        border-radius: 5px;
+        font-weight: bold;
+
+    }
+    
+    .a.addlink {
+        background-color: #007e47;
+        color: #007e47;
+    }
+</style>
+
+{% endblock %}

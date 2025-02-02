@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% load static i18n %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name" style="color: #F4F4F4; font-family: Arial-Bold"> Administration Nettoyage Express </h1>
+{% endblock %}
+
+{% block nav-global %}
+    <style>
+        #header {
+            background-color: #007e47;
+        }
+        #header #branding h1 {
+            color: #F4F4F4;
+        }
+        #header #user-tools {
+            color: #F4F4F4;
+        }
+        #header #user-tools a {
+            color: #F4F4F4;
+        }
+        #header #user-tools a:hover {
+            color: #3ee59c;
+        }
+        #content {
+            background-color: #417690;
+        }
+        .breadcrumbs {
+            background-color: #3ee59c;
+            color: #007e47;
+        }
+        .breadcrumbs a {
+            color: #007e47;
+        }
+        .breadcrumbs a:hover {
+            color: #808080;
+        }
+    </style>
+{% endblock %}

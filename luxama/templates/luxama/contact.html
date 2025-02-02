@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactez Nettoyage Express</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="script" href="{% static 'js/main.js' %}">
+</head>
+<body>
+    <!-- En-tête -->
+    <header>
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="Logo Nettoyage Express">
+            <h1>Nettoyage Express</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{% url 'index' %}">Accueil</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenu principal -->
+    <main>
+        <section id="contact-form">
+            <h2>Contactez-nous</h2>
+            <form action="{% url 'submit_contact' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="nom">Nom*</label>
+                    <input type="text" id="nom" name="nom" required placeholder="Votre nom">
+                </div>
+                <div class="form-group">
+                    <label for="prenom">Prénom*</label>
+                    <input type="text" id="prenom" name="prenom" required placeholder="Votre prénom">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email*</label>
+                    <input type="email" id="email" name="email" required placeholder="exemple@domaine.com">
+                </div>
+                <div class="form-group">
+                    <label for="telephone">Téléphone*</label>
+                    <input type="tel" id="telephone" name="telephone" required placeholder="06 XX XX XX XX">
+                </div>
+                <div class="form-group">
+                    <label for="motif">Motif de contact*</label>
+                    <select id="motif" name="motif" required>
+                        <option value="">Sélectionnez un motif</option>
+                        <option value="nettoyage">Devis Nettoyage</option>
+                        <option value="peinture">Projet de Peinture</option>
+                        <option value="espace_vert">Espace vert</option>
+                        <option value="renovation">Rénovation</option>
+                        <option value="bricolage">Petits Travaux</option>
+                        <option value="devis-global">Devis Complet</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Votre message*</label>
+                    <textarea id="message" name="message" required placeholder="Décrivez votre demande"></textarea>
+                </div>
+                <button type="submit" class="submit-button" aria-label="Envoyer ma demande">
+                    Envoyer ma demande
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Pied de page -->
+    <footer>
+        <div class="contact-info">
+            <h3>Contact</h3>
+            <p>Fixe: 📞 05 94 30 23 68</p>
+            <p>Mobile: 📞 06 94 46 20 12</p>
+            <p>✉️ <a href="mailto:n.express@orange.fr">n.express@orange.fr</a></p>
+            <p>753, Chemin de la Désirée </p>
+            <p>97351 Matoury</p>
+        </div>
+        <div class="legal">
+            <p>&copy; 2024 Nettoyage Express - Tous droits réservés</p>
+        </div>
+    </footer>
+    </body>
+    
+    </html>

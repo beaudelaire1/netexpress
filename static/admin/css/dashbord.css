@@ -1,0 +1,28 @@
+.dashboard {
+    text-align: center;
+    padding: 50px;
+    background-color: #F4F4F4;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.dashboard-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+.btn {
+    background-color: #007e47;
+    color: #F4F4F4;
+    padding: 15px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+.btn:hover {
+    background-color: #3ee59c;
+}
+.btn:active {
+    background-color: #808080;
+}

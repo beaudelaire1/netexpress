@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails du client</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <h1>Détails du client</h1>
+  <p>Nom : {{ client.nom }}</p>
+  <p>Prénom : {{ client.prenom }}</p>
+  <p>Adresse : {{ client.adresse }}</p>
+  <p>Téléphone : {{ client.telephone }}</p>
+  <p>Email : {{ client.email }}</p>
+  <p>Code Postal : {{ client.code_postal }}</p>
+
+  <!-- Pied de page -->
+  <footer>
+      <div class="contact-info">
+          <h3>Contact</h3>
+          <p>Fixe: 📞 05 94 30 23 68</p>
+          <p>Mobile: 📞 06 94 46 20 12</p>
+          <p>✉️ <a href="mailto:n.express@orange.fr">n.express@orange.fr</a></p>
+          <p>753, Chemin de la Désirée</p>
+          <p>97351 Matoury</p>
+      </div>
+      <div class="legal">
+          <p>&copy; 2024 Nettoyage Express - Tous droits réservés</p>
+      </div>
+  </footer>
+</body>
+</html>
