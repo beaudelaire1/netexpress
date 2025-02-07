@@ -9,126 +9,279 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
+            margin: 2;
+            padding: 10;
             background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 10px;
+            line-height: 1.2;
+            min-height: 100vh;
+            position: relative;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header img {
-            max-width: 200px;
-        }
-        .header h1 {
-            margin: 10px 0;
-        }
-        .client-info, .devis-info {
-            margin-bottom: 20px;
-            font-family: Arial, Helvetica, sans-serif;
 
+        .container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
-        .client-info h2, .devis-info h2 {
-            margin-bottom: 10px;
-            font-family: Arial, Helvetica, sans-serif;
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+
+        .company-info {
+            text-align: left;
+        }
+
+        .company-info p {
+            margin: 5px 0;
+            font-size: 8px;
+        }
+
+        .company-info strong {
+            font-size: 10px;
+        }
+
+        .devis-number {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: right;
+        }
+
+        .info-block {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .devis-info, .client-info {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 48%;
+        }
+
+        .info-block h2 {
+            font-size: 10px;
+            margin: 0 0 3px 0;
+        }
+
         .table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
+            font-size: 8px;
         }
+
         .table th, .table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 5px;
             text-align: left;
         }
+
         .table th {
-            background-color: #f2f2f2;
+            background-color: #f8f8f8;
         }
-        .total {
+
+        .total, .initial, .reduction, .lettre {
             text-align: right;
-            margin-top: 20px;
+            margin: 0px 0;
+            font-size: 8px;
+            padding: 0 px;
         }
-        .total p {
-            margin: 5px 0;
+
+        .total strong {
+            font-size: 10px;
         }
-        .print-button {
-            margin-top: 20px;
+        .lettre strong {
+            font-size: 10px;
+        }
+
+        .bottom-content {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+        }
+
+        .footer {
+            font-size: 8px;
+            color: #666;
             text-align: center;
+            margin-bottom: 5px;
         }
+
+        .signature {
+            text-align: center;
+            font-size: 8px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .signature-box {
+            border: 1px solid #ddd;
+            padding: 5px;
+            min-height: 60px;
+            margin: 5px auto;
+            width: 180px;
+        }
+
+        .legal-mentions {
+            text-align: center;
+            font-size: 8px;
+            margin-top: 5px;
+        }
+
+        .print-button, .navigation-buttons {
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .print-button button, .navigation-buttons button {
+            padding: 4px 8px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 8px;
+            margin: 0 3px;
+        }
+
         @media print {
             body {
-                background-color: #fff;
                 margin: 0;
                 padding: 0;
-                font-size: 12pt;
             }
+
             .container {
                 width: 100%;
+                height: 100vh;
                 margin: 0;
-                padding: 20px;
-                box-shadow: none;
+                padding: 10px;
+                page-break-after: always;
             }
-            .print-button {
+
+            .print-button, .navigation-buttons {
                 display: none;
+            }
+
+            .bottom-content {
+                position: fixed;
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+            }
+
+            .table {
+                page-break-inside: avoid;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="{% static 'images/logo.png' %}" alt="Logo de l'entreprise">
-            <h1>Devis</h1>
-        </div>
-        <div class="client-info">
-            <h2>Informations du Client</h2>
-            <p><strong>Nom:</strong> {{ devis.client.nom }}</p>
-            <p><strong>Prénom:</strong> {{ devis.client.prenom }}</p>
-            <p><strong>Email:</strong> {{ devis.client.email }}</p>
-            <p><strong>Téléphone:</strong> {{ devis.client.telephone }}</p>
-            <p><strong>Adresse:</strong> {{ devis.client.adresse }}</p>
-        </div>
-        <div class="devis-info">
-            <h2>Détails du Devis</h2>
-            <p><strong>Date de Création:</strong> {{ devis.date_de_creation }}</p>
-        </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Service</th>
-                    <th>Description</th>
-                    <th>Prix</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for service in devis.service.all %}
+        <div class="main-content">
+            <div class="header">
+                <img src="{% static 'images/logo.png' %}" alt="Logo de l'entreprise" style="max-width: 100px; height: auto;">
+                <div class="company-info">
+                    <p><strong>Nettoyage Express Sarl</strong></p>
+                    <p>Fixe : 📞 05 94 30 23 68</p>
+                    <p>Mobile : 📞 06 94 46 20 12</p>
+                    <p>753, Chemin de la Désirée</p>
+                    <p>97351 Matoury</p>
+                </div>
+            </div>
+
+            <div class="devis-number">DEVIS N° {{ devis.numero_devis }}</div>
+
+            <div class="info-block">
+                <div class="devis-info">
+                    <h2>Détails du Devis</h2>
+                    <p><strong>Date de Création :</strong> {{ devis.date_de_creation }}</p>
+                    <p><strong>Date de Validité :</strong> {{ devis.date_de_validite }} jours</p>
+                </div>
+                <div class="client-info">
+                    <h2>Informations du Client</h2>
+                    <p><strong>Nom :</strong> {{ devis.client.nom }}</p>
+                    <p><strong>Prénom :</strong> {{ devis.client.prenom }}</p>
+                    <p><strong>Adresse :</strong> {{ devis.client.adresse }}</p>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ service.nom }}</td>
-                        <td>{{ service.description }}</td>
-                        <td>{{ service.prix }}</td>
+                        <th>Service</th>
+                        <th>Description</th>
+                        <th>Prix</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="initial">
-            <p><strong>Prix initial:</strong> {{ devis.prix_initial }}€</p>
+                </thead>
+                <tbody>
+                    {% for service in devis.service.all %}
+                        <tr>
+                            <td>{{ service.nom }}</td>
+                            <td>{{ service.description }}</td>
+                            <td>{{ service.prix }} €</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="initial">
+                <p><strong>Prix initial :</strong> {{ devis.prix_initial }}€</p>
+            </div>
+            <div class="reduction">
+                <p><strong>Remise :</strong> {{ devis.reduction }}%</p>
+            </div>
+            <div class="total">
+                <p><strong>Prix Total :</strong> {{ devis.prix_total }}€</p>
+            </div>
+            <div  class="lettre">
+                <p><strong>Montant en Lettre :</strong> {{ devis.prix_total_lettre }}</p>
+            </div>
+
+            <div class="signature">
+                <p>Signature précédée de la mention "BON POUR ACCORD"</p>
+                <div class="signature-box"></div>
+            </div>
         </div>
-        <div class="reduction">
-            <p><strong>Remise:</strong> {{ devis.reduction }}%</p>
-        </div>
-         <div class="total">
-            <p><strong>Prix Total:</strong> {{ devis.prix_total }}€</p>
-        </div>
-        <div class="print-button">
-            <button onclick="window.print()">Imprimer le Devis</button>
+
+        <div class="bottom-content">
+            <div class="legal-mentions">
+                <p>TVA non applicable, art. 293B du CGI</p>
+                <p>En cas d'acceptation de ce devis, veuillez le retourner signé précédé de la mention "BON POUR ACCORD"</p>
+            </div>
+
+            <div class="footer">
+                <p>Nettoyage Express Sarl - SIRET : 820 474 195 000 22 - APE : 8130 Z</p>
+            </div>
+
+            <div class="print-button">
+                <button onclick="window.print()">Imprimer le Devis</button>
+            </div>
+
+            <div class="navigation-buttons">
+                {% if prev_devis_id %}
+                    <button onclick="window.location.href='{% url 'afficher_devis' prev_devis_id %}'">Devis Précédent</button>
+                {% endif %}
+                {% if next_devis_id %}
+                    <button onclick="window.location.href='{% url 'afficher_devis' next_devis_id %}'">Devis Suivant</button>
+                {% endif %}
+            </div>
         </div>
     </div>
 </body>

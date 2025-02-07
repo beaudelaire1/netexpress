@@ -1,5 +1,8 @@
 import os
-import django
+import datetime
+from random import  randint
+from num2words import num2words
+#import django
 import smtplib
 from django.db import models
 from django.urls import reverse
@@ -9,21 +12,18 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import numpy as np
+# import numpy as np
 
 
 # Configuration externe (à placer dans settings.py ou variables d'environnement)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'netexpress.netexpress.settings')
-#django.setup()
-
-# Maintenant, vous pouvez accéder aux paramètres Django
 
 
-CONFIG_EMAIL = "ne-pas-repondre@nettoyage-express-sarl.fr"      #"ne-pas-repondre@nettoyage-express-sarl.fr"
-CONFIG_PASSWORD = "Luxama973@"  #"zuvoozfusikgciba"
-CONFIG_SERVER = "mail.nettoyage-express-sarl.fr"            #"smtp.gmail.com"  #"mail.nettoyage-express-sarl.fr"
-CONFIG_SERVER_PORT = 465 #465  #587
-CONFIG_RECIPIENT = "n.express@orange.fr"  #"n.express@orange.fr"  # Adresse de l'administrateur
+CONFIG_EMAIL = "ne-pas-repondre@nettoyage-express-sarl.fr"
+CONFIG_PASSWORD = "Luxama973@"  # "zuvoozfusikgciba"
+CONFIG_SERVER = "mail.nettoyage-express-sarl.fr"            # "smtp.gmail.com"
+CONFIG_SERVER_PORT = 465  # 465  # 587
+CONFIG_RECIPIENT ="n.express@orange.fr"  # Adresse de l'administrateur "vilmebeaudelaire5@gmail.com" #
 
 
 # Modèle Service (inchangé)
@@ -46,6 +46,7 @@ class Service(models.Model):
     def get_absolute_url(self):
         return reverse('service_detail', kwargs={'pk': self.pk})
 
+
 # Modèle Client (inchangé)
 class Client(models.Model):
     nom = models.CharField(max_length=100)
@@ -61,17 +62,40 @@ class Client(models.Model):
     def get_absolute_url(self):
         return reverse('client_detail', kwargs={'pk': self.pk})
 
+
 # Modèle Devis (inchangé)
 class Devis(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="devis")
     service = models.ManyToManyField(Service, related_name="devis")
-    prix_initial = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    prix_initial = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     reduction = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    date_de_creation = models.DateTimeField(auto_now_add=True)
+    date_de_creation = models.DateField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
+    date_de_validite = models.DateField(default=lambda: timezone.now() + datetime.timedelta(days=30))
+    numero_devis = models.CharField(max_length=50, unique=True, editable=False)
+
+    def generate_numero_devis(self):
+        while True:
+            numero = 'DEV-' + str(datetime.datetime.now().year) + str(randint(1000, 9999))
+            if not Devis.objects.filter(numero_devis=numero).exists():
+                return numero
+
+    def save(self, *args, **kwargs):
+        if not self.numero_devis:
+            self.numero_devis = self.generate_numero_devis()
+        super(Devis, self).save(*args, **kwargs)
 
     @property
     def prix_total(self):
-        return self.prix_initial - (self.prix_initial * self.reduction / 100)
+        if self.prix_initial is not None: # and self.reduction is not None:
+            return self.prix_initial - (self.prix_initial * self.reduction / 100)
+        elif self.prix_initial is not None:
+            return self.prix_initial  # Retourne le prix initial si la réduction est None
+        else:
+            return 0  # Retourne 0 si le prix initial est None
+
+    def prix_total_lettre(self):
+        return num2words(float(self.prix_total), to='currency', lang='fr')
 
     def __str__(self):
         return f"Devis: {self.client} - {self.prix_total}€"
@@ -81,8 +105,12 @@ class Devis(models.Model):
         verbose_name = "Devis"
         verbose_name_plural = "Devis"
 
+
 # Modèle Tâche (avec améliorations)
 class Tache(models.Model):
+    """ Modèle représentant une tâche avec un statut, une localisation et des dates associées. """
+
+    # Définition des statuts possibles
     EN_ATTENTE = 'En attente'
     EN_COURS = 'En cours'
     TERMINE = 'Terminé'
@@ -93,69 +121,87 @@ class Tache(models.Model):
         (TERMINE, 'Terminé'),
     ]
 
+    # Champs du modèle
     titre = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True, default="Il n'y a aucune description pour cette tâche.")
     localisation = models.CharField(max_length=100, blank=True, null=True)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default=EN_ATTENTE)
-    date_debut = models.DateTimeField(default=timezone.now)
-    date_fin = models.DateTimeField(blank=True, null=True)
+    date_debut = models.DateField(default=timezone.now)
+    date_fin = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return self.titre
+        """ Représentation en string de l'objet. """
+        return f"{self.titre} ({self.statut})"
+
 
     def get_absolute_url(self):
+        """ Retourne l'URL pour accéder au détail de la tâche. """
         return reverse('tache_detail', kwargs={'pk': self.pk})
 
+    def statut_changed(self):
+        """ Vérifie si le statut a changé. """
+        return self.statut == self.statut
+    def is_due_soon(self, days_threshold=3):
+        """
+        Vérifie si la tâche est proche de son échéance (dans `days_threshold` jours).
+        :param days_threshold: Nombre de jours avant la date de fin pour déclencher l'alerte.
+        :return: True si la tâche arrive bientôt à échéance, sinon False.
+        """
+        if not self.date_fin:
+            return False  # Pas de date de fin définie
+        return (self.date_fin.date() - timezone.now().date()).days <= days_threshold
+
     def generer_notification(self):
+        """
+        Génère un message de notification en fonction du statut et de la date de fin.
+        :return: Message de notification sous forme de chaîne de caractères.
+        """
+        base_message = f"Bonjour,\n\nLa tâche {self.titre.upper()}, située à {self.localisation}"
+
         if self.statut == self.TERMINE:
-            return f"Bonjour,\n\nLa tâche {self.titre.upper()}, située à {self.localisation} située à {self.localisation} est terminée.\n\nDescription: \n{self.description}\n\n\nCordialement,"
+            return f"{base_message} est terminée.\n\nDescription: \n{self.description}\n\nCordialement,"
 
         if not self.date_fin:
-            return f"Bonjour,\n\nLa tâche {self.titre.upper()}, située à {self.localisation} est en cours, date de fin non définie. \n\nDescription:\n {self.description}\n\n\nCordialement, "
+            return f"{base_message} est en cours, mais la date de fin n'est pas définie.\n\nDescription:\n{self.description}\n\nCordialement,"
 
-        delta = np.abs((self.date_fin - timezone.now()).days)
+        delta = (self.date_fin.date() - timezone.now().date()).days
 
-        if delta <= 3:
-            return f"Bonjour,\n\nLa tâche {self.titre.upper()}, située à {self.localisation}, actuellement {self.statut}, doit être terminée dans {delta} jours. \n\nDescription: \n{self.description}\n\n\nCordialement,"
-        else:
-            return f"Bonjour,\n\nLa tâche {self.titre.upper()}, située à {self.localisation}, actuellement {self.statut}, doit être terminée dans {delta} jours.\n\n" \
-                   f"Description: \n{self.description}\n\n\nCordialement,"
+        if delta == 0:
+            return f"{base_message}, actuellement {self.statut}, doit être terminée AUJOURD’HUI.\n\nDescription: \n{self.description}\n\nCordialement,"
+
+        if 0 < delta <= 3:
+            return f"{base_message}, actuellement {self.statut}, doit être terminée dans {delta} jours.\n\nDescription: \n{self.description}\n\nCordialement,"
+
+        return f"{base_message}, actuellement {self.statut}, doit être terminée dans {delta} jours.\n\nDescription:\n{self.description}\n\nCordialement,"
 
     def save(self, *args, **kwargs):
-        if self.pk:  # Si l'instance existe déjà (mise à jour)
+        """
+        Surcharge de la méthode save() pour :
+        - Vérifier la cohérence des dates (date_fin >= date_debut)
+        - Déclencher des actions en cas de changement de statut
+        """
+
+        # Vérifier si l'instance existait déjà avant modification
+        if self.pk:
             original = Tache.objects.get(pk=self.pk)
+
+            # Si le statut passe à "Terminé", enregistrer la date de fin
+            if original.statut != self.TERMINE and self.statut == self.TERMINE:
+                self.date_fin = timezone.now()
+
+        # Vérifier la cohérence des dates
+        if self.date_fin and self.date_fin < self.date_debut:
+            raise ValueError("La date de fin ne peut pas être antérieure à la date de début.")
 
         super().save(*args, **kwargs)
 
 
-
-"""
 # Service d'envoi d'email
 class EmailService:
     @staticmethod
-    def envoyer_email(message_email):
+    def envoyer_email(message_email, subject="NOTIFICATION NETTOYAGE EXPRESS"):
         multipart_message = MIMEMultipart()
-        multipart_message["Subject"] = "NOTIFICATION NETTOYAGE EXPRESS"
-        multipart_message["From"] = CONFIG_EMAIL
-        multipart_message["To"] = CONFIG_RECIPIENT
-        multipart_message.attach(MIMEText(message_email, "plain"))
-
-        try:
-            serveur_mail = smtplib.SMTP(CONFIG_SERVER, CONFIG_SERVER_PORT)
-            serveur_mail.starttls()
-            serveur_mail.login(CONFIG_EMAIL, CONFIG_PASSWORD)
-            serveur_mail.sendmail(CONFIG_EMAIL, CONFIG_RECIPIENT, multipart_message.as_string())
-            serveur_mail.quit()
-        except Exception as e:
-            print(f"Erreur lors de l'envoi de l'email: {e}") """
-
-
-# Service d'envoi d'email
-class EmailService:
-    @staticmethod
-    def envoyer_email(message_email):
-        multipart_message = MIMEMultipart()
-        multipart_message["Subject"] = "NOTIFICATION NETTOYAGE EXPRESS"
+        multipart_message["Subject"] = subject
         multipart_message["From"] = CONFIG_EMAIL
         multipart_message["To"] = CONFIG_RECIPIENT
         multipart_message.attach(MIMEText(message_email, "plain"))
@@ -165,9 +211,6 @@ class EmailService:
             print("🟢 Connexion au serveur SMTP...")
             serveur_mail = smtplib.SMTP_SSL(CONFIG_SERVER, CONFIG_SERVER_PORT)
             print("✅ Connexion réussie")
-            #serveur_mail.ehlo()
-            #serveur_mail.starttls()
-
 
             serveur_mail.login(CONFIG_EMAIL, CONFIG_PASSWORD)
             print("✅ Authentification réussie")
@@ -192,16 +235,7 @@ class EmailService:
 
 # Signal pour envoyer une notification lors de la création ou mise à jour d'une tâche
 @receiver(post_save, sender=Tache)
-def send_notification(sender, instance, created, **kwargs):
+def send_notification(sender, instance, created,  **kwargs):
     if created or instance.statut_changed or instance.dates_changed:
         message = instance.generer_notification()
         EmailService.envoyer_email(message)
-
-# Test de la notification (dans un script de test ou un management command)
-def test_notification(tache_id):
-    try:
-        tache = Tache.objects.get(pk=tache_id)
-        send_notification(Tache, tache, created=False)  # Simule une mise à jour
-        print("Notification testée.")
-    except Tache.DoesNotExist:
-        print("Tâche non trouvée.")
