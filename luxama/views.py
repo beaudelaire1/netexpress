@@ -1,30 +1,25 @@
-from django.contrib.auth.decorators import login_required  #, user_passes_test, permission_required
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+import logging
 
 from .forms import ContactForm, TacheForm, DevisForm
-from .models import Devis, Client, Service
-
+from .models import Devis, Client, Service, EmailService as send_mail
 
 def index(request):
     return render(request, 'luxama/index.html')
 
-
 def nettoyage(request):
     return render(request, 'luxama/nettoyage.html')
-
 
 def peinture(request):
     return render(request, 'luxama/peinture.html')
 
-
 def bricolage(request):
     return render(request, 'luxama/bricolage.html')
 
-
 def renovation(request):
     return render(request, 'luxama/renovation.html')
-
 
 def contact(request):
     if request.method == "POST":
@@ -38,33 +33,57 @@ def contact(request):
         return render(request, 'luxama/sendingData.html')
     return render(request, 'luxama/contact.html')
 
-
 def submit_contact(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
+            # Récupération des données du formulaire
             nom = form.cleaned_data['nom']
             prenom = form.cleaned_data['prenom']
             email = form.cleaned_data['email']
             telephone = form.cleaned_data['telephone']
             motif = form.cleaned_data['motif']
             message = form.cleaned_data['message']
-            return render(request, 'luxama/sendingData.html')
+
+            # Envoi de l'email en HTML
+            corps_message = (
+                "Bonjour,\n\n"
+                "Quelqu'un vous a contacté depuis le site de votre entreprise.\n\n"
+                "Vous trouverez ci-dessous ses coordonnées et son message:\n\n"
+                "Coordonnées\n"
+                "------------\n"
+                f"Nom: {nom}\n"
+                f"Prénom: {prenom}\n"
+                f"Email: {email}\n"
+                f"Téléphone: {telephone}\n\n"
+                "Message\n"
+                "-------\n"
+                f"Motif: {motif}\n"
+                f"Message: {message}\n\n"
+                "Vous disposez d'un bref délai pour faire une réponse.\n\n"
+                "Cordialement,\n"
+                "Votre site Nettoyage Express"
+            )
+
+            send_mail.envoyer_email(corps_message, subject="NOUVEAU MESSAGE DE CONTACT DEPUIS LE SITE NETTOYAGE EXPRESS")
+            # Redirection ou confirmation après envoi
+            return render(request, 'luxama/sendingData.html', {'form': form})  # Afficher la page de confirmation
     else:
         form = ContactForm()
-    return render(request, 'luxama/contact.html', {'form': form})
 
+    return render(request, 'luxama/contact.html', {'form': form})
 
 def handle_contact_form(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
             print(form.cleaned_data)
-            return redirect('luxama/sendingData.html')
+            return redirect('sendingData')  # Utilisez le nom de la vue ou l'URL nommée
     else:
         form = ContactForm()
     return render(request, 'luxama/contact.html', {'form': form})
 
+#logger = logging.getLogger(__name__)
 
 @login_required
 def creer_devis(request):
@@ -87,22 +106,15 @@ def creer_devis(request):
         'clients': clients,
         'services': services
     })
-
-
 @login_required
 def detail_devis(request, devis_id):
-    list_id = [devis.id for devis in Devis.objects.all()]
-    if devis_id not in list_id:
-        devis_id = list_id[-1]
     devis = get_object_or_404(Devis, id=devis_id)
     return render(request, 'luxama/detail_devis.html', {'devis': devis})
-
 
 @login_required
 def client_detail(request, pk):
     client = get_object_or_404(Client, pk=pk)
     return render(request, 'luxama/client_detail.html', {'client': client})
-
 
 @login_required
 def custom_dashboard(request):
@@ -113,18 +125,5 @@ def custom_dashboard(request):
     }
     return render(request, 'admin/index.html', context)
 
-
 def sendingData(request):
     return render(request, 'luxama/sendingData.html')
-
-
-"""def creer_tache(request):
-    if request.method == "POST":
-        form = TacheForm(request.POST)
-        if form.is_valid():
-            form.save()
-        else:
-            print(form.errors)  # Affiche les erreurs de validation
-
-    form = TacheForm()
-    return render(request, 'luxama/creer_tache.html', {'form': form})"""

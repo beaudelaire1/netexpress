@@ -1,12 +1,11 @@
 from django import forms
 from .models import Devis, Service, Tache, Client
 
-
 class ContactForm(forms.Form):
-    nom = forms.CharField(max_length=100, label="Nom")
-    prenom = forms.CharField(max_length=100, label="Prenom")
-    email = forms.EmailField(label="Email")
-    telephone = forms.CharField(max_length=15, label="Telephone")
+    nom = forms.CharField(max_length=100, label="Nom", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    prenom = forms.CharField(max_length=100, label="Prénom", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(label="Email", widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    telephone = forms.CharField(max_length=15, label="Téléphone", widget=forms.TextInput(attrs={'class': 'form-control'}))
     motif = forms.ChoiceField(
         choices=[
             ('nettoyage', 'Devis Nettoyage'),
@@ -16,16 +15,16 @@ class ContactForm(forms.Form):
             ('bricolage', 'Petits Travaux'),
             ('autre', 'Autre')
         ],
-        label="Motif de contact"
+        label="Motif de contact",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-    message = forms.CharField(label="Message", widget=forms.Textarea)
+    message = forms.CharField(label="Message", widget=forms.Textarea(attrs={'class': 'form-control'}))
 
 
 class DevisForm(forms.ModelForm):
     class Meta:
         model = Devis
         fields = ['client', 'prix_initial', 'reduction']
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['client'].queryset = Client.objects.all()
@@ -40,31 +39,16 @@ class DevisForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class TacheForm(forms.ModelForm):
     class Meta:
         model = Tache
         fields = ['titre', 'description', 'localisation', 'statut', 'date_debut', 'date_fin']
-
-
-
-"""class ajouterServiceForm(forms.ModelForm):
-    class Meta:
-        model = Service
-        fields = ['nom', 'prix', 'service']
-        labels = {
-            'nom': 'Nom du service',
-            'prix': 'Prix du service',
-            'service': 'Catégorie du service'
-        }
-
-        error_messages = {
-            'nom': {
-                'max_length': 'Le nom du service est trop long.'
-            }
-        }
         widgets = {
-            'nom': forms.TextInput(attrs={'class': 'form-control'}),
-            'prix': forms.NumberInput(attrs={'class': 'form-control'}),
-            'service': forms.Select(attrs={'class': 'form-control'})
+            'titre': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'localisation': forms.TextInput(attrs={'class': 'form-control'}),
+            'statut': forms.Select(attrs={'class': 'form-control'}),
+            'date_debut': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'date_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
-"""
