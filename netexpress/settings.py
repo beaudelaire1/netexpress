@@ -19,7 +19,7 @@ print(BASE_DIR)
 SECRET_KEY = 'django-insecure-!7_+-al$^ir(t%tkj@erfb$5=1e6#%w#x+w7e1&ts+wotwd5it'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['16.170.243.129',  '127.0.0.1']
 

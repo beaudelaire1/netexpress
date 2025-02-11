@@ -2,7 +2,7 @@ import os
 import datetime
 from random import  randint
 from num2words import num2words
-#import django
+from datetime import datetime, timedelta
 import smtplib
 from django.db import models
 from django.urls import reverse
@@ -12,6 +12,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from datetime import timedelta
+from django.utils import timezone
+
+def date_de_validite_default():
+    return timezone.now() + timedelta(days=30)
+
 # import numpy as np
 
 
@@ -71,7 +77,7 @@ class Devis(models.Model):
     reduction = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     date_de_creation = models.DateField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
-    date_de_validite = models.DateField(default=lambda: timezone.now() + datetime.timedelta(days=30))
+    date_de_validite = models.DateField(default=date_de_validite_default)
     numero_devis = models.CharField(max_length=50, unique=True, editable=False)
 
     def generate_numero_devis(self):
