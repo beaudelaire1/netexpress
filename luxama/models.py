@@ -23,7 +23,7 @@ CONFIG_EMAIL = "ne-pas-repondre@nettoyage-express-sarl.fr"
 CONFIG_PASSWORD = "Luxama973@"  # "zuvoozfusikgciba"
 CONFIG_SERVER = "mail.nettoyage-express-sarl.fr"            # "smtp.gmail.com"
 CONFIG_SERVER_PORT = 465  # 465  # 587
-CONFIG_RECIPIENT ="n.express@orange.fr"  # Adresse de l'administrateur "vilmebeaudelaire5@gmail.com" #
+CONFIG_RECIPIENT ="vilmebeaudelaire5@gmail.com" # "n.express@orange.fr"  # Adresse de l'administrateur
 
 
 # Modèle Service (inchangé)
@@ -199,11 +199,11 @@ class Tache(models.Model):
 # Service d'envoi d'email
 class EmailService:
     @staticmethod
-    def envoyer_email(message_email, subject="NOTIFICATION NETTOYAGE EXPRESS"):
+    def envoyer_email(message_email, destinataire, subject="NOTIFICATION NETTOYAGE EXPRESS"):
         multipart_message = MIMEMultipart()
         multipart_message["Subject"] = subject
         multipart_message["From"] = CONFIG_EMAIL
-        multipart_message["To"] = CONFIG_RECIPIENT
+        multipart_message["To"] = destinataire
         multipart_message.attach(MIMEText(message_email, "plain"))
 
         try:
@@ -215,16 +215,16 @@ class EmailService:
             serveur_mail.login(CONFIG_EMAIL, CONFIG_PASSWORD)
             print("✅ Authentification réussie")
 
-            serveur_mail.sendmail(CONFIG_EMAIL, CONFIG_RECIPIENT, multipart_message.as_string())
+            serveur_mail.sendmail(CONFIG_EMAIL, destinataire, multipart_message.as_string())
             serveur_mail.quit()
-            print("✅ Email envoyé avec succès à", CONFIG_RECIPIENT)
+            print("✅ Email envoyé avec succès à", destinataire)
 
         except smtplib.SMTPAuthenticationError:
             print("❌ Erreur d'authentification SMTP : vérifiez votre email/mot de passe.")
         except smtplib.SMTPConnectError:
             print("❌ Impossible de se connecter au serveur SMTP : vérifiez l'hôte et le port.")
         except smtplib.SMTPRecipientsRefused:
-            print(f"❌ Le destinataire {CONFIG_RECIPIENT} a refusé l'email.")
+            print(f"❌ Le destinataire {destinataire} a refusé l'email.")
         except smtplib.SMTPSenderRefused:
             print(f"❌ L'expéditeur {CONFIG_EMAIL} a été refusé par le serveur.")
         except smtplib.SMTPDataError:

@@ -6,7 +6,7 @@
     <title>Espace Administration - Nettoyage Express</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="script" href="{% static 'js/main.js' %}">
+    <script src="{% static 'js/main.js' %}" defer></script>
 </head>
 <body>
     <!-- En-tête -->
@@ -34,9 +34,9 @@
                         <li>Nouvelles demandes: <span class="badge">{{ nouvelles_demandes }}</span></li>
                         <li>En cours de traitement: <span class="badge">{{ demandes_en_cours }}</span></li>
                     </ul>
-                    <button aria-label="Gérer les demandes">
+                    <a href="{% url 'admin:demandes_contact' %}" class="button">
                         Gérer les demandes
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Section devis -->
@@ -46,9 +46,9 @@
                         <li>Devis en attente: <span class="badge">{{ devis_attente }}</span></li>
                         <li>Devis validés: <span class="badge">{{ devis_valides }}</span></li>
                     </ul>
-                    <button aria-label="Liste des devis" >
+                    <a href="{% url 'admin:liste_devis' %}" class="button">
                         Liste des devis
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Section planning des interventions -->
@@ -57,9 +57,9 @@
                     <ul>
                         <li>Interventions cette semaine: <span class="badge">{{ interventions_semaine }}</span></li>
                     </ul>
-                    <button aria-label="Calendrier" >
+                    <a href="{% url 'admin:calendrier' %}" class="button">
                         Calendrier
-                    </button>
+                    </a>
                 </div>
             </div>
         </section>
@@ -68,19 +68,9 @@
     <!-- Pied de page -->
     <footer>
         <div class="contact-info">
-            <p>Espace réservé à l'administration</p>
-        </div>
-        <div class="legal">
-            <p>&copy; 2024 Nettoyage Express</p>
-        </div>
-    </footer>
-    <!-- Pied de page -->
-    <footer>
-        <div class="contact-info">
             <p>📞 05 94 30 23 68</p>
             <p>📞 06 94 46 20 12</p>
-            <p>✉️ <a href="mailto:n.express@orange.fr">n.express@orange.fr</a></p>
-            <p>753, Chemin de la Désirée </p>
+            <p>753, Chemin de la Désirée</p>
             <p>97351 Matoury</p>
         </div>
         <div class="legal">

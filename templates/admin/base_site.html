@@ -1,45 +1,16 @@
 {% extends "admin/base.html" %}
 
-<!--
 {% load static i18n %}
-{% block extrastyle %}
-    {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
-{% endblock %}
 
 {% block branding %}
-    <h1 id="site-name" style="color: #F4F4F4; font-family: Arial-Bold"> Administration Nettoyage Express </h1>
+    <h1 id="site-name">Administration Nettoyage Express</h1>
+{% endblock %}
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
 
-{% block nav-global %}
-    <style>
-        #header {
-            background-color: #007e47;
-        }
-        #header #branding h1 {
-            color: #F4F4F4;
-        }
-        #header #user-tools {
-            color: #F4F4F4;
-        }
-        #header #user-tools a {
-            color: #F4F4F4;
-        }
-        #header #user-tools a:hover {
-            color: #3ee59c;
-        }
-        #content {
-            background-color: #417690;
-        }
-        .breadcrumbs {
-            background-color: #3ee59c;
-            color: #007e47;
-        }
-        .breadcrumbs a {
-            color: #007e47;
-        }
-        .breadcrumbs a:hover {
-            color: #808080;
-        }
-    </style>
-{% endblock %} -->

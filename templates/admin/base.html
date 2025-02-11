@@ -1,6 +1,7 @@
-{% load i18n static %}<!DOCTYPE html>
+{% load i18n static %}
+<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
-<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
+<html lang="{{ LANGUAGE_CODE|default:"fr-fr" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
 <head>
 <title>{% block title %}{% endblock %}</title>
 <link rel="stylesheet" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
@@ -91,7 +92,7 @@
         {% block messages %}
           {% if messages %}
             <ul class="messagelist">{% for message in messages %}
-              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+              <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
             {% endfor %}</ul>
           {% endif %}
         {% endblock messages %}
