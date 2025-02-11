@@ -4,7 +4,7 @@ from django.urls import reverse
 import logging
 
 from .forms import ContactForm, TacheForm, DevisForm
-from .models import Devis, Client, Service, EmailService as send_mail
+from .models import Devis, Client, Service, EmailService as send_mail, CONFIG_RECIPIENT
 
 def index(request):
     return render(request, 'luxama/index.html')
@@ -48,7 +48,7 @@ def submit_contact(request):
             # Envoi de l'email en HTML
             corps_message = (
                 "Bonjour,\n\n"
-                "Quelqu'un vous a contacté depuis le site de votre entreprise.\n\n"
+                "Quelqu'un vous a contacté depuis le site de Nettoyage Express.\n\n"
                 "Vous trouverez ci-dessous ses coordonnées et son message:\n\n"
                 "Coordonnées\n"
                 "------------\n"
@@ -60,12 +60,18 @@ def submit_contact(request):
                 "-------\n"
                 f"Motif: {motif}\n"
                 f"Message: {message}\n\n"
-                "Vous disposez d'un bref délai pour faire une réponse.\n\n"
+                "Votre site Nettoyage ExpressNettoyage Express"
+            )
+            email_client = (
+                "Bonjour,\n\n"
+                f"Vous avez contacté Nettoyage Express pour le service {motif}.\n\n"
+                f"Voici un récapitulatif de votre message:\n--------\n{message}\n--------\n\n"
+                "Nous avons bien reçu votre message et nous vous répondrons dans les plus brefs délais.\n\n"
                 "Cordialement,\n"
-                "Votre site Nettoyage Express"
             )
 
-            send_mail.envoyer_email(corps_message, subject="NOUVEAU MESSAGE DE CONTACT DEPUIS LE SITE NETTOYAGE EXPRESS")
+            send_mail.envoyer_email(corps_message, CONFIG_RECIPIENT, subject="NOUVEAU MESSAGE DE CONTACT DEPUIS LE SITE NETTOYAGE EXPRESS")
+            send_mail.envoyer_email(email_client, email, subject="noreply - CONFIRMATION DE VOTRE MESSAGE DE CONTACT")
             # Redirection ou confirmation après envoi
             return render(request, 'luxama/sendingData.html', {'form': form})  # Afficher la page de confirmation
     else:
