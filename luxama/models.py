@@ -132,8 +132,8 @@ class Tache(models.Model):
     description = models.TextField(blank=True, null=True, default="Il n'y a aucune description pour cette tâche.")
     localisation = models.CharField(max_length=100, blank=True, null=True)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default=EN_ATTENTE)
-    date_debut = models.DateField(default=timezone.now)
-    date_fin = models.DateField(blank=True, null=True)
+    date_debut = models.DateField()
+    date_fin = models.DateField()
 
     def __str__(self):
         """ Représentation en string de l'objet. """
@@ -155,7 +155,7 @@ class Tache(models.Model):
         """
         if not self.date_fin:
             return False  # Pas de date de fin définie
-        return (self.date_fin.date() - timezone.now().date()).days <= days_threshold
+        return (self.date_fin - timezone.now().date()).days <= days_threshold
 
     def generer_notification(self):
         """
@@ -170,7 +170,10 @@ class Tache(models.Model):
         if not self.date_fin:
             return f"{base_message} est en cours, mais la date de fin n'est pas définie.\n\nDescription:\n{self.description}\n\nCordialement,"
 
-        delta = (self.date_fin.date() - timezone.now().date()).days
+        delta = (self.date_fin - timezone.now().date()).days
+
+        if self.statut_changed():
+            return f"la tâche {self.titre.upper()} a changé de statut.\n\nElle passe à {self.statut}\n\nCordialement,"
 
         if delta == 0:
             return f"{base_message}, actuellement {self.statut}, doit être terminée AUJOURD’HUI.\n\nDescription: \n{self.description}\n\nCordialement,"
@@ -193,10 +196,10 @@ class Tache(models.Model):
 
             # Si le statut passe à "Terminé", enregistrer la date de fin
             if original.statut != self.TERMINE and self.statut == self.TERMINE:
-                self.date_fin = timezone.now()
+                self.date_fin = timezone.now().date()
 
         # Vérifier la cohérence des dates
-        if self.date_fin and self.date_fin < self.date_debut:
+        if self.date_fin < self.date_debut:
             raise ValueError("La date de fin ne peut pas être antérieure à la date de début.")
 
         super().save(*args, **kwargs)
@@ -242,6 +245,12 @@ class EmailService:
 # Signal pour envoyer une notification lors de la création ou mise à jour d'une tâche
 @receiver(post_save, sender=Tache)
 def send_notification(sender, instance, created,  **kwargs):
-    if created or instance.statut_changed or instance.dates_changed:
+    if created :
         message = instance.generer_notification()
-        EmailService.envoyer_email(message)
+        EmailService.envoyer_email(message, CONFIG_RECIPIENT)
+    if instance.statut_changed():
+        message = instance.generer_notification()
+        EmailService.envoyer_email(message, CONFIG_RECIPIENT, "CHANGEMENT DE STATUT DE TÂCHE NETTOYAGE EXPRESS")
+    if instance.is_due_soon():
+        message = instance.generer_notification()
+        EmailService.envoyer_email(message, CONFIG_RECIPIENT, "ALERTE - TÂCHE À ÉCHEANCE IMMINENTE NETTOYAGE EXPRESS")
