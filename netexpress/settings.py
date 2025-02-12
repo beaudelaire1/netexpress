@@ -9,8 +9,11 @@ CONFIG_RECIPIENT = "vilmebeaudelaire5@gmail.com"
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-print(BASE_DIR)
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -19,9 +22,9 @@ print(BASE_DIR)
 SECRET_KEY = 'django-insecure-!7_+-al$^ir(t%tkj@erfb$5=1e6#%w#x+w7e1&ts+wotwd5it'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['16.171.148.244',  '127.0.0.1', '0.0.0.0:8000']
+ALLOWED_HOSTS = ['*'] #'16.171.148.244',  '127.0.0.1', '0.0.0.0:8000'
 
 
 # Application definition
@@ -74,7 +77,7 @@ WSGI_APPLICATION = 'netexpress.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
