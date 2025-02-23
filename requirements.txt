@@ -5,7 +5,4 @@ num2words==0.5.14
 numpy==2.2.2
 sqlparse==0.5.3
 tzdata==2024.2
-<<<<<<< HEAD
-=======
 
->>>>>>> 6452e52f2a14546ae614b3c0889268947f54a3cf
