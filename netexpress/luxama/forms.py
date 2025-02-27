@@ -1,133 +1,54 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-import logging
+from django import forms
+from .models import Devis, Service, Tache, Client
 
-from .forms import ContactForm, TacheForm, DevisForm
-from .models import Devis, Client, Service, EmailService as send_mail, CONFIG_RECIPIENT
+class ContactForm(forms.Form):
+    nom = forms.CharField(max_length=100, label="Nom", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    prenom = forms.CharField(max_length=100, label="Prénom", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(label="Email", widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    telephone = forms.CharField(max_length=15, label="Téléphone", widget=forms.TextInput(attrs={'class': 'form-control'}))
+    motif = forms.ChoiceField(
+        choices=[
+            ('nettoyage', 'Devis Nettoyage'),
+            ('peinture', 'Projet de Peinture'),
+            ('espacevert', 'Espace Vert'),
+            ('renovation', 'Rénovation'),
+            ('bricolage', 'Petits Travaux'),
+            ('autre', 'Autre')
+        ],
+        label="Motif de contact",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    message = forms.CharField(label="Message", widget=forms.Textarea(attrs={'class': 'form-control'}))
 
-def index(request):
-    return render(request, 'luxama/index.html')
 
-def nettoyage(request):
-    return render(request, 'luxama/nettoyage.html')
+class DevisForm(forms.ModelForm):
+    class Meta:
+        model = Devis
+        fields = ['client', 'prix_initial', 'reduction']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['client'].queryset = Client.objects.all()
 
-def peinture(request):
-    return render(request, 'luxama/peinture.html')
+    def clean(self):
+        cleaned_data = super().clean()
+        prix_initial = cleaned_data.get("prix_initial", 0)
+        reduction = cleaned_data.get("reduction", 0)
 
-def bricolage(request):
-    return render(request, 'luxama/bricolage.html')
+        if prix_initial < 0 or reduction < 0:
+            raise forms.ValidationError("Prix et réduction doivent être positifs.")
 
-def renovation(request):
-    return render(request, 'luxama/renovation.html')
+        return cleaned_data
 
-def contact(request):
-    if request.method == "POST":
-        nom = request.POST.get('nom')
-        prenom = request.POST.get('prenom')
-        telephone = request.POST.get('telephone')
-        email = request.POST.get('email')
-        message = request.POST.get('message')
-        devis = request.POST.get('devis')
-        motif = request.POST.get('motif')
-        return render(request, 'luxama/sendingData.html')
-    return render(request, 'luxama/contact.html')
 
-def submit_contact(request):
-    if request.method == "POST":
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            # Récupération des données du formulaire
-            nom = form.cleaned_data['nom']
-            prenom = form.cleaned_data['prenom']
-            email = form.cleaned_data['email']
-            telephone = form.cleaned_data['telephone']
-            motif = form.cleaned_data['motif']
-            message = form.cleaned_data['message']
-
-            # Envoi de l'email en HTML
-            corps_message = (
-                "Bonjour,\n\n"
-                "Quelqu'un vous a contacté depuis le site de Nettoyage Express.\n\n"
-                "Vous trouverez ci-dessous ses coordonnées et son message:\n\n"
-                "Coordonnées\n"
-                "------------\n"
-                f"Nom: {nom}\n"
-                f"Prénom: {prenom}\n"
-                f"Email: {email}\n"
-                f"Téléphone: {telephone}\n\n"
-                f"Motif: {motif}\n\n"
-                f"Message: \n-------------\n{message}\n---------------\n\n"
-                "Votre site Nettoyage Express"
-            )
-            email_client = (
-                "Bonjour,\n\n"
-                f"Vous avez contacté Nettoyage Express pour le service de {motif.upper()}.\n\n"
-                f"Voici un récapitulatif de votre message:\n--------\n{message}\n--------\n\n"
-                "Nous avons bien reçu votre message et nous vous répondrons dans les plus brefs délais.\n\n"
-                "Cordialement,\n"
-            )
-
-            send_mail.envoyer_email(corps_message, CONFIG_RECIPIENT, subject="NOUVEAU MESSAGE DE CONTACT DEPUIS LE SITE NETTOYAGE EXPRESS")
-            send_mail.envoyer_email(email_client, email, subject="noreply - CONFIRMATION DE VOTRE MESSAGE DE CONTACT")
-            # Redirection ou confirmation après envoi
-            return render(request, 'luxama/sendingData.html', {'form': form})  # Afficher la page de confirmation
-    else:
-        form = ContactForm()
-
-    return render(request, 'luxama/contact.html', {'form': form})
-
-def handle_contact_form(request):
-    if request.method == "POST":
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            print(form.cleaned_data)
-            return redirect('sendingData')  # Utilisez le nom de la vue ou l'URL nommée
-    else:
-        form = ContactForm()
-    return render(request, 'luxama/contact.html', {'form': form})
-
-#logger = logging.getLogger(__name__)
-
-@login_required
-def creer_devis(request):
-    if request.method == 'POST':
-        form = DevisForm(request.POST)
-        if form.is_valid():
-            devis = form.save(commit=False)
-            services_ids = request.POST.getlist('services')
-            devis.prix_initial = sum(Service.objects.filter(id__in=services_ids).values_list('prix', flat=True))
-            devis.save()
-            devis.service.set(services_ids)
-            return redirect('detail_devis', devis_id=devis.id)
-    else:
-        form = DevisForm()
-
-    clients = Client.objects.all()
-    services = Service.objects.all()
-    return render(request, 'luxama/creer_devis.html', {
-        'form': form,
-        'clients': clients,
-        'services': services
-    })
-@login_required
-def detail_devis(request, devis_id):
-    devis = get_object_or_404(Devis, id=devis_id)
-    return render(request, 'luxama/detail_devis.html', {'devis': devis})
-
-@login_required
-def client_detail(request, pk):
-    client = get_object_or_404(Client, pk=pk)
-    return render(request, 'luxama/client_detail.html', {'client': client})
-
-@login_required
-def custom_dashboard(request):
-    context = {
-        'services_count': Service.objects.count(),
-        'clients_count': Client.objects.count(),
-        'devis_count': Devis.objects.count(),
-    }
-    return render(request, 'admin/index.html', context)
-
-def sendingData(request):
-    return render(request, 'luxama/sendingData.html')
+class TacheForm(forms.ModelForm):
+    class Meta:
+        model = Tache
+        fields = ['titre', 'description', 'localisation', 'statut', 'date_debut', 'date_fin']
+        widgets = {
+            'titre': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'localisation': forms.TextInput(attrs={'class': 'form-control'}),
+            'statut': forms.Select(attrs={'class': 'form-control'}),
+            'date_debut': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'date_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
