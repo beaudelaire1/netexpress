@@ -1,0 +1,9 @@
+asgiref==3.8.1
+Django==5.1.4
+docopt==0.6.2
+gunicorn==23.0.0
+num2words==0.5.14
+numpy==2.2.2
+packaging==24.2
+sqlparse==0.5.3
+tzdata==2024.2
