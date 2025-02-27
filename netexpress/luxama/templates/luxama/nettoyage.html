@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nettoyage et Espace vert</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="script" href="{% static 'js/main.js' %}">
+</head>
+
+<body>
+    <!-- En-tête -->
+    <header>
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="Logo Nettoyage Express">
+            <h1>Nettoyage Express</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{% url 'index' %}"> Nos Services</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Nettoyage</h2>
+            <p>Entretenir vos espaces verts peut être une tâche ardue, mais avec notre service de nettoyage d'espaces verts, vous
+            pouvez profiter d'un jardin impeccable sans effort. Nous proposons des services de tonte de pelouse, de taille de haies,
+            de désherbage, et de nettoyage de terrasses et allées. Nos jardiniers expérimentés utilisent des techniques
+            respectueuses de l'environnement pour garantir un entretien optimal de vos espaces extérieurs. Laissez-nous transformer
+            votre jardin en un véritable havre de paix.</p>
+            <p><a href="{% url 'contact' %}">Demandez votre devis</a></p>
+        </section>
+    </main>
+    <!-- Pied de page -->
+    <footer>
+        <div class="contact-info">
+            <h3>Contact</h3>
+            <p>Fixe: 📞 05 94 30 23 68</p>
+            <p>Mobile: 📞 06 94 46 20 12</p>
+            <p>✉️ <a href="mailto:n.express@orange.fr">n.express@orange.fr</a></p>
+            <p>753, Chemin de la Désirée </p>
+            <p>97351 Matoury</p>
+        </div>
+        <div class="legal">
+            <p>&copy; 2024 Nettoyage Express - Tous droits réservés</p>
+        </div>
+    </footer>
+    </body>
+    
+    </html>
