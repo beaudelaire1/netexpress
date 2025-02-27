@@ -6,4 +6,4 @@ pip install -r requirements.txt
 python manage.py collectstatic --noinput
 
 # Démarrer le serveur (par exemple, avec Gunicorn)
-gunicorn myproject.wsgi
+gunicorn netexpress.wsgi
