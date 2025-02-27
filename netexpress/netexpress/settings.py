@@ -4,6 +4,7 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+DEBUG = True
 
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -15,7 +16,7 @@ if not DEBUG:
 SECRET_KEY = 'django-insecure-(=&9+3!9q^oe41h_^kjvxtl5*bslpk&sbll39wb*5!rvxjptpk'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
 
 ALLOWED_HOSTS = ['92.142.51.225','127.0.0.1','16.170.71.112', 'netexpress.onrender.com']
 
