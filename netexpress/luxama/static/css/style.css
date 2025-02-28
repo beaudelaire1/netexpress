@@ -256,22 +256,23 @@ footer a:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .menu-icon {
+        display: flex;
+    }
+
     nav ul {
+        display: none;
         flex-direction: column;
-        align-items: center;
+        width: 100%;
     }
 
-    nav ul li {
-        margin: 10px 0;
-    }
-
-    .services-grid,
-    .admin-sections {
-        grid-template-columns: 1fr;
+    nav ul.active {
+        display: flex;
     }
 
     header {
         flex-direction: column;
+        align-items: flex-start;
     }
 
     .logo img {
