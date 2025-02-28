@@ -25,9 +25,9 @@ def date_de_validite_default():
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'netexpress.netexpress.settings')
 
 
-CONFIG_EMAIL = "ne-pas-repondre@nettoyage-express-sarl.fr"
+CONFIG_EMAIL = "ne-pas-repondre@nettoyage-xpress-sarl.fr"
 CONFIG_PASSWORD = "Luxama973@"  # "zuvoozfusikgciba"
-CONFIG_SERVER = "mail.nettoyage-express-sarl.fr"            # "smtp.gmail.com"
+CONFIG_SERVER = "mail.nettoyage-xpress-sarl.fr"            # "smtp.gmail.com"
 CONFIG_SERVER_PORT = 465  # 465  # 587
 CONFIG_RECIPIENT ="vilmebeaudelaire5@gmail.com" # "n.express@orange.fr"  # Adresse de l'administrateur
 
