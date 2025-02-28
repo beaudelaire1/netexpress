@@ -77,11 +77,6 @@ nav ul li a:hover {
 }
 
 /* Menu Dropdown pour Mobile */
-nav ul {
-    display: flex;
-    flex-direction: row;
-}
-
 @media (max-width: 768px) {
     nav ul {
         display: none;
