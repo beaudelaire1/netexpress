@@ -5,8 +5,12 @@
     --text-color: #000000;
     --background-color: #f4f4f4;
     --white: #fff;
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --border-radius: 10px;
     --header-height: 70px;
-    --spacing: 20px;
+    /* Hauteur de la barre fixe */
+    --spacing: 50px;
+    /* Espacement sous la barre réduit pour mobile */
 }
 
 /* Réinitialisation Générale */
@@ -40,6 +44,11 @@ header {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+}
+
 .logo img {
     width: 50px;
     margin-right: 10px;
@@ -68,31 +77,240 @@ nav ul li a:hover {
 main {
     padding-top: calc(var(--header-height) + var(--spacing));
     padding: 5%;
+    padding-top: 10%;
 }
 
-/* Responsive Design */
+main h3 {
+    font-size: 1.5rem; /* Taille de police réduite pour mobile */
+    color: #333333;
+    margin-bottom: 1rem; /* Marge réduite pour mobile */
+    text-decoration: none;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+main p {
+    margin-bottom: 1rem;
+    text-decoration: none;
+}
+
+/* Section Hero */
+#hero {
+    text-align: center;
+    background-color: var(--white);
+    padding: 5%; /* Padding augmenté pour mobile */
+    padding-top: 10%; /* Padding augmenté pour mobile */
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    text-decoration: none;
+}
+
+.cta-button,
+.submit-button {
+    display: inline-block;
+    background-color: var(--secondary-color);
+    color: var(--white);
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.cta-button:hover,
+.submit-button:hover {
+    background-color: #007e47;
+}
+
+/* Services Grid */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes réduites pour mobile */
+    gap: 15px; /* Espacement réduit pour mobile */
+    margin-top: 1.5rem; /* Marge réduite pour mobile */
+    background-color: #F4F4F4;
+    text-decoration: none;
+}
+
+.service-card {
+    background-color: var(--white);
+    padding: 15px; /* Padding réduit pour mobile */
+    text-align: center;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    transition: transform 0.3s ease;
+    background-color: #3ee59c;
+    text-decoration: none;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+}
+
+.image-accueil {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes réduites pour mobile */
+    gap: 15px; /* Espacement réduit pour mobile */
+    margin-top: 1.5rem; /* Marge réduit pour mobile */
+    background-color: #F4F4F4;
+}
+
+.image-accueil:hover {
+    transform: translateY(-5px);
+}
+
+#im_accueil {
+    width: 100%;
+    height: auto; /* Hauteur ajustée automatiquement pour mobile */
+    border-radius: 30px; /* Bordure réduite pour mobile */
+    box-shadow: var(--shadow-light);
+    transition: transform 0.3s ease;
+    margin-top: 5%; /* Marge réduite pour mobile */
+    margin-bottom: 5%; /* Marge réduite pour mobile */
+}
+
+/* Formulaire de Contact */
+#contact-form {
+    max-width: 100%; /* Largeur maximale ajustée pour mobile */
+    margin: 0 auto;
+    background-color: var(--white);
+    padding: 1.5rem; /* Padding réduit pour mobile */
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+}
+
+.form-group {
+    margin-bottom: 10px; /* Marge réduite pour mobile */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px; /* Padding réduit pour mobile */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+}
+
+.form-group textarea {
+    height: 100px; /* Hauteur réduite pour mobile */
+}
+
+/* FOOTER */
+footer {
+    background-color: var(--primary-color);
+    color: var(--white);
+    text-align: center;
+    padding: 1rem;
+}
+
+footer a {
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Tableau de Bord Administrateur */
+#dashboard {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes réduites pour mobile */
+    gap: 15px; /* Espacement réduit pour mobile */
+}
+
+.section-card {
+    background-color: var(--white);
+    padding: 15px; /* Padding réduit pour mobile */
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    text-align: center;
+}
+
+.badge {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    #menu-toggle {
-        display: block;
-    }
-
     nav ul {
-        display: none;
         flex-direction: column;
-        background-color: var(--primary-color);
-        position: absolute;
-        top: var(--header-height);
-        left: 0;
-        width: 100%;
-        padding: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    nav.active ul {
-        display: flex;
+        align-items: center;
     }
 
     nav ul li {
         margin: 10px 0;
+    }
+
+    .services-grid,
+    .admin-sections {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        flex-direction: column;
+        height: auto; /* Hauteur automatique pour s'adapter au contenu */
+        padding: 10px 5%; /* Padding ajusté pour mobile */
+    }
+
+    .logo img {
+        width: 40px; /* Taille réduite pour mobile */
+    }
+
+    main {
+        padding-top: calc(var(--header-height) + var(--spacing));
+        padding: 5%;
+        padding-top: 15%; /* Padding ajusté pour mobile */
+    }
+
+    #hero {
+        padding: 10%; /* Padding ajusté pour mobile */
+        padding-top: 15%; /* Padding ajusté pour mobile */
+    }
+
+    .cta-button,
+    .submit-button {
+        padding: 8px 16px; /* Padding réduit pour mobile */
+    }
+
+    .service-card {
+        padding: 10px; /* Padding réduit pour mobile */
+    }
+
+    #im_accueil {
+        border-radius: 20px; /* Bordure réduite pour mobile */
+    }
+
+    #contact-form {
+        padding: 1rem; /* Padding réduit pour mobile */
+    }
+
+    .form-group textarea {
+        height: 120px; /* Hauteur réduite pour mobile */
     }
 }
