@@ -82,7 +82,7 @@ class Devis(models.Model):
 
     def generate_numero_devis(self):
         while True:
-            numero = 'DEV-' + str(datetime.datetime.now().year) + str(randint(1000, 9999))
+            numero = 'DEV-' + str(datetime.now().year) + str(randint(1000, 9999))
             if not Devis.objects.filter(numero_devis=numero).exists():
                 return numero
 

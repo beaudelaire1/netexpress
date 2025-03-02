@@ -52,7 +52,7 @@ class DevisAdmin(BaseAdmin):
         ('Client', {'fields': ('client', 'service')}),
         ('Prix', {'fields': ('prix_total',)}),
         ('Réduction', {'fields': ('reduction',)}),
-        ('Date', {'fields': ('date_de_validite', 'date_de_creation' )}),
+        ('Date', {'fields': ('date_de_validite',)}),
         ('Description', {'fields': ('description',)}),
     )
     list_display = ('client', 'prix_initial', 'reduction', 'prix_total', 'numero_devis', 'date_de_validite', 'voir_detail', )
