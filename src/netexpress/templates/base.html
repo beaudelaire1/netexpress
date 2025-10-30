@@ -1,0 +1,51 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NetExpress{% endblock %}</title>
+  <!-- Base stylesheet containing our colour palette and layout primitives -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <!-- Custom JS for smooth scrolling and optional enhancements -->
+  <script defer src="{% static 'js/main.js' %}"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a href="/" class="brand">
+        <img src="{% static 'img/logo.svg' %}" alt="Logo NetExpress" class="logo">
+        <span class="brand-name">NetExpress</span>
+      </a>
+      <nav class="nav">
+        <a class="nav-link" href="{% url 'core:home' %}">Accueil</a>
+        <a class="nav-link" href="{% url 'services:list' %}">Services</a>
+        <a class="nav-link" href="{% url 'devis:request_quote' %}">Demander un devis</a>
+        <a class="nav-link" href="{% url 'core:about' %}">À propos</a>
+        <a class="nav-link" href="{% url 'contact:contact' %}">Contact</a>
+        {# Lien vers l'administration supprimé selon le cahier des charges (URL: /gestion/) #}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+  <div class="container" style="margin-top:1rem">
+    {% for message in messages %}
+      <div style="background:#e8f5e9; border:1px solid #c8e6c9; padding:10px 16px; border-radius:12px; color:#256029; margin-bottom:8px">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="container content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>© {{ now|date:"Y" }} NetExpress — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.
+    Les photos d’illustration proviennent d’Unsplash, une bibliothèque d’images libres de droits【668280112401708†L16-L63】.</p>
+  </footer>
+</body>
+</html>

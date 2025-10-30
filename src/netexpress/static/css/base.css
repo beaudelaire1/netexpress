@@ -1,0 +1,184 @@
+/* NetExpress v2 – Base UI
+   Palette : vert profond (#0f6d4e), vert foncé (#0a3c28), crème (#f5f7f5), encre (#0f1115)
+   Typo : system stack
+*/
+
+/*
+  Mise à jour 2025 :
+  Les couleurs de base et les composants ont été retravaillés pour offrir
+  une meilleure lisibilité et cohérence.  Les images utilisées dans les
+  pages proviennent de la banque libre de droits Unsplash, comme indiqué
+  dans le guide d’utilisation【668280112401708†L16-L63】.
+*/
+:root{
+  --brand: #0f6d4e;
+  --brand-700: #0c5b41;
+  --brand-900: #0a3c28;
+  --ink: #101418;
+  --muted: #5c6b64;
+  --surface: #f5f7f5;
+  --card: #ffffff;
+  --ring: rgba(15,109,78,.25);
+  --radius: 16px;
+  --shadow-1: 0 10px 25px rgba(16,20,24,.06);
+  --shadow-2: 0 20px 50px rgba(16,20,24,.10);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color:var(--ink);
+  background:var(--surface);
+  line-height:1.5;
+}
+
+/* Layout */
+.container{width:min(1200px, 92%); margin-inline:auto}
+.site-header{
+  position:sticky; top:0; z-index:50;
+  background:linear-gradient(180deg, var(--brand), var(--brand-700));
+  color:#fff; box-shadow:var(--shadow-1);
+}
+.header-row{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:14px 0}
+.brand{display:flex; align-items:center; gap:.75rem; color:#fff; text-decoration:none; font-weight:800; letter-spacing:.2px}
+.brand .logo{width:36px; height:36px; border-radius:10px; box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.brand-name{font-size:1.35rem}
+
+.nav{display:flex; gap:1rem}
+.nav-link{
+  color:#eef9f3; text-decoration:none; padding:.5rem .75rem; border-radius:10px; transition:.2s ease;
+}
+.nav-link:hover{background:rgba(255,255,255,.12)}
+
+.content{padding:28px 0 56px}
+
+/* Hero */
+.hero{margin-top:14px}
+.hero-card{
+  background:var(--card);
+  border-radius:calc(var(--radius) + 8px);
+  padding:48px 32px; text-align:center;
+  box-shadow:var(--shadow-2);
+  border:1px solid rgba(16,20,24,.06);
+}
+.hero-title{
+  font-size:clamp(1.6rem, 3.4vw, 2.4rem);
+  margin:0 0 .4rem 0;
+}
+.hero-subtitle{color:var(--muted); margin:0 0 1.5rem 0}
+.cta{
+  appearance:none;
+  border:0; border-radius:14px;
+  background:linear-gradient(180deg, var(--brand), var(--brand-900));
+  color:#fff; padding:.9rem 1.3rem; font-weight:700; cursor:pointer;
+  box-shadow:0 10px 18px rgba(15,109,78,.25);
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.cta:hover{transform:translateY(-1px); box-shadow:0 14px 26px rgba(15,109,78,.28)}
+.cta:focus{outline:3px solid var(--ring)}
+
+/* Services grid */
+.section{margin-top:40px}
+.section-head{display:flex; align-items:end; justify-content:space-between; margin-bottom:18px}
+.section-title{font-size:1.25rem; margin:0}
+/*
+  Grille responsive :
+  Par défaut, la grille utilisait 12 colonnes fixes et les éléments sans
+  explicitement définir de span occupaient une seule colonne, ce qui
+  écrasait les cartes verticalement (comme vu sur la page d’accueil).  Nous
+  remplaçons la définition par `auto-fill` et `minmax` afin que chaque
+  carte occupe un espace minimum et s’ajuste automatiquement.  Les classes
+  utilitaires `col-4` ne sont plus nécessaires dans cette configuration
+  responsive.
+*/
+.grid{
+  display:grid;
+  gap:18px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+/* Les anciennes classes de colonne sont conservées pour compatibilité
+   rétroactive mais n’ont plus d’effet. */
+.col-4{grid-column: span 12}
+@media(min-width:800px){ .col-4{grid-column: span 4} }
+
+/*
+  Cartes (services & témoignages)
+  ---------------------------------
+  Par défaut, les cartes utilisaient un fond noir avec une superposition sombre,
+  ce qui entraînait des rectangles noirs lorsqu’aucune image ne se chargeait.
+  Dans cette mise à jour 2025, nous adoptons un fond clair cohérent avec
+  l’ensemble de la palette et réduisons l’opacité de la superposition pour que
+  les visuels puissent s’exprimer.  Les hauteurs d’image sont aussi
+  ajustées pour s’adapter à différentes tailles d’écran.
+*/
+.card{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+  background:var(--card);
+  box-shadow:var(--shadow-1);
+}
+/* L’image de la carte occupe tout l’espace disponible et reste lumineuse */
+.card img{
+  display:block;
+  width:100%;
+  height:220px;
+  object-fit:cover;
+  opacity:1;
+  filter:saturate(1.05);
+}
+/* Superposition dégradée : plus légère pour laisser respirer les photos */
+.card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+  /* Désactiver la capture des clics pour que les liens et boutons restent interactifs */
+  pointer-events:none;
+}
+.card-badge{
+  position:absolute; left:16px; top:14px;
+  padding:.3rem .6rem; font-size:.75rem; border-radius:999px;
+  background:rgba(255,255,255,.85); color:var(--brand-900); font-weight:700;
+  box-shadow:0 6px 16px rgba(0,0,0,.15);
+}
+.card-title{
+  position:absolute; left:18px; bottom:16px; margin:0;
+  color:#fff; font-size:1.1rem; text-shadow:0 2px 10px rgba(0,0,0,.45);
+}
+
+/* USP strip */
+.usp{
+  display:grid; gap:12px; grid-template-columns: repeat(12, 1fr);
+  background:#fff; border-radius:16px; padding:16px; box-shadow:var(--shadow-1); border:1px solid rgba(16,20,24,.06);
+}
+.usp-item{grid-column: span 12; display:flex; gap:.75rem; align-items:flex-start}
+.usp-icon{width:28px; height:28px; border-radius:8px; background:linear-gradient(180deg, var(--brand), var(--brand-700)); box-shadow:0 6px 14px rgba(15,109,78,.25)}
+.usp-text{font-weight:600}
+@media(min-width:800px){ .usp-item{grid-column: span 4} }
+
+/* Footer */
+.site-footer{padding:42px 0; color:#dfeee7; background:linear-gradient(180deg, var(--brand-700), var(--brand-900))}
+.site-footer p{margin:0; text-align:center}
+
+/* Forms (for the Devis anchor) */
+.form-card{background:#fff; border-radius:16px; padding:22px; box-shadow:var(--shadow-1); border:1px solid rgba(16,20,24,.06)}
+.input, .textarea{
+  width:100%; border:1px solid rgba(16,20,24,.12); border-radius:12px; padding:.75rem 1rem;
+  background:#fff; color:var(--ink);
+}
+.input:focus, .textarea:focus{outline:3px solid var(--ring); border-color:var(--brand)}
+.row{display:grid; gap:12px; grid-template-columns:repeat(12,1fr)}
+.row > *{grid-column:span 12}
+@media(min-width:800px){
+  .row-2 > *{grid-column:span 6}
+}
+.btn{
+  appearance:none; border:0; border-radius:12px; padding:.8rem 1.1rem; background:var(--brand); color:#fff; font-weight:700; cursor:pointer
+}
+.btn:hover{background:var(--brand-700)}
+
+

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Contact — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="form-card">
+    <h1 style="margin-top:0">Nous contacter</h1>
+    <p class="muted">Choisissez le sujet qui correspond à votre demande et laissez‑nous un message. Nous vous répondrons rapidement.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="row row-2">
+        <div>
+          {{ form.topic.errors }}
+          {{ form.topic.label_tag }}
+          {{ form.topic }}
+        </div>
+        <div>
+          {{ form.full_name.errors }}
+          {{ form.full_name }}
+        </div>
+        <div>
+          {{ form.email.errors }}
+          {{ form.email }}
+        </div>
+        <div>
+          {{ form.phone.errors }}
+          {{ form.phone }}
+        </div>
+        <div style="grid-column:span 12">
+          {{ form.body.errors }}
+          {{ form.body }}
+        </div>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:10px; align-items:center">
+        <button class="btn" type="submit">Envoyer</button>
+        <small class="muted">Nous vous contacterons au plus vite.</small>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
