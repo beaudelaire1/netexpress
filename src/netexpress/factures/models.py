@@ -13,9 +13,8 @@ factures/models.py — Version complète & professionnelle
 ✔ FK en chaîne vers "devis.Quote" (pas d’import circulaire)
 ✔ Fallback si .utils.num2words_fr indisponible
 
-Dépendances : reportlab (obligatoire), svglib (si logo SVG).
+Dépendances : reportlab (obligatoire), svglib (si logo SVG).
 """
-
 import io
 import os
 from decimal import Decimal, ROUND_HALF_UP
@@ -96,16 +95,10 @@ def _resolve_logo_path(path: Optional[str]) -> Optional[str]:
 
 def _get_branding() -> dict:
     cfg = getattr(settings, "INVOICE_BRANDING", {}) or {}
-    # The configuration may define either `address_lines` (preferred) or a single
-    # multiline string `address`.  If only `address` is provided, split it on
-    # newlines to build the list of address lines.  This supports legacy
-    # configurations and ensures that the emitter section of the invoice
-    # displays the full postal address.  Use `strip` to avoid empty lines.
     addr_lines = cfg.get("address_lines")
     if not addr_lines:
         addr = cfg.get("address")
         if addr:
-            # Split into lines and remove any surrounding whitespace
             addr_lines = [line.strip() for line in str(addr).splitlines() if line.strip()]
         else:
             addr_lines = []
@@ -709,6 +702,12 @@ class Invoice(models.Model):
         pdf = buf.getvalue()
         buf.close()
         if attach:
+            # Supprimer l'ancien fichier PDF s'il existe avant d'attacher le nouveau
+            if self.pdf:
+                try:
+                    self.pdf.delete(save=False)
+                except Exception:
+                    pass
             self.pdf.save(f"facture_{self.number}.pdf", ContentFile(pdf), save=False)
         return pdf
 
