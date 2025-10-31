@@ -47,7 +47,7 @@ def create_invoice(request, quote_id):
             )
         # Calculer les totaux depuis les items
         invoice.compute_totals()
-        # Par défaut, fixer la date d'échéance à 30 jours après l'émission
+        # Par défaut, fixer la date d'échéance à 30 jours après l'émission
         from datetime import timedelta
         invoice.due_date = invoice.issue_date + timedelta(days=30)
         invoice.save()
@@ -78,7 +78,10 @@ def download_invoice(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     if not invoice.pdf:
         raise Http404("Cette facture n'a pas encore été générée.")
-    response = FileResponse(invoice.pdf.open("rb"), filename=invoice.pdf.name, as_attachment=True)
+    # Servir le PDF en ligne pour qu'il s'ouvre dans le navigateur
+    response = FileResponse(
+        invoice.pdf.open("rb"), filename=invoice.pdf.name, as_attachment=False
+    )
     return response
 
 
