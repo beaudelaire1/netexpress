@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Paramètres de base / sécurité
 # ────────────────────────────────────────────────────────────────────────────────
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me")
-DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+DEBUG = False
 
 # Hostnames
 ALLOWED_HOSTS = [
@@ -29,6 +29,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "netexpress.onrender.com",
     "render.com",
+    "*",
 ]
 
 # Render injecte souvent RENDER_EXTERNAL_HOSTNAME (ex: xxxx.onrender.com)
