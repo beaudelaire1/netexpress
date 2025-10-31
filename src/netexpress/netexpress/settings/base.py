@@ -5,8 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Security settings
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
-DEBUG = True
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "https://netexpress.onrender.com/", "netexpress.onrender.com","render.com"]
+DEBUG = False
+ALLOWED_HOSTS = ["127.0.0.1", "*", "localhost", "https://netexpress.onrender.com/", "netexpress.onrender.com","render.com"]
 
 # Application definition
 INSTALLED_APPS = [
