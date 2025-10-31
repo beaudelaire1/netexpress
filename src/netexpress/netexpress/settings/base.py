@@ -28,8 +28,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "netexpress.onrender.com",
-    "nettoyage-express.fr",
-    "www.nettoyage-express.fr",
+    "render.com",
 ]
 
 # Render injecte souvent RENDER_EXTERNAL_HOSTNAME (ex: xxxx.onrender.com)
@@ -157,18 +156,20 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # ────────────────────────────────────────────────────────────────────────────────
 # E-mail (configure via variables d’environnement)
 # ────────────────────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.zoho.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "false").lower() == "true"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@localhost")
 
-# Expéditeurs internes par défaut
-CONTACT_RECEIVER_EMAIL = os.getenv("CONTACT_RECEIVER_EMAIL", DEFAULT_FROM_EMAIL)
-TASK_NOTIFICATION_EMAIL = os.getenv("TASK_NOTIFICATION_EMAIL", DEFAULT_FROM_EMAIL)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = "vilmebeaudelaire5@gmail.com"
+EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk"
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Destinataires par défaut (optionnel)
+CONTACT_RECEIVER_EMAIL = EMAIL_HOST_USER
+TASK_NOTIFICATION_EMAIL = EMAIL_HOST_USER
+
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Branding factures (existant)
