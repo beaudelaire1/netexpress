@@ -8,7 +8,7 @@
   Les couleurs de base et les composants ont été retravaillés pour offrir
   une meilleure lisibilité et cohérence.  Les images utilisées dans les
   pages proviennent de la banque libre de droits Unsplash, comme indiqué
-  dans le guide d’utilisation【668280112401708†L16-L63】.
+  dans le guide d’utilisation.
 */
 :root{
   --brand: #0f6d4e;
@@ -36,7 +36,13 @@ body{
 }
 
 /* Layout */
-.container{width:min(1200px, 92%); margin-inline:auto}
+/* Utilisation de pourcentages pour la largeur afin que le contenu prenne toute la largeur disponible */
+.container{
+  width:100%;
+  margin-inline:auto;
+  padding-left:2%;
+  padding-right:2%;
+}
 .site-header{
   position:sticky; top:0; z-index:50;
   background:linear-gradient(180deg, var(--brand), var(--brand-700));
@@ -180,5 +186,3 @@ body{
   appearance:none; border:0; border-radius:12px; padding:.8rem 1.1rem; background:var(--brand); color:#fff; font-weight:700; cursor:pointer
 }
 .btn:hover{background:var(--brand-700)}
-
-
