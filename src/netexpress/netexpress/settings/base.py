@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Security settings
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # Application definition
@@ -117,6 +117,6 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
 DEBUG = True
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", ]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "nettoyage-express.onrender.com", "*"]
 
 # --
