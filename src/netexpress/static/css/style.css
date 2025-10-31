@@ -16,11 +16,15 @@
 */
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:var(--bg);color:var(--ink)}
-.container{max-width:1000px;margin:0 auto;padding:16px}
+/* Utilisation de pourcentages pour la largeur : la grille s’étire sur toute la page */
+.container{
+  width:100%;
+  max-width:none;
+  margin:0 auto;
+  padding:16px;
+}
 .navbar{display:flex;gap:16px;align-items:center}
 .brand{font-weight:700;color:var(--brand);text-decoration:none}
-
-
 
 /* --- HERO --- */
 .hero{
@@ -58,8 +62,6 @@ h3 { text-decoration-line: none;
 .section.muted{background:#0B5D46;border-radius:16px;padding:16px}
 .section__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
 
-
-
 /* --- SERVICES --- */
 .service-card{display:flex;flex-direction:column;gap:1px}
 .service-card__img{width:100%;height:16%;object-fit:cover;border-radius:2px}
@@ -69,7 +71,7 @@ h3 { text-decoration-line: none;
 
 /* --- STEPS --- */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0 0;padding:0;list-style:none}
-/* Style enrichi pour les étapes : conteneurs plus arrondis, ombre subtile et numéros en couleur de marque. */
+/* Style enrichi pour les étapes : conteneurs plus arrondis, ombre subtile et numéros en couleur de marque. */
 .steps li{
   background:#fefefe;
   border:1px solid #e8f4ef;
@@ -142,7 +144,7 @@ h3 { text-decoration-line: none;
   .hero{grid-template-columns:1fr}
 }
 
-/* Small screen improvements */
+/* Améliorations pour petits écrans */
 @media (max-width:600px){
   .navbar{
     flex-direction:column;
