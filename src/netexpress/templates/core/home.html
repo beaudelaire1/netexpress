@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Accueil — Nettoyage Express{% endblock %}
 {% block content %}
 <section class="hero">
@@ -6,6 +7,9 @@
     <h1 class="hero-title">Votre solution complète pour l'entretien et les travaux</h1>
     <p class="hero-subtitle">Nettoyage, peinture, rénovation — nous gérons vos projets de A à Z.</p>
     <a class="cta" href="{% url 'devis:request_quote' %}">Demander un devis</a>
+  </div>
+  <div class="hero__media">
+    <img src="{% static 'img/hero_home.png' %}" alt="Nettoyage Express">
   </div>
 </section>
 
@@ -15,17 +19,17 @@
   </div>
   <div class="grid">
     <article class="card col-4">
-      <img src="https://source.unsplash.com/400x300/?garden,green" alt="Espaces verts">
+      <img src="{% static 'img/service-1.svg' %}" alt="Entretien d'espaces verts">
       <span class="card-badge">Pro</span>
       <h3 class="card-title">Entretien d'espaces verts</h3>
     </article>
     <article class="card col-4">
-      <img src="https://source.unsplash.com/400x300/?cleaning" alt="Nettoyage industriel">
+      <img src="{% static 'img/service-2.svg' %}" alt="Nettoyage industriel">
       <span class="card-badge">Express</span>
       <h3 class="card-title">Nettoyage industriel</h3>
     </article>
     <article class="card col-4">
-      <img src="https://source.unsplash.com/400x300/?painting,renovation" alt="Peinture & rénovation">
+      <img src="{% static 'img/service-3.svg' %}" alt="Peinture & rénovation">
       <span class="card-badge">Premium</span>
       <h3 class="card-title">Peinture & rénovation</h3>
     </article>
