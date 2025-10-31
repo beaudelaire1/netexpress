@@ -7,5 +7,5 @@ pytest-django>=4.8
 # erreurs liées à l’absence de modules système.  Si vous souhaitez
 # générer des PDF ou améliorer le thème de l’administration, installez
 # manuellement les paquets ci‑dessous :
-# reportlab>=3.6
-# django-jazzmin>=2.6
+reportlab>=3.6
+django-jazzmin>=2.6

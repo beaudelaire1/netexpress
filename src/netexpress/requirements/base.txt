@@ -10,5 +10,5 @@ psycopg2-binary>=2.9
 
 # Dépendances facultatives (désactivées).  Le thème Jazzmin et la librairie
 # ReportLab nécessitent une installation manuelle et sont donc commentés.
-# django-jazzmin>=2.6
-# reportlab>=4.0
+django-jazzmin>=2.6
+reportlab>=4.0

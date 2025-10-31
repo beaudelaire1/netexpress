@@ -426,20 +426,24 @@ class Invoice(models.Model):
                 c.drawString(M_LEFT + 4*mm, yy, line)
                 yy -= LINE_H_TEXT
             # Coordonnées de contact
-            if brand.get("email"):
-                c.drawString(M_LEFT + 4*mm, yy, brand["email"])
-                yy -= LINE_H_TEXT
+            # Afficher d'abord les numéros de téléphone afin de mettre en avant
+            # le contact direct (fixe et mobile).  L'adresse e‑mail est
+            # affichée en dernier si nécessaire.
             if brand.get("phone"):
                 c.drawString(M_LEFT + 4*mm, yy, brand["phone"])
+                yy -= LINE_H_TEXT
+            # Ne pas afficher l'e‑mail par défaut, sauf si aucune autre
+            # coordonnée n'est fournie.
+            if brand.get("email") and not brand.get("phone"):
+                c.drawString(M_LEFT + 4*mm, yy, brand["email"])
                 yy -= LINE_H_TEXT
             if brand.get("website"):
                 c.drawString(M_LEFT + 4*mm, yy, brand["website"])
                 yy -= LINE_H_TEXT
-            # Mentions légales et fiscales (SIRET et TVA intra) dans une couleur plus discrète
+            # Mentions légales et fiscales (TVA intracommunautaire uniquement).  Le numéro SIRET
+            # n'est plus affiché dans l'émetteur pour simplifier la présentation.
             c.setFillColor(COLOR_MUTED)
-            if brand.get("siret"):
-                c.drawString(M_LEFT + 4*mm, yy, f"SIRET {brand['siret']}")
-                yy -= LINE_H_TEXT
+            # Ne pas afficher le SIRET (réservé aux mentions légales).  Conserver uniquement la TVA.
             if brand.get("tva_intra"):
                 c.drawString(M_LEFT + 4*mm, yy, f"TVA {brand['tva_intra']}")
 
@@ -492,8 +496,8 @@ class Invoice(models.Model):
             c.setFont(font_main, 7)
             c.setFillColor(COLOR_MUTED)
             left = branding["name"]
-            if branding.get("siret"):
-                left += f" • SIRET {branding['siret']}"
+            # Supprimer l'affichage du numéro SIRET dans le pied de page.  Seule la TVA
+            # intracommunautaire est ajoutée aux mentions légales.
             if branding.get("tva_intra"):
                 left += f" • TVA {branding['tva_intra']}"
             c.drawString(M_LEFT, M_BOTTOM - 2*mm, left)
@@ -558,33 +562,59 @@ class Invoice(models.Model):
 
         # --- Récap + décomposition TVA + QR + montant en lettres
         def _vat_and_summary(y: float) -> float:
+            """
+            Dessine le tableau récapitulatif des montants et la décomposition de la
+            TVA.
+
+            Afin d'améliorer la lisibilité des remises, ce bloc affiche
+            systématiquement le montant hors taxe initial (avant remise), la
+            remise appliquée, puis le montant hors taxe net.  La TVA et le total
+            TTC sont calculés sur la base du montant net.  En l'absence de
+            remise, le champ « Sous‑total HT » est directement le net HT.
+            """
+            # Préparer la décomposition de la TVA pour chaque taux
             vat_map: Dict[Decimal, Dict[str, Decimal]] = {}
+            total_ht_pre_discount = Decimal("0.00")
             for it in self.items:
                 r = it.tax_rate
                 vat_map.setdefault(r, {"base": Decimal("0.00"), "vat": Decimal("0.00")})
                 vat_map[r]["base"] += it.total_ht
                 vat_map[r]["vat"]  += it.total_tva
+                total_ht_pre_discount += it.total_ht
 
-            y = _maybe_new(y, 38*mm, False)
+            y = _maybe_new(y, 42*mm, False)
 
             rl, rv = x4 - 8*mm, x5 - 2*mm
             c.setFillColor(COLOR_TEXT)
             c.setFont(font_bold, 9)
-            c.drawRightString(rl, y, "Sous-total HT :")
-            c.drawRightString(rv, y, _money(self.total_ht))
-            y -= LINE_H_TEXT
-
-            if self.discount > 0:
+            # Afficher le sous‑total avant remise s'il y a une remise
+            if self.discount and total_ht_pre_discount > 0:
+                c.drawRightString(rl, y, "Sous-total HT :")
+                c.drawRightString(rv, y, _money(total_ht_pre_discount))
+                y -= LINE_H_TEXT
+                # Remise appliquée
                 c.setFont(font_main, 9)
                 c.drawRightString(rl, y, "Remise :")
                 c.drawRightString(rv, y, f"- {_money(self.discount)}")
                 y -= LINE_H_TEXT
+                # Montant net après remise
+                c.setFont(font_main, 9)
+                c.drawRightString(rl, y, "Net HT :")
+                c.drawRightString(rv, y, _money(self.total_ht))
+                y -= LINE_H_TEXT
+            else:
+                # Sans remise, on affiche simplement le sous‑total HT
+                c.drawRightString(rl, y, "Sous-total HT :")
+                c.drawRightString(rv, y, _money(self.total_ht))
+                y -= LINE_H_TEXT
 
+            # TVA globale après remise (si applicable)
             c.setFont(font_main, 9)
             c.drawRightString(rl, y, "TVA :")
             c.drawRightString(rv, y, _money(self.tva))
             y -= LINE_H_TEXT
 
+            # Détail par taux
             for rate, comp in sorted(vat_map.items(), key=lambda x: x[0], reverse=True):
                 c.setFillColor(COLOR_MUTED)
                 c.setFont(font_main, 8)
@@ -592,6 +622,7 @@ class Invoice(models.Model):
                 c.drawRightString(rv, y, _money(comp["vat"]))
                 y -= (LINE_H_TEXT - 0.8*mm)
 
+            # Total TTC net après remise
             c.setFillColor(COLOR_TEXT)
             c.setFont(font_bold, 10)
             c.drawRightString(rl, y, "TOTAL TTC :")

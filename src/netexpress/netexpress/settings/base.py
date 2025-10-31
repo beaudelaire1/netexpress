@@ -4,30 +4,13 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Security settings
-# La clé secrète doit être fournie via les variables d'environnement en
-# production. Une valeur par défaut est définie pour l'environnement de
-# développement afin de démarrer rapidement sans erreur.
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
-
-# Enable debug during development only.  In production this should be set to False.
 DEBUG = True
-
-# Allow local hosts during development; adjust in production as required.
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # Application definition
-# Liste des applications installées.
-#
-# Pour améliorer l’interface d’administration, nous proposons une
-# intégration facultative du thème Jazzmin.  Si django‑jazzmin est
-# installé dans votre environnement (par exemple via `pip install
-# django‑jazzmin`), il sera ajouté automatiquement en tête de
-# INSTALLED_APPS.  Dans le cas contraire, l’administration utilisera
-# l’interface standard de Django sans provoquer d’erreur.  Cela
-# permet de bénéficier du tableau de bord amélioré sans imposer
-# obligatoirement une dépendance dans tous les environnements.
 INSTALLED_APPS = [
-    # Django built‑in apps
+    # Django built-in apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -41,22 +24,15 @@ INSTALLED_APPS = [
     "devis",
     "factures",
     "contact",
-    # Gestion des tâches
     "tasks",
-
-    # Application de messagerie interne pour l'envoi et le suivi des e‑mails
     "messaging",
 ]
 
-# Insérer Jazzmin en premier si disponible.  Cela doit se faire après
-# l’initialisation de la liste pour ne pas altérer l’ordre des
-# applications internes.  L’import est encapsulé dans un bloc try
-# pour éviter toute exception en l’absence du paquet.
+# Activer Jazzmin si disponible
 try:
     import jazzmin  # type: ignore
     INSTALLED_APPS.insert(0, "jazzmin")
 except Exception:
-    # Jazzmin n’est pas installé ; on laisse la liste intacte.
     pass
 
 MIDDLEWARE = [
@@ -74,7 +50,7 @@ ROOT_URLCONF = "netexpress.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],   # -> .../src/netexpress/templates
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -97,7 +73,6 @@ DATABASES = {
 }
 
 LANGUAGE_CODE = "fr-fr"
-# Utiliser la localisation de l'utilisateur (Bucarest) pour une datation précise
 TIME_ZONE = "Europe/Bucharest"
 USE_I18N = True
 USE_TZ = True
@@ -117,29 +92,27 @@ INVOICE_BRANDING = {
     "tagline": "Espaces verts, nettoyage, peinture, bricolage",
     "email": "netexpress@orange.fr",
     "logo_path": "static:img/logo.png",
-    # Coordonnées actualisées de l'entreprise
-    # Adresse physique et code postal ; chaque ligne sera affichée
-    # séparément dans la facture.
+    # Adresse (chaque ligne sera affichée séparément dans le PDF)
     "address": "753, Chemin de la Désirée\n97351 Matoury",
-    # Les numéros de téléphone fixe et mobile sont séparés par une barre
-    # oblique pour un affichage compact.
-    "phone": "05 94 30 23 68 / 06 94 46 20 12",
-    # Coordonnées bancaires et légales pour la facturation (pied de page)
-    "siret": "123 456 789 00012",
-    "iban": "FR76 3000 4000 1234 5678 9012 345",
+    # Téléphones (fixe / mobile)
+    "phone": "05 94 30 23 68 / 06 94 46 20 12",
+    # Coordonnées bancaires (pied de page)
+    "iban": "FR76 3000 4000 1234 5678 9012 345",
     "bic": "NETEEXFRXXX",
 }
 
-# settings/base.py
+# ---------------------------------------------------------------------------
+# Configuration e-mail (Gmail)
+# ---------------------------------------------------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 465
-EMAIL_USE_SSL = True        # <- SSL
+EMAIL_USE_SSL = True
 EMAIL_USE_TLS = False
 EMAIL_HOST_USER = "vilmebeaudelaire5@gmail.com"
-EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk"  # mot de passe d’application Google
+EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk"  # mot de passe d’application Google (sans espaces)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Destinataire par défaut pour le formulaire de contact (à toi d’ajuster)
-CONTACT_RECEIVER_EMAIL = "vilmebeaudelaire5@gmail.com"
-
+# Destinataires par défaut (peuvent être surchargés ailleurs si besoin)
+CONTACT_RECEIVER_EMAIL = EMAIL_HOST_USER
+TASK_NOTIFICATION_EMAIL = EMAIL_HOST_USER

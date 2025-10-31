@@ -70,21 +70,32 @@ class InvoiceAdmin(admin.ModelAdmin):
         """
         count = 0
         for invoice in queryset:
-            # Ensure totals and PDF are up to date
+            # Toujours recalculer les totaux et générer un PDF à jour (sans l'attacher directement)
             invoice.compute_totals()
             pdf_content = invoice.generate_pdf(attach=False)
-            # Save PDF to FileField if not attached
+
+            # Déterminer un nom de fichier simple pour le PDF
+            base_filename = f"{invoice.number}.pdf"
             if not invoice.pdf:
-                filename = f"{invoice.number}.pdf"
-                invoice.pdf.save(filename, ContentFile(pdf_content), save=True)
+                # Aucune pièce jointe existante : enregistrer le PDF avec le nom de base
+                invoice.pdf.save(base_filename, ContentFile(pdf_content), save=True)
             else:
-                # Update stored PDF
-                invoice.pdf.save(invoice.pdf.name, ContentFile(pdf_content), save=True)
-            # Determine recipient
+                # Une pièce jointe existe déjà : utiliser uniquement le nom de fichier
+                # (pas de répertoire "factures/"), afin d'éviter la duplication
+                from os.path import basename
+                name_on_field = basename(invoice.pdf.name) or base_filename
+                invoice.pdf.save(name_on_field, ContentFile(pdf_content), save=True)
+
+            # Chercher l'adresse e‑mail du destinataire à partir du devis lié
             recipient = None
-            if invoice.quote and invoice.quote.client and invoice.quote.client.email:
+            if (
+                invoice.quote
+                and getattr(invoice.quote, "client", None)
+                and getattr(invoice.quote.client, "email", None)
+            ):
                 recipient = invoice.quote.client.email
-            # Compose email if recipient exists
+
+            # Envoyer l'e‑mail avec le PDF en pièce jointe si un destinataire est défini
             if recipient:
                 subject = f"Votre facture {invoice.number}"
                 body = (
@@ -92,14 +103,18 @@ class InvoiceAdmin(admin.ModelAdmin):
                     f"Veuillez trouver ci‑joint votre facture {invoice.number}.\n"
                     f"Montant TTC : {invoice.total_ttc} €\n"
                     f"Date d'émission : {invoice.issue_date.strftime('%d/%m/%Y')}\n"
-                    + (f"Échéance : {invoice.due_date.strftime('%d/%m/%Y')}\n" if invoice.due_date else "")
+                    + (
+                        f"Échéance : {invoice.due_date.strftime('%d/%m/%Y')}\n"
+                        if invoice.due_date
+                        else ""
+                    )
                     + "\nMerci de votre confiance."
                 )
                 EmailNotificationService.send(
                     recipient,
                     subject,
                     body,
-                    attachments=[(f"{invoice.number}.pdf", pdf_content)],
+                    attachments=[(base_filename, pdf_content)],
                 )
                 count += 1
         self.message_user(request, f"{count} facture(s) envoyée(s) par e‑mail.")

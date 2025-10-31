@@ -16,4 +16,6 @@ app_name = "contact"
 
 urlpatterns = [
     path("", views.contact_view, name="contact"),
+    # Page de remerciement après l'envoi du formulaire de contact
+    path("merci/", views.contact_success, name="success"),
 ]

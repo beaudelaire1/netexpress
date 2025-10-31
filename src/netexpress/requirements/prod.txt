@@ -5,5 +5,5 @@ uvicorn>=0.30
 # Comme indiqué dans le fichier ``requirements/dev.txt``, ReportLab et
 # Jazzmin ne sont pas requis en production.  Installez-les uniquement si
 # vous activez la génération de PDF ou le thème amélioré pour l’admin.
-# reportlab>=3.6
-# django-jazzmin>=2.6
+reportlab>=3.6
+django-jazzmin>=2.6

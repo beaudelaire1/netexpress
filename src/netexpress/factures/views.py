@@ -13,7 +13,7 @@ l'administration et aucune erreur serveur n'est levée.
 
 from decimal import Decimal
 
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.http import FileResponse, Http404
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -80,3 +80,21 @@ def download_invoice(request, pk):
         raise Http404("Cette facture n'a pas encore été générée.")
     response = FileResponse(invoice.pdf.open("rb"), filename=invoice.pdf.name, as_attachment=True)
     return response
+
+
+# -----------------------------------------------------------------------------
+# Archive des factures
+# -----------------------------------------------------------------------------
+
+
+@staff_member_required
+def archive(request):
+    """Affiche la liste des factures générées avec un lien vers leur PDF.
+
+    Cette vue est accessible uniquement aux membres du staff (administrateurs).
+    Elle permet de consulter rapidement l'ensemble des factures (et leurs
+    documents PDF) depuis un même endroit.  Les factures sans PDF sont
+    filtrées.
+    """
+    invoices = Invoice.objects.exclude(pdf="").order_by("-issue_date", "-number")
+    return render(request, "factures/archive.html", {"invoices": invoices})
