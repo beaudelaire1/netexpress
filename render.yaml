@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: netexpress
+    env: python
+    rootDir: src/netexpress
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r ../../requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: gunicorn netexpress.wsgi:application
+
+    envVars:
+      # Django config
+      - key: DJANGO_SETTINGS_MODULE
+        value: netexpress.settings.base
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONPATH
+        value: /opt/render/project/src/src/netexpress
+
+      # Sécurité
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "nettoyage-express.fr,www.nettoyage-express.fr,localhost,127.0.0.1"
+
+      # Email (tu pourras les modifier dans Render → Environment)
+      - key: EMAIL_HOST
+        value: smtp.zoho.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "true"
+      - key: EMAIL_HOST_USER
+        value: noreply@nettoyage-express.fr
+      - key: EMAIL_HOST_PASSWORD
+        sync: false  # tu le rempliras manuellement dans Render (secret)
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@nettoyage-express.fr
+
+      # Base de données (Render générera l’URL Postgres automatiquement)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: netexpress-db
+          property: connectionString
+
+databases:
+  - name: netexpress-db
+    plan: free
