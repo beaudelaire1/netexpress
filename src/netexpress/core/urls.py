@@ -19,4 +19,6 @@ urlpatterns = [
     path("health/", views.health, name="health"),
     # Page "À propos" selon le cahier des charges
     path("a-propos/", views.about, name="about"),
+    # Tableau de bord agrégé
+    path("dashboard/", views.dashboard, name="dashboard"),
 ]

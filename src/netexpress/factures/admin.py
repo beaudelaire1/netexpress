@@ -7,17 +7,20 @@ principaux (numéro, devis associé, montant, date).
 """
 
 from django.contrib import admin
+from django.utils.html import format_html
+from django.core.files.base import ContentFile
 
 from .models import Invoice, InvoiceItem
+from tasks.services import EmailNotificationService
 
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ("number", "quote", "status", "issue_date", "total_ttc")
+    list_display = ("number", "quote", "status", "issue_date", "total_ttc", "pdf_link")
     list_filter = ("status", "issue_date")
     search_fields = ("number", "quote__client__full_name")
     readonly_fields = ("total_ht", "tva", "total_ttc", "issue_date", "created_at")
-    actions = ["generate_pdfs"]
+    actions = ["generate_pdfs", "send_invoices"]
 
     class InvoiceItemInline(admin.TabularInline):
         model = InvoiceItem
@@ -44,3 +47,60 @@ class InvoiceAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f"{count} facture(s) convertie(s) en PDF.")
     generate_pdfs.short_description = "Générer les PDF pour les factures sélectionnées"
+
+    def pdf_link(self, obj: Invoice) -> str:
+        """Return an HTML link to download the PDF if it exists."""
+        if obj.pdf:
+            return format_html(
+                "<a href='{}' target='_blank'>Ouvrir</a>",
+                obj.pdf.url,
+            )
+        return "–"
+    pdf_link.short_description = "PDF"
+
+    def send_invoices(self, request, queryset):
+        """Action admin to send selected invoices by email.
+
+        For each selected invoice this action recalculates totals,
+        generates a fresh PDF, saves it and emails it to the client if
+        an email address is available.  The email body summarises the
+        invoice amount and due date and includes the PDF as an
+        attachment.  Errors during sending are logged but do not stop
+        processing of subsequent invoices.
+        """
+        count = 0
+        for invoice in queryset:
+            # Ensure totals and PDF are up to date
+            invoice.compute_totals()
+            pdf_content = invoice.generate_pdf(attach=False)
+            # Save PDF to FileField if not attached
+            if not invoice.pdf:
+                filename = f"{invoice.number}.pdf"
+                invoice.pdf.save(filename, ContentFile(pdf_content), save=True)
+            else:
+                # Update stored PDF
+                invoice.pdf.save(invoice.pdf.name, ContentFile(pdf_content), save=True)
+            # Determine recipient
+            recipient = None
+            if invoice.quote and invoice.quote.client and invoice.quote.client.email:
+                recipient = invoice.quote.client.email
+            # Compose email if recipient exists
+            if recipient:
+                subject = f"Votre facture {invoice.number}"
+                body = (
+                    f"Bonjour {invoice.quote.client.full_name},\n\n"
+                    f"Veuillez trouver ci‑joint votre facture {invoice.number}.\n"
+                    f"Montant TTC : {invoice.total_ttc} €\n"
+                    f"Date d'émission : {invoice.issue_date.strftime('%d/%m/%Y')}\n"
+                    + (f"Échéance : {invoice.due_date.strftime('%d/%m/%Y')}\n" if invoice.due_date else "")
+                    + "\nMerci de votre confiance."
+                )
+                EmailNotificationService.send(
+                    recipient,
+                    subject,
+                    body,
+                    attachments=[(f"{invoice.number}.pdf", pdf_content)],
+                )
+                count += 1
+        self.message_user(request, f"{count} facture(s) envoyée(s) par e‑mail.")
+    send_invoices.short_description = "Envoyer les factures sélectionnées par e‑mail"

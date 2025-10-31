@@ -18,6 +18,9 @@ n'est pas installé【668280112401708†L16-L63】.
 from django.shortcuts import render
 from django.http import JsonResponse
 from services.models import Service, Category
+from tasks.models import Task
+from factures.models import Invoice
+from devis.models import Quote
 
 
 def home(request):
@@ -49,3 +52,22 @@ def about(request):
 def health(request):
     """Simple JSON endpoint used by uptime probes to check application health."""
     return JsonResponse({"status": "ok"})
+
+
+def dashboard(request):
+    """Render a simple dashboard aggregating tasks, invoices and quotes.
+
+    This view provides an overview of the current workload and recent
+    commercial documents.  Tasks are ordered by due date, while
+    invoices and quotes are truncated to the five most recent entries.
+    The dashboard can be extended in the future to include charts,
+    statistics or filters.
+    """
+    tasks = Task.objects.all().order_by("due_date")
+    invoices = Invoice.objects.order_by("-issue_date")[:5]
+    quotes = Quote.objects.order_by("-issue_date")[:5]
+    return render(
+        request,
+        "core/dashboard.html",
+        {"tasks": tasks, "invoices": invoices, "quotes": quotes},
+    )

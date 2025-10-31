@@ -69,7 +69,7 @@ class Quote(models.Model):
         max_length=20,
         unique=True,
         blank=True,
-        help_text="Numéro de devis format NE-AAAA-####, généré automatiquement."
+        help_text="Numéro de devis format DEV-AAAA-XXX, généré automatiquement."
     )
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="quotes")
     # Lorsque plusieurs services sont ajoutés via les items, ce champ reste optionnel
@@ -100,21 +100,21 @@ class Quote(models.Model):
         return f"Devis {self.number or ''} pour {self.client.full_name}"
 
     def save(self, *args, **kwargs):
-        # Attribution d'un numéro de devis si nécessaire : NE-AAAA-####
+        # Attribution d'un numéro de devis si nécessaire : DEV-AAAA-XXX
         if not self.number:
             # l'année est celle de la date d'émission
-            year = self.issue_date.year if hasattr(self, "issue_date") and self.issue_date else self.created_at.year
-            prefix = f"NE-{year}-"
+            year = self.issue_date.year if getattr(self, "issue_date", None) else date.today().year
+            prefix = f"DEV-{year}-"
             last_number = Quote.objects.filter(number__startswith=prefix).order_by("number").last()
             if last_number:
-                # extraire le compteur
                 try:
                     last_counter = int(last_number.number.split("-")[-1])
                 except ValueError:
                     last_counter = 0
             else:
                 last_counter = 0
-            self.number = f"{prefix}{last_counter + 1:04d}"
+            # Use a three‑digit counter (000–999)
+            self.number = f"{prefix}{last_counter + 1:03d}"
         super().save(*args, **kwargs)
 
     @property

@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "devis",
     "factures",
     "contact",
+    # Gestion des tâches
+    "tasks",
 ]
 
 # Insérer Jazzmin en premier si disponible.  Cela doit se faire après
@@ -105,3 +107,17 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- Branding factures ---
+INVOICE_BRANDING = {
+    "name": "Nettoyage Express",
+    "tagline": "Espaces verts, nettoyage, peinture, bricolage",
+    "email": "netexpress@orange.fr",
+    "logo_path": "static:img/logo.png",
+    "address": "123 Rue Principale\n97351 Matoury",
+    "phone": "+594 594 00 00 00",
+    # Coordonnées bancaires et légales pour la facturation (pied de page)
+    "siret": "123 456 789 00012",
+    "iban": "FR76 3000 4000 1234 5678 9012 345",
+    "bic": "NETEEXFRXXX",
+}

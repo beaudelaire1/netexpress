@@ -13,16 +13,19 @@ from django.db import models
 
 class Message(models.Model):
     TOPIC_CHOICES = [
-        ("prospection", "Prospection"),
-        ("sav", "Service après‑vente"),
+        ("bricolage", "Bricolage"),
+        ("peinture", "Peinture"),
+        ("renovation", "Rénovation"),
+        ("service_vert", "Service Espace Vert"),
         ("partenariat", "Partenariat"),
-        ("gros_volumes", "Gros volumes"),
         ("autre", "Autre"),
     ]
 
     topic = models.CharField(max_length=50, choices=TOPIC_CHOICES)
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
+    city= models.CharField(max_length=200)
+    zip_code = models.PositiveIntegerField(max_length=5)
     phone = models.CharField(max_length=50, blank=True)
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

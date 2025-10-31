@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}NetExpress{% endblock %}</title>
+  <title>{% block title %}Nettoyage Express{% endblock %}</title>
   <!-- Base stylesheet containing our colour palette and layout primitives -->
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <!-- Custom JS for smooth scrolling and optional enhancements -->
@@ -16,7 +16,7 @@
     <div class="container header-row">
       <a href="/" class="brand">
         <img src="{% static 'img/logo.svg' %}" alt="Logo NetExpress" class="logo">
-        <span class="brand-name">NetExpress</span>
+        <span class="brand-name">Nettoyage Express</span>
       </a>
       <nav class="nav">
         <a class="nav-link" href="{% url 'core:home' %}">Accueil</a>
@@ -44,8 +44,8 @@
   </main>
 
   <footer class="site-footer">
-    <p>© {{ now|date:"Y" }} NetExpress — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.
-    Les photos d’illustration proviennent d’Unsplash, une bibliothèque d’images libres de droits【668280112401708†L16-L63】.</p>
+    <p>© {{ now|date:"Y" }} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.
+
   </footer>
 </body>
 </html>
