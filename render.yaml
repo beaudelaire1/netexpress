@@ -9,6 +9,7 @@ services:
       python manage.py collectstatic --noinput
       python manage.py migrate
     startCommand: gunicorn netexpress.wsgi:application
+    
 
     envVars:
       # Django settings
