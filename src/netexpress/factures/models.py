@@ -96,13 +96,27 @@ def _resolve_logo_path(path: Optional[str]) -> Optional[str]:
 
 def _get_branding() -> dict:
     cfg = getattr(settings, "INVOICE_BRANDING", {}) or {}
+    # The configuration may define either `address_lines` (preferred) or a single
+    # multiline string `address`.  If only `address` is provided, split it on
+    # newlines to build the list of address lines.  This supports legacy
+    # configurations and ensures that the emitter section of the invoice
+    # displays the full postal address.  Use `strip` to avoid empty lines.
+    addr_lines = cfg.get("address_lines")
+    if not addr_lines:
+        addr = cfg.get("address")
+        if addr:
+            # Split into lines and remove any surrounding whitespace
+            addr_lines = [line.strip() for line in str(addr).splitlines() if line.strip()]
+        else:
+            addr_lines = []
+
     return {
         "name": cfg.get("name", "Nettoyage Express"),
         "tagline": cfg.get("tagline", "Espaces verts, nettoyage, peinture, bricolage"),
         "email": cfg.get("email", "contact@exemple.fr"),
         "phone": cfg.get("phone", ""),
         "website": cfg.get("website", ""),
-        "address_lines": cfg.get("address_lines", []),
+        "address_lines": addr_lines,
         "siret": cfg.get("siret", ""),
         "tva_intra": cfg.get("tva_intra", ""),
         "iban": cfg.get("iban", ""),
@@ -192,14 +206,34 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     def compute_totals(self):
+        """
+        Calcule les totaux HT, TVA et TTC en tenant compte de la remise.
+
+        La remise est appliquée sur le montant hors taxe.  Pour éviter
+        une incohérence entre la remise et la TVA, la TVA est réduite
+        proportionnellement à la part de remise.  Exemple : si la
+        remise représente 10 % du HT, la TVA totale est également
+        réduite de 10 %.  Le montant TTC est ensuite recomposé à
+        partir du HT remisé et de la TVA ajustée.
+        """
         total_ht = Decimal("0.00")
         total_tva = Decimal("0.00")
         for it in self.items:
             total_ht += it.total_ht
             total_tva += it.total_tva
-        total_ht -= self.discount
+        # Calculer la remise effective et l'appliquer proportionnellement
+        discount = self.discount or Decimal("0.00")
+        if discount > 0 and total_ht > 0:
+            # Ratio de remise sur le HT original
+            ratio = (discount / total_ht).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+            # Appliquer la remise
+            total_ht -= discount
+            total_tva -= (total_tva * ratio)
+        # Empêcher les montants négatifs
         if total_ht < 0:
             total_ht = Decimal("0.00")
+        if total_tva < 0:
+            total_tva = Decimal("0.00")
         self.total_ht = total_ht.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.tva = total_tva.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self.total_ttc = (self.total_ht + self.tva).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -375,22 +409,37 @@ class Invoice(models.Model):
             c.setFillColor(COLOR_ACCENT)
             c.roundRect(M_LEFT, y - ch, colw, ch, 2*mm, fill=1, stroke=0)
             c.setFillColor(COLOR_TEXT)
+            # Section title
             c.setFont(font_bold, 12)
             c.drawString(M_LEFT + 4*mm, y - 6*mm, "Émetteur")
-            c.setFont(font_main, 11)
-            yy = y - 11*mm
+            # Branding details
             brand = _get_branding()
+            yy = y - 11*mm
+            # Nom de l'entreprise (si disponible)
+            if brand.get("name"):
+                c.setFont(font_bold, 11)
+                c.drawString(M_LEFT + 4*mm, yy, brand["name"])
+                yy -= LINE_H_TEXT
+                c.setFont(font_main, 11)
+            # Adresse (chaque ligne)
             for line in brand.get("address_lines", []):
-                c.drawString(M_LEFT + 4*mm, yy, line); yy -= LINE_H_TEXT
+                c.drawString(M_LEFT + 4*mm, yy, line)
+                yy -= LINE_H_TEXT
+            # Coordonnées de contact
             if brand.get("email"):
-                c.drawString(M_LEFT + 4*mm, yy, brand["email"]); yy -= LINE_H_TEXT
+                c.drawString(M_LEFT + 4*mm, yy, brand["email"])
+                yy -= LINE_H_TEXT
             if brand.get("phone"):
-                c.drawString(M_LEFT + 4*mm, yy, brand["phone"]); yy -= LINE_H_TEXT
+                c.drawString(M_LEFT + 4*mm, yy, brand["phone"])
+                yy -= LINE_H_TEXT
             if brand.get("website"):
-                c.drawString(M_LEFT + 4*mm, yy, brand["website"]); yy -= LINE_H_TEXT
+                c.drawString(M_LEFT + 4*mm, yy, brand["website"])
+                yy -= LINE_H_TEXT
+            # Mentions légales et fiscales (SIRET et TVA intra) dans une couleur plus discrète
             c.setFillColor(COLOR_MUTED)
             if brand.get("siret"):
-                c.drawString(M_LEFT + 4*mm, yy, f"SIRET {brand['siret']}"); yy -= LINE_H_TEXT
+                c.drawString(M_LEFT + 4*mm, yy, f"SIRET {brand['siret']}")
+                yy -= LINE_H_TEXT
             if brand.get("tva_intra"):
                 c.drawString(M_LEFT + 4*mm, yy, f"TVA {brand['tva_intra']}")
 

@@ -22,6 +22,12 @@ from tasks.models import Task
 from factures.models import Invoice
 from devis.models import Quote
 
+try:
+    # Importer la messagerie uniquement si l'application est installée
+    from messaging.models import EmailMessage  # type: ignore
+except Exception:
+    EmailMessage = None  # type: ignore
+
 
 def home(request):
     """
@@ -66,8 +72,19 @@ def dashboard(request):
     tasks = Task.objects.all().order_by("due_date")
     invoices = Invoice.objects.order_by("-issue_date")[:5]
     quotes = Quote.objects.order_by("-issue_date")[:5]
+    # Inclure quelques messages récents dans le tableau de bord si la messagerie est disponible
+    # Récupérer quelques messages récents si l'application de messagerie est disponible.
+    if EmailMessage:
+        recent_messages = list(EmailMessage.objects.order_by("-created_at")[:5])
+    else:
+        recent_messages = []
     return render(
         request,
         "core/dashboard.html",
-        {"tasks": tasks, "invoices": invoices, "quotes": quotes},
+        {
+            "tasks": tasks,
+            "invoices": invoices,
+            "quotes": quotes,
+            "messages": recent_messages,
+        },
     )

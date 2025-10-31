@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     "contact",
     # Gestion des tâches
     "tasks",
+
+    # Application de messagerie interne pour l'envoi et le suivi des e‑mails
+    "messaging",
 ]
 
 # Insérer Jazzmin en premier si disponible.  Cela doit se faire après
@@ -114,10 +117,29 @@ INVOICE_BRANDING = {
     "tagline": "Espaces verts, nettoyage, peinture, bricolage",
     "email": "netexpress@orange.fr",
     "logo_path": "static:img/logo.png",
-    "address": "123 Rue Principale\n97351 Matoury",
-    "phone": "+594 594 00 00 00",
+    # Coordonnées actualisées de l'entreprise
+    # Adresse physique et code postal ; chaque ligne sera affichée
+    # séparément dans la facture.
+    "address": "753, Chemin de la Désirée\n97351 Matoury",
+    # Les numéros de téléphone fixe et mobile sont séparés par une barre
+    # oblique pour un affichage compact.
+    "phone": "05 94 30 23 68 / 06 94 46 20 12",
     # Coordonnées bancaires et légales pour la facturation (pied de page)
     "siret": "123 456 789 00012",
     "iban": "FR76 3000 4000 1234 5678 9012 345",
     "bic": "NETEEXFRXXX",
 }
+
+# settings/base.py
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True        # <- SSL
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = "vilmebeaudelaire5@gmail.com"
+EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk"  # mot de passe d’application Google
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Destinataire par défaut pour le formulaire de contact (à toi d’ajuster)
+CONTACT_RECEIVER_EMAIL = "vilmebeaudelaire5@gmail.com"
+

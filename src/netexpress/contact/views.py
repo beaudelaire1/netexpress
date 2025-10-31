@@ -16,6 +16,12 @@ from django.contrib import messages
 
 from .forms import ContactForm
 
+try:
+    # Importer la fonction de notification si la messagerie est installée
+    from messaging.services import send_contact_notification  # type: ignore
+except Exception:
+    send_contact_notification = None  # type: ignore
+
 
 def contact_view(request):
     """
@@ -32,6 +38,13 @@ def contact_view(request):
             # Stocker l'adresse IP si disponible
             message.ip = request.META.get("REMOTE_ADDR")
             message.save()
+            # Envoyer une notification par e‑mail si le service est disponible
+            if send_contact_notification:
+                try:
+                    send_contact_notification(message)
+                except Exception:
+                    # Ignorer les erreurs d'envoi afin de ne pas bloquer la soumission du formulaire
+                    pass
             messages.success(request, "Merci pour votre message. Nous reviendrons vers vous rapidement.")
             return redirect(reverse("contact:contact"))
     else:

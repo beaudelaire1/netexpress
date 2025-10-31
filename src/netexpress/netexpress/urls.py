@@ -22,6 +22,8 @@ urlpatterns = [
     path("factures/", include("factures.urls")),
     path("contact/", include("contact.urls")),
     path("taches/", include("tasks.urls")),
+    # Messagerie : liste et détail des messages envoyés
+    path("messages/", include(("messaging.urls", "messaging"), namespace="messaging")),
 ]
 
 if settings.DEBUG:

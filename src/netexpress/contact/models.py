@@ -25,7 +25,11 @@ class Message(models.Model):
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
     city= models.CharField(max_length=200)
-    zip_code = models.PositiveIntegerField(max_length=5)
+    # Utiliser un champ de caractères pour le code postal afin de
+    # prendre en charge à la fois les codes numériques et alphanumériques
+    # (certaines régions ont des codes avec des lettres).  L'option
+    # `max_length` spécifie la longueur maximale autorisée.
+    zip_code = models.CharField(max_length=20)
     phone = models.CharField(max_length=50, blank=True)
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

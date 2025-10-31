@@ -60,6 +60,24 @@
       <p>Aucun devis disponible.</p>
       {% endif %}
     </div>
+
+    <!-- Messages récents -->
+    <div>
+      <h2>Messages récents</h2>
+      {% if messages %}
+      <ul class="list">
+        {% for m in messages %}
+        <li>
+          <strong>{{ m.subject }}</strong><br>
+          <small>{{ m.recipient }} — {{ m.created_at|date:'d/m/Y' }}</small>
+        </li>
+        {% endfor %}
+      </ul>
+      <p><a href="{% url 'messaging:list' %}">Voir tous les messages →</a></p>
+      {% else %}
+      <p>Aucun message envoyé récemment.</p>
+      {% endif %}
+    </div>
   </div>
 </section>
 {% endblock %}
