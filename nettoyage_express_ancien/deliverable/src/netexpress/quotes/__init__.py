@@ -1,1 +1,0 @@
-"""Quotes app initialization."""
