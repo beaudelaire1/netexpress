@@ -28,7 +28,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvet
   gap:24px;
   grid-template-columns:1.1fr .9fr;
   align-items:center;
-  /* Dégradé inspiré de la Guyane : vert très pâle vers le blanc */
+  /* Dégradé inspiré de la Guyane : vert très pâle vers le blanc */
   background:linear-gradient(135deg, #e8f5f1 0%, #fdfefc 70%);
   border-radius:24px;
   padding:32px;
@@ -69,7 +69,7 @@ h3 { text-decoration-line: none;
 
 /* --- STEPS --- */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0 0;padding:0;list-style:none}
-/* Style enrichi pour les étapes : conteneurs plus arrondis, ombre subtile et numéros en couleur de marque. */
+/* Style enrichi pour les étapes : conteneurs plus arrondis, ombre subtile et numéros en couleur de marque. */
 .steps li{
   background:#fefefe;
   border:1px solid #e8f4ef;
@@ -140,4 +140,18 @@ h3 { text-decoration-line: none;
 /* --- RESPONSIVE --- */
 @media (max-width:900px){
   .hero{grid-template-columns:1fr}
+}
+
+/* Small screen improvements */
+@media (max-width:600px){
+  .navbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .btn, .cta{
+    display:inline-block;
+    padding:14px 18px;
+    text-align:center;
+  }
 }
