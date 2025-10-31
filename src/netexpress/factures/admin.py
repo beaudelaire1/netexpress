@@ -9,6 +9,7 @@ principaux (numéro, devis associé, montant, date).
 from django.contrib import admin
 from django.utils.html import format_html
 from django.core.files.base import ContentFile
+from django.urls import reverse
 
 from .models import Invoice, InvoiceItem
 from tasks.services import EmailNotificationService
@@ -25,7 +26,15 @@ class InvoiceAdmin(admin.ModelAdmin):
     class InvoiceItemInline(admin.TabularInline):
         model = InvoiceItem
         extra = 1
-        fields = ("description", "quantity", "unit_price", "tax_rate", "total_ht", "total_tva", "total_ttc")
+        fields = (
+            "description",
+            "quantity",
+            "unit_price",
+            "tax_rate",
+            "total_ht",
+            "total_tva",
+            "total_ttc",
+        )
         readonly_fields = ("total_ht", "total_tva", "total_ttc")
 
     inlines = [InvoiceItemInline]
@@ -49,44 +58,31 @@ class InvoiceAdmin(admin.ModelAdmin):
     generate_pdfs.short_description = "Générer les PDF pour les factures sélectionnées"
 
     def pdf_link(self, obj: Invoice) -> str:
-        """Return an HTML link to download the PDF if it exists."""
+        """Retourne un lien vers la vue download si un PDF existe."""
         if obj.pdf:
-            return format_html(
-                "<a href='{}' target='_blank'>Ouvrir</a>",
-                obj.pdf.url,
-            )
+            url = reverse("factures:download", args=[obj.pk])
+            return format_html("<a href='{}' target='_blank'>Ouvrir</a>", url)
         return "–"
     pdf_link.short_description = "PDF"
 
     def send_invoices(self, request, queryset):
-        """Action admin to send selected invoices by email.
-
-        For each selected invoice this action recalculates totals,
-        generates a fresh PDF, saves it and emails it to the client if
-        an email address is available.  The email body summarises the
-        invoice amount and due date and includes the PDF as an
-        attachment.  Errors during sending are logged but do not stop
-        processing of subsequent invoices.
-        """
+        """Action admin pour envoyer les factures sélectionnées par e‑mail."""
         count = 0
         for invoice in queryset:
-            # Toujours recalculer les totaux et générer un PDF à jour (sans l'attacher directement)
+            # Toujours recalculer les totaux et générer un PDF à jour
             invoice.compute_totals()
             pdf_content = invoice.generate_pdf(attach=False)
 
             # Déterminer un nom de fichier simple pour le PDF
             base_filename = f"{invoice.number}.pdf"
             if not invoice.pdf:
-                # Aucune pièce jointe existante : enregistrer le PDF avec le nom de base
                 invoice.pdf.save(base_filename, ContentFile(pdf_content), save=True)
             else:
-                # Une pièce jointe existe déjà : utiliser uniquement le nom de fichier
-                # (pas de répertoire "factures/"), afin d'éviter la duplication
                 from os.path import basename
                 name_on_field = basename(invoice.pdf.name) or base_filename
                 invoice.pdf.save(name_on_field, ContentFile(pdf_content), save=True)
 
-            # Chercher l'adresse e‑mail du destinataire à partir du devis lié
+            # Chercher l'adresse e‑mail du destinataire
             recipient = None
             if (
                 invoice.quote
@@ -95,7 +91,7 @@ class InvoiceAdmin(admin.ModelAdmin):
             ):
                 recipient = invoice.quote.client.email
 
-            # Envoyer l'e‑mail avec le PDF en pièce jointe si un destinataire est défini
+            # Envoyer le courriel si un destinataire est défini
             if recipient:
                 subject = f"Votre facture {invoice.number}"
                 body = (
