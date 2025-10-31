@@ -34,7 +34,7 @@
         <td>{{ inv.total_ttc }} €</td>
         <td>
           {% if inv.pdf %}
-            <a href="{{ inv.pdf.url }}" target="_blank">Télécharger</a>
+            <a href="{% url 'factures:download' inv.pk %}" target="_blank">Ouvrir</a>
           {% else %}
             –
           {% endif %}
