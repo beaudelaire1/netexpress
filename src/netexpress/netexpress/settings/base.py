@@ -42,6 +42,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://netexpress.onrender.com",
     "https://nettoyage-express.fr",
     "https://www.nettoyage-express.fr",
+     "https://www.render.com",
 ]
 if RENDER_HOST:
     CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOST}")
