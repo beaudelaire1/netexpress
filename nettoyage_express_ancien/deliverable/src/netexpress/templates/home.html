@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero__text">
+    <h1>Nettoyage Express <span class="accent">pro & particuliers</span></h1>
+    <p class="lead">
+      Interventions rapides, qualité certifiée, tarifs transparents. Idéal pour bureaux, commerces,
+      locations courte durée et particuliers exigeants.
+    </p>
+    <div class="actions">
+  <a class="btn btn-primary" href="{% url 'services:list' %}">Voir nos services</a>
+      <!-- Remplace le slug ci-dessous si tu veux un CTA direct -->
+      {# <a class="btn btn-secondary" href="{% url 'bookings:create' 'nettoyage-express' %}">Réserver maintenant</a> #}
+    </div>
+    <ul class="hero__stats">
+      <li><span>4.9/5</span> avis clients</li>
+      <li><span>&lt; 24h</span> délai d’intervention</li>
+      <li><span>100%</span> satisfait ou refait</li>
+    </ul>
+  </div>
+  <div class="hero__media">
+    <img src="{% static 'img/service-1.svg' %}" alt="Nettoyage professionnel" onerror="this.style.display='none'">
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<section class="trust">
+  <ul class="trust__badges">
+    <li>Entreprise déclarée & assurée</li>
+    <li>Équipements écoresponsables</li>
+    <li>Intervenants triés & formés</li>
+    <li>Facturation & devis clairs</li>
+  </ul>
+</section>
+
+<!-- SERVICES EN AVANT -->
+<section class="section">
+  <div class="section__head">
+    <h2>Services populaires</h2>
+      <a class="link" href="{% url 'services:list' %}">Tout voir →</a>
+  </div>
+
+  <div class="grid">
+    {% if featured_services %}
+      {% for s in featured_services %}
+        <article class="card service-card">
+          {% if s.image %}<img class="service-card__img" src="{{ s.image.url }}" alt="{{ s.title }}">{% endif %}
+          <h3><a href="{% url 'services:detail' s.slug %}">{{ s.title }}</a></h3>
+          <p class="small">{{ s.short_description|default:"Nettoyage de qualité professionnelle." }}</p>
+          <div class="meta">
+            <span class="price">À partir de {{ s.base_price }} €</span>
+            <span class="sep">·</span>
+            <span>~{{ s.duration_minutes }} min</span>
+          </div>
+          <a class="btn btn-outline" href="{% url 'services:detail' s.slug %}">Réserver</a>
+        </article>
+      {% endfor %}
+    {% else %}
+      <!-- Fallback si aucun contexte fourni : 3 cartes de démonstration -->
+      <article class="card service-card">
+        <h3>Nettoyage de bureaux</h3>
+        <p class="small">Entretien régulier, horaires flexibles, produits écoresponsables.</p>
+        <div class="meta"><span class="price">Dès 49 €</span> <span class="sep">·</span> <span>~60 min</span></div>
+        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
+      </article>
+      <article class="card service-card">
+        <h3>Remise en état fin de chantier</h3>
+        <p class="small">Dépoussiérage complet, vitrerie, sols — prêt à livrer.</p>
+        <div class="meta"><span class="price">Dès 89 €</span> <span class="sep">·</span> <span>~120 min</span></div>
+        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
+      </article>
+      <article class="card service-card">
+        <h3>Nettoyage Airbnb / location courte durée</h3>
+        <p class="small">Rotation rapide, respect check-lists, draps & consommables.</p>
+        <div class="meta"><span class="price">Dès 39 €</span> <span class="sep">·</span> <span>~45 min</span></div>
+        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
+      </article>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ÉTAPES -->
+<section class="section muted">
+  <h2>Comment ça marche ?</h2>
+  <ol class="steps">
+    <li><span>1</span><b>Choisissez</b> un service et un créneau.</li>
+    <li><span>2</span><b>Confirmez</b> l’adresse et vos instructions.</li>
+    <li><span>3</span><b>Intervention</b> par nos équipes formées.</li>
+    <li><span>4</span><b>Validation</b> & reçu/facture immédiat.</li>
+  </ol>
+</section>
+
+<!-- AVIS -->
+<section class="section">
+  <h2>Ils nous font confiance</h2>
+  <div class="grid testimonials">
+    <blockquote class="card">
+      <p>“Service impeccable et ponctualité. On a basculé tout l’immeuble chez eux.”</p>
+      <footer>— Syndic Résidence Horizon</footer>
+    </blockquote>
+    <blockquote class="card">
+      <p>“Parfait pour nos rotations Airbnb : check-list nickel, communication fluide.”</p>
+      <footer>— Louise, hôte Superhost</footer>
+    </blockquote>
+  </div>
+</section>
+
+<!-- CTA FINALE -->
+<section class="cta-strip">
+  <div class="cta-strip__content">
+    <h3>Besoin d’un devis rapide ?</h3>
+    <p class="small">Réponse sous 24h. Tarifs clairs, sans surprise.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'quotes:request_quote' %}">Obtenir mon devis</a>
+</section>
+
+<!-- SEO / Schema.org (à personnaliser) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Nettoyage Express",
+  "url": "http://127.0.0.1:8000/",
+  "image": [],
+  "telephone": "+596000000",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Fort-de-France",
+    "postalCode": "97200",
+    "addressCountry": "FR"
+  },
+  "areaServed": "Martinique",
+  "sameAs": []
+}
+</script>
+
+{% endblock %}

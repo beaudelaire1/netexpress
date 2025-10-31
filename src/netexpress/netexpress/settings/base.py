@@ -73,7 +73,7 @@ DATABASES = {
 }
 
 LANGUAGE_CODE = "fr-fr"
-TIME_ZONE = "Europe/Bucharest"
+TIME_ZONE = "America/Cayenne"
 USE_I18N = True
 USE_TZ = True
 
@@ -104,15 +104,19 @@ INVOICE_BRANDING = {
 # ---------------------------------------------------------------------------
 # Configuration e-mail (Gmail)
 # ---------------------------------------------------------------------------
+# SMTP du domaine
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
+EMAIL_HOST = "smtp.gmail.com"   # confirme exactement l’hôte chez ton registrar/hébergeur
+EMAIL_PORT = 465                        # STARTTLS
 EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = "vilmebeaudelaire5@gmail.com"
-EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk"  # mot de passe d’application Google (sans espaces)
+EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk" #os.getenv("EMAIL_HOST_PASSWORD")  # <-- ne pas hardcoder
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Destinataires par défaut (peuvent être surchargés ailleurs si besoin)
-CONTACT_RECEIVER_EMAIL = EMAIL_HOST_USER
-TASK_NOTIFICATION_EMAIL = EMAIL_HOST_USER
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
+DEBUG = True
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", ]
+
+# --

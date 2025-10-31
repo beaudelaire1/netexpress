@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ service.title }} — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h1>{{ service.title }}</h1>
+  {% if service.image %}
+    <img src="{{ service.image.url }}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+  {% endif %}
+  <p>{{ service.description }}</p>
+  <p class="meta"><strong>Prix&nbsp;:</strong> À partir de {{ service.base_price }} € — durée ~{{ service.duration_minutes }} min.</p>
+  <a class="btn btn-primary" href="{% url 'quotes:request_quote' %}?service={{ service.title }}">Demander un devis</a>
+</section>
+{% endblock %}

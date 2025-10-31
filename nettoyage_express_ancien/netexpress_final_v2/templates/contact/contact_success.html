@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Message envoyé — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section" style="text-align:center">
+  <h1>Merci pour votre message !</h1>
+  <p class="lead">Nous avons bien reçu votre demande et reviendrons vers vous dans les meilleurs délais.</p>
+  <p>En attendant, n'hésitez pas à nous joindre directement :</p>
+  <ul style="list-style:none; padding:0; margin:1rem 0; font-size:1.1rem">
+    {% if branding.name %}<li><strong>{{ branding.name }}</strong></li>{% endif %}
+    {% if branding.address_lines %}
+      {% for line in branding.address_lines %}
+        <li>{{ line }}</li>
+      {% endfor %}
+    {% else %}
+      {% if branding.address %}
+        {% for line in branding.address.splitlines %}
+          <li>{{ line }}</li>
+        {% endfor %}
+      {% endif %}
+    {% endif %}
+    {% if branding.phone %}<li>Téléphone : {{ branding.phone }}</li>{% endif %}
+  </ul>
+  <a class="btn btn-primary" href="{%% url 'core:home' %%}">Retour à l'accueil</a>
+</section>
+{% endblock %}

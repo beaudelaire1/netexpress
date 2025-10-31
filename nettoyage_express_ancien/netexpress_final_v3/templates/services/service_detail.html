@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ service.title }} — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h1>{{ service.title }}</h1>
+  {% if service.image %}
+    <img src="{{ service.image.url }}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+  {% else %}
+    {# Image de remplacement depuis Unsplash si aucune image n'est associée au service #}
+    <img src="https://source.unsplash.com/800x500/?{{ service.title|slugify }}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+  {% endif %}
+  <p>{{ service.description }}</p>
+  <p><strong>Catégorie&nbsp;:</strong> {{ service.category.name }}</p>
+  <p class="meta"><strong>Prix&nbsp;:</strong> À partir de {{ service.base_price }} € — durée ~{{ service.duration_minutes }} min.</p>
+
+  {% if service.tasks.all %}
+    <h3>Checklist</h3>
+    <ul>
+      {% for task in service.tasks.all %}
+        <li>{{ task.name }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <a class="btn btn-primary" href="{% url 'devis:request_quote' %}?service={{ service.slug }}">Demander un devis</a>
+</section>
+{% endblock %}
