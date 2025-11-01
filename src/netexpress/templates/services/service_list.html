@@ -16,7 +16,7 @@
         {% if s.image %}
           <img class="service-card__img" src="{{ s.image.url }}" alt="{{ s.title }}">
         {% else %}
-          <img class="service-card__img" src="{% static 'img/placeholders/service.jpg' %}" alt="{{ s.title }}">
+          <img class="service-card__img" src="{% static 'img/service.jpg' %}" alt="{{ s.title }}">
         {% endif %}
 
         <h3><a href="{% url 'services:detail' s.slug %}">{{ s.title }}</a></h3>
