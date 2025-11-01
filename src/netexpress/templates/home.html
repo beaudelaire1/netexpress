@@ -2,205 +2,188 @@
 {% load static %}
 
 {# Ajout de la feuille de style spécifique à la page d'accueil afin
-   d'améliorer la grille, les couleurs et la mise en page.  Ce
-   fichier ``style.css`` s'appuie sur notre palette et remplace
-   certains styles définis dans ``base.css`` pour l'accueil. #}
+   d'améliorer la grille, les couleurs et la mise en page.  Ce
+   fichier ``style.css`` s'appuie sur notre palette et remplace
+   certains styles définis dans ``base.css`` pour l'accueil. #}
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
 {% endblock %}
 
 {% block content %}
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero__text">
-    <h1>Les experts des <span class="accent">espaces verts, nettoyage, peinture & bricolage à Cayenne</span></h1>
-    <p class="lead">
-      Notre équipe locale intervient rapidement sur toute l’Île de Cayenne pour sublimer vos
-      intérieurs et extérieurs : jardins entretenus, locaux impeccables, rénovation de peinture
-      et petits travaux réalisés avec soin et professionnalisme.
-    </p>
-    <div class="actions">
-      <a class="btn btn-primary" href="{% url 'services:list' %}">Voir nos services</a>
-      <a class="btn btn-outline" href="{% url 'devis:request_quote' %}">Demander un devis</a>
-    </div>
-    <ul class="hero__stats">
-      <li><span>4,9/5</span> avis clients</li>
-      <li><span>&lt; 24 h</span> délai d’intervention</li>
-      <li><span>100 %</span> satisfait ou refait</li>
-    </ul>
-  </div>
-  <div class="hero__media">
-    <!-- Illustration locale fournie pour l'accueil : paysage verdoyant symbolisant les espaces verts et les extérieurs.
-         L'image est stockée dans static/img/hero_home.png et est libre de droits. -->
-    <img src="{% static 'img/hero_home.png' %}" alt="Illustration de nos services" style="border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
-  </div>
+  <div class="hero__text">
+    <h1>Les experts des <span class="accent">espaces verts, nettoyage, peinture & bricolage à Cayenne</span></h1>
+    <p class="lead">
+      Notre équipe locale intervient rapidement sur toute l’Île de Cayenne pour sublimer vos
+      intérieurs et extérieurs : jardins entretenus, locaux impeccables, rénovation de peinture
+      et petits travaux réalisés avec soin et professionnalisme.
+    </p>
+    <div class="actions">
+      <a class="btn btn-primary" href="{% url 'services:list' %}">Voir nos services</a>
+      <a class="btn btn-outline" href="{% url 'devis:request_quote' %}">Demander un devis</a>
+    </div>
+    <ul class="hero__stats">
+      <li><span>4,9/5</span> avis clients</li>
+      <li><span>&lt; 24 h</span> délai d’intervention</li>
+      <li><span>100 %</span> satisfait ou refait</li>
+    </ul>
+  </div>
+  <div class="hero__media">
+    <!-- Illustration locale fournie pour l'accueil : paysage verdoyant symbolisant les espaces verts et les extérieurs.
+         L'image est stockée dans static/img/hero_home.png et est libre de droits. -->
+    <img src="{% static 'img/hero_home.png' %}" alt="Illustration de nos services" style="border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
+  </div>
 </section>
 
 <!-- TRUST BAR -->
 <section class="trust">
-  <ul class="trust__badges">
-    <li>Entreprise déclarée & assurée</li>
-    <li>Équipements écoresponsables</li>
-    <li>Intervenants triés & formés</li>
-  </ul>
+  <ul class="trust__badges">
+    <li>Entreprise déclarée & assurée</li>
+    <li>Équipements écoresponsables</li>
+    <li>Intervenants triés & formés</li>
+  </ul>
 </section>
 
 <!-- CATÉGORIES / MÉTIERS -->
 <section class="section">
-  <div class="section__head">
-    <h2>Nos métiers</h2>
-  </div>
-  <div class="grid">
-    {# Si des catégories sont fournies par la vue, on les liste dynamiquement. Sinon, on affiche quatre métiers par défaut avec des photos libres de droits. #}
-    {% if categories %}
-      {% for cat in categories %}
-        <article class="card service-card">
-          {% if cat.icon %}
-            <img class="service-card__img" src="{{ cat.icon.url }}" alt="Illustration {{ cat.name }}">
-          {% else %}
-            {# Fallback : utiliser une image Unsplash basée sur le nom de la catégorie #}
-            <img class="service-card__img" src="{% static 'img/peinture.jpg' %} alt="{{ cat.name }}">
-          {% endif %}
-          <h3><a href="{% url 'services:list' %}?category={{ cat.slug }}">{{ cat.name }}</a></h3>
-          <p class="small">Découvrez nos prestations de {{ cat.name|lower }}.</p>
-          <a class="btn btn-outline" href="{% url 'services:list' %}?category={{ cat.slug }}">Voir plus</a>
-        </article>
-      {% endfor %}
-    {% else %}
-      <!-- Fallback si aucune catégorie n’existe encore en base : afficher quatre cartes avec des images libres de droits -->
-      <article class="card service-card">
-        <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="Espaces verts">
-        <h3><a href="{% url 'services:list' %}?category=espaces-verts">Espaces verts</a></h3>
-        <p class="small">Entretien de pelouses, haies et jardins luxuriants.</p>
-        <a class="btn btn-outline" href="{% url 'services:list' %}?category=espaces-verts">Voir plus</a>
-      </article>
-      <article class="card service-card">
-        <img class="service-card__img" src="{% static 'img/peinture.jpg' %}  alt="Nettoyage">
-        <h3><a href="{% url 'services:list' %}?category=nettoyage">Peinture</a></h3>
-        <p class="small">Nettoyage professionnel pour tous types de surfaces.</p>
-        <a class="btn btn-outline" href="{% url 'services:list' %}?category=nettoyage">Voir plus</a>
-      </article>
-      <article class="card service-card">
-        <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="Elagage">
-        <h3><a href="{% url 'services:list' %}?category=peinture">Elagage</a></h3>
-        <p class="small">Rafraîchissement et rénovation de vos murs et façades.</p>
-        <a class="btn btn-outline" href="{% url 'services:list' %}?category=peinture">Voir plus</a>
-      </article>
-      <article class="card service-card">
-        <img class="service-card__img" src="{% static 'img/brico.jpg' %}"alt="Bricolage">
-        <h3><a href="{% url 'services:list' %}?category=bricolage">Bricolage</a></h3>
-        <p class="small">Petits travaux et installations par nos experts.</p>
-        <a class="btn btn-outline" href="{% url 'services:list' %}?category=bricolage">Voir plus</a>
-      </article>
-    {% endif %}
-  </div>
+  <div class="section__head">
+    <h2>Nos métiers</h2>
+  </div>
+  <div class="grid">
+    {# Si des catégories sont fournies par la vue, on les liste dynamiquement. Sinon, on affiche cinq métiers par défaut avec des photos libres de droits. #}
+    {% if categories %}
+      {% for cat in categories %}
+        <article class="card service-card">
+          {% if cat.icon %}
+            <img class="service-card__img" src="{{ cat.icon.url }}" alt="Illustration {{ cat.name }}">
+          {% else %}
+            {# Fallback : utiliser une image Unsplash basée sur le slug de la catégorie #}
+            <img class="service-card__img" src="https://source.unsplash.com/400x300/?{{ cat.slug|urlencode }}" alt="{{ cat.name }}">
+          {% endif %}
+          <h3><a href="{% url 'services:list' %}?category={{ cat.slug }}">{{ cat.name }}</a></h3>
+          <p class="small">Découvrez nos prestations de {{ cat.name|lower }}.</p>
+          <a class="btn btn-outline" href="{% url 'services:list' %}?category={{ cat.slug }}">Voir plus</a>
+        </article>
+      {% endfor %}
+    {% else %}
+      <!-- Fallback si aucune catégorie n’existe encore en base : afficher des métiers pré‑définis avec des images libres de droits -->
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?amenagement-paysager" alt="Espaces verts">
+        <h3><a href="{% url 'services:list' %}?category=espaces-verts">Espaces verts</a></h3>
+        <p class="small">Entretien de pelouses, haies et jardins luxuriants.</p>
+        <a class="btn btn-outline" href="{% url 'services:list' %}?category=espaces-verts">Voir plus</a>
+      </article>
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?cleaning" alt="Entretien">
+        <h3><a href="{% url 'services:list' %}?category=entretien">Entretien</a></h3>
+        <p class="small">Nettoyage professionnel pour tous types de surfaces.</p>
+        <a class="btn btn-outline" href="{% url 'services:list' %}?category=entretien">Voir plus</a>
+      </article>
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?facade,peinture" alt="Peinture">
+        <h3><a href="{% url 'services:list' %}?category=peinture">Peinture</a></h3>
+        <p class="small">Rafraîchissement et rénovation de vos murs et façades.</p>
+        <a class="btn btn-outline" href="{% url 'services:list' %}?category=peinture">Voir plus</a>
+      </article>
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?handwerk" alt="Bricolage">
+        <h3><a href="{% url 'services:list' %}?category=bricolage">Bricolage</a></h3>
+        <p class="small">Petits travaux et installations par nos experts.</p>
+        <a class="btn btn-outline" href="{% url 'services:list' %}?category=bricolage">Voir plus</a>
+      </article>
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?elagage" alt="Élagage">
+        <h3><a href="{% url 'services:list' %}?category=elagage">Élagage</a></h3>
+        <p class="small">Taille et élagage des arbres pour des espaces verts soignés.</p>
+        <a class="btn btn-outline" href="{% url 'services:list' %}?category=elagage">Voir plus</a>
+      </article>
+    {% endif %}
+  </div>
 </section>
 
 <!-- SERVICES EN AVANT -->
 <section class="section">
-  <div class="section__head">
-    <h2>Services populaires</h2>
-      <a class="link" href="{% url 'services:list' %}">Tout voir →</a>
-  </div>
+  <div class="section__head">
+    <h2>Services populaires</h2>
+      <a class="link" href="{% url 'services:list' %}">Tout voir →</a>
+  </div>
 
-  <div class="grid">
-    {% if featured_services %}
-      {% for s in featured_services %}
-        <article class="card service-card">
-          {% if s.image %}<img class="service-card__img" src="{{ s.image.url }}" alt="{{ s.title }}">{% endif %}
-          <h3><a href="{% url 'services:detail' s.slug %}">{{ s.title }}</a></h3>
-          <p class="small">{{ s.short_description|default:"Nettoyage de qualité professionnelle." }}</p>
-          <div class="meta">
-            <span class="price">À partir de {{ s.base_price }} €</span>
-            <span class="sep">·</span>
-            <span>~{{ s.duration_minutes }} min</span>
-          </div>
-          <a class="btn btn-outline" href="{% url 'services:detail' s.slug %}">Réserver</a>
-        </article>
-      {% endfor %}
-    {% else %}
-      <!-- Fallback si aucun contexte fourni : 3 cartes de démonstration -->
-      <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?office,cleaning" alt="Nettoyage de bureaux">
-        <h3>Nettoyage de bureaux</h3>
-        <p class="small">Entretien régulier, horaires flexibles, produits écoresponsables.</p>
-        <div class="meta"><span class="price">Dès 49 €</span> <span class="sep">·</span> <span>~60 min</span></div>
-        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
-      </article>
-      <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?construction,cleanup" alt="Remise en état fin de chantier">
-        <h3>Remise en état fin de chantier</h3>
-        <p class="small">Dépoussiérage complet, vitrerie, sols — prêt à livrer.</p>
-        <div class="meta"><span class="price">Dès 89 €</span> <span class="sep">·</span> <span>~120 min</span></div>
-        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
-      </article>
-      <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?airbnb,cleaning" alt="Nettoyage Airbnb">
-        <h3>Nettoyage Airbnb / location courte durée</h3>
-        <p class="small">Rotation rapide, respect check-lists, draps & consommables.</p>
-        <div class="meta"><span class="price">Dès 39 €</span> <span class="sep">·</span> <span>~45 min</span></div>
-        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
-      </article>
-    {% endif %}
-  </div>
+  <div class="grid">
+    {% if featured_services %}
+      {% for s in featured_services %}
+        <article class="card service-card">
+          {% if s.image %}<img class="service-card__img" src="{{ s.image.url }}" alt="{{ s.title }}">{% endif %}
+          <h3><a href="{% url 'services:detail' s.slug %}">{{ s.title }}</a></h3>
+          <p class="small">{{ s.short_description|default:"Nettoyage de qualité professionnelle." }}</p>
+          <div class="meta">
+            <span class="price">À partir de {{ s.base_price }} €</span>
+            <span class="sep">·</span>
+            <span>~{{ s.duration_minutes }} min</span>
+          </div>
+          <a class="btn btn-outline" href="{% url 'services:detail' s.slug %}">Réserver</a>
+        </article>
+      {% endfor %}
+    {% else %}
+      <!-- Fallback si aucun contexte fourni : 3 cartes de démonstration -->
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?office,cleaning" alt="Nettoyage de bureaux">
+        <h3>Nettoyage de bureaux</h3>
+        <p class="small">Entretien régulier, horaires flexibles, produits écoresponsables.</p>
+        <div class="meta"><span class="price">Dès 49 €</span> <span class="sep">·</span> <span>~60 min</span></div>
+        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
+      </article>
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?construction,cleanup" alt="Remise en état fin de chantier">
+        <h3>Remise en état fin de chantier</h3>
+        <p class="small">Dépoussiérage complet, vitrerie, sols — prêt à livrer.</p>
+        <div class="meta"><span class="price">Dès 89 €</span> <span class="sep">·</span> <span>~120 min</span></div>
+        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
+      </article>
+      <article class="card service-card">
+        <img class="service-card__img" src="https://source.unsplash.com/400x300/?airbnb,cleaning" alt="Nettoyage Airbnb">
+        <h3>Nettoyage Airbnb / location courte durée</h3>
+        <p class="small">Rotation rapide, respect check‑lists, draps & consommables.</p>
+        <div class="meta"><span class="price">Dès 39 €</span> <span class="sep">·</span> <span>~45 min</span></div>
+        <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
+      </article>
+    {% endif %}
+  </div>
 </section>
 
 <!-- ÉTAPES -->
 <section class="section muted">
-  <h2>Comment ça marche ?</h2>
-  <ol class="steps">
-    <li><span>1</span><b>Choisissez</b> un service et un créneau.</li>
-    <li><span>2</span><b>Confirmez</b> l’adresse et vos instructions.</li>
-    <li><span>3</span><b>Intervention</b> par nos équipes formées.</li>
-    <li><span>4</span><b>Validation</b> & reçu/facture immédiat.</li>
-  </ol>
+  <h2>Comment ça marche ?</h2>
+  <ol class="steps">
+    <li><span>1</span><b>Choisissez</b> un service et un créneau.</li>
+    <li><span>2</span><b>Confirmez</b> l’adresse et vos instructions.</li>
+    <li><span>3</span><b>Intervention</b> par nos équipes formées.</li>
+    <li><span>4</span><b>Validation</b> & reçu/facture immédiat.</li>
+  </ol>
 </section>
-
-<!-- AVIS -->
-<!--
-<section class="section">
-  <h2>Ils nous font confiance</h2>
-  <div class="grid testimonials">
-    <blockquote class="card">
-      <p>“Service impeccable et ponctualité. On a basculé tout l’immeuble chez eux.”</p>
-      <footer>— Résidence Horizon</footer>
-    </blockquote>
-    <blockquote class="card">
-      <p>“Parfait pour nos rotations Airbnb”</p>
-      <footer>— Louise, hôte Airbnb</footer>
-    </blockquote>
-  </div>
-</section>
--->
 
 <!-- CTA FINALE -->
 <section class="cta-strip">
-  <div class="cta-strip__content">
-    <h3>Besoin d’un devis rapide ?</h3>
-    <p class="small">Réponse sous 24h. Tarifs clairs, sans surprise.</p>
-  </div>
-  <a class="btn btn-primary" href="{% url 'devis:request_quote' %}">Obtenir mon devis</a>
+  <div class="cta-strip__content">
+    <h3>Besoin d’un devis rapide ?</h3>
+    <p class="small">Réponse sous 24h. Tarifs clairs, sans surprise.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'devis:request_quote' %}">Obtenir mon devis</a>
 </section>
 
 <!-- SEO / Schema.org (à personnaliser) -->
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "name": "Nettoyage Express",
-  "url": "http://127.0.0.1:8000/",
-  "image": [],
-  "telephone": "+594000000",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Matoury",
-    "postalCode": "97351",
-    "addressCountry": "FR"
-  },
-  "areaServed": "Martinique",
-  "sameAs": []
-}
-</script>
-
-{% endblock %}
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Nettoyage Express",
+  "url": "http://127.0.0.1:8000/",
+  "image": [],
+  "telephone": "+594000000",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Matoury",
+    "postalCode": "97351",
+    "addressCountry": "FR"
+  },
