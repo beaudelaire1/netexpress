@@ -12,22 +12,21 @@ from pathlib import Path
 import os
 
 # Base directory of the project
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-# -------------------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent.parent# -------------------------------------------------------------
 # Security settings
 # -------------------------------------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "YOUR_SECRET_KEY")
 
 # Set DEBUG to False in production
-DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "render.com",
     "netexpress.onrender.com",
-    "renderapp.io",
+    "www.nettoyageexpresse.fr",
+    "nettoyageexpresse.fr",
     "*",
 ]
 
