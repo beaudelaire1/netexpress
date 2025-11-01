@@ -60,7 +60,7 @@
             <img class="service-card__img" src="{{ cat.icon.url }}" alt="Illustration {{ cat.name }}">
           {% else %}
             {# Fallback : utiliser une image Unsplash basée sur le nom de la catégorie #}
-            <img class="service-card__img" src="https://source.unsplash.com/400x300/?{{ cat.slug|urlencode }}" alt="{{ cat.name }}">
+            <img class="service-card__img" src="{% static 'img/peinture.jpg' %} alt="{{ cat.name }}">
           {% endif %}
           <h3><a href="{% url 'services:list' %}?category={{ cat.slug }}">{{ cat.name }}</a></h3>
           <p class="small">Découvrez nos prestations de {{ cat.name|lower }}.</p>
@@ -70,25 +70,25 @@
     {% else %}
       <!-- Fallback si aucune catégorie n’existe encore en base : afficher quatre cartes avec des images libres de droits -->
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?garden,green" alt="Espaces verts">
+        <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="Espaces verts">
         <h3><a href="{% url 'services:list' %}?category=espaces-verts">Espaces verts</a></h3>
         <p class="small">Entretien de pelouses, haies et jardins luxuriants.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=espaces-verts">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?cleaning" alt="Nettoyage">
-        <h3><a href="{% url 'services:list' %}?category=nettoyage">Nettoyage</a></h3>
+        <img class="service-card__img" src="{% static 'img/peinture.jpg' %}  alt="Nettoyage">
+        <h3><a href="{% url 'services:list' %}?category=nettoyage">Peinture</a></h3>
         <p class="small">Nettoyage professionnel pour tous types de surfaces.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=nettoyage">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?painting,wall" alt="Peinture">
-        <h3><a href="{% url 'services:list' %}?category=peinture">Peinture</a></h3>
+        <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="Elagage">
+        <h3><a href="{% url 'services:list' %}?category=peinture">Elagage</a></h3>
         <p class="small">Rafraîchissement et rénovation de vos murs et façades.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=peinture">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?tools,DIY" alt="Bricolage">
+        <img class="service-card__img" src="{% static 'img/brico.jpg' %}"alt="Bricolage">
         <h3><a href="{% url 'services:list' %}?category=bricolage">Bricolage</a></h3>
         <p class="small">Petits travaux et installations par nos experts.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=bricolage">Voir plus</a>
