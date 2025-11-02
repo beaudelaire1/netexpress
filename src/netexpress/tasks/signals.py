@@ -35,6 +35,10 @@ def _get_notification_recipient() -> str | None:
     to = getattr(settings, "TASK_NOTIFICATION_EMAIL", "")
     if not to:
         to = getattr(settings, "EMAIL_HOST_USER", "")
+    # En dernier recours, utiliser DEFAULT_FROM_EMAIL pour que les notifications
+    # ne soient pas perdues si EMAIL_HOST_USER n'est pas défini
+    if not to:
+        to = getattr(settings, "DEFAULT_FROM_EMAIL", "")
     return to or None
 
 
@@ -82,7 +86,12 @@ def notify_status_change(sender, instance: Task, **kwargs) -> None:
                 f"Cordialement."
             )
         # Envoyer le message
-        EmailNotificationService.send(recipient, subject, body)
+        EmailNotificationService.send(
+            to_email=recipient,
+            subject=subject,
+            body=body,
+            from_email_override=recipient,
+        )
 
 
 @receiver(post_save, sender=Task)
@@ -118,7 +127,12 @@ def notify_due_soon(sender, instance: Task, **kwargs) -> None:
         f"Équipe : {instance.team or 'Non spécifié'}\n\n"
         f"Cordialement."
     )
-    EmailNotificationService.send(recipient, subject, body)
+    EmailNotificationService.send(
+        to_email=recipient,
+        subject=subject,
+        body=body,
+        from_email_override=recipient,
+    )
 
 # -----------------------------------------------------------------------------
 # Notifications supplémentaires : création de tâche
@@ -144,4 +158,9 @@ def notify_task_created(sender, instance: Task, created: bool, **kwargs) -> None
         f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
         f"Cordialement."
     )
-    EmailNotificationService.send(recipient, subject, body)
+    EmailNotificationService.send(
+        to_email=recipient,
+        subject=subject,
+        body=body,
+        from_email_override=recipient,
+    )

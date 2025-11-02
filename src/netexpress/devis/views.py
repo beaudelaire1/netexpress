@@ -18,6 +18,12 @@ from django.contrib import messages
 
 from .forms import DevisForm
 
+# Importer la fonction de notification de devis depuis l'app messaging si disponible.
+try:
+    from messaging.services import send_quote_notification  # type: ignore
+except Exception:
+    send_quote_notification = None  # type: ignore
+
 
 def request_quote(request):
     """
@@ -43,7 +49,15 @@ def request_quote(request):
     if request.method == "POST":
         form = DevisForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Enregistrer la demande et récupérer l'instance pour notification
+            quote = form.save()
+            # Envoyer une notification e‑mail si le service est disponible
+            if send_quote_notification:
+                try:
+                    send_quote_notification(quote)
+                except Exception:
+                    # Ne pas bloquer l'envoi en cas d'erreur
+                    pass
             messages.success(
                 request,
                 "Votre demande de devis a été envoyée avec succès. Nous vous contacterons rapidement.",

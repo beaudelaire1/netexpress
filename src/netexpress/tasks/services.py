@@ -63,6 +63,7 @@ class EmailNotificationService:
         attachments: list[tuple[str, bytes]] | None = None,
         *,
         html_body: str | None = None,
+        from_email_override: str | None = None,
     ) -> None:
         """Send an email via the configured SMTP server.
 
@@ -91,9 +92,15 @@ class EmailNotificationService:
         password: str = getattr(settings, "EMAIL_HOST_PASSWORD", "")
         use_ssl: bool = bool(getattr(settings, "EMAIL_USE_SSL", False))
 
-        from_email = username or getattr(settings, "DEFAULT_FROM_EMAIL", "")
-        if not from_email:
-            from_email = "no-reply@example.com"
+        # Déterminer l'adresse de l'expéditeur.
+        # Si un override explicite est fourni, l'utiliser en priorité.
+        if from_email_override:
+            from_email = from_email_override
+        else:
+            # Priorité : DEFAULT_FROM_EMAIL > EMAIL_HOST_USER > générique
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "") or username
+            if not from_email:
+                from_email = "no-reply@example.com"
 
         # Build the root message container.  If an HTML body is provided
         # create an ``alternative`` subpart so that clients can choose
