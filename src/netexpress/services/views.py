@@ -2,11 +2,13 @@
 Vues pour le catalogue des services.
 
 Cette module expose deux vues : une liste des services actifs et une fiche
-détaillée pour un service individuel (avec la liste des tâches associées).  En
-2025, le design a été amélioré et les vues intègrent désormais des images de
-remplacement issues de Unsplash lorsqu'aucune image n'est fournie dans la base
-de données.  Les vues restent basées sur les classes génériques de Django afin
-de faciliter leur extension et leur personnalisation.
+détaillée pour un service individuel (avec la liste des tâches associées).
+En 2025, le design a été amélioré et les vues intègrent désormais des images
+de remplacement issues du dossier local ``static/img`` lorsqu'aucune image
+n'est fournie dans la base de données.  Les vues restent basées sur les
+classes génériques de Django afin de faciliter leur extension et leur
+personnalisation.  Toute dépendance à des banques d'images externes comme
+Unsplash a été supprimée.
 """
 
 from django.views.generic import ListView, DetailView

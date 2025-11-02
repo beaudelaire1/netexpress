@@ -687,6 +687,45 @@ class Invoice(models.Model):
                 y = yy - 4*mm
             return y
 
+        # --- Signature et mention "Bon pour accord"
+        def _signature_block(y: float) -> float:
+            """
+            Dessine un encart réservé à la signature en bas de page.
+
+            Cette zone comporte un cadre vide où le client peut signer
+            et un petit texte d'accompagnement invitant à ajouter la
+            mention manuscrite « Bon pour accord ».  L'espace requis
+            est d'environ 25 mm de hauteur.
+
+            Parameters
+            ----------
+            y : float
+                Position verticale actuelle du curseur (en points).
+
+            Returns
+            -------
+            float
+                Nouvelle position verticale après avoir dessiné
+                l'encart.
+            """
+            from reportlab.lib.units import mm
+            height_needed = 25 * mm
+            # S'assurer qu'il reste suffisamment d'espace; ne pas répéter
+            y = _maybe_new(y, height_needed, False)
+            box_w, box_h = 60 * mm, 20 * mm
+            x_sig = M_LEFT
+            # Cadre pour signature
+            c.setStrokeColor(COLOR_BORDER)
+            c.setLineWidth(0.5)
+            c.rect(x_sig, y - box_h, box_w, box_h, fill=0, stroke=1)
+            # Texte d'invitation
+            c.setFont(font_main, 7)
+            c.setFillColor(COLOR_MUTED)
+            msg = "Veuillez ajouter la mention ‘Bon pour accord’ et signer ci‑dessus."
+            c.drawString(x_sig, y - box_h - 3 * mm, msg)
+            # Retourner la nouvelle position
+            return y - box_h - 6 * mm
+
         # --- Rendu
         _wm()
         _topbar(include_total_card=True)
@@ -696,19 +735,42 @@ class Invoice(models.Model):
         y = _tbody(y)
         y = _vat_and_summary(y)
         y = _notes_terms(y)
+        # Ajouter un bloc de signature en bas de page
+        y = _signature_block(y)
         _footer()
         c.save()  # pas de showPage final (évite page blanche)
 
         pdf = buf.getvalue()
         buf.close()
         if attach:
-            # Supprimer l'ancien fichier PDF s'il existe avant d'attacher le nouveau
+            # Déterminer le nom de fichier final (basé sur le numéro de facture).
+            # En utilisant uniquement le numéro comme nom (sans préfixe aléatoire) et
+            # en supprimant toute occurrence existante de ce fichier, on évite que
+            # Django n'ajoute un suffixe aléatoire à chaque génération.  Cela
+            # résout le problème des multiples fichiers « facture_XXX_*.pdf » créés
+            # en boucle après chaque génération.
+            file_field = self._meta.get_field("pdf")
+            filename = f"{self.number}.pdf"
+            target_path = os.path.join(file_field.upload_to, filename)
+
+            # Supprimer le fichier actuel s'il est déjà attaché
             if self.pdf:
                 try:
                     self.pdf.delete(save=False)
                 except Exception:
                     pass
-            self.pdf.save(f"facture_{self.number}.pdf", ContentFile(pdf), save=False)
+
+            # Supprimer tout fichier existant portant le même nom pour éviter
+            # l'ajout d'un suffixe automatique par le stockage
+            try:
+                file_field.storage.delete(target_path)
+            except Exception:
+                # Ignorer silencieusement si le fichier n'existe pas ou en cas d'erreur
+                pass
+
+            # Sauvegarder le nouveau contenu PDF.  L'utilisation du nom simple
+            # garantit que Django écrira « factures/<numero>.pdf » sous MEDIA_ROOT.
+            self.pdf.save(filename, ContentFile(pdf), save=False)
         return pdf
 
 

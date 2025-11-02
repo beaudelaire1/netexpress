@@ -1,13 +1,14 @@
 """
 Vues pour l'app ``contact``.
 
-Le formulaire de contact permet aux visiteurs d'envoyer des messages
-structurés (sujets prédéfinis).  Lors de la soumission, un enregistrement
-``Message`` est créé et éventuellement une notification par e‑mail est
-envoyée (en fonction de votre configuration SMTP).  Depuis la refonte
-de 2025, la mise en page du formulaire suit la charte graphique de
-NetExpress et rappelle que toutes les illustrations proviennent de
-sources libres de droits telles qu'Unsplash【668280112401708†L16-L63】.
+    Le formulaire de contact permet aux visiteurs d'envoyer des messages
+    structurés (sujets prédéfinis).  Lors de la soumission, un enregistrement
+    ``Message`` est créé et éventuellement une notification par e‑mail est
+    envoyée (en fonction de votre configuration SMTP).  Depuis la refonte
+    de 2025, la mise en page du formulaire suit la charte graphique de
+    NetExpress et rappelle que toutes les illustrations proviennent
+    désormais du dossier local ``static/img``.  Ainsi, le projet ne
+    dépend plus d'images libres de droits externes comme Unsplash【668280112401708†L16-L63】.
 """
 
 from django.shortcuts import render, redirect

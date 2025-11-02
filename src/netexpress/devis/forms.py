@@ -6,10 +6,11 @@ qui capture les informations du client et du service souhaité.  Lors de
 l'appel à ``save()``, un ``Client`` est créé puis un ``Quote`` est
 enregistré avec le service facultatif et le message.
 
-En 2025, l'interface utilisateur a été repensée pour être plus conviviale :
+En 2025, l'interface utilisateur a été repensée pour être plus conviviale :
 les widgets portent désormais l'attribut ``required`` et les pages
-associent des visuels libres de droits issus d'Unsplash afin d'illustrer
-chaque catégorie de service【668280112401708†L16-L63】.
+associent des visuels locaux (``static/img``) afin d'illustrer
+chaque catégorie de service.  Toute dépendance à des images externes
+comme Unsplash a été retirée【668280112401708†L16-L63】.
 
 Les widgets sont décorés de classes CSS pour s'intégrer au thème du site.
 """

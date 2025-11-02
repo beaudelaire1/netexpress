@@ -14,11 +14,12 @@ Cette module définit les entités suivantes :
   « Débroussaillage » ou « Taille de haies »).  Les tâches sont ordonnées
   et affichées sur la page de détail.
 
-En 2025, ces modèles ont été étendus avec la méthode ``get_absolute_url``
-qui simplifie l'obtention d'URL canoniques depuis les templates.  De plus,
-les gabarits utilisent désormais des images libres de droits (Unsplash)
-comme solutions de repli lorsque aucune image n'est fournie en base de
-données【668280112401708†L16-L63】.
+  En 2025, ces modèles ont été étendus avec la méthode ``get_absolute_url``
+  qui simplifie l'obtention d'URL canoniques depuis les templates.
+  De plus, les gabarits utilisent désormais des images locales comme
+  solutions de repli lorsque aucune image n'est fournie en base de
+  données.  Toute dépendance à des services externes (e.g. Unsplash) a été
+  retirée【668280112401708†L16-L63】.
 """
 
 from django.db import models

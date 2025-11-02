@@ -16,8 +16,19 @@
         {% if s.image %}
           <img class="service-card__img" src="{{ s.image.url }}" alt="{{ s.title }}">
         {% else %}
-          {# Fallback : image Unsplash basée sur le slug/titre du service #}
-          <img class="service-card__img" src="https://source.unsplash.com/400x300/?{{ s.slug|urlencode }}" alt="{{ s.title }}">
+          {# Image locale de secours basée sur la catégorie du service.  Ceci évite l'utilisation de
+             ressources externes comme Unsplash et garantit un rendu cohérent. #}
+          {% if s.category.slug == 'espaces-verts' %}
+            <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ s.title }}">
+          {% elif s.category.slug == 'peinture' %}
+            <img class="service-card__img" src="{% static 'img/peinture.jpg' %}" alt="{{ s.title }}">
+          {% elif s.category.slug == 'bricolage' %}
+            <img class="service-card__img" src="{% static 'img/brico.jpg' %}" alt="{{ s.title }}">
+          {% elif s.category.slug == 'elagage' %}
+            <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="{{ s.title }}">
+          {% else %}
+            <img class="service-card__img" src="{% static 'img/service-1.svg' %}" alt="{{ s.title }}">
+          {% endif %}
         {% endif %}
 
         <h3><a href="{% url 'services:detail' s.slug %}">{{ s.title }}</a></h3>

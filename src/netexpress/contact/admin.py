@@ -6,8 +6,9 @@ en liste filtrable et recherchable par sujet, nom ou e‑mail.  Le champ
 ``processed`` est éditable directement depuis la liste afin de marquer
 les messages comme traités.  La refonte de 2025 a rendu le champ
 téléphone obligatoire et harmonisé les couleurs de l’interface avec
-les autres apps.  Les visuels utilisés sur les pages du site proviennent
-d’Unsplash et sont sans droits【668280112401708†L16-L63】.
+    les autres apps.  Les visuels utilisés sur les pages du site
+    proviennent désormais exclusivement du dossier ``static/img`` et ne
+    dépendent plus d'Unsplash.
 """
 
 from django.contrib import admin

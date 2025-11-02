@@ -1,10 +1,12 @@
 """
 Vues de l'application ``core``.
 
-* ``home`` : rend la page d'accueil avec une sélection de services en
-  vedette et la liste des catégories.  La mise en page a été repensée en
-  2025 pour inclure des visuels libres de droits (Unsplash) et assurer
-  une meilleure expérience utilisateur.
+  * ``home`` : rend la page d'accueil avec une sélection de services en
+    vedette et la liste des catégories.  La mise en page a été repensée en
+    2025 pour inclure des visuels locaux libres de droits (dossier
+    ``static/img``) et assurer une meilleure expérience utilisateur.  Les
+    dépendances à des banques d'images externes comme Unsplash ont été
+    supprimées.
 * ``about`` : rend une page de présentation de l'entreprise, détaillant ses
   valeurs et sa mission.  Cette page met également en avant la nouvelle
   interface et l'utilisation d'images libres de droits.

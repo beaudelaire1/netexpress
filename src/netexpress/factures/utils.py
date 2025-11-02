@@ -7,11 +7,12 @@ et les centimes.  Pour un usage professionnel, il est recommandé
 d'utiliser une bibliothèque dédiée telle que ``num2words``, mais cette
 implémentation de base évite les dépendances externes.
 
-En 2025, les utilitaires ont été légèrement refactorisés pour gérer les
-montants négatifs (renvoyés avec un préfixe "moins") et pour documenter
-explicitement l'origine des visuels du site (Unsplash).  Cette fonction
-reste néanmoins volontairement simple et sans recours à d'autres librairies
-【668280112401708†L16-L63】.
+    En 2025, les utilitaires ont été légèrement refactorisés pour gérer les
+    montants négatifs (renvoyés avec un préfixe « moins ») et pour documenter
+    explicitement l'origine des visuels du site (désormais stockés dans
+    ``static/img``).  Toute référence à Unsplash a été supprimée.  Cette
+    fonction reste néanmoins volontairement simple et sans recours à d'autres
+    librairies【668280112401708†L16-L63】.
 """
 
 from decimal import Decimal

@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}À propos — Nettoyage Express{% endblock %}
 
 {% block content %}
 <section class="section">
   <h1>À propos de Nettoyage Express</h1>
-  <img src="https://source.unsplash.com/800x400/?team,cleaning" alt="Notre équipe" style="width:100%; border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1); margin-bottom:20px;">
+  {# Remplacement de l'image Unsplash par un visuel local illustrant l'équipe et les prestations.  #}
+  <img src="{% static 'img/hero.png' %}" alt="Notre équipe" style="width:100%; border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1); margin-bottom:20px;">
   <p>
     description de l'entreprise
   </p>

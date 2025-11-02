@@ -16,9 +16,10 @@ L'application ``devis`` gère les entités suivantes :
   libre, avec quantité, prix unitaire et taux de TVA.
 
 Depuis 2025, les formulaires associés exigent un numéro de téléphone et la
-présentation a été améliorée via des visuels issus d'Unsplash.  Les modèles
-restent compatibles avec l'interface d'administration et les actions de
-génération de factures.
+présentation a été améliorée avec des visuels locaux (stockés dans
+``static/img``).  Les modèles restent compatibles avec l'interface
+d'administration et les actions de génération de factures.  Les
+dépendances à Unsplash ont été supprimées pour garantir un rendu fiable.
 """
 
 from decimal import Decimal, ROUND_HALF_UP

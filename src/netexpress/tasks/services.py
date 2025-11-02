@@ -61,6 +61,8 @@ class EmailNotificationService:
         subject: str,
         body: str,
         attachments: list[tuple[str, bytes]] | None = None,
+        *,
+        html_body: str | None = None,
     ) -> None:
         """Send an email via the configured SMTP server.
 
@@ -72,10 +74,16 @@ class EmailNotificationService:
         subject : str
             Subject line of the email.
         body : str
-            Plain text body of the email.
+            Plain text body of the email.  This will be used as the
+            fallback plain text part if ``html_body`` is also supplied.
         attachments : list of tuple(str, bytes), optional
             Optional list of attachments.  Each tuple must contain the
             filename and the binary content of the file.
+        html_body : str, optional keyword-only
+            If provided, an additional HTML version of the message to
+            include as a MIME ``text/html`` part.  When ``html_body`` is
+            supplied the message will be sent as a multi-part/alternative
+            to allow mail clients to choose the best representation.
         """
         host: str = getattr(settings, "EMAIL_HOST", "localhost")
         port: int = int(getattr(settings, "EMAIL_PORT", 25))
@@ -87,11 +95,24 @@ class EmailNotificationService:
         if not from_email:
             from_email = "no-reply@example.com"
 
+        # Build the root message container.  If an HTML body is provided
+        # create an ``alternative`` subpart so that clients can choose
+        # between plain text and HTML representations.
         msg = MIMEMultipart()
         msg["Subject"] = subject
         msg["From"] = from_email
         msg["To"] = to_email
-        msg.attach(MIMEText(body, "plain", "utf-8"))
+
+        if html_body:
+            alternative = MIMEMultipart("alternative")
+            # Always attach the plain text version first to provide a
+            # fallback for clients that do not support HTML.
+            alternative.attach(MIMEText(body or "", "plain", "utf-8"))
+            alternative.attach(MIMEText(html_body, "html", "utf-8"))
+            msg.attach(alternative)
+        else:
+            # Only plain text
+            msg.attach(MIMEText(body or "", "plain", "utf-8"))
 
         # Attach files if provided
         for fname, content in (attachments or []):

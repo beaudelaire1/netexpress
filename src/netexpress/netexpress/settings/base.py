@@ -165,5 +165,49 @@ EMAIL_HOST_PASSWORD = "Luxama973@"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # -------------------------------------------------------------
+# Jazzmin configuration
+# -------------------------------------------------------------
+# Pour harmoniser l'interface d'administration avec l'identité visuelle de
+# Nettoyage Express, nous appliquons ci‑dessous des réglages Jazzmin.
+# Ces options personnalisent le titre, le logo, les icônes et la couleur
+# principale de l'interface.  Jazzmin n'est activé que si installé.
+
+JAZZMIN_SETTINGS = {
+    # Entête et titre du site admin
+    "site_title": "Nettoyage Express Admin",
+    "site_header": "Nettoyage Express",
+    "site_brand": "Nettoyage Express",
+    # Logos (les chemins sont relatifs à static/)
+    "site_logo": "img/logo.svg",
+    "login_logo": "img/logo.svg",
+    "login_logo_dark": "img/logo.svg",
+    # Message d'accueil sur le tableau de bord
+    "welcome_sign": "Bienvenue dans l'administration de Nettoyage Express",
+    # Lien vers le site public depuis le menu supérieur
+    "topmenu_links": [
+        {"name": "Site public", "url": "/", "permissions": []},
+    ],
+    # Icônes personnalisées pour certains modèles
+    "icons": {
+        "factures.Invoice": "fas fa-file-invoice-dollar",
+        "factures.InvoiceItem": "fas fa-list",
+        "devis.Quote": "fas fa-file-contract",
+        "services.Service": "fas fa-broom",
+        "services.Category": "fas fa-tags",
+        "contact.Message": "fas fa-envelope",
+        "tasks.Task": "fas fa-clipboard-list",
+    },
+    # Ordre des applications dans la barre latérale
+    "order_with_respect_to": ["factures", "devis", "services", "tasks", "contact", "messaging"],
+    # Activer l'expansion de la navigation par défaut
+    "navigation_expanded": True,
+    # Activer l'affichage de la barre latérale
+    "show_sidebar": True,
+    # Couleur principale adaptée à la marque
+    "theme_color": "#0B5D46",
+    # Feuille de style supplémentaire pour des surcharges légères (définie dans static/css/jazzmin_overrides.css)
+    "custom_css": "css/jazzmin_overrides.css",
+}
+# -------------------------------------------------------------
 # End of settings
 # -------------------------------------------------------------

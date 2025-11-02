@@ -59,13 +59,29 @@ def notify_status_change(sender, instance: Task, **kwargs) -> None:
         recipient = _get_notification_recipient()
         if not recipient:
             return
-        subject = f"Mise à jour de la tâche : {instance.title}"
-        body = (
-            f"La tâche \"{instance.title}\" a changé de statut.\n\n"
-            f"Ancien statut : {old.get_status_display()}\n"
-            f"Nouveau statut : {instance.get_status_display()}\n"
-            f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}"
-        )
+        subject = f"Mise à jour de la tâche : {instance.title}"
+        # Formater un message plus formel lorsque le statut passe à "Terminé"
+        if instance.status == Task.STATUS_COMPLETED:
+            body = (
+                f"Bonjour,\n\n"
+                f"La tâche « {instance.title} » a été marquée comme terminée.\n"
+                f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
+                f"Lieu : {instance.location or 'Non spécifié'}\n"
+                f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
+                f"Cordialement."
+            )
+        else:
+            body = (
+                f"Bonjour,\n\n"
+                f"La tâche « {instance.title} » a changé de statut.\n\n"
+                f"Ancien statut : {old.get_status_display()}\n"
+                f"Nouveau statut : {instance.get_status_display()}\n"
+                f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
+                f"Lieu : {instance.location or 'Non spécifié'}\n"
+                f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
+                f"Cordialement."
+            )
+        # Envoyer le message
         EmailNotificationService.send(recipient, subject, body)
 
 
@@ -94,10 +110,38 @@ def notify_due_soon(sender, instance: Task, **kwargs) -> None:
     remaining_days = (instance.due_date - date.today()).days
     subject = f"Rappel : tâche bientôt due — {instance.title}"
     body = (
-        f"La tâche \"{instance.title}\" doit être terminée dans {remaining_days} jour(s).\n\n"
-        f"Statut actuel : {instance.get_status_display()}\n"
-        f"Échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
-        f"Lieu : {instance.location or 'Non spécifié'}\n"
-        f"Équipe : {instance.team or 'Non spécifié'}"
+        f"Bonjour,\n\n"
+        f"La tâche « {instance.title} » doit être terminée dans {remaining_days} jour(s).\n\n"
+        f"Statut actuel : {instance.get_status_display()}\n"
+        f"Échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
+        f"Lieu : {instance.location or 'Non spécifié'}\n"
+        f"Équipe : {instance.team or 'Non spécifié'}\n\n"
+        f"Cordialement."
+    )
+    EmailNotificationService.send(recipient, subject, body)
+
+# -----------------------------------------------------------------------------
+# Notifications supplémentaires : création de tâche
+# -----------------------------------------------------------------------------
+
+@receiver(post_save, sender=Task)
+def notify_task_created(sender, instance: Task, created: bool, **kwargs) -> None:
+    """Envoyer un e‑mail lors de la création d'une nouvelle tâche."""
+    if not created:
+        return
+    recipient = _get_notification_recipient()
+    if not recipient:
+        return
+    subject = f"Nouvelle tâche créée : {instance.title}"
+    body = (
+        f"Bonjour,\n\n"
+        f"Une nouvelle tâche a été créée.\n\n"
+        f"Titre : {instance.title}\n"
+        f"Description : {instance.description or '—'}\n"
+        f"Date de début : {instance.start_date.strftime('%d/%m/%Y')}\n"
+        f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
+        f"Lieu : {instance.location or 'Non spécifié'}\n"
+        f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
+        f"Cordialement."
     )
     EmailNotificationService.send(recipient, subject, body)

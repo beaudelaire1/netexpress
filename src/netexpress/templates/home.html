@@ -28,8 +28,10 @@
     </ul>
   </div>
   <div class="hero__media">
-    <!-- Illustration locale fournie pour l'accueil : espace vert symbolisant les espaces verts et les extérieurs. -->
-    <img src="https://images.unsplash.com/photo-1734079692160-fcbe4be6ab96?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170" alt="Illustration de nos services" style="border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
+    <!-- Illustration locale pour la page d'accueil : cette image est stockée dans static/img/hero.png afin de ne
+         plus dépendre d'Unsplash.  Elle représente nos activités (nettoyage, peinture, bricolage et espaces
+         verts) de manière cohérente avec l'identité visuelle du site. -->
+    <img src="{% static 'img/hero.png' %}" alt="Illustration de nos services" style="border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
   </div>
 </section>
 <!-- TRUST BAR -->
@@ -55,15 +57,15 @@
           {% else %}
             {# Fallback : utiliser une image basée sur le slug de la catégorie #}
             {% if cat.slug == 'espaces-verts' %}
-              <img class="service-card__img" src="https://images.unsplash.com/photo-1734079692160-fcbe4be6ab96?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170" alt="{{ cat.name }}">
+              <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ cat.name }}">
             {% elif cat.slug == 'peinture' %}
-              <img class="service-card__img" src="https://www.cmesmat.fr/media/shutterstock_1283051314.jpg" alt="{{ cat.name }}">
+              <img class="service-card__img" src="{% static 'img/peinture.jpg' %}" alt="{{ cat.name }}">
             {% elif cat.slug == 'bricolage' %}
-              <img class="service-card__img" src="https://plus.unsplash.com/premium_photo-1682597000617-7e803f9e5699?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8YnJpY29sYWdlfGVufDB8fDB8fHww&fm=jpg&q=60&w=3000" alt="{{ cat.name }}">
+              <img class="service-card__img" src="{% static 'img/brico.jpg' %}" alt="{{ cat.name }}">
             {% elif cat.slug == 'elagage' %}
-              <img class="service-card__img" src="https://images.unsplash.com/photo-1754322449185-31f56117ed87?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fCVDMyVBOWxhZ2FnZXxlbnwwfHwwfHx8MA%3D%3D&fm=jpg&q=60&w=3000" alt="{{ cat.name }}">
+              <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="{{ cat.name }}">
             {% else %}
-              <img class="service-card__img" src="https://source.unsplash.com/400x300/?{{ cat.slug|urlencode }}" alt="{{ cat.name }}">
+              <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ cat.name }}">
             {% endif %}
           {% endif %}
           <h3><a href="{% url 'services:list' %}?category={{ cat.slug }}">{{ cat.name }}</a></h3>
@@ -74,31 +76,31 @@
     {% else %}
       <!-- Fallback si aucune catégorie n’existe encore en base : afficher des métiers pré‑définis avec des images libres de droits -->
       <article class="card service-card">
-        <img class="service-card__img" src="https://images.unsplash.com/photo-1734079692160-fcbe4be6ab96?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170" alt="Espaces verts">
+        <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="Espaces verts">
         <h3><a href="{% url 'services:list' %}?category=espaces-verts">Espaces verts</a></h3>
         <p class="small">Entretien de pelouses, haies et jardins luxuriants.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=espaces-verts">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?cleaning" alt="Entretien">
+        <img class="service-card__img" src="{% static 'img/service-2.svg' %}" alt="Entretien">
         <h3><a href="{% url 'services:list' %}?category=entretien">Entretien</a></h3>
         <p class="small">Nettoyage professionnel pour tous types de surfaces.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=entretien">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://www.cmesmat.fr/media/shutterstock_1283051314.jpg" alt="Peinture">
+        <img class="service-card__img" src="{% static 'img/peinture.jpg' %}" alt="Peinture">
         <h3><a href="{% url 'services:list' %}?category=peinture">Peinture</a></h3>
         <p class="small">Rafraîchissement et rénovation de vos murs et façades.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=peinture">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://plus.unsplash.com/premium_photo-1682597000617-7e803f9e5699?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8YnJpY29sYWdlfGVufDB8fDB8fHww&fm=jpg&q=60&w=3000" alt="Bricolage">
+        <img class="service-card__img" src="{% static 'img/brico.jpg' %}" alt="Bricolage">
         <h3><a href="{% url 'services:list' %}?category=bricolage">Bricolage</a></h3>
         <p class="small">Petits travaux et installations par nos experts.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=bricolage">Voir plus</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://images.unsplash.com/photo-1754322449185-31f56117ed87?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fCVDMyVBOWxhZ2FnZXxlbnwwfHwwfHx8MA%3D%3D&fm=jpg&q=60&w=3000" alt="Élagage">
+        <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="Élagage">
         <h3><a href="{% url 'services:list' %}?category=elagage">Élagage</a></h3>
         <p class="small">Taille et entretien de vos arbres et haies.</p>
         <a class="btn btn-outline" href="{% url 'services:list' %}?category=elagage">Voir plus</a>
@@ -130,21 +132,24 @@
     {% else %}
       <!-- Fallback si aucun contexte fourni : 3 cartes de démonstration -->
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?office,cleaning" alt="Nettoyage de bureaux">
+        <!-- Image locale pour l'exemple « Nettoyage de bureaux » -->
+        <img class="service-card__img" src="{% static 'img/service-2.svg' %}" alt="Nettoyage de bureaux">
         <h3>Nettoyage de bureaux</h3>
         <p class="small">Entretien régulier, horaires flexibles, produits écoresponsables.</p>
         <div class="meta"><span class="price">Dès 49 €</span> <span class="sep">·</span> <span>~60 min</span></div>
         <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?construction,cleanup" alt="Remise en état fin de chantier">
+        <!-- Image locale pour l'exemple « Remise en état fin de chantier » -->
+        <img class="service-card__img" src="{% static 'img/service-3.svg' %}" alt="Remise en état fin de chantier">
         <h3>Remise en état fin de chantier</h3>
         <p class="small">Dépoussiérage complet, vitrerie, sols — prêt à livrer.</p>
         <div class="meta"><span class="price">Dès 89 €</span> <span class="sep">·</span> <span>~120 min</span></div>
         <a class="btn btn-outline" href="{% url 'services:list' %}">Découvrir</a>
       </article>
       <article class="card service-card">
-        <img class="service-card__img" src="https://source.unsplash.com/400x300/?airbnb,cleaning" alt="Nettoyage Airbnb">
+        <!-- Image locale pour l'exemple « Nettoyage Airbnb » -->
+        <img class="service-card__img" src="{% static 'img/service-4.svg' %}" alt="Nettoyage Airbnb">
         <h3>Nettoyage Airbnb / location courte durée</h3>
         <p class="small">Rotation rapide, respect check-lists, draps & consommables.</p>
         <div class="meta"><span class="price">Dès 39 €</span> <span class="sep">·</span> <span>~45 min</span></div>

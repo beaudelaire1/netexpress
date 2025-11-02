@@ -9,8 +9,19 @@
   {% if service.image %}
     <img src="{{ service.image.url }}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
   {% else %}
-    {# Image de remplacement depuis Unsplash si aucune image n'est associée au service #}
-    <img src="https://source.unsplash.com/800x500/?{{ service.title|slugify }}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {# Image de remplacement locale si aucune image n'est associée au service.  On choisit un visuel
+       cohérent en fonction de la catégorie du service pour éviter les dépendances à Unsplash. #}
+    {% if service.category.slug == 'espaces-verts' %}
+      <img src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {% elif service.category.slug == 'peinture' %}
+      <img src="{% static 'img/peinture.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {% elif service.category.slug == 'bricolage' %}
+      <img src="{% static 'img/brico.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {% elif service.category.slug == 'elagage' %}
+      <img src="{% static 'img/elagage.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {% else %}
+      <img src="{% static 'img/service-1.svg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {% endif %}
   {% endif %}
   <p>{{ service.description }}</p>
   <p><strong>Catégorie&nbsp;:</strong> {{ service.category.name }}</p>

@@ -3,12 +3,12 @@ Configuration de l’administration pour les services et leurs tâches.
 
 Ce module définit la manière dont les services et les tâches associées
 s’affichent dans l’interface d’administration.  En 2025, nous avons
-modernisé la présentation : les illustrations des services peuvent
-être absentes, auquel cas des images libres de droits issues d’Unsplash
-sont utilisées dans les pages publiques.  Cette configuration permet
-d’éditer les tâches directement en ligne pour faciliter la gestion des
-checklists.  Jazzmin, s’il est installé, se chargera de l’esthétique;
-sinon, le thème par défaut reste propre et fonctionnel.
+    modernisé la présentation : les illustrations des services peuvent
+    être absentes, auquel cas des images locales (dossier ``static/img``)
+    sont utilisées dans les pages publiques.  Cette configuration permet
+    d’éditer les tâches directement en ligne pour faciliter la gestion des
+    checklists.  Jazzmin, s’il est installé, se chargera de l’esthétique;
+    sinon, le thème par défaut reste propre et fonctionnel.
 """
 
 from django.contrib import admin
