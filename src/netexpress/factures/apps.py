@@ -17,3 +17,9 @@ class FacturesConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "factures"
     verbose_name = "Factures"
+
+    def ready(self) -> None:
+        try:
+            from . import signals  # noqa: F401
+        except Exception:
+            pass

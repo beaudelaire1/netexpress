@@ -17,3 +17,9 @@ class DevisConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "devis"
     verbose_name = "Devis"
+
+    def ready(self) -> None:
+        try:
+            from . import signals  # noqa: F401
+        except Exception:
+            pass

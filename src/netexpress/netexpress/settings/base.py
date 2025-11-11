@@ -154,16 +154,21 @@ INVOICE_BRANDING = {
 # E‑mail configuration
 # -------------------------------------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "mail.infomaniak.com"
-EMAIL_PORT = 587  # SSL port
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+EMAIL_HOST = "mail.infomaniak.com" #os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = 465 #int(os.getenv("EMAIL_PORT", "587"))  # SSL port
+EMAIL_USE_TLS = "True" # os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_USE_SSL = "True" #os.getenv("EMAIL_USE_SSL", "False") == "True"
 
 # Leave email credentials hard‑coded as provided by the user
-EMAIL_HOST_USER = "noreply@nettoyageexpresse.fr"
-EMAIL_HOST_PASSWORD = "Luxama973@"
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_USER = "noreply@nettoyageexpresse.fr" # os.getenv("EMAIL_HOST_USER", "vilmebeaudelaire5@gmail.com")
+EMAIL_HOST_PASSWORD = "Luxama973*" # os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
+
+# Notification routing
+TASK_NOTIFICATION_EMAIL = "vilmebeaudelaire5@gmail.com" # os.getenv("TASK_NOTIFICATION_EMAIL", DEFAULT_FROM_EMAIL)
+ADMINS = [("Admin", TASK_NOTIFICATION_EMAIL)]
+MANAGERS = ADMINS
 # -------------------------------------------------------------
 # Jazzmin configuration
 # -------------------------------------------------------------

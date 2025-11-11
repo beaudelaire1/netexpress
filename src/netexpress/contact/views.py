@@ -14,6 +14,8 @@ Vues pour l'app ``contact``.
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
+from django.conf import settings
+from messaging.models import EmailMessage
 
 from .forms import ContactForm
 

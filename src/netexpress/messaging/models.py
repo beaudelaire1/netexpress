@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from django.db import models
 from django.utils import timezone
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 try:
     # Importer le service d'envoi depuis l'application des tâches.  La
