@@ -15,8 +15,9 @@
       rénovation soignée et petits travaux.
     </p>
     <div class="actions">
-      <span class="btn btn-primary" role="button">Nos services</span>
-      <span class="btn btn-outline" role="button">Demander un devis</span>
+      <!-- Convertir les boutons en vrais liens pour assurer une navigation fonctionnelle -->
+      <a href="{% url 'services:list' %}" class="btn btn-primary">Nos services</a>
+      <a href="{% url 'devis:request_quote' %}" class="btn btn-outline">Demander un devis</a>
     </div>
     <ul class="hero__stats">
       <li><span>4,9/5</span> avis clients</li>
@@ -25,9 +26,12 @@
     </ul>
   </div>
   <div class="hero__media">
+    <!-- Limiter la largeur et la hauteur de l'image de l'en-tête pour éviter qu'elle ne
+         déborde sur les petits écrans.  L'attribut max-width garantit un rendu
+         responsive tandis que height:auto préserve les proportions originales. -->
     <img src="{% static 'img/principale.png' %}"
          alt="Illustration de nos services"
-         style="border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
+         style="max-width:100%; height:auto; border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
   </div>
 </section>
 
@@ -50,40 +54,47 @@
       <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="Espaces verts">
       <h3>Espaces verts</h3>
       <p class="small">Entretien de pelouses, haies et jardins luxuriants.</p>
-      <span class="btn btn-outline" role="button">Détails</span>
+      <!-- Lien vers la liste complète des services pour en savoir plus -->
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
     </article>
 
     <!-- <article class="card service-card">
       <img class="service-card__img" src="{% static 'img/service-2.svg' %}" alt="Entretien">
       <h3>Entretien</h3>
       <p class="small">Nettoyage professionnel pour tous types de surfaces.</p>
-      <span class="btn btn-outline" role="button">Détails</span>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
     </article> -->
 
     <article class="card service-card">
       <img class="service-card__img" src="{% static 'img/peinture.jpg' %}" alt="Peinture">
       <h3>Peinture</h3>
       <p class="small">Rafraîchissement et rénovation de vos murs et façades.</p>
-      <span class="btn btn-outline" role="button">Détails</span>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
     </article>
 
     <article class="card service-card">
       <img class="service-card__img" src="{% static 'img/brico.jpg' %}" alt="Bricolage">
       <h3>Bricolage</h3>
       <p class="small">Petits travaux et installations par nos experts.</p>
-      <span class="btn btn-outline" role="button">Détails</span>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
     </article>
 
     <article class="card service-card">
       <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="Élagage">
       <h3>Élagage</h3>
       <p class="small">Taille et entretien de vos arbres et haies.</p>
-      <span class="btn btn-outline" role="button">Détails</span>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
     </article>
   </div>
 </section>
 
-<!-- SERVICES POPULAIRES (statiques, images fixes, aucun lien)
+<!--
+  SERVICES POPULAIRES (statiques, images fixes, aucun lien)
+  Cette section a été commentée pour ne pas apparaître sur la page d'accueil.
+  Lorsqu'elle est réactivée, veillez à entourer l'ensemble du bloc avec
+  les marques de commentaire afin d'éviter de fermer prématurément les
+  balises HTML.  Une fermeture mal placée de la balise de commentaire
+  provoquait un déséquilibre des balises et des erreurs de rendu.
 <section class="section">
   <div class="section__head">
     <h2>Services populaires</h2>
@@ -112,8 +123,9 @@
       <div class="meta"><span class="price">Dès 39&nbsp;€</span> <span class="sep">·</span> <span>~45&nbsp;min</span></div>
       <span class="btn btn-outline" role="button">Réserver</span>
     </article>
-  </div> -->
+  </div>
 </section>
+-->
 
 <!-- ÉTAPES (statique) -->
 <section class="section muted">
@@ -132,6 +144,6 @@
     <h3>Besoin d’un devis rapide ?</h3>
     <p class="small">Réponse sous 24h. Tarifs clairs, sans surprise.</p>
   </div>
-  <span class="btn btn-primary" role="button">Obtenir mon devis</span>
+  <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Obtenir mon devis</a>
 </section>
 {% endblock %}

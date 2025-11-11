@@ -66,6 +66,48 @@ body{
 }
 .nav-link:hover{background:rgba(255,255,255,.12)}
 
+/*
+  Ajout d'un bouton burger pour les petits écrans.  Sur desktop, il est masqué
+  afin de préserver la disposition horizontale.  Le bouton utilise le symbole
+  « ☰ » et se voit attribuer un style minimaliste qui reprend la couleur
+  principale du header.  Lorsqu'on clique dessus (voir main.js), la classe
+  ``open`` est ajoutée à la navigation pour révéler les liens.
+*/
+.nav-toggle{
+  background:none;
+  border:0;
+  color:#fff;
+  font-size:1.6rem;
+  cursor:pointer;
+  padding:0 .5rem;
+  line-height:1;
+  display:none; /* visible uniquement sur mobile via media query */
+}
+.nav-toggle:focus{
+  outline:3px solid var(--ring);
+}
+
+/*
+  Navigation responsive améliorée : sur les écrans de moins de 720 px, on
+  masque la barre de navigation par défaut et on affiche le bouton burger.
+  Lorsque la classe ``open`` est appliquée (via JavaScript), la navigation
+  devient une colonne verticale qui occupe la largeur disponible.  Sur les
+  écrans supérieurs, la navigation reprend son affichage horizontal.
+*/
+@media(max-width: 720px){
+  .nav-toggle{display:block;}
+  .nav{display:none; flex-direction:column; width:100%; margin-top:8px;}
+  .nav.open{display:flex;}
+  .nav-link{
+    display:block;
+    width:100%;
+    padding:.5rem 0;
+  }
+}
+@media(min-width: 721px){
+  .nav-toggle{display:none;}
+}
+
 .content{padding:28px 0 56px}
 
 /* Hero */
@@ -191,16 +233,10 @@ body{
     flex-direction:column;
     align-items:flex-start;
   }
-  .nav{
-    flex-wrap:wrap;
-    width:100%;
-    margin-top:8px;
-  }
-  .nav-link{
-    display:block;
-    width:100%;
-    padding:.5rem 0;
-  }
+  /* Les styles de navigation mobile sont définis dans la section
+     dédiée au menu burger.  Ici, nous n’appliquons plus de règles
+     spécifiques aux éléments .nav et .nav-link pour éviter de
+     supprimer l’affichage/masquage géré par le script. */
 }
 
 /* Forms (for the Devis anchor) */

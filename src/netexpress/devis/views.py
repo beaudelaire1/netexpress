@@ -12,9 +12,11 @@ le fichier ``manage.py`` lance un serveur statique minimaliste permettant
 d'accéder à l'interface utilisateur.
 """
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
+from django.http import FileResponse, Http404
+from django.contrib.admin.views.decorators import staff_member_required
 
 from .forms import DevisForm
 
@@ -47,10 +49,17 @@ def request_quote(request):
         except Service.DoesNotExist:
             pass
     if request.method == "POST":
-        form = DevisForm(request.POST)
+        form = DevisForm(request.POST, request.FILES)
         if form.is_valid():
             # Enregistrer la demande et récupérer l'instance pour notification
             quote = form.save()
+            # Sauvegarder les photos téléchargées
+            for uploaded in request.FILES.getlist("images"):
+                try:
+                    from .models import QuotePhoto
+                    QuotePhoto.objects.create(quote=quote, image=uploaded)
+                except Exception:
+                    pass
             # Envoyer une notification e‑mail si le service est disponible
             if send_quote_notification:
                 try:
@@ -71,3 +80,21 @@ def request_quote(request):
 def quote_success(request):
     """Afficher une simple page de remerciement après l'envoi d'un devis."""
     return render(request, "devis/quote_success.html")
+
+# -----------------------------------------------------------------------------
+# Téléchargement du PDF d'un devis
+# -----------------------------------------------------------------------------
+
+@staff_member_required
+def download_quote(request, pk: int):
+    """Servir le fichier PDF associé à un devis pour les membres du staff.
+
+    Cette vue renvoie une 404 si le devis n'existe pas ou si aucun PDF n'a
+    encore été généré.  L'affichage en ligne permet au navigateur de
+    prévisualiser le document sans forcer le téléchargement.
+    """
+    from .models import Quote
+    quote = get_object_or_404(Quote, pk=pk)
+    if not quote.pdf:
+        raise Http404("Ce devis n'a pas encore été généré.")
+    return FileResponse(quote.pdf.open("rb"), filename=quote.pdf.name, as_attachment=False)

@@ -19,4 +19,6 @@ app_name = "devis"
 urlpatterns = [
     path("nouveau/", views.request_quote, name="request_quote"),
     path("succes/", views.quote_success, name="quote_success"),
+    # Téléchargement d'un PDF de devis (restreint au staff)
+    path("telecharger/<int:pk>/", views.download_quote, name="download"),
 ]

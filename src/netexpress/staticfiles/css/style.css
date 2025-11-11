@@ -7,12 +7,14 @@
   --card: #ffffff;
 }
 /*
-  Mise à jour 2025 : ce fichier définit la palette secondaire et les
+  Mise à jour 2025 : ce fichier définit la palette secondaire et les
   composants spécifiques à la page d’accueil.  Les sections s’appuient
-  désormais sur des illustrations libres de droits issues de Unsplash,
-  et les couleurs ont été ajustées pour un contraste optimal sur tous
-  les écrans.  Les classes ``hero``, ``service-card`` et autres sont
-  documentées dans les templates HTML correspondants.
+  désormais uniquement sur des illustrations locales (dossier
+  ``static/img``) pour éviter toute dépendance à des services
+  externes comme Unsplash.  Les couleurs ont été ajustées pour un
+  contraste optimal sur tous les écrans.  Les classes ``hero``,
+  ``service-card`` et autres sont documentées dans les templates HTML
+  correspondants.
 */
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:var(--bg);color:var(--ink)}

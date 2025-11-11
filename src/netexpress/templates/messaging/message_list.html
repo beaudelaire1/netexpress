@@ -8,7 +8,7 @@
     <h1>Messages envoyés</h1>
     <p class="muted">Historique des courriels envoyés via le site.</p>
   </div>
-  {% if messages %}
+  {% if email_messages %}
   <table class="table">
     <thead>
       <tr>
@@ -19,7 +19,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for m in messages %}
+      {% for m in email_messages %}
       <tr>
         <td><a href="{% url 'messaging:detail' m.pk %}">{{ m.subject }}</a></td>
         <td>{{ m.recipient }}</td>

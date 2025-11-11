@@ -8,7 +8,9 @@ dj-database-url>=2.2
 whitenoise>=6.6
 psycopg2-binary>=2.9
 
-# Dépendances facultatives (désactivées).  Le thème Jazzmin et la librairie
-# ReportLab nécessitent une installation manuelle et sont donc commentés.
+# Dépendances nécessaires pour le thème d'administration Jazzmin et la
+# génération de documents PDF professionnels.  ReportLab est utilisé à
+# la fois pour les factures et les devis afin de produire des PDF
+# conformes au cahier des charges.
 django-jazzmin>=2.6
 reportlab>=4.0

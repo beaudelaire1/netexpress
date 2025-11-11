@@ -4,11 +4,12 @@
 */
 
 /*
-  Mise à jour 2025 :
+  Mise à jour 2025 :
   Les couleurs de base et les composants ont été retravaillés pour offrir
-  une meilleure lisibilité et cohérence.  Les images utilisées dans les
-  pages proviennent de la banque libre de droits Unsplash, comme indiqué
-  dans le guide d’utilisation.
+  une meilleure lisibilité et cohérence.  Toutes les illustrations du
+  site proviennent désormais du dossier local ``static/img``.  Cette
+  refonte évite les appels à la banque d'images Unsplash et garantit un
+  chargement plus rapide et un contrôle total sur les visuels.
 */
 :root{
   --brand: #0f6d4e;
@@ -26,6 +27,12 @@
 
 *{box-sizing:border-box}
 html,body{height:100%}
+/* Empêcher l'apparition d'une barre de défilement horizontale sur les petits écrans
+   en supprimant tout débordement horizontal global.  Ceci résout les bandes
+   blanches et le scroll horizontal sur mobile comme décrit dans le cahier des charges. */
+html, body{
+  overflow-x:hidden;
+}
 html{scroll-behavior:smooth}
 body{
   margin:0;
@@ -169,6 +176,32 @@ body{
 /* Footer */
 .site-footer{padding:42px 0; color:#dfeee7; background:linear-gradient(180deg, var(--brand-700), var(--brand-900))}
 .site-footer p{margin:0; text-align:center}
+
+/*
+  Navigation responsive
+  --------------------
+  Sur les petits écrans, la navigation horizontale définie dans le header débordait et
+  certains liens n’étaient plus visibles.  Nous ajustons la disposition du bloc
+  .header-row et de la navigation pour empiler les éléments verticalement lorsque
+  l’espace horizontal manque.  Les liens de navigation prennent alors toute la
+  largeur disponible et restent facilement cliquables.
+*/
+@media(max-width: 720px){
+  .header-row{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .nav{
+    flex-wrap:wrap;
+    width:100%;
+    margin-top:8px;
+  }
+  .nav-link{
+    display:block;
+    width:100%;
+    padding:.5rem 0;
+  }
+}
 
 /* Forms (for the Devis anchor) */
 .form-card{background:#fff; border-radius:16px; padding:22px; box-shadow:var(--shadow-1); border:1px solid rgba(16,20,24,.06)}

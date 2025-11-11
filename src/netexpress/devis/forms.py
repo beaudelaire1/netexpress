@@ -67,6 +67,19 @@ class DevisForm(forms.Form):
         }),
     )
 
+    # Champ optionnel pour téléverser une ou plusieurs photos.  L'upload est
+    # géré dans la vue car un ``Form`` classique ne peut pas facilement
+    # manipuler plusieurs fichiers sur un ``ModelForm`` inexistant.  Le
+    # widget `multiple` permet de sélectionner plusieurs images.
+    images = forms.FileField(
+        required=False,
+        label="Photos (facultatif)",
+        widget=forms.ClearableFileInput(attrs={
+            #"multiple": True,
+            "class": "file-input",
+        }),
+    )
+
     def save(self):
         """Créer un client et un devis avec une ligne de service si sélectionné."""
         client = Client.objects.create(
@@ -92,5 +105,16 @@ class DevisForm(forms.Form):
                 unit_price=selected_service.base_price,
                 tax_rate=Decimal("20.00"),
             )
+            # Mettre à jour les totaux du devis.  Cela calcule le HT, la
+            # TVA et le TTC avant de générer le PDF et d'envoyer une
+            # notification.  Sans cet appel, le total resterait à zéro.
             quote.compute_totals()
+        # Générer automatiquement un PDF professionnel pour le devis.
+        # Cette étape est exécutée même lorsqu'aucun service n'est
+        # sélectionné afin de garder une trace formalisée de la demande.
+        try:
+            quote.generate_pdf(attach=True)
+        except ImportError:
+            # ReportLab n'est pas installé : poursuivre sans générer le PDF.
+            pass
         return quote

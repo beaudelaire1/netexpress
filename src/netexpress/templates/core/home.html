@@ -9,7 +9,10 @@
     <a class="cta" href="{% url 'devis:request_quote' %}">Demander un devis</a>
   </div>
   <div class="hero__media">
-    <img src="{% static 'img/hero_home.png' %}" alt="Nettoyage Express">
+    <!-- Limiter la taille de l'illustration d'accueil afin qu'elle s'adapte aux
+         différentes tailles d'écran sans déformer ou dépasser du conteneur. -->
+    <img src="{% static 'img/hero_home.png' %}" alt="Nettoyage Express"
+         style="max-width:100%; height:auto;">
   </div>
 </section>
 

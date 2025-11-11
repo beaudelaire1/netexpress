@@ -77,9 +77,13 @@ def dashboard(request):
     # Inclure quelques messages récents dans le tableau de bord si la messagerie est disponible
     # Récupérer quelques messages récents si l'application de messagerie est disponible.
     if EmailMessage:
-        recent_messages = list(EmailMessage.objects.order_by("-created_at")[:5])
+        email_messages = list(EmailMessage.objects.order_by("-created_at")[:5])
     else:
-        recent_messages = []
+        email_messages = []
+    # Use a distinct context key for recent messages to avoid clashing with
+    # Django's built-in message framework.  Previously the context used
+    # "messages", which shadowed the built-in messages in base.html and
+    # prevented flash notifications from showing on the dashboard.
     return render(
         request,
         "core/dashboard.html",
@@ -87,6 +91,6 @@ def dashboard(request):
             "tasks": tasks,
             "invoices": invoices,
             "quotes": quotes,
-            "messages": recent_messages,
+            "recent_messages": email_messages,
         },
     )

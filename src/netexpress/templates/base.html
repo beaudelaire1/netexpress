@@ -18,6 +18,8 @@
         <img src="{% static 'img/logo.svg' %}" alt="Logo NetExpress" class="logo">
         <span class="brand-name">Nettoyage Express</span>
       </a>
+      <!-- Mobile menu toggle button (hidden on desktop) -->
+      <button class="nav-toggle" aria-label="Menu">&#9776;</button>
       <nav class="nav">
         <a class="nav-link" href="{% url 'core:home' %}">Accueil</a>
         <a class="nav-link" href="{% url 'services:list' %}">Services</a>
@@ -44,8 +46,13 @@
   </main>
 
   <footer class="site-footer">
-    <p>© {{ now|date:"Y" }} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.
-
+    <!--
+      The copyright notice is wrapped in its own paragraph.  A missing
+      closing </p> tag caused invalid HTML and could break the
+      rendering of the footer.  Ensure that every opened tag is
+      properly closed to meet the zero syntax error requirement.
+    -->
+    <p>© {{ now|date:"Y" }} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
   </footer>
 </body>
 </html>

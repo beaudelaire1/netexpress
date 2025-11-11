@@ -311,16 +311,32 @@ class Invoice(models.Model):
 
         # --- Filigrane de statut
         def _wm():
-            label = {
-                "paid": "PAYÉE", "draft": "BROUILLON", "overdue": "EN RETARD",
-                "partial": "PARTIELLE", "sent": "ENVOYÉE", "demo":"Devis"
-            }.get(self.status, "")
-            if not label:
-                return
+            """
+            Dessine un filigrane "FACTURE" en diagonale.
+
+            Contrairement à la version précédente où le libellé dépendait du statut
+            (PAYÉE, BROUILLON, etc.), on utilise ici systématiquement
+            "FACTURE" afin d'indiquer clairement la nature du document
+            une fois le devis accepté.  La couleur gris clair et la rotation
+            assurent que le filigrane reste discret.
+            """
+            # Choisir un filigrane en fonction du statut de la facture.  Si le
+            # statut est « demo » (facture générée à partir d'un devis), on
+            # affiche « DEVIS ».  Pour les autres statuts, afficher un
+            # libellé spécifique si connu ou « FACTURE » par défaut.
+            label_map = {
+                "paid": "PAYÉE",
+                "draft": "BROUILLON",
+                "overdue": "EN RETARD",
+                "partial": "PARTIELLE",
+                "sent": "ENVOYÉE",
+                "demo": "DEVIS",
+            }
+            label = label_map.get(self.status, "FACTURE")
             c.saveState()
             c.setFillColor(colors.HexColor("#EEEEEE"))
             c.setFont(font_bold, 60)
-            c.translate(width/2, height/2)
+            c.translate(width / 2, height / 2)
             c.rotate(35)
             c.drawCentredString(0, 0, label)
             c.restoreState()
@@ -543,10 +559,20 @@ class Invoice(models.Model):
                 c.drawRightString(x4 - 2*mm, base_y, f"{it.tax_rate:.2f}")
                 c.drawRightString(x5 - 2*mm, base_y, f"{it.total_ttc:.2f}")
 
+                # Dessiner la ligne de séparation horizontale en couleur neutre
                 c.setStrokeColor(COLOR_BORDER)
                 c.setLineWidth(0.25)
                 c.line(x0, y - row_h, x5, y - row_h)
+                # Colonnes : utiliser des couleurs contrastées pour mieux
+                # distinguer les séparateurs.  Les bords extérieurs sont en noir
+                # (COLOR_TEXT) tandis que les séparations internes sont en vert
+                # primaire (COLOR_PRIMARY).  On ajuste également l'épaisseur.
                 for xv in (x0, x1, x2, x3, x4, x5):
+                    if xv in (x0, x5):
+                        c.setStrokeColor(COLOR_TEXT)
+                    else:
+                        c.setStrokeColor(COLOR_PRIMARY)
+                    c.setLineWidth(0.3)
                     c.line(xv, y, xv, y - row_h)
 
                 y -= row_h
@@ -735,41 +761,26 @@ class Invoice(models.Model):
         y = _tbody(y)
         y = _vat_and_summary(y)
         y = _notes_terms(y)
-        # Ajouter un bloc de signature en bas de page
-        y = _signature_block(y)
+        # Ne pas ajouter de bloc de signature (Bon pour accord) sur la facture
         _footer()
         c.save()  # pas de showPage final (évite page blanche)
 
         pdf = buf.getvalue()
         buf.close()
         if attach:
-            # Déterminer le nom de fichier final (basé sur le numéro de facture).
-            # En utilisant uniquement le numéro comme nom (sans préfixe aléatoire) et
-            # en supprimant toute occurrence existante de ce fichier, on évite que
-            # Django n'ajoute un suffixe aléatoire à chaque génération.  Cela
-            # résout le problème des multiples fichiers « facture_XXX_*.pdf » créés
-            # en boucle après chaque génération.
-            file_field = self._meta.get_field("pdf")
+            # Nom de fichier basé sur le numéro de facture.  En utilisant
+            # exclusivement ce nom (sans réappliquer le répertoire ``upload_to``),
+            # on évite la création de sous‑dossiers « factures/factures/… » lors des
+            # générations successives.
             filename = f"{self.number}.pdf"
-            target_path = os.path.join(file_field.upload_to, filename)
-
-            # Supprimer le fichier actuel s'il est déjà attaché
+            # Supprimer l'ancien fichier attaché pour éviter les doublons.
             if self.pdf:
                 try:
                     self.pdf.delete(save=False)
                 except Exception:
                     pass
-
-            # Supprimer tout fichier existant portant le même nom pour éviter
-            # l'ajout d'un suffixe automatique par le stockage
-            try:
-                file_field.storage.delete(target_path)
-            except Exception:
-                # Ignorer silencieusement si le fichier n'existe pas ou en cas d'erreur
-                pass
-
-            # Sauvegarder le nouveau contenu PDF.  L'utilisation du nom simple
-            # garantit que Django écrira « factures/<numero>.pdf » sous MEDIA_ROOT.
+            # Enregistrez le fichier PDF avec le nom simple.  Django le placera
+            # automatiquement dans le répertoire ``upload_to`` configuré pour le champ.
             self.pdf.save(filename, ContentFile(pdf), save=False)
         return pdf
 

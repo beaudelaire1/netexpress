@@ -86,11 +86,11 @@ def notify_status_change(sender, instance: Task, **kwargs) -> None:
                 f"Cordialement."
             )
         # Envoyer le message
+        # Ne pas override l'adresse d'expéditeur pour éviter les erreurs "Sender mismatch".
         EmailNotificationService.send(
             to_email=recipient,
             subject=subject,
             body=body,
-            from_email_override=recipient,
         )
 
 
@@ -127,11 +127,11 @@ def notify_due_soon(sender, instance: Task, **kwargs) -> None:
         f"Équipe : {instance.team or 'Non spécifié'}\n\n"
         f"Cordialement."
     )
+    # Ne pas override l'adresse d'expéditeur
     EmailNotificationService.send(
         to_email=recipient,
         subject=subject,
         body=body,
-        from_email_override=recipient,
     )
 
 # -----------------------------------------------------------------------------
@@ -158,9 +158,9 @@ def notify_task_created(sender, instance: Task, created: bool, **kwargs) -> None
         f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
         f"Cordialement."
     )
+    # Ne pas override l'adresse d'expéditeur
     EmailNotificationService.send(
         to_email=recipient,
         subject=subject,
         body=body,
-        from_email_override=recipient,
     )

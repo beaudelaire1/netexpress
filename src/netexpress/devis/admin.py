@@ -32,7 +32,7 @@ class QuoteAdmin(admin.ModelAdmin):
     search_fields = ("number", "client__full_name", "client__email")
     readonly_fields = ("created_at", "issue_date", "total_ht", "tva", "total_ttc")
     list_editable = ("status",)
-    actions = ["send_quotes"]
+    actions = ["send_quotes", "convert_to_invoice"]
 
     # Permettre l'édition des lignes de devis directement dans le devis
     class QuoteItemInline(admin.TabularInline):
@@ -93,3 +93,47 @@ class QuoteAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(request, f"{count} devis envoyé(s) par e‑mail.")
     send_quotes.short_description = "Envoyer les devis sélectionnés par e‑mail"
+
+    def convert_to_invoice(self, request, queryset):
+        """Convertir les devis sélectionnés en factures.
+
+        Cette action crée une facture pour chaque devis sélectionné qui n'a pas
+        encore été converti. Les lignes de devis sont copiées dans la facture.
+        Après conversion, les totaux sont recalculés. Les factures créées sont
+        enregistrées avec un numéro généré automatiquement.
+        """
+        from datetime import date
+        from factures.models import Invoice, InvoiceItem  # type: ignore
+        converted = 0
+        for quote in queryset:
+            # ne pas convertir s'il existe déjà une facture pour ce devis
+            if hasattr(quote, "invoices") and quote.invoices.exists():
+                continue
+            # Créer la facture liée au devis
+            invoice = Invoice.objects.create(
+                quote=quote,
+                issue_date=date.today(),
+                # Par défaut, une facture convertie est considérée comme envoyée.
+                # On n'utilise plus le statut "demo" afin que le filigrane
+                # indique "FACTURE" et non "DEVIS" sur le PDF.
+                status="sent",
+            )
+            # Copier chaque ligne de devis dans la facture
+            for qitem in quote.items:
+                description = qitem.description or (qitem.service.title if qitem.service else "")
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    description=description,
+                    quantity=qitem.quantity,
+                    unit_price=qitem.unit_price,
+                    tax_rate=qitem.tax_rate,
+                )
+            # Calculer les totaux et enregistrer
+            invoice.compute_totals()
+            invoice.save()
+            converted += 1
+        if converted:
+            self.message_user(request, f"{converted} devis converti(s) en facture avec succès.")
+        else:
+            self.message_user(request, "Aucun devis n'a été converti (facture déjà existante ou sélection vide).")
+    convert_to_invoice.short_description = "Convertir en facture"

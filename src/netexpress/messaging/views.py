@@ -18,9 +18,12 @@ def message_list(request):
 
     Les messages sont triés par ordre antichronologique.  Seuls les
     utilisateurs connectés peuvent accéder à cette page.
+
+    Utilise le nom de contexte ``email_messages`` pour éviter de masquer
+    la variable ``messages`` du framework de messagerie de Django.
     """
-    messages = EmailMessage.objects.all().order_by("-created_at")
-    return render(request, "messaging/message_list.html", {"messages": messages})
+    email_messages = EmailMessage.objects.all().order_by("-created_at")
+    return render(request, "messaging/message_list.html", {"email_messages": email_messages})
 
 
 @login_required
