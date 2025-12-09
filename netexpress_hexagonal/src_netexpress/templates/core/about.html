@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}À propos — Nettoyage Express{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h1>À propos de Nettoyage Express</h1>
+  {# Remplacement de l'image Unsplash par un visuel local illustrant l'équipe et les prestations.  #}
+  <!-- Limiter la largeur de l'image à 800 px pour un rendu harmonieux, tout en
+       conservant une largeur fluide sur les petits écrans grâce à width:100%.  La
+       hauteur automatique préserve le ratio et évite que l'image ne soit trop
+       imposante sur la page “À propos”. -->
+  <img src="{% static 'img/hero.png' %}" alt="Notre équipe"
+       style="width:100%; max-width:800px; height:auto; border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1); margin-bottom:20px;">
+  <p>
+    description de l'entreprise
+  </p>
+
+
+  <a class="btn" href="{% url 'services:list' %}">Découvrir nos services</a>
+</section>
+{% endblock %}
