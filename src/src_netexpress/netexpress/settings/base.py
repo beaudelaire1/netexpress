@@ -167,12 +167,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # -------------------------------------------------------------
 # Invoice branding (used by the factures app)
 # -------------------------------------------------------------
+#
+# Configuration du branding utilisée par l'application ``factures``.
+# Le chemin du logo est maintenant résolu en valeur absolue grâce à
+# ``Path`` afin de simplifier sa recherche lors de la génération du
+# PDF.  Si vous placez votre logo ailleurs, ajustez ce chemin en
+# conséquence.  Il est également possible de définir ``logo_path`` via
+# une variable d'environnement dans votre fichier ``.env``.
 INVOICE_BRANDING = {
     "name": "Nettoyage Express",
     "tagline": "Espaces verts, nettoyage, peinture, bricolage",
     "email": "netexpress@orange.fr",
-    # Use the static template tag in templates instead of hardcoding paths
-    "logo_path": "static:img/logo.png",
+    # Chemin absolu vers le logo dans le dossier static du projet
+    "logo_path": str((BASE_DIR / "static" / "img" / "logo.png").resolve()),
     "address": "753, Chemin de la Désirée\n97351 Matoury",
     "phone": "05 94 30 23 68 / 06 94 46 20 12",
     "iban": "FR76 3000 4000 1234 5678 9012 345",
@@ -196,6 +203,12 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER
 )
+
+# Utiliser la console comme backend d'e‑mail en mode debug.  Cela
+# permet de visualiser les courriels envoyés directement dans le
+# terminal lors du développement sans nécessiter de serveur SMTP.
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Notification routing
 TASK_NOTIFICATION_EMAIL = env(

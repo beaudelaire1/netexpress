@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- HERO (statique, sans lien) -->
+<section class="hero">
+  <div class="hero__text">
+    <h1>Espaces verts, nettoyage, peinture & bricolage à Cayenne</h1>
+    <p class="lead">
+      Intervention rapide sur l’Île de Cayenne : jardins entretenus, locaux impeccables,
+      rénovation soignée et petits travaux.
+    </p>
+    <div class="actions">
+      <!-- Convertir les boutons en vrais liens pour assurer une navigation fonctionnelle -->
+      <a href="{% url 'services:list' %}" class="btn btn-primary">Nos services</a>
+      <a href="{% url 'devis:request_quote' %}" class="btn btn-outline">Demander un devis</a>
+    </div>
+    <ul class="hero__stats">
+      <li><span>4,9/5</span> avis clients</li>
+      <li><span>&lt; 24&nbsp;h</span> délai d’intervention</li>
+      <li><span>100&nbsp;%</span> satisfait ou refait</li>
+    </ul>
+  </div>
+  <div class="hero__media">
+    <!-- Limiter la largeur et la hauteur de l'image de l'en-tête pour éviter qu'elle ne
+         déborde sur les petits écrans.  L'attribut max-width garantit un rendu
+         responsive tandis que height:auto préserve les proportions originales. -->
+    <img src="{% static 'img/principale.png' %}"
+         alt="Illustration de nos services"
+         loading="lazy"
+         style="max-width:100%; height:auto; border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,.1)">
+  </div>
+</section>
+
+<!-- TRUST BAR (statique) -->
+<section class="trust">
+  <ul class="trust__badges">
+    <li>Entreprise déclarée & assurée</li>
+    <li>Équipements écoresponsables</li>
+    <li>Intervenants triés & formés</li>
+  </ul>
+</section>
+
+<!-- MÉTIERS (statiques, images fixes, aucun lien) -->
+<section class="section">
+  <div class="section__head">
+    <h2>Nos métiers</h2>
+  </div>
+  <div class="grid">
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/000033825_900x500_c.jpg' %}" alt="Espaces verts" loading="lazy">
+      <h3>Espaces verts</h3>
+      <p class="small">Entretien de pelouses, haies et jardins luxuriants.</p>
+      <!-- Lien vers la liste complète des services pour en savoir plus -->
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
+    </article>
+
+    <!-- <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/service-2.svg' %}" alt="Entretien">
+      <h3>Entretien</h3>
+      <p class="small">Nettoyage professionnel pour tous types de surfaces.</p>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
+    </article> -->
+
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/peinture.jpg' %}" alt="Peinture" loading="lazy">
+      <h3>Peinture</h3>
+      <p class="small">Rafraîchissement et rénovation de vos murs et façades.</p>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
+    </article>
+
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/brico.jpg' %}" alt="Bricolage" loading="lazy">
+      <h3>Bricolage</h3>
+      <p class="small">Petits travaux et installations par nos experts.</p>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
+    </article>
+
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/elagage.jpg' %}" alt="Élagage" loading="lazy">
+      <h3>Élagage</h3>
+      <p class="small">Taille et entretien de vos arbres et haies.</p>
+      <a href="{% url 'services:list' %}" class="btn btn-outline">En savoir plus</a>
+    </article>
+  </div>
+</section>
+
+<!--
+  SERVICES POPULAIRES (statiques, images fixes, aucun lien)
+  Cette section a été commentée pour ne pas apparaître sur la page d'accueil.
+  Lorsqu'elle est réactivée, veillez à entourer l'ensemble du bloc avec
+  les marques de commentaire afin d'éviter de fermer prématurément les
+  balises HTML.  Une fermeture mal placée de la balise de commentaire
+  provoquait un déséquilibre des balises et des erreurs de rendu.
+<section class="section">
+  <div class="section__head">
+    <h2>Services populaires</h2>
+  </div>
+  <div class="grid">
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/service-2.svg' %}" alt="Nettoyage de bureaux">
+      <h3>Nettoyage de bureaux</h3>
+      <p class="small">Entretien régulier, horaires flexibles, produits écoresponsables.</p>
+      <div class="meta"><span class="price">Dès 49&nbsp;€</span> <span class="sep">·</span> <span>~60&nbsp;min</span></div>
+      <span class="btn btn-outline" role="button">Réserver</span>
+    </article>
+
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/service-3.svg' %}" alt="Remise en état fin de chantier">
+      <h3>Remise en état fin de chantier</h3>
+      <p class="small">Dépoussiérage complet, vitrerie, sols — prêt à livrer.</p>
+      <div class="meta"><span class="price">Dès 89&nbsp;€</span> <span class="sep">·</span> <span>~120&nbsp;min</span></div>
+      <span class="btn btn-outline" role="button">Réserver</span>
+    </article>
+
+    <article class="card service-card">
+      <img class="service-card__img" src="{% static 'img/service-4.svg' %}" alt="Nettoyage Airbnb">
+      <h3>Nettoyage Airbnb / location courte durée</h3>
+      <p class="small">Rotation rapide, check-lists, draps & consommables.</p>
+      <div class="meta"><span class="price">Dès 39&nbsp;€</span> <span class="sep">·</span> <span>~45&nbsp;min</span></div>
+      <span class="btn btn-outline" role="button">Réserver</span>
+    </article>
+  </div>
+</section>
+-->
+
+<!-- ÉTAPES (statique) -->
+<section class="section muted">
+  <h2>Comment ça marche ?</h2>
+  <ol class="steps">
+    <li><span>1</span><b>Choisissez</b> un service et un créneau.</li>
+    <li><span>2</span><b>Confirmez</b> l’adresse et vos instructions.</li>
+    <li><span>3</span><b>Intervention</b> par nos équipes formées.</li>
+    <li><span>4</span><b>Validation</b> & reçu/facture immédiat.</li>
+  </ol>
+</section>
+
+<!-- CTA (statique, sans lien) -->
+<section class="cta-strip">
+  <div class="cta-strip__content">
+    <h3>Besoin d’un devis rapide ?</h3>
+    <p class="small">Réponse sous 24h. Tarifs clairs, sans surprise.</p>
+  </div>
+  <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Obtenir mon devis</a>
+</section>
+{% endblock %}

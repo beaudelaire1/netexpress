@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Détail du message — {{ message.subject }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="section__head">
+    <h1>{{ message.subject }}</h1>
+    <p class="muted">Détails du message envoyé</p>
+  </div>
+  <div class="card">
+    <div class="card__body">
+      <p><strong>Destinataires&nbsp;:</strong> {{ message.recipient }}</p>
+      {% if message.cc %}
+      <p><strong>Copie&nbsp;:</strong> {{ message.cc }}</p>
+      {% endif %}
+      <p><strong>Statut&nbsp;:</strong> {{ message.get_status_display }}</p>
+      <p><strong>Créé le&nbsp;:</strong> {{ message.created_at|date:'d/m/Y H:i' }}</p>
+      <p><strong>Envoyé le&nbsp;:</strong> {% if message.sent_at %}{{ message.sent_at|date:'d/m/Y H:i' }}{% else %}—{% endif %}</p>
+      {% if message.error_message %}
+      <p class="error"><strong>Erreur&nbsp;:</strong> {{ message.error_message }}</p>
+      {% endif %}
+      <h2>Contenu du message</h2>
+      <pre style="white-space: pre-wrap;">{{ message.body }}</pre>
+      {% if message.attachment %}
+      <h2>Pièce jointe</h2>
+      <!-- Afficher le nom complet du fichier joint comme lien.  Le chemin
+           relatif est suffisant pour identifier le fichier. -->
+      <p><a href="{{ message.attachment.url }}" target="_blank">{{ message.attachment.name }}</a></p>
+      {% endif %}
+    </div>
+  </div>
+  <p><a href="{% url 'messaging:list' %}">← Retour à la liste des messages</a></p>
+</section>
+{% endblock %}

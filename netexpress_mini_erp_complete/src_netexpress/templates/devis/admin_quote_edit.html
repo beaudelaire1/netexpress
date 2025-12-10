@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Édition du devis {{ quote.number }} — NetExpress{% endblock %}
+
+{% block extra_head %}
+  <script type="module" src="{% static 'js/quote_admin.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  <h1>Devis {{ quote.number }}</h1>
+  <p class="muted">
+    Client : {{ quote.client.full_name }} —
+    Statut : {{ quote.get_status_display }}
+  </p>
+
+  <form method="post" id="quote-form">
+    {% csrf_token %}
+    <div class="card">
+      <h2>Informations générales</h2>
+      <div class="row row-2">
+        {% for field in form %}
+          <div style="grid-column:span 1">
+            {{ field.errors }}
+            {{ field.label_tag }}
+            {{ field }}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Lignes du devis</h2>
+      <table class="table" id="quote-items-table"
+             data-service-info-url="{% url 'devis:service_info' 0 %}">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Description</th>
+            <th>Quantité</th>
+            <th>PU HT</th>
+            <th>TVA %</th>
+            <th>Total HT</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="quote-items-body">
+          {{ formset.management_form }}
+          {% for form in formset %}
+            <tr class="quote-item-row">
+              <td>
+                {{ form.service }}
+              </td>
+              <td>
+                {{ form.description }}
+              </td>
+              <td>
+                {{ form.quantity }}
+              </td>
+              <td>
+                {{ form.unit_price }}
+              </td>
+              <td>
+                {{ form.tax_rate }}
+              </td>
+              <td class="cell-total-ht">0,00 €</td>
+              <td>
+                {% if form.instance.pk %}
+                  <button type="button" class="btn btn-link js-remove-row">✕</button>
+                {% endif %}
+                {{ form.DELETE }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="button" class="btn btn-secondary" id="add-line-btn">
+        + Ajouter une ligne
+      </button>
+    </div>
+
+    <div class="card totals-card">
+      <h2>Totaux</h2>
+      <div class="totals-grid">
+        <div>
+          <label>Total HT</label>
+          <output id="total-ht-display">0,00 €</output>
+        </div>
+        <div>
+          <label>Total TVA</label>
+          <output id="total-tva-display">0,00 €</output>
+        </div>
+        <div>
+          <label>Total TTC</label>
+          <output id="total-ttc-display">0,00 €</output>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Enregistrer le devis</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

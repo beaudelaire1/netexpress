@@ -1,603 +1,473 @@
-:root{
-  /* Palette NetExpress – couleur 2025 */
-  --primary: #0B5D46;      /* Vert émeraude profond */
-  --secondary: #D4AF37;    /* Or mat pour les accents */
-  --bg-light: #F8F9FA;     /* Gris très clair pour les fonds */
-  --bg: #FFFFFF;           /* Blanc pur pour les sections */
-  --text: #2C3E50;         /* Gris anthracite pour la lisibilité */
-  --muted: #6B7280;        /* Texte secondaire */
-  --card: #FFFFFF;         /* Carte blanche */
-  --shadow: 0 4px 20px rgba(0,0,0,0.05);
-  --radius: 12px;
-  /* Font stack moderne */
-  --font-main: 'Inter', 'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 
-  /* Backwards compatibility for legacy variables */
-  --brand: var(--primary);
-  --brand-accent: var(--secondary);
-  --ink: var(--text);
-}
-/*
-  Mise à jour 2025 : ce fichier définit la palette secondaire et les
-  composants spécifiques à la page d’accueil.  Les sections s’appuient
-  désormais uniquement sur des illustrations locales (dossier
-  ``static/img``) pour éviter toute dépendance à des services
-  externes comme Unsplash.  Les couleurs ont été ajustées pour un
-  contraste optimal sur tous les écrans.  Les classes ``hero``,
-  ``service-card`` et autres sont documentées dans les templates HTML
-  correspondants.
-*/
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:var(--bg);color:var(--ink)}
-body{
-  margin:0;
-  font-family:var(--font-main);
-  background:var(--bg-light);
-  color:var(--text);
-}
-/* Utilisation de pourcentages pour la largeur : la grille s’étire sur toute la page */
-.container{
-  width:100%;
-  max-width:none;
-  margin:0 auto;
-  padding:16px;
-}
-.navbar{display:flex;gap:16px;align-items:center}
-.brand{font-weight:700;color:var(--brand);text-decoration:none}
+/* ==========================================================================
+   ANIMATION BORDURE VERTE MULTICOLORE
+   ========================================================================== */
 
-/* --- HERO --- */
-.hero{
-  display:grid;
-  gap:24px;
-  grid-template-columns:1.1fr .9fr;
-  align-items:center;
-  /* Dégradé inspiré de la Guyane : vert très pâle vers le blanc */
-  background:linear-gradient(135deg, #e8f5f1 0%, #fdfefc 70%);
-  border-radius:24px;
-  padding:32px;
-  box-shadow:0 20px 40px rgba(0,0,0,.05);
-}
-.hero__text .lead{
-  font-size:1.05rem;
-  color:var(--ink);
-  max-width:60ch;
-}
-.hero__stats{list-style:none;display:flex;gap:18px;padding:0;margin:14px 0 0}
-.hero__stats li{font-size:.9rem;color:#444}
-.hero__stats span{font-weight:700}
-.hero__media img{max-width:100%;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
-.accent{color:var(--brand-accent)}
-
-h3 { text-decoration-line: none;
-  text-decoration: none;}
-
-/* --- TRUST --- */
-.trust{margin:24px 0}
-.trust__badges{display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:0;list-style:none}
-.trust__badges li{background:#fff;border:1px solid #e9eefb;border-radius:999px;padding:8px 12px;font-size:.9rem}
-
-/* --- SECTIONS --- */
-.section{margin:32px 0}
-.section.muted{background:#0B5D46;border-radius:16px;padding:16px}
-.section__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-
-/* --- SERVICES --- */
-.service-card{display:flex;flex-direction:column;gap:1px}
-.service-card__img{width:100%;height:16%;object-fit:cover;border-radius:2px}
-.meta{display:flex;align-items:center;gap:8px;color:#ffffff}
-.price{font-weight:700}
-.sep{opacity:.4}
-
-/* --- STEPS --- */
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0 0;padding:0;list-style:none}
-/* Style enrichi pour les étapes : conteneurs plus arrondis, ombre subtile et numéros en couleur de marque. */
-.steps li{
-  background:#fefefe;
-  border:1px solid #e8f4ef;
-  border-radius:16px;
-  padding:16px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  box-shadow:0 4px 16px rgba(0,0,0,.04);
-}
-.steps li span{
-  display:inline-grid;
-  place-items:center;
-  width:32px;
-  height:32px;
-  border-radius:999px;
-  background:var(--brand);
-  color:#fff;
-  font-weight:700;
-  font-size:0.95rem;
+/* 1. La définition de l'animation de rotation */
+@keyframes spin-green {
+  0% { --bg-angle: 0deg; }
+  100% { --bg-angle: 360deg; }
 }
 
-/* --- TESTIMONIALS --- */
-.testimonials blockquote{margin:0}
-.testimonials footer{margin-top:8px;color:#7effa5;font-size:.9rem}
-
-/* --- CTA STRIP --- */
-.cta-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(90deg,#e9efff,#f6f8fb);border-radius:16px;padding:16px}
-.cta-strip__content h3{margin:0}
-
-/* --- BUTTONS & LINKS --- */
-.btn{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:12px;
-  background:var(--brand);
-  color:#fff;
-  transition:.15s ease;
-}
-.btn:hover{
-  background:var(--brand-accent);
-  color:#fff;
-}
-.btn-primary{background:var(--brand)}
-.btn-primary:hover{background:var(--brand-accent)}
-.btn-secondary{background:var(--ink);color:#fff}
-.btn-outline{
-  background:#fff;
-  color:var(--brand);
-  border:1px solid var(--brand-accent);
-}
-.btn-outline:hover{
-  background:var(--brand);
-  color:#fff;
-}
-.link{
-  color:var(--brand);
-  text-decoration:none;
-  transition:.15s ease;
-}
-.link:hover{
-  color:var(--brand-accent);
+/* Pour les navigateurs qui ne supportent pas @property (fallback simple rotation) */
+@keyframes spin-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-/* --- GRID --- */
-.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-
-/* --- RESPONSIVE --- */
-@media (max-width:900px){
-  .hero{grid-template-columns:1fr}
+/* 2. La classe principale */
+.border-gradient-anim {
+  position: relative;
+  /* On enlève la bordure standard car l'animation la remplace */
+  border: none !important;
+  z-index: 1; /* Important pour que le contenu reste au-dessus */
+  overflow: hidden; /* Garde la forme propre */
 }
 
-/* Améliorations pour petits écrans */
-@media (max-width:600px){
-  .navbar{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:12px;
-  }
-  .btn, .cta{
-    display:inline-block;
-    padding:14px 18px;
-    text-align:center;
-  }
+/* 3. Le dégradé animé (l'arrière-plan qui tourne) */
+.border-gradient-anim::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  /* On fait dépasser le gradient de 50% pour couvrir la rotation */
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+
+  /* Le dégradé de plusieurs verts :
+     - var(--primary) : votre vert foncé (#0f6d4e)
+     - #4ade80 : vert lime lumineux
+     - #059669 : vert émeraude
+     - retour au primary pour boucler
+  */
+  background: conic-gradient(
+    from 0deg,
+    var(--primary),
+    #4ade80,
+    #059669,
+    #10b981,
+    var(--primary)
+  );
+
+  /* L'animation */
+  animation: spin-rotation 4s linear infinite;
 }
 
-/* ------------------------------------------------------------ */
-/*            Composants du nouveau design (2025)              */
-/* ------------------------------------------------------------ */
-
-/* Hero plein écran avec overlay */
-.hero-full{
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  padding:0 5%;
-  color:#fff;
-  background-color:var(--primary);
-  overflow:hidden;
-}
-.hero-overlay{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:linear-gradient(180deg, rgba(11,93,70,0.8) 0%, rgba(11,93,70,0.4) 50%, rgba(11,93,70,0.0) 100%);
-}
-.hero-inner{
-  position:relative;
-  z-index:1;
-  max-width:600px;
-}
-.hero-heading{
-  font-size:2.5rem;
-  font-weight:700;
-  margin:0 0 16px;
-  line-height:1.2;
-}
-.hero-subheading{
-  font-size:1.2rem;
-  max-width:38ch;
-  margin:0 0 24px;
-}
-.hero-form{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
-  background:rgba(255,255,255,0.1);
-  padding:8px;
-  border-radius:var(--radius);
-  backdrop-filter:blur(4px);
-}
-.hero-input{
-  flex:1 1 auto;
-  min-width:200px;
-  padding:14px 18px;
-  border:none;
-  border-radius:var(--radius);
-  font-size:1rem;
-  outline:0;
-  background:rgba(255,255,255,0.8);
-  color:var(--primary);
+/* 4. Le masque intérieur (Pour créer le "trou" au milieu) */
+.border-gradient-anim::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* L'épaisseur de la bordure est définie par ce "inset" (ici 3px) */
+  inset: 3px;
+  background: #fff; /* Doit correspondre à la couleur de fond de votre carte */
+  border-radius: inherit; /* Hérite de l'arrondi du parent */
 }
 
-/* Section container and headings */
-.section{
-  padding:64px 5%;
-}
-.section-container{
-  max-width:1280px;
-  margin:0 auto;
-}
-.section-heading{
-  font-size:1.8rem;
-  font-weight:700;
-  margin-bottom:32px;
-  color:var(--primary);
+/* 5. Adaptation pour le mode sombre (Worker Dashboard) */
+.worker-task-card.border-gradient-anim::after {
+  background: #1f2937; /* Couleur de fond sombre des cartes ouvrier */
 }
 
-/* Métiers grid */
-.metiers-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:24px;
-}
-.metier-card{
-  display:flex;
-  flex-direction:column;
-  background:var(--card);
-  border-radius:var(--radius);
-  overflow:hidden;
-  box-shadow:var(--shadow);
-  text-decoration:none;
-  color:inherit;
-  transition:transform .2s ease, box-shadow .2s ease;
-}
-.metier-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 8px 24px rgba(0,0,0,0.1);
-}
-.metier-card--large{
-  grid-row:span 2;
-  grid-column:span 2;
-}
-.metier-img{
-  width:100%;
-  height:180px;
-  object-fit:cover;
-}
-.metier-content{
-  padding:16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.metier-link{
-  color:var(--secondary);
-  font-size:.9rem;
-  font-weight:600;
-  white-space:nowrap;
+
+/* Ajoutez ceci à votre CSS pour l'effet au survol uniquement */
+.service-card {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: 1px solid #e5e7eb; /* Bordure par défaut */
 }
 
-/* Trust section */
-.trust-section{
-  background:var(--primary);
-  color:#fff;
-  padding-top:48px;
-  padding-bottom:48px;
-}
-.trust-grid{
-  list-style:none;
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:40px;
-  padding:0;
-  margin:0;
-}
-.trust-grid li{
-  text-align:center;
-}
-.trust-value{
-  font-size:2rem;
-  font-weight:700;
-  display:block;
-}
-.trust-label{
-  font-size:1rem;
-  color:rgba(255,255,255,0.8);
+/* Au survol, on active les pseudo-éléments */
+.service-card:hover {
+  border-color: transparent; /* On cache la vraie bordure */
 }
 
-/* Services grid */
-.services-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:24px;
-}
-.service-card{
-  background:var(--card);
-  border-radius:var(--radius);
-  overflow:hidden;
-  text-decoration:none;
-  color:inherit;
-  box-shadow:var(--shadow);
-  transition:transform .2s ease, box-shadow .2s ease;
-  display:flex;
-  flex-direction:column;
-  height:100%;
-}
-.service-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 8px 24px rgba(0,0,0,0.1);
-}
-.service-img{
-  width:100%;
-  height:180px;
-  object-fit:cover;
-}
-.service-content{
-  padding:16px;
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-}
-.service-content h3{
-  margin:0 0 8px;
-  font-size:1.1rem;
-  font-weight:600;
-}
-.service-description{
-  margin:0;
-  font-size:.9rem;
-  color:var(--muted);
+.service-card:hover::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  left: -50%; top: -50%; width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, var(--primary), #4ade80, #059669, #10b981, var(--primary));
+  animation: spin-rotation 3s linear infinite;
 }
 
-/* Devis & contact cards */
-.devis-section{
-  background:var(--bg);
+.service-card:hover::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 3px; /* Épaisseur bordure */
+  background: #fff;
+  border-radius: 14px; /* Un peu moins que le radius parent (16px) pour que ça colle bien */
 }
-.devis-card{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:32px;
-  max-width:800px;
-  margin:0 auto;
-}
-.devis-grid{
-  display:grid;
-  gap:16px;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  margin-bottom:16px;
-}
-.devis-form .input,
-.devis-form .textarea{
-  width:100%;
-  padding:14px 18px;
-  border:1px solid #d0d7de;
-  border-radius:var(--radius);
-  background:#fff;
-  font-size:1rem;
-  color:var(--text);
-}
-.devis-actions{
-  display:flex;
-  align-items:center;
-  gap:16px;
-}
-.devis-actions .btn{
-  flex-shrink:0;
+/* ==========================================================================
+   NetExpress v2 – Styles Spécifiques & Page d'Accueil
+   Fichier : style.css
+   Rôle : Hero section, cartes services, steps, et animations formulaire.
+   ========================================================================== */
+/* ==========================================================================
+   NetExpress v2 – Style.css COMPLET
+   ========================================================================== */
+
+:root {
+  --primary: #0f6d4e;
+  --secondary: #D4AF37;
+  --bg-light: #F8F9FA;
 }
 
-/* Contact section reuses devis-card styles */
-.contact-section .devis-card{
-  text-align:center;
+/* --- HERO (Section d'accueil) --- */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  background: #fff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: var(--shadow-2);
+  margin-bottom: 40px;
 }
 
-/* Inputs styling in hero */
-.hero-input::placeholder{
-  color:rgba(11,93,70,0.6);
+/* Fix mobile pour le Hero */
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; text-align: center; padding: 24px; }
+  .hero__media { order: -1; margin-bottom: 20px; } /* Image au dessus sur mobile */
 }
 
-/* Spécifique au CTA dans la hero */
-.hero-form .btn{
-  padding:14px 24px;
-  font-size:1rem;
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.1;
+  color: var(--primary);
+  margin-top: 0;
 }
 
-/* ------------------------------------------------------------ */
-/*                       Dashboard styles                      */
-/* ------------------------------------------------------------ */
-.admin-dashboard{
-  display:flex;
-  min-height:100vh;
+.hero p.lead {
+  font-size: 1.1rem; color: #4b5563; margin-bottom: 30px;
 }
-.sidebar{
-  width:240px;
-  background:#1a252f;
-  color:#fff;
-  flex-shrink:0;
-  display:flex;
-  flex-direction:column;
-  padding:24px;
-  position:sticky;
-  top:0;
-  height:100vh;
+
+.hero__media img {
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-height: 500px; /* Limite la hauteur de l'image principale */
+  object-fit: cover;
+  width: 100%;
 }
-.sidebar-brand{
-  font-size:1.4rem;
-  font-weight:700;
-  margin-bottom:32px;
+
+.hero__stats {
+  display: flex; gap: 20px; list-style: none; padding: 0;
+  margin-top: 20px; font-weight: bold; color: var(--primary);
 }
-.sidebar-nav{
-  flex:1;
+@media (max-width: 900px) { .hero__stats { justify-content: center; } }
+
+
+/* --- GRID SERVICES --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Colonnes auto-ajustables */
+  gap: 24px;
 }
-.sidebar-nav a{
-  display:block;
-  padding:10px 12px;
-  margin-bottom:4px;
-  color:rgba(255,255,255,0.85);
-  text-decoration:none;
-  border-radius:8px;
-  transition:background .2s ease;
+
+.service-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
 }
-.sidebar-nav a:hover{
-  background:rgba(255,255,255,0.1);
-  color:#fff;
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+  border-color: var(--primary);
 }
-.dashboard-content{
-  flex:1;
-  padding:32px;
-  background:var(--bg-light);
-  overflow-x:auto;
+
+.service-card__img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
 }
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:24px;
-  margin-bottom:32px;
+
+.service-card h3 { padding: 16px 16px 8px; margin: 0; color: var(--primary); }
+.service-card p.small { padding: 0 16px 16px; color: #6b7280; flex-grow: 1; margin: 0; }
+.service-card .btn-outline {
+  margin: 0 16px 16px; text-align: center;
+  border: 1px solid var(--primary); color: var(--primary); background: transparent;
+  padding: 10px; border-radius: 8px; text-decoration: none; display: block;
 }
-.kpi-card{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:24px;
-  text-align:center;
+.service-card .btn-outline:hover { background: var(--primary); color: #fff; }
+
+/* --- TRUST BADGES --- */
+.trust__badges {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+  list-style: none; padding: 0; margin: 40px 0;
 }
-.kpi-value{
-  font-size:2rem;
-  font-weight:700;
-  color:var(--primary);
+.trust__badges li {
+  background: #fff; border: 1px solid #e5e7eb; padding: 8px 16px;
+  border-radius: 50px; font-size: 0.9rem; color: #6b7280;
 }
-.kpi-label{
-  font-size:1rem;
-  color:var(--muted);
+
+/* --- SECTIONS ADMIN / OUVRIER --- */
+.admin-dashboard { display: flex; min-height: 100vh; background: #f3f4f6; }
+.sidebar { width: 260px; background: #111827; color: #fff; padding: 24px; flex-shrink: 0; }
+.sidebar a { display: block; color: #9ca3af; text-decoration: none; padding: 12px; margin-bottom: 4px; border-radius: 8px; }
+.sidebar a:hover, .sidebar a.active { background: rgba(255,255,255,0.1); color: #fff; }
+
+.dashboard-content { flex: 1; padding: 32px; overflow-x: auto; }
+.dashboard-table { width: 100%; background: #fff; border-collapse: collapse; border-radius: 12px; overflow: hidden; }
+.dashboard-table th { background: var(--primary); color: #fff; padding: 12px; text-align: left; }
+.dashboard-table td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+
+/* Worker (Mode Sombre) */
+.worker-dashboard { background: #1f2937; min-height: 100vh; color: #f3f4f6; padding: 32px; }
+.worker-task-card { background: #374151; padding: 24px; border-radius: 16px; margin-bottom: 16px; }
+.worker-task-header h3 { color: #fff; margin: 0 0 8px 0; }
+
+/* ==========================================================================
+   PARTIE 2 : ESPACES CONNECTÉS (ADMIN & OUVRIERS)
+   A ajouter à la suite du fichier style.css
+   ========================================================================== */
+
+/* --- ADMIN DASHBOARD --- */
+.admin-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-light);
 }
-.dashboard-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-bottom:32px;
+
+.sidebar {
+  width: 260px;
+  background: #1a252f; /* Bleu nuit profond */
+  color: #fff;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
-.dashboard-table thead{
-  background:var(--primary);
-  color:#fff;
+
+.sidebar-brand {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-nav a {
+  display: block;
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all .2s ease;
+  font-weight: 500;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateX(4px);
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 32px;
+  overflow-x: auto;
+}
+
+/* KPIs (Indicateurs Clés) */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #eee;
+}
+
+.kpi-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.kpi-label {
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Tableaux de données */
+.dashboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+  margin-bottom: 32px;
+}
+
+.dashboard-table thead {
+  background: var(--primary);
+  color: #fff;
+}
+
 .dashboard-table th,
-.dashboard-table td{
-  padding:14px 18px;
-  border-bottom:1px solid #e5e7eb;
-  text-align:left;
-  font-size:.9rem;
-}
-.dashboard-table tr:hover{
-  background:#f9fafb;
-}
-.badge{
-  display:inline-block;
-  padding:4px 8px;
-  border-radius:999px;
-  font-size:.75rem;
-  font-weight:600;
-}
-.badge-new{
-  background:#ecfdf5;
-  color:#065f46;
-}
-.badge-traite{
-  background:#fee2e2;
-  color:#991b1b;
-}
-.badge-partial{
-  background:#fef3c7;
-  color:#92400e;
-}
-.action-links{
-  display:flex;
-  gap:8px;
-  opacity:0;
-  transition:opacity .2s ease;
-}
-.dashboard-table tr:hover .action-links{
-  opacity:1;
-}
-.dashboard-table a{
-  color:var(--primary);
-  text-decoration:none;
-  font-weight:500;
+.dashboard-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
-/* ------------------------------------------------------------ */
-/*              Interface ouvrier (mode sombre)                */
-/* ------------------------------------------------------------ */
-.worker-dashboard{
-  background:#1f2937;
-  color:#f9fafb;
-  min-height:100vh;
-  padding:32px 5%;
+.dashboard-table th {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.worker-dashboard h2{
-  margin-top:0;
-  font-size:1.6rem;
-  margin-bottom:24px;
-  color:#fff;
+
+.dashboard-table tr:last-child td {
+  border-bottom: none;
 }
-.worker-tasks{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+
+.dashboard-table tr:hover td {
+  background: #f9fafb;
 }
-.worker-task-card{
-  background:#374151;
-  border-radius:var(--radius);
-  padding:20px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.3);
-  display:flex;
-  flex-direction:column;
-  gap:12px;
+
+/* Badges d'état */
+.badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
-.worker-task-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  color:#fff;
+
+.badge-new { background: #ecfdf5; color: #065f46; }     /* Vert clair */
+.badge-pending { background: #fffbeb; color: #92400e; } /* Jaune/Orange */
+.badge-urgent { background: #fef2f2; color: #991b1b; }  /* Rouge */
+.badge-done { background: #eff6ff; color: #1e40af; }    /* Bleu */
+
+/* Liens d'action dans les tableaux */
+.action-links {
+  display: flex;
+  gap: 12px;
 }
-.worker-task-header h3{
-  margin:0;
-  font-size:1.2rem;
+.action-links a {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--muted);
 }
-.worker-task-card p{
-  margin:0;
-  color:#d1d5db;
-  font-size:.95rem;
+.action-links a:hover {
+  color: var(--primary);
 }
-.worker-task-footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:.85rem;
-  color:#9ca3af;
+
+/* --- INTERFACE OUVRIER (Mode Sombre) --- */
+.worker-dashboard {
+  background: #111827; /* Gris très sombre */
+  color: #f3f4f6;
+  min-height: 100vh;
+  padding: 32px 5%;
 }
-.worker-task-footer .btn{
-  background:var(--secondary);
-  color:#fff;
-  padding:10px 16px;
-  border-radius:8px;
+
+.worker-dashboard h2 {
+  color: #fff;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.worker-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.worker-task-card {
+  background: #1f2937; /* Carte sombre */
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  border: 1px solid #374151;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.worker-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.worker-task-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.worker-task-card p {
+  margin: 0;
+  color: #9ca3af; /* Texte gris clair */
+  line-height: 1.6;
+}
+
+.worker-task-footer {
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #374151;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.worker-task-footer .btn {
+  background: var(--secondary); /* Bouton Or/Jaune pour visibilité */
+  color: #111827;
+  font-weight: 700;
+}
+
+/* --- ETATS VIDES (Visible sur votre capture d'écran) --- */
+/* Pour le texte "Aucun service à afficher..." */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px dashed #cbd5e1;
+  font-style: italic;
+  margin-bottom: 32px;
 }

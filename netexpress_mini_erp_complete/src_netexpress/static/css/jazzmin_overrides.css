@@ -1,0 +1,25 @@
+/*
+  Jazzmin overrides for Nettoyage Express admin interface
+
+  Cette feuille permet d'ajuster quelques couleurs et styles du thème
+  Jazzmin pour qu'il corresponde à la palette verte de la marque.  Elle
+  est référencée via la clé ``custom_css`` de ``JAZZMIN_SETTINGS``.
+*/
+
+:root {
+  /* Couleur principale pour les éléments interactifs (boutons, liens) */
+  --jazzmin-primary: #0B5D46;
+  --jazzmin-primary-hover: #0c694a;
+  --jazzmin-link: #0B5D46;
+  --jazzmin-link-hover: #0c694a;
+}
+
+/* Personnalisation des boutons primaires dans l'admin */
+.btn-primary, .submit-row input.default {
+  background-color: var(--jazzmin-primary) !important;
+  border-color: var(--jazzmin-primary) !important;
+}
+.btn-primary:hover, .submit-row input.default:hover {
+  background-color: var(--jazzmin-primary-hover) !important;
+  border-color: var(--jazzmin-primary-hover) !important;
+}

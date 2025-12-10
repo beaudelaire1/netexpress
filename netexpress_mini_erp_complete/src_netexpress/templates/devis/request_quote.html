@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Demande de devis — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="form-card">
+    <h1 style="margin-top:0">Demande de devis</h1>
+    <p class="muted">
+      Remplissez le formulaire ci‑dessous pour recevoir une proposition
+      personnalisée. Notre équipe vous contactera sous 24–48 h ouvrées.
+    </p>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="row row-2">
+        <div>
+          {{ form.client_name.errors }}
+          {{ form.client_name.label_tag }}
+          {{ form.client_name }}
+        </div>
+        <div>
+          {{ form.email.errors }}
+          {{ form.email.label_tag }}
+          {{ form.email }}
+        </div>
+        <div>
+          {{ form.phone.errors }}
+          {{ form.phone.label_tag }}
+          {{ form.phone }}
+        </div>
+        <div style="grid-column:span 2">
+          {{ form.address.errors }}
+          {{ form.address.label_tag }}
+          {{ form.address }}
+        </div>
+        <div>
+          {{ form.preferred_date.errors }}
+          {{ form.preferred_date.label_tag }}
+          {{ form.preferred_date }}
+        </div>
+        <div style="grid-column:span 2">
+          {{ form.message.errors }}
+          {{ form.message.label_tag }}
+          {{ form.message }}
+        </div>
+        <div style="grid-column:span 2">
+          {{ form.photos.errors }}
+          {{ form.photos.label_tag }}
+          {{ form.photos }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Envoyer ma demande</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
