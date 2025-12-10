@@ -19,6 +19,8 @@ import pytest
 from django.urls import reverse
 
 from services.models import Category
+from services.models import Service
+from factures.models import Invoice
 from tasks.models import Task
 
 
@@ -69,3 +71,30 @@ def test_task_is_due_soon(start_offset: int, due_offset: int, threshold: int, ex
     else:
         task.status = Task.STATUS_IN_PROGRESS
     assert task.is_due_soon(threshold) is expected
+
+
+def test_service_slug_uniqueness() -> None:
+    """La création de services avec des titres identiques doit générer des slugs uniques."""
+    cat = Category.objects.create(name="Bricolage", slug="bricolage")
+    s1 = Service.objects.create(title="Nettoyage", category=cat)
+    s2 = Service.objects.create(title="Nettoyage", category=cat)
+    assert s1.slug == "nettoyage"
+    assert s2.slug.startswith("nettoyage-") and s2.slug != s1.slug
+
+
+def test_category_slug_uniqueness() -> None:
+    """Les catégories portant le même nom doivent recevoir des slugs distincts."""
+    c1 = Category.objects.create(name="Peinture", slug="peinture")
+    c2 = Category.objects.create(name="Peinture")
+    # c2.slug doit être généré automatiquement avec suffixe
+    assert c1.slug == "peinture"
+    assert c2.slug.startswith("peinture-") and c2.slug != c1.slug
+
+
+def test_invoice_number_unique() -> None:
+    """Vérifie que deux factures créées la même année reçoivent des numéros séquentiels."""
+    today = datetime.date.today()
+    inv1 = Invoice.objects.create(issue_date=today)
+    inv2 = Invoice.objects.create(issue_date=today)
+    assert inv1.number.endswith("001")
+    assert inv2.number.endswith("002")

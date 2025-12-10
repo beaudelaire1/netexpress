@@ -1,132 +1,135 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Accueil — Nettoyage Express{% endblock %}
+
+{#
+  Page d'accueil revisitée pour une expérience haut de gamme.  La
+  disposition s'organise en sections clairement délimitées : un héro
+  immersif, une grille asymétrique pour présenter les métiers, une
+  section de preuves sociales, une mise en avant des services populaires
+  puis un formulaire de demande de devis et nos coordonnées.  Le
+  style et les couleurs sont définis dans ``static/css/style.css``.
+#}
+
+{% block title %}Accueil — NetExpress{% endblock %}
+
 {% block content %}
-<section class="hero">
-  <div class="hero-card">
-    <h1 class="hero-title">Votre solution complète pour l'entretien et les travaux</h1>
-    <p class="hero-subtitle">Nettoyage, peinture, rénovation — nous gérons vos projets de A à Z.</p>
-    <a class="cta" href="{% url 'devis:request_quote' %}">Demander un devis</a>
-  </div>
-  <div class="hero__media">
-    <!-- Limiter la taille de l'illustration d'accueil afin qu'elle s'adapte aux
-         différentes tailles d'écran sans déformer ou dépasser du conteneur. -->
-    <img src="{% static 'img/hero_home.png' %}" alt="Nettoyage Express"
-         loading="lazy"
-         style="max-width:100%; height:auto;">
-  </div>
-</section>
 
-{#
-  Section des catégories « Nos métiers »
-  On parcourt l'ensemble des catégories fournies par la vue pour afficher
-  dynamiquement un aperçu des différentes expertises de l'entreprise.
-  Chaque carte renvoie vers la liste des services filtrée sur la
-  catégorie correspondante via ``category.get_absolute_url``.
-#}
-<section id="metiers" class="section">
-  <div class="section-head">
-    <h2 class="section-title">Nos métiers</h2>
-  </div>
-  <div class="grid">
-    {% for category in categories %}
-      <a href="{{ category.get_absolute_url }}" class="card category-card" style="text-decoration:none">
-        {% if category.icon %}
-          <img class="service-card__img" src="{{ category.icon.url }}" alt="{{ category.name }}">
-        {% else %}
-          {# Utilise une image libre de droits depuis Unsplash si aucune icône n'est fournie #}
-          <img class="service-card__img" src="https://source.unsplash.com/400x300/?{{ category.slug }}" alt="{{ category.name }}">
-        {% endif %}
-        <h3 class="card-title" style="margin-top:8px">{{ category.name }}</h3>
-      </a>
-    {% empty %}
-      <p>Aucune catégorie disponible pour le moment.</p>
-    {% endfor %}
-  </div>
-</section>
-
-{#
-  Section des services populaires
-  Cette grille présente un échantillon des services actifs les plus récents.
-  Les cartes utilisent l'image du service si disponible ou se replient
-  sur une photo générique en fonction de la catégorie.  La courte
-  description (si fournie) aide les visiteurs à se faire une idée rapide.
-#}
-<section id="services" class="section">
-  <div class="section-head">
-    <h2 class="section-title">Services populaires</h2>
-  </div>
-  <div class="grid">
-    {% for service in featured_services %}
-      <a href="{{ service.get_absolute_url }}" class="card service-card" style="text-decoration:none">
-        {% if service.image %}
-          <img class="service-card__img" src="{{ service.image.url }}" alt="{{ service.title }}">
-        {% else %}
-          <img class="service-card__img" src="https://source.unsplash.com/400x300/?{{ service.category.slug }}" alt="{{ service.title }}">
-        {% endif %}
-        <h3 class="card-title" style="margin-top:8px">{{ service.title }}</h3>
-        {% if service.short_description %}
-          <p class="muted" style="font-size:0.9rem">{{ service.short_description }}</p>
-        {% endif %}
-      </a>
-    {% empty %}
-      <p>Aucun service à afficher pour le moment.</p>
-    {% endfor %}
-  </div>
-</section>
-
-<section class="section">
-  <div class="usp">
-    <div class="usp-item">
-      <div class="usp-icon"></div>
-      <div><div class="usp-text">Intervention rapide</div><div class="muted">Créneaux sous 48h selon disponibilités</div></div>
-    </div>
-    <div class="usp-item">
-      <div class="usp-icon"></div>
-      <div><div class="usp-text">Équipes qualifiées</div><div class="muted">Professionnels formés et assurés</div></div>
-    </div>
-    <div class="usp-item">
-      <div class="usp-icon"></div>
-      <div><div class="usp-text">Devis transparent</div><div class="muted">Prix clairs, sans surprise</div></div>
-    </div>
-  </div>
-</section>
-
-<section id="devis" class="section">
-  <div class="form-card">
-    <h2 style="margin-top:0">Obtenir un devis</h2>
-    <form method="post" action="{% url 'devis:request_quote' %}">
+<!-- Hero section avec image pleine hauteur et overlay coloré -->
+<section class="hero-full" style="position:relative; min-height:80vh; color:#fff; background-size:cover; background-position:center; background-image:url('{% static 'img/hero_bg.png' %}');">
+  <div class="hero-overlay"></div>
+  <div class="hero-inner">
+    <h1 class="hero-heading">L'excellence au service de vos espaces.</h1>
+    <p class="hero-subheading">Nettoyage, Jardinage, Bricolage. Un standard de qualité unique en Guyane.</p>
+    <form method="post" action="{% url 'devis:request_quote' %}" class="hero-form">
       {% csrf_token %}
-      <div class="row row-2">
-        <div>
-          <input class="input" type="text" name="name" placeholder="Nom complet" required aria-label="Nom complet">
-        </div>
-        <div>
-          <input class="input" type="tel" name="phone" placeholder="Téléphone" required aria-label="Téléphone">
-        </div>
-        <div>
-          <input class="input" type="email" name="email" placeholder="Email" required aria-label="Email">
-        </div>
-        <div>
-          <input class="input" type="text" name="service" placeholder="Service souhaité" aria-label="Service souhaité">
-        </div>
-        <div style="grid-column:span 12">
-          <textarea class="textarea" name="message" rows="4" placeholder="Décrivez votre besoin…" aria-label="Description de votre besoin"></textarea>
-        </div>
-      </div>
-      <div style="margin-top:12px; display:flex; gap:10px; align-items:center">
-        <button class="btn" type="submit">Envoyer</button>
-        <small class="muted">Nous vous répondons sous 24–48h ouvrées.</small>
-      </div>
+      <input type="email" name="email" placeholder="Votre email" required aria-label="Email" class="hero-input">
+      <button type="submit" class="btn btn-primary">Recevoir mon devis</button>
     </form>
   </div>
 </section>
 
-<section id="contact" class="section">
-  <div class="form-card">
-    <h2 style="margin-top:0">Contact</h2>
-    <p class="muted">Une question ? Besoin d'un passage aujourd'hui ?</p>
-    <p class="muted">Email: contact@nettoyage-express.test — Tél: 0594 00 00 00</p>
+<!-- Section Nos métiers -->
+<section id="metiers" class="section">
+  <div class="section-container">
+    <h2 class="section-heading">Nos métiers</h2>
+    <div class="metiers-grid">
+      {% for category in categories %}
+      <a href="{{ category.get_absolute_url }}" class="metier-card {% if forloop.first %}metier-card--large{% endif %}">
+        {% if category.icon %}
+          <img src="{{ category.icon.url }}" alt="{{ category.name }}" class="metier-img">
+        {% else %}
+          <img src="{% static 'img/default_category.jpg' %}" alt="{{ category.name }}" class="metier-img">
+        {% endif %}
+        <div class="metier-content">
+          <h3>{{ category.name }}</h3>
+          <span class="metier-link">Découvrir →</span>
+        </div>
+      </a>
+      {% empty %}
+        <p>Aucune catégorie disponible pour le moment.</p>
+      {% endfor %}
+    </div>
   </div>
 </section>
+
+<!-- Section Preuves sociales -->
+<section class="section trust-section">
+  <div class="section-container">
+    <ul class="trust-grid">
+      <li>
+        <span class="trust-value">500+</span>
+        <span class="trust-label">Chantiers menés à bien</span>
+      </li>
+      <li>
+        <span class="trust-value">98%</span>
+        <span class="trust-label">Clients satisfaits</span>
+      </li>
+      <li>
+        <span class="trust-value">24h</span>
+        <span class="trust-label">Temps de réponse moyen</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- Section Services populaires -->
+<section id="services" class="section">
+  <div class="section-container">
+    <h2 class="section-heading">Services populaires</h2>
+    <div class="services-grid">
+      {% for service in featured_services %}
+      <a href="{{ service.get_absolute_url }}" class="service-card">
+        {% if service.image %}
+          <img src="{{ service.image.url }}" alt="{{ service.title }}" class="service-img">
+        {% else %}
+          <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }}" class="service-img">
+        {% endif %}
+        <div class="service-content">
+          <h3>{{ service.title }}</h3>
+          {% if service.short_description %}
+          <p class="service-description">{{ service.short_description }}</p>
+          {% endif %}
+        </div>
+      </a>
+      {% empty %}
+        <p>Aucun service à afficher pour le moment.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Section Devis rapide -->
+<section id="devis" class="section devis-section">
+  <div class="section-container">
+    <div class="devis-card">
+      <h2 class="section-heading">Obtenir un devis</h2>
+      <form method="post" action="{% url 'devis:request_quote' %}" class="devis-form">
+        {% csrf_token %}
+        <div class="devis-grid">
+          <input class="input" type="text" name="name" placeholder="Nom complet" required aria-label="Nom complet">
+          <input class="input" type="tel" name="phone" placeholder="Téléphone" required aria-label="Téléphone">
+          <input class="input" type="email" name="email" placeholder="Email" required aria-label="Email">
+          <input class="input" type="text" name="service" placeholder="Service souhaité" aria-label="Service souhaité">
+          <textarea class="textarea" name="message" rows="4" placeholder="Décrivez votre besoin…" aria-label="Description de votre besoin"></textarea>
+        </div>
+        <div class="devis-actions">
+          <button class="btn btn-primary" type="submit">Envoyer</button>
+          <small class="muted">Nous vous répondons sous 24–48h ouvrées.</small>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Section Contact -->
+<section id="contact" class="section contact-section">
+  <div class="section-container">
+    <div class="devis-card">
+      <h2 class="section-heading">Contact</h2>
+      <p class="muted">Une question ? Besoin d'un passage aujourd'hui ?</p>
+      <p class="muted">Email : contact@nettoyage-express.test — Tél : 0594 00 00 00</p>
+    </div>
+  </div>
+</section>
+
 {% endblock %}

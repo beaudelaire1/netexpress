@@ -36,9 +36,22 @@ if env_path.exists():
 # running with an insecure default.
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
-DEBUG = env.bool("DJANGO_DEBUG")
+# Convert the DEBUG environment variable to a proper boolean.  Support
+# common truthy/falsey strings in addition to booleans for robustness.
+raw_debug = env("DJANGO_DEBUG", default=True)
+if isinstance(raw_debug, str):
+    DEBUG = raw_debug.strip().lower() in {"1", "true", "yes", "on"}
+else:
+    DEBUG = bool(raw_debug)
 
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
+# Parse ALLOWED_HOSTS from a comma‑separated string or a list.  If the
+# environment provides a single string, split it on commas; otherwise
+# assume it is already a list.  Empty values result in an empty list.
+raw_hosts = env("DJANGO_ALLOWED_HOSTS", default="")
+if isinstance(raw_hosts, str):
+    ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
+else:
+    ALLOWED_HOSTS = list(raw_hosts)
 
 # -------------------------------------------------------------
 # Application definition
@@ -97,6 +110,11 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+            ],
+            # Register custom builtins so that the legacy filter 'length_is'
+            # is available in all templates without requiring {% load %}.
+            "builtins": [
+                "core.templatetags.legacy_filters",
             ],
         },
     },

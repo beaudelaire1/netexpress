@@ -181,23 +181,92 @@ class Invoice(models.Model):
     def items(self) -> List["InvoiceItem"]:
         return list(self.invoice_items.all())
 
-    def save(self, *args, **kwargs):
-        # Generate a number if none is provided.  The format is
-        # FAC-YYYY-XXX where YYYY is the year of issue and XXX is a
-        # three‑digit sequential counter.  Resetting each year.
-        if not self.number:
+    def save(self, *args, **kwargs) -> None:
+        """
+        Override the default save to assign a unique invoice number when none
+        is provided.  The numbering scheme follows the pattern
+        ``FAC-YYYY-XXX`` where ``YYYY`` is the year of the issue date and
+        ``XXX`` is a zero‑padded incremental counter.  To avoid race
+        conditions when multiple invoices are created concurrently, the
+        calculation of the next counter value is wrapped inside a database
+        transaction and uses ``select_for_update()`` to lock the last
+        invoice row for the given year.  When editing an existing invoice
+        (i.e. ``self.pk`` is set), the number is left untouched.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            Forwarded to the parent ``save`` implementation.
+        """
+        # Only generate a number for new invoices when none is provided
+        if not self.pk and not self.number:
+            # Determine the year either from the issue_date field or today
             year = self.issue_date.year if getattr(self, "issue_date", None) else date.today().year
             prefix = f"FAC-{year}-"
-            # Find the last invoice for the current year
-            last = Invoice.objects.filter(number__startswith=prefix).order_by("number").last()
-            counter = 0
-            if last:
-                try:
-                    counter = int(last.number.split("-")[-1])
-                except ValueError:
-                    counter = 0
-            self.number = f"{prefix}{counter + 1:03d}"
+            from django.db import transaction
+            # Use an atomic block to avoid race conditions.  Lock the last
+            # invoice row for the given year so that concurrent creates don't
+            # read the same counter value.
+            with transaction.atomic():
+                last = (
+                    Invoice.objects
+                    .select_for_update()
+                    .filter(number__startswith=prefix)
+                    .order_by("number")
+                    .last()
+                )
+                counter = 0
+                if last:
+                    try:
+                        counter = int(str(last.number).split("-")[-1])
+                    except Exception:
+                        # If parsing fails, reset the counter
+                        counter = 0
+                # Compose the new number
+                self.number = f"{prefix}{counter + 1:03d}"
         super().save(*args, **kwargs)
+
+    @classmethod
+    def create_from_quote(cls, quote: "devis.Quote") -> "Invoice":
+        """
+        Create a new invoice from a given quote.  This helper copies all
+        line items from the quote into the invoice and computes the totals.
+        The operation is wrapped in a transaction to ensure that either
+        everything is created successfully or nothing is persisted.
+
+        Parameters
+        ----------
+        quote : devis.Quote
+            The quote instance from which to generate the invoice.
+
+        Returns
+        -------
+        Invoice
+            The newly created invoice populated with items from the quote.
+        """
+        from django.db import transaction
+        # Late import to avoid a circular dependency when loading models
+        from .models import InvoiceItem  # type: ignore
+        with transaction.atomic():
+            # Instantiate the invoice linked to the quote
+            invoice = cls.objects.create(quote=quote, issue_date=date.today())
+            # Copy each quote item into an invoice item.  Use getattr to
+            # gracefully handle quotes without items (e.g. if relation is empty).
+            try:
+                quote_items = quote.items.all()  # type: ignore[attr-defined]
+            except Exception:
+                quote_items = []
+            for item in quote_items:
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    description=getattr(item, "description", ""),
+                    quantity=getattr(item, "quantity", 1),
+                    unit_price=getattr(item, "unit_price", Decimal("0.00")),
+                    tax_rate=getattr(item, "tax_rate", Decimal("0.00")),
+                )
+            # Compute the totals after all items have been added
+            invoice.compute_totals()
+        return invoice
 
     def compute_totals(self):
         """

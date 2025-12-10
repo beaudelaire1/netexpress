@@ -54,8 +54,46 @@ class Category(models.Model):
         verbose_name = _("catégorie")
         verbose_name_plural = _("catégories")
 
+
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args, **kwargs) -> None:
+        """
+        Override save to automatically generate a unique slug based on the
+        category name.  If a slug already exists, append a numeric suffix
+        (e.g. ``nettoyage``, ``nettoyage-1``, ``nettoyage-2``, …).  When
+        editing an existing category (i.e. `self.pk` is set), the slug
+        generation only runs if the name has changed or the slug is empty.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            Forwarded to the parent save implementation.
+        """
+        from django.utils.text import slugify as _slugify
+        generate = False
+        # If no slug or slug manually cleared, generate a new one
+        if not self.slug:
+            generate = True
+        elif self.pk and self.name:
+            # Fetch the current record from DB to detect name changes
+            try:
+                current = Category.objects.get(pk=self.pk)
+                if current.name != self.name:
+                    generate = True
+            except Category.DoesNotExist:
+                generate = True
+        if generate and self.name:
+            base_slug = _slugify(self.name, allow_unicode=True)
+            slug = base_slug
+            counter = 1
+            # Ensure the slug is unique.  Exclude the current record when updating.
+            while Category.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self) -> str:
         """
@@ -140,10 +178,41 @@ class Service(models.Model):
     def __str__(self) -> str:
         return self.title
 
-    def save(self, *args, **kwargs):
-        # Automatically generate slug on first save if not provided
+    def save(self, *args, **kwargs) -> None:
+        """
+        Override save to automatically generate a unique slug based on the
+        service title.  When adding a new service or when the title has
+        changed, the slug is generated using ``slugify`` and suffixed with
+        ``-1``, ``-2``, … until it is unique.  This prevents ``IntegrityError``
+        exceptions when titles differ only by punctuation or case.  When
+        editing an existing service, the slug remains unchanged unless the
+        title has been modified or the slug is empty.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            Forwarded to the parent save implementation.
+        """
+        from django.utils.text import slugify as _slugify
+        generate = False
+        # Determine if we need to generate a slug
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            generate = True
+        elif self.pk:
+            try:
+                current = Service.objects.get(pk=self.pk)
+                if current.title != self.title:
+                    generate = True
+            except Service.DoesNotExist:
+                generate = True
+        if generate and self.title:
+            base_slug = _slugify(self.title, allow_unicode=True)
+            slug = base_slug
+            counter = 1
+            while Service.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
         super().save(*args, **kwargs)
 
 

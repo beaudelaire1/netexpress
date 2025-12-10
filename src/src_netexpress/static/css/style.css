@@ -1,10 +1,21 @@
 :root{
-  /* Palette NetExpress – Île de Cayenne */
-  --brand: #0B5D46;
-  --brand-accent: #25C17A;
-  --ink: #101616;
-  --bg: #f7fdfb;
-  --card: #ffffff;
+  /* Palette NetExpress – couleur 2025 */
+  --primary: #0B5D46;      /* Vert émeraude profond */
+  --secondary: #D4AF37;    /* Or mat pour les accents */
+  --bg-light: #F8F9FA;     /* Gris très clair pour les fonds */
+  --bg: #FFFFFF;           /* Blanc pur pour les sections */
+  --text: #2C3E50;         /* Gris anthracite pour la lisibilité */
+  --muted: #6B7280;        /* Texte secondaire */
+  --card: #FFFFFF;         /* Carte blanche */
+  --shadow: 0 4px 20px rgba(0,0,0,0.05);
+  --radius: 12px;
+  /* Font stack moderne */
+  --font-main: 'Inter', 'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  /* Backwards compatibility for legacy variables */
+  --brand: var(--primary);
+  --brand-accent: var(--secondary);
+  --ink: var(--text);
 }
 /*
   Mise à jour 2025 : ce fichier définit la palette secondaire et les
@@ -18,6 +29,12 @@
 */
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;background:var(--bg);color:var(--ink)}
+body{
+  margin:0;
+  font-family:var(--font-main);
+  background:var(--bg-light);
+  color:var(--text);
+}
 /* Utilisation de pourcentages pour la largeur : la grille s’étire sur toute la page */
 .container{
   width:100%;
@@ -158,4 +175,429 @@ h3 { text-decoration-line: none;
     padding:14px 18px;
     text-align:center;
   }
+}
+
+/* ------------------------------------------------------------ */
+/*            Composants du nouveau design (2025)              */
+/* ------------------------------------------------------------ */
+
+/* Hero plein écran avec overlay */
+.hero-full{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  padding:0 5%;
+  color:#fff;
+  background-color:var(--primary);
+  overflow:hidden;
+}
+.hero-overlay{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:linear-gradient(180deg, rgba(11,93,70,0.8) 0%, rgba(11,93,70,0.4) 50%, rgba(11,93,70,0.0) 100%);
+}
+.hero-inner{
+  position:relative;
+  z-index:1;
+  max-width:600px;
+}
+.hero-heading{
+  font-size:2.5rem;
+  font-weight:700;
+  margin:0 0 16px;
+  line-height:1.2;
+}
+.hero-subheading{
+  font-size:1.2rem;
+  max-width:38ch;
+  margin:0 0 24px;
+}
+.hero-form{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+  background:rgba(255,255,255,0.1);
+  padding:8px;
+  border-radius:var(--radius);
+  backdrop-filter:blur(4px);
+}
+.hero-input{
+  flex:1 1 auto;
+  min-width:200px;
+  padding:14px 18px;
+  border:none;
+  border-radius:var(--radius);
+  font-size:1rem;
+  outline:0;
+  background:rgba(255,255,255,0.8);
+  color:var(--primary);
+}
+
+/* Section container and headings */
+.section{
+  padding:64px 5%;
+}
+.section-container{
+  max-width:1280px;
+  margin:0 auto;
+}
+.section-heading{
+  font-size:1.8rem;
+  font-weight:700;
+  margin-bottom:32px;
+  color:var(--primary);
+}
+
+/* Métiers grid */
+.metiers-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:24px;
+}
+.metier-card{
+  display:flex;
+  flex-direction:column;
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  text-decoration:none;
+  color:inherit;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.metier-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.1);
+}
+.metier-card--large{
+  grid-row:span 2;
+  grid-column:span 2;
+}
+.metier-img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+}
+.metier-content{
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.metier-link{
+  color:var(--secondary);
+  font-size:.9rem;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+/* Trust section */
+.trust-section{
+  background:var(--primary);
+  color:#fff;
+  padding-top:48px;
+  padding-bottom:48px;
+}
+.trust-grid{
+  list-style:none;
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:40px;
+  padding:0;
+  margin:0;
+}
+.trust-grid li{
+  text-align:center;
+}
+.trust-value{
+  font-size:2rem;
+  font-weight:700;
+  display:block;
+}
+.trust-label{
+  font-size:1rem;
+  color:rgba(255,255,255,0.8);
+}
+
+/* Services grid */
+.services-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:24px;
+}
+.service-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+  text-decoration:none;
+  color:inherit;
+  box-shadow:var(--shadow);
+  transition:transform .2s ease, box-shadow .2s ease;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+.service-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.1);
+}
+.service-img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+}
+.service-content{
+  padding:16px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.service-content h3{
+  margin:0 0 8px;
+  font-size:1.1rem;
+  font-weight:600;
+}
+.service-description{
+  margin:0;
+  font-size:.9rem;
+  color:var(--muted);
+}
+
+/* Devis & contact cards */
+.devis-section{
+  background:var(--bg);
+}
+.devis-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:32px;
+  max-width:800px;
+  margin:0 auto;
+}
+.devis-grid{
+  display:grid;
+  gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  margin-bottom:16px;
+}
+.devis-form .input,
+.devis-form .textarea{
+  width:100%;
+  padding:14px 18px;
+  border:1px solid #d0d7de;
+  border-radius:var(--radius);
+  background:#fff;
+  font-size:1rem;
+  color:var(--text);
+}
+.devis-actions{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.devis-actions .btn{
+  flex-shrink:0;
+}
+
+/* Contact section reuses devis-card styles */
+.contact-section .devis-card{
+  text-align:center;
+}
+
+/* Inputs styling in hero */
+.hero-input::placeholder{
+  color:rgba(11,93,70,0.6);
+}
+
+/* Spécifique au CTA dans la hero */
+.hero-form .btn{
+  padding:14px 24px;
+  font-size:1rem;
+}
+
+/* ------------------------------------------------------------ */
+/*                       Dashboard styles                      */
+/* ------------------------------------------------------------ */
+.admin-dashboard{
+  display:flex;
+  min-height:100vh;
+}
+.sidebar{
+  width:240px;
+  background:#1a252f;
+  color:#fff;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  padding:24px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.sidebar-brand{
+  font-size:1.4rem;
+  font-weight:700;
+  margin-bottom:32px;
+}
+.sidebar-nav{
+  flex:1;
+}
+.sidebar-nav a{
+  display:block;
+  padding:10px 12px;
+  margin-bottom:4px;
+  color:rgba(255,255,255,0.85);
+  text-decoration:none;
+  border-radius:8px;
+  transition:background .2s ease;
+}
+.sidebar-nav a:hover{
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+}
+.dashboard-content{
+  flex:1;
+  padding:32px;
+  background:var(--bg-light);
+  overflow-x:auto;
+}
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:24px;
+  margin-bottom:32px;
+}
+.kpi-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:24px;
+  text-align:center;
+}
+.kpi-value{
+  font-size:2rem;
+  font-weight:700;
+  color:var(--primary);
+}
+.kpi-label{
+  font-size:1rem;
+  color:var(--muted);
+}
+.dashboard-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:32px;
+}
+.dashboard-table thead{
+  background:var(--primary);
+  color:#fff;
+}
+.dashboard-table th,
+.dashboard-table td{
+  padding:14px 18px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
+  font-size:.9rem;
+}
+.dashboard-table tr:hover{
+  background:#f9fafb;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:600;
+}
+.badge-new{
+  background:#ecfdf5;
+  color:#065f46;
+}
+.badge-traite{
+  background:#fee2e2;
+  color:#991b1b;
+}
+.badge-partial{
+  background:#fef3c7;
+  color:#92400e;
+}
+.action-links{
+  display:flex;
+  gap:8px;
+  opacity:0;
+  transition:opacity .2s ease;
+}
+.dashboard-table tr:hover .action-links{
+  opacity:1;
+}
+.dashboard-table a{
+  color:var(--primary);
+  text-decoration:none;
+  font-weight:500;
+}
+
+/* ------------------------------------------------------------ */
+/*              Interface ouvrier (mode sombre)                */
+/* ------------------------------------------------------------ */
+.worker-dashboard{
+  background:#1f2937;
+  color:#f9fafb;
+  min-height:100vh;
+  padding:32px 5%;
+}
+.worker-dashboard h2{
+  margin-top:0;
+  font-size:1.6rem;
+  margin-bottom:24px;
+  color:#fff;
+}
+.worker-tasks{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.worker-task-card{
+  background:#374151;
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.worker-task-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#fff;
+}
+.worker-task-header h3{
+  margin:0;
+  font-size:1.2rem;
+}
+.worker-task-card p{
+  margin:0;
+  color:#d1d5db;
+  font-size:.95rem;
+}
+.worker-task-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:.85rem;
+  color:#9ca3af;
+}
+.worker-task-footer .btn{
+  background:var(--secondary);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:8px;
 }

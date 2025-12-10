@@ -7,6 +7,7 @@ Compatibles avec factures/urls.py :
 """
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -24,19 +25,29 @@ def create_invoice(request, quote_id: int):
 
     quote = get_object_or_404(Quote, pk=quote_id)
 
-    # Utilise ta logique métier si elle existe dans ton modèle
-    if hasattr(Invoice, "create_from_quote") and callable(getattr(Invoice, "create_from_quote")):
-        invoice = Invoice.create_from_quote(quote)
-    else:
-        invoice = Invoice.objects.create(quote=quote)
+    # Tente de créer la facture via la méthode métier.  En cas d'erreur,
+    # capture l'exception et affiche un message à l'utilisateur.
+    invoice = None
+    try:
+        if hasattr(Invoice, "create_from_quote") and callable(getattr(Invoice, "create_from_quote")):
+            invoice = Invoice.create_from_quote(quote)
+        else:
+            invoice = Invoice.objects.create(quote=quote)
+        messages.success(request, f"La facture {invoice.number} a été créée avec succès.")
+    except Exception as e:
+        # Afficher l'erreur pour faciliter le débogage
+        messages.error(request, f"Erreur lors de la création de la facture : {str(e)}")
+        return redirect(reverse("factures:archive"))
 
-    # Génération PDF si supporté
-    if hasattr(invoice, "generate_pdf") and callable(getattr(invoice, "generate_pdf")):
+    # Génération du PDF si la méthode existe
+    if invoice and hasattr(invoice, "generate_pdf") and callable(getattr(invoice, "generate_pdf")):
         try:
             invoice.generate_pdf(attach=True)
-        except Exception:
-            pass
-
+        except Exception as e:
+            messages.error(request, f"La facture a été créée mais le PDF n'a pas pu être généré : {str(e)}")
+    # Vérifier si la facture est vide (aucune ligne copiée)
+    if invoice and hasattr(invoice, "invoice_items") and not invoice.invoice_items.exists():
+        messages.warning(request, "La facture a été créée mais elle ne contient aucune ligne.")
     return redirect(reverse("factures:archive"))
 
 
