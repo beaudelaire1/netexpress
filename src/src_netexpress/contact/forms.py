@@ -15,7 +15,7 @@ from .models import Message
 class ContactForm(forms.ModelForm):
     class Meta:
         model = Message
-        fields = ["topic", "full_name", "email", "phone","city", "zip_code", "body"]
+        fields = ["topic", "full_name", "email", "phone","street","city", "zip_code", "body"]
         widgets = {
             "topic": forms.Select(attrs={"class": "select"}),
             "full_name": forms.TextInput(
@@ -39,6 +39,14 @@ class ContactForm(forms.ModelForm):
                 attrs={
                     "class": "input",
                     "placeholder": "Téléphone",
+                    "required": True,
+                    "aria-required": "true",
+                }
+            ),
+            "street": forms.TextInput(
+                attrs={
+                    "class": "input",
+                    "placeholder": "Adresse",
                     "required": True,
                     "aria-required": "true",
                 }

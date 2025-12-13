@@ -1,0 +1,124 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Facture {{ invoice.number }}</title>
+</head>
+<body>
+  <div class="doc">
+    <div class="header">
+      <div>
+        {% if branding.logo_path %}
+          <img class="logo" src="file://{{ branding.logo_path }}" alt="Logo">
+        {% else %}
+          <div class="kicker">{{ branding.name|default:"NetExpress" }}</div>
+        {% endif %}
+        <div class="kicker">Facture</div>
+        <h1 class="title">{{ invoice.number }}</h1>
+        <div class="small">Émise le {{ invoice.issue_date|date:"d/m/Y" }}</div>
+      </div>
+
+      <div style="text-align:right">
+        <div class="badge">{{ branding.tagline|default:"Nettoyage de prestige" }}</div>
+        <div style="height:6mm"></div>
+        <div><strong>{{ branding.name|default:"NetExpress" }}</strong></div>
+        {% if branding.address_lines %}
+          <div class="small">
+            {% for l in branding.address_lines %}{{ l }}<br>{% endfor %}
+          </div>
+        {% else %}
+          <div class="small">{{ branding.address|linebreaksbr }}</div>
+        {% endif %}
+        <div class="small">
+          {% if branding.phone %}{{ branding.phone }}<br>{% endif %}
+          {% if branding.email %}{{ branding.email }}{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Client</h3>
+        <div><strong>{{ invoice.client_name }}</strong></div>
+        <div class="small">
+          {% if invoice.client_email %}{{ invoice.client_email }}<br>{% endif %}
+          {% if invoice.client_phone %}{{ invoice.client_phone }}<br>{% endif %}
+          {% if invoice.client_city %}{{ invoice.client_city }}{% endif %}
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Référence</h3>
+        <div class="small">
+          Devis : {% if invoice.quote %}{{ invoice.quote.number }}{% else %}—{% endif %}<br>
+          Statut : {{ invoice.get_status_display }}
+        </div>
+      </div>
+    </div>
+
+    <table class="table" role="presentation">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th class="right">Qté</th>
+          <th class="right">PU HT</th>
+          <th class="right">TVA</th>
+          <th class="right">Montant TTC</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in invoice.invoice_items.all %}
+        <tr>
+          <td><strong>{{ item.description }}</strong></td>
+          <td class="right">{{ item.quantity }}</td>
+          <td class="right">{{ item.unit_price|floatformat:2 }} €</td>
+          <td class="right">{{ item.tax_rate|floatformat:2 }} %</td>
+          <td class="right">{{ item.total_ttc|floatformat:2 }} €</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="small muted">Aucune ligne.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="totals-box">
+        <div class="totals-row"><span class="muted">Total HT</span><span>{{ invoice.total_ht|floatformat:2 }} €</span></div>
+        <div class="totals-row"><span class="muted">TVA</span><span>{{ invoice.tva|floatformat:2 }} €</span></div>
+        <div class="totals-row total"><strong>Total TTC</strong><strong>{{ invoice.total_ttc|floatformat:2 }} €</strong></div>
+      </div>
+    </div>
+
+    <div class="payment">
+      <h3>Conditions de paiement</h3>
+      <div class="small">
+        {{ invoice.payment_terms|default:branding.payment_terms|default:"Paiement : 30 jours après démarrage des travaux." }}
+      </div>
+    </div>
+
+    <div class="payment" style="border-left-color: var(--brand-2);">
+      <div style="display:flex; justify-content:space-between; gap:10mm">
+        <div>
+          <h3>Règlement</h3>
+          <div class="small">Virement bancaire recommandé.</div>
+        </div>
+        <div style="text-align:right">
+          <h3>Coordonnées bancaires</h3>
+          <div class="small">
+            {% if branding.iban %}<strong>IBAN</strong> : {{ branding.iban }}<br>{% endif %}
+            {% if branding.bic %}<strong>BIC</strong> : {{ branding.bic }}{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Merci pour votre confiance.</div>
+      <div style="text-align:right">{{ branding.name|default:"NetExpress" }}</div>
+    </div>
+  </div>
+</body>
+</html>

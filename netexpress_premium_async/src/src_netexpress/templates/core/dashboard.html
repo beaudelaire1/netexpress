@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord — NetExpress{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+  <!-- Barre latérale -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">NetExpress</div>
+    <nav class="sidebar-nav">
+      <a href="{% url 'admin:index' %}">Accueil admin</a>
+      <a href="{% url 'tasks:list' %}">Tâches</a>
+      <a href="{% url 'factures:archive' %}">Factures</a>
+      <a href="{% url 'devis:request_quote' %}">Devis</a>
+      <a href="{% url 'messaging:list' %}">Messages</a>
+    </nav>
+  </aside>
+  <!-- Zone de contenu -->
+  <main class="dashboard-content">
+    <h1 style="margin-top:0">Tableau de bord</h1>
+    <p class="muted">Vue d’ensemble des tâches, factures et devis.</p>
+    <!-- Cartes KPI -->
+    <div class="kpis">
+      <div class="kpi-card">
+        <div class="kpi-value">{{ tasks|length }}</div>
+        <div class="kpi-label">Tâches</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ invoices|length }}</div>
+        <div class="kpi-label">Factures</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ quotes|length }}</div>
+        <div class="kpi-label">Devis</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ recent_messages|length }}</div>
+        <div class="kpi-label">Messages</div>
+      </div>
+    </div>
+    <!-- Tableau des tâches -->
+    <h2>Dernières tâches</h2>
+    <table class="dashboard-table">
+      <thead>
+        <tr><th>Titre</th><th>Statut</th><th>Échéance</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for t in tasks %}
+        <tr>
+          <td>{{ t.title }}</td>
+          <td>
+            <span class="badge {% if t.status == 'new' or t.status == 'pending' %}badge-new{% elif t.status == 'done' or t.status == 'traite' %}badge-traite{% else %}badge-partial{% endif %}">{{ t.get_status_display }}</span>
+          </td>
+          <td>{{ t.due_date|date:'d/m/Y' }}</td>
+          <td>
+            <div class="action-links">
+              <a href="{% url 'tasks:detail' t.pk %}">Voir</a>
+              {% if perms.tasks.change_task %}<a href="{% url 'admin:tasks_task_change' t.pk %}">Éditer</a>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Aucune tâche enregistrée.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <!-- Tableau des factures -->
+    <h2>Dernières factures</h2>
+    <table class="dashboard-table">
+      <thead><tr><th>Numéro</th><th>Total TTC</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td>{{ inv.number }}</td>
+          <td>{{ inv.total_ttc }} €</td>
+          <td>{{ inv.issue_date|date:'d/m/Y' }}</td>
+          <td>
+            <div class="action-links">
+              {% if inv.pdf %}<a href="{{ inv.pdf.url }}" target="_blank">PDF</a>{% endif %}
+              {% if perms.factures.change_invoice %}<a href="{% url 'admin:factures_invoice_change' inv.pk %}">Éditer</a>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Aucune facture disponible.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <!-- Tableau des devis -->
+    <h2>Derniers devis</h2>
+    <table class="dashboard-table">
+      <thead><tr><th>Numéro</th><th>Total TTC</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for q in quotes %}
+        <tr>
+          <td>{% if q.pdf %}<a href="{% url 'devis:download' q.pk %}" target="_blank">{{ q.number }}</a>{% else %}{{ q.number }}{% endif %}</td>
+          <td>{{ q.total_ttc }} €</td>
+          <td>{{ q.issue_date|date:'d/m/Y' }}</td>
+          <td>
+            <div class="action-links">
+              {% if perms.devis.change_quote %}<a href="{% url 'admin:devis_quote_change' q.pk %}">Éditer</a>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Aucun devis disponible.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <!-- Tableau des messages -->
+    <h2>Derniers messages</h2>
+    <table class="dashboard-table">
+      <thead><tr><th>Sujet</th><th>Destinataire</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for m in recent_messages %}
+        <tr>
+          <td>{{ m.subject }}</td>
+          <td>{{ m.recipient }}</td>
+          <td>{{ m.created_at|date:'d/m/Y' }}</td>
+          <td>
+            <div class="action-links">
+              <a href="{% url 'messaging:detail' m.pk %}">Voir</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Aucun message envoyé récemment.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</div>
+{% endblock %}

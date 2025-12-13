@@ -1,0 +1,671 @@
+:root {
+    /* Couleurs */
+    --bg-page: #f9fafb;
+    /* VOTRE DEMANDE */
+    --primary-green: #104130;
+    /* Vert foncé premium */
+    --accent-green: #2d8a5e;
+    /* Vert plus vif pour les actions */
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --white: #ffffff;
+
+    /* Variables de design */
+    --radius: 12px;
+    --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.12);
+    --font-head: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    line-height: 1.6;
+}
+
+/* --- Navbar --- */
+.navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.logo {
+    font-family: var(--font-head);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo span {
+    font-weight: 400;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--accent-green);
+}
+
+.btn-cta {
+    background: var(--primary-green);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 50px;
+    /* Plus rond = plus moderne */
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: transform 0.2s;
+}
+
+.btn-cta:hover {
+    transform: translateY(-2px);
+}
+
+/* --- Hero --- */
+.hero {
+    height: 75vh;
+    background: url('/static/img/hero_bg.png') center/cover;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(16, 65, 48, 0.7));
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    padding: 20px;
+}
+
+.hero-content h1 {
+    font-family: var(--font-head);
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+}
+
+.hero-content p {
+    font-size: 1.15rem;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+}
+
+.btn-primary {
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-outline:hover {
+    background: white;
+    color: var(--primary-green);
+}
+
+/* --- Expertise Section (Onglets) --- */
+.expertise {
+    padding: 80px 10%;
+    background: var(--bg-page);
+}
+
+.section-head {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-head h2 {
+    font-family: var(--font-head);
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 10px;
+}
+
+.section-head p {
+    color: var(--text-muted);
+}
+
+.tabs-header {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    padding: 12px 28px;
+    border-radius: 50px;
+    color: var(--text-muted);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: var(--font-body);
+}
+
+.tab-btn:hover {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+}
+
+.tab-btn.active {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 65, 48, 0.2);
+}
+
+/* Carte Contenu Onglet */
+.content-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    box-shadow: var(--shadow-soft);
+    /* Ombre douce sur fond blanc */
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.card-image {
+    flex: 1;
+    min-height: 400px;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-text {
+    flex: 1;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card-text h3 {
+    font-family: var(--font-head);
+    font-size: 2rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+}
+
+.features {
+    list-style: none;
+    margin: 25px 0;
+}
+
+.features li {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+}
+
+.features i {
+    color: var(--accent-green);
+}
+
+.link-arrow {
+    color: var(--primary-green);
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Section Devis (La partie verte) --- */
+.quote-section {
+    background-color: var(--primary-green);
+    padding: 80px 5%;
+    color: white;
+    text-align: center;
+}
+
+.quote-header {
+    margin-bottom: 40px;
+}
+
+.quote-header h2 {
+    font-family: var(--font-head);
+    font-size: 2.5rem;
+}
+
+/* La Carte Formulaire (Élément Central) */
+.form-card {
+    background: white;
+    max-width: 850px;
+    margin: 0 auto;
+    border-radius: var(--radius);
+    padding: 40px;
+    box-shadow: var(--shadow-soft);
+    color: var(--primary-green);
+    text-align: left;
+}
+
+.section-label {
+    display: block;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.service-selector {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    margin-right: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.option:last-child {
+    margin-right: 0;
+}
+
+.option i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--primary-green);
+}
+
+.option span {
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.option.active {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px rgba(45, 138, 94, 0.2);
+}
+
+.input-group {
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.highlight-val {
+    font-weight: 600;
+    color: var(--accent-green);
+}
+
+.styled-slider {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.styled-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.styled-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+}
+
+.select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.select-wrapper select {
+    appearance: none;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    background-color: #f9fafb;
+    font-family: var(--font-body);
+    cursor: pointer;
+}
+
+.contact-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.modern-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    background-color: #f9fafb;
+}
+
+.modern-input.full-width {
+    width: 100%;
+}
+
+.btn-submit {
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* --- Portfolio Section --- */
+.portfolio {
+    padding: 80px 5%;
+    background: var(--bg-page);
+}
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.portfolio-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.portfolio-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.portfolio-item:hover img {
+    transform: scale(1.05);
+}
+
+.overlay-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(0deg, rgba(16, 65, 48, 0.9), rgba(16, 65, 48, 0));
+    color: white;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+}
+
+.portfolio-item:hover .overlay-info {
+    transform: translateY(0);
+}
+
+.overlay-info .category {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.overlay-info h3 {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+}
+
+.portfolio-footer {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.btn-text {
+    color: var(--primary-green);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    border-bottom: 2px solid transparent;
+    padding-bottom: 5px;
+    transition: border-color 0.3s;
+}
+
+/* Effet souligné sur les liens texte au survol */
+.btn-text:hover {
+    border-bottom-color: var(--accent-green);
+}
+
+/* --- Styles pour les Pages Internes (Services / Excellence) --- */
+
+/* Petit Header pour les pages internes */
+.page-header {
+    height: 40vh;
+    background-color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    position: relative;
+    /* Image de fond subtile et sombre par défaut */
+    background-image: linear-gradient(rgba(16, 65, 48, 0.8), rgba(16, 65, 48, 0.8)), url('/static/img/hero_bg.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.page-header h1 {
+    font-family: var(--font-head);
+    font-size: 3.5rem;
+    margin-bottom: 10px;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* Section Contenu Standard */
+.page-content {
+    padding: 80px 10%;
+    background-color: var(--bg-page);
+}
+
+/* Layout en Z (Image / Texte alternés) pour Services */
+.service-row {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    margin-bottom: 100px;
+}
+
+/* Inverser l'ordre une fois sur deux */
+.service-row.reverse {
+    flex-direction: row-reverse;
+}
+
+.service-img {
+    flex: 1;
+    height: 450px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+.service-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.service-img:hover img {
+    transform: scale(1.05);
+}
+
+.service-desc {
+    flex: 1;
+}
+
+.service-desc h2 {
+    font-family: var(--font-head);
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+}
+
+.service-desc p {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-size: 1.05rem;
+}
+
+.price-tag {
+    display: inline-block;
+    background: #e6f4ea;
+    color: var(--primary-green);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+/* Styles pour la page Excellence (Valeurs) */
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    margin-top: 50px;
+}
+
+.value-card {
+    background: white;
+    padding: 40px;
+    border-radius: var(--radius);
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    border-top: 4px solid var(--accent-green);
+}
+
+.value-card i {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+}
+
+.value-card h3 {
+    font-family: var(--font-head);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+/* Responsive basique pour les pages internes */
+@media (max-width: 900px) {
+    .service-row,
+    .service-row.reverse {
+        flex-direction: column;
+    }
+    .service-img {
+        width: 100%;
+        height: 300px;
+    }
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 30px 0;
+    background: #f1f5f9;
+    color: var(--text-muted);
+}

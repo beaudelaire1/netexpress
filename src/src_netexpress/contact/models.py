@@ -25,6 +25,7 @@ class Message(models.Model):
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
     city= models.CharField(max_length=200)
+    street= models.CharField(max_length=200)
     # Utiliser un champ de caractères pour le code postal afin de
     # prendre en charge à la fois les codes numériques et alphanumériques
     # (certaines régions ont des codes avec des lettres).  L'option
@@ -51,3 +52,6 @@ class Message(models.Model):
         """Retourne l'adresse e-mail en masquant le nom d'utilisateur pour la confidentialité."""
         user, _, domain = self.email.partition("@")
         return f"{user[:1]}***@{domain}"
+
+
+

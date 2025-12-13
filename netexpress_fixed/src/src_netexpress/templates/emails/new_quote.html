@@ -1,0 +1,40 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Confirmation de votre demande de devis{% endblock %}
+
+{% block preheader %}Nous avons bien reçu votre demande de devis.{% endblock %}
+
+{% block header_right %}Demande de devis reçue{% endblock %}
+
+{% block body %}
+  <h2 style="margin:0 0 10px 0; color:#0B5D46; font-size:20px;">Bonjour {{ quote_request.client_name|default:"" }},</h2>
+  <p style="margin:0 0 12px 0; color:#111827; font-size:14px; line-height:1.6;">Nous avons bien reçu votre demande de devis. Merci pour votre confiance.</p>
+
+  <div style="margin: 0 0 16px 0; padding: 12px 14px; border:1px solid #e5e7eb; border-radius:12px; background:#ffffff;">
+    <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">Récapitulatif</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; font-size:14px; color:#111827;">
+      <tr><td style="padding:4px 0; width:140px; color:#6b7280;">Nom :</td><td style="padding:4px 0;">{{ quote_request.client_name }}</td></tr>
+      <tr><td style="padding:4px 0; color:#6b7280;">Email :</td><td style="padding:4px 0;">{{ quote_request.email }}</td></tr>
+      <tr><td style="padding:4px 0; color:#6b7280;">Téléphone :</td><td style="padding:4px 0;">{{ quote_request.phone|default:"—" }}</td></tr>
+      <tr><td style="padding:4px 0; color:#6b7280;">Adresse :</td><td style="padding:4px 0;">{{ quote_request.address|default:"—" }}</td></tr>
+      {% if quote_request.preferred_date %}
+        <tr><td style="padding:4px 0; color:#6b7280;">Date souhaitée :</td><td style="padding:4px 0;">{{ quote_request.preferred_date|date:"d/m/Y" }}</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  {% if quote_request.message %}
+    <div style="margin:0 0 16px 0; padding: 12px 14px; border-radius:12px; background:#f9fafb; border:1px solid #e5e7eb;">
+      <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">Votre message</div>
+      <div style="font-size:14px; color:#111827; line-height:1.6;">{{ quote_request.message|linebreaksbr }}</div>
+    </div>
+  {% endif %}
+
+  <p style="margin:0 0 10px 0; color:#111827; font-size:14px; line-height:1.6;">
+    Notre équipe étudie votre demande et reviendra vers vous sous <strong>24 à 48 heures ouvrées</strong> avec une proposition personnalisée.
+  </p>
+
+  <p style="margin:0; color:#6b7280; font-size:13px; line-height:1.6;">
+    Besoin d'ajouter un détail ? Répondez simplement à cet e-mail.
+  </p>
+{% endblock %}
