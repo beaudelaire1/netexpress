@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Suivi des tâches — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="section__head">
+    <h1>Suivi des tâches</h1>
+  </div>
+  {% if tasks %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Titre</th>
+        <th>Statut</th>
+        <th>Date de début</th>
+        <th>Échéance</th>
+        <th>Lieu</th>
+        <th>Équipe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+      <tr>
+        <td><a href="{% url 'tasks:detail' t.pk %}">{{ t.title }}</a></td>
+        <td>{{ t.get_status_display }}</td>
+        <td>{{ t.start_date|date:'d/m/Y' }}</td>
+        <td>{{ t.due_date|date:'d/m/Y' }}</td>
+        <td>{{ t.location|default:'–' }}</td>
+        <td>{{ t.team|default:'–' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Aucune tâche n'a été enregistrée pour le moment.</p>
+  {% endif %}
+</section>
+{% endblock %}

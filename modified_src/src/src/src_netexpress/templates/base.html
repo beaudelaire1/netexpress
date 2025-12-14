@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Provide a concise description of the site for search engines -->
+  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
+  <title>{% block title %}Nettoyage Express{% endblock %}</title>
+  <!-- Polices et icônes : centralisées ici pour éviter duplication/FOUT -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- Scripts -->
+  <script defer src="{% static 'js/main.js' %}"></script>
+  <script defer src="{% static 'js/forms.js' %}"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!--
+    Barre de navigation principale.
+    Les liens sont identiques sur toutes les pages pour respecter le
+    cahier des charges.  Un bouton CTA est placé en fin de menu pour
+    accéder rapidement au formulaire de devis.
+  -->
+  <header class="site-header">
+    <div class="container header-row">
+      <a href="{% url 'core:home' %}" class="brand" aria-label="Accueil">
+        {# Utilise un pictogramme pour le logo afin d'éviter une dépendance à un fichier manquant. #}
+        <span class="brand-icon" aria-hidden="true">🧼</span>
+        <span class="brand-name">NetExpress</span>
+      </a>
+      <!-- Bouton burger pour l'affichage mobile -->
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="primary-navigation">&#9776;</button>
+      <nav id="primary-navigation" class="nav" hidden>
+        <a class="nav-link" href="{% url 'core:home' %}">Accueil</a>
+        <a class="nav-link" href="{% url 'services:list' %}">Services</a>
+        <a class="nav-link" href="{% url 'core:excellence' %}">L’Excellence</a>
+        <a class="nav-link" href="{% url 'core:realisations' %}">Réalisations</a>
+        <a class="nav-link" href="{% url 'contact:contact' %}">Contact</a>
+        <a class="nav-link cta" href="{% url 'devis:request_quote' %}">Devis Express</a>
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="container messages-wrap">
+      {% for message in messages %}
+        <div class="alert" role="alert">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="container content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <!--
+      The copyright notice is wrapped in its own paragraph.  A missing
+      closing </p> tag caused invalid HTML and could break the
+      rendering of the footer.  Ensure that every opened tag is
+      properly closed to meet the zero syntax error requirement.
+    -->
+    <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
+  </footer>
+</body>
+</html>

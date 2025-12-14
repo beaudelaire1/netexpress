@@ -1,0 +1,14 @@
+Contenu
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+env/
+.env
+venv/
+*.pyc
+*.pyo
+*.pyd
+staticfiles/
+media/
+node_modules/

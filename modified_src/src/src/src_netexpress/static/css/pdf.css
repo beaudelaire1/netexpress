@@ -1,0 +1,275 @@
+
+/* static/css/pdf.css — Premium print styles (WeasyPrint) */
+
+@page {
+  size: A4;
+  margin: 18mm 16mm 18mm 16mm;
+}
+
+:root{
+  --ink:#0b0f19;
+  --muted:#6b7280;
+  --line:#e6e8ee;
+  /*
+   * Palette verte inspirée du modèle fourni par le client.  Les deux
+   * variables suivantes remplacent l'ancien ton bleu par un vert sombre
+   * qui sera utilisé pour le bandeau supérieur, les encadrés et les
+   * éléments d'accentuation.  L'accent secondaire est une nuance
+   * légèrement plus foncée du même vert.
+   */
+  --brand:#1c7c54;
+  --brand-2:#14543c;
+}
+
+html, body { height: 100%; }
+
+body{
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  color: var(--ink);
+  font-size: 10.8pt;
+  line-height: 1.45;
+}
+
+h1,h2,h3{
+  font-family: "Playfair Display", "Georgia", "Times New Roman", serif;
+  letter-spacing: .2px;
+  margin: 0;
+}
+
+.small{ font-size: 9pt; color: var(--muted); }
+.muted{ color: var(--muted); }
+.hr{ height:1px; background:var(--line); margin:10px 0 14px 0; }
+
+.doc{
+  border:1px solid var(--line);
+  border-radius: 14px;
+  padding: 14mm 12mm;
+}
+
+.header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 16px;
+}
+
+.logo{
+  width: 120px;
+  height: auto;
+}
+
+.kicker{
+  font-size: 9.5pt;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.title{
+  font-size: 26pt;
+  margin-top: 2mm;
+}
+
+.badge{
+  display:inline-block;
+  padding: 2mm 3.2mm;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 9pt;
+  color: var(--muted);
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12mm;
+  margin-top: 10mm;
+}
+
+.panel{
+  border:1px solid var(--line);
+  border-radius: 12px;
+  padding: 6mm;
+}
+
+.panel h3{
+  font-size: 12pt;
+  margin-bottom: 2mm;
+}
+
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8mm;
+}
+
+.table th{
+  text-align:left;
+  font-size: 9pt;
+  color: var(--muted);
+  padding: 2.5mm 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.table td{
+  padding: 3.2mm 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.table td.right, .table th.right { text-align:right; }
+
+.totals{
+  margin-top: 8mm;
+  width: 100%;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.totals-box{
+  width: 60%;
+  border:1px solid var(--line);
+  border-radius: 12px;
+  padding: 5mm 6mm;
+}
+
+.totals-row{
+  display:flex;
+  justify-content:space-between;
+  padding: 1.5mm 0;
+}
+
+.totals-row strong{
+  font-weight: 700;
+}
+
+.totals-row.total{
+  border-top: 1px solid var(--line);
+  margin-top: 2mm;
+  padding-top: 3mm;
+  font-size: 12pt;
+}
+
+.payment{
+  margin-top: 8mm;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 12px;
+  padding: 5mm 6mm;
+}
+
+.footer{
+  margin-top: 10mm;
+  display:flex;
+  justify-content:space-between;
+  gap: 10mm;
+  font-size: 8.6pt;
+  color: var(--muted);
+}
+
+/*
+ * Styles additionnels pour reproduire le modèle fourni.  Ces styles
+ * définissent un bandeau supérieur vert foncé avec le logo et les
+ * informations de la facture, un encadré pour mettre en avant le total
+ * TTC, et des cartes pour l'émetteur et le client.
+ */
+
+.top-bar {
+  background-color: var(--brand);
+  color: #ffffff;
+  padding: 6mm;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.top-bar .logo-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+
+.top-bar .logo-block .logo {
+  /* Réduit la taille du logo dans le bandeau pour tenir sur une seule ligne */
+  width: 35mm;
+  height: auto;
+}
+
+.top-bar .tagline {
+  font-size: 8pt;
+  color: #ffffff;
+}
+
+.top-bar .invoice-info {
+  text-align: right;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.top-bar .invoice-info .invoice-number {
+  font-size: 14pt;
+  font-weight: 700;
+  margin-bottom: 1mm;
+}
+
+/* Encadré mis en avant pour le total TTC */
+.total-ttc-container {
+  margin-top: 4mm;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.total-ttc-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  padding: 4mm 5mm;
+  width: 60%;
+}
+
+.total-ttc-label {
+  font-size: 10pt;
+  color: var(--muted);
+}
+
+.total-ttc-value {
+  background-color: var(--brand);
+  color: #ffffff;
+  padding: 2mm 4mm;
+  border-radius: 6px;
+  font-size: 16pt;
+  font-weight: 700;
+}
+
+/* Cartes pour l'émetteur et le client */
+.issuer-client {
+  margin-top: 8mm;
+  display: flex;
+  gap: 10mm;
+}
+
+.issuer-client .card {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background-color: #f9f9f9;
+}
+
+.issuer-client .card-header {
+  background-color: var(--brand-2);
+  color: #ffffff;
+  padding: 3mm 4mm;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.issuer-client .card-body {
+  padding: 5mm 4mm;
+}
+

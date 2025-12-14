@@ -1,0 +1,141 @@
+/* ==========================================================================
+   NetExpress v2 – Base UI (VERSION CORRIGÉE)
+   ========================================================================== */
+
+:root {
+  /* --- Palette --- */
+  --brand: #0f6d4e;
+  --brand-700: #0c5b41;
+  --brand-900: #0a3c28;
+  --ink: #101418;
+  --muted: #5c6b64;
+  --surface: #f5f7f5;
+  --card: #ffffff;
+  --ring: rgba(15, 109, 78, .25);
+
+  /* --- Dimensions --- */
+  --radius: 16px;
+  --container-width: 1200px; /* Largeur max du site */
+
+  /* --- Ombres --- */
+  --shadow-1: 0 10px 25px rgba(16, 20, 24, .06);
+  --shadow-2: 0 20px 50px rgba(16, 20, 24, .10);
+}
+
+/* 1. RESET & IMAGES (Le fix pour vos images "ouffs") */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden; /* Empêche le scroll horizontal */
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+  line-height: 1.6;
+}
+
+/* Empêche TOUTES les images de dépasser de leur boîte */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 2. CONTENEUR (Le fix pour le padding et la largeur) */
+.container {
+  width: 100%;
+  max-width: var(--container-width); /* Bloque la largeur à 1200px */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;  /* Espace de sécurité à gauche */
+  padding-right: 20px; /* Espace de sécurité à droite */
+}
+
+.content {
+  padding: 40px 0 80px;
+  min-height: 60vh;
+}
+
+/* 3. HEADER & NAV */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  background: linear-gradient(180deg, var(--brand), var(--brand-700));
+  color: #fff; box-shadow: var(--shadow-1);
+}
+
+.header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+}
+
+.brand { display: flex; align-items: center; gap: .75rem; color: #fff; text-decoration: none; font-weight: 800; }
+.brand .logo { width: 40px; height: 40px; border-radius: 8px; background: #fff; }
+.nav { display: flex; gap: 1rem; }
+.nav-link { color: #eef9f3; text-decoration: none; padding: .5rem .75rem; border-radius: 8px; transition: .2s; }
+.nav-link:hover { background: rgba(255,255,255,.15); }
+
+/* Menu Mobile */
+.nav-toggle { display: none; background: none; border: 0; color: #fff; font-size: 1.8rem; cursor: pointer; }
+@media(max-width: 800px) {
+  .nav-toggle { display: block; }
+  .nav { display: none; width: 100%; flex-direction: column; background: rgba(0,0,0,0.1); padding: 10px; margin-top: 10px; border-radius: 8px; }
+  .nav.open { display: flex; }
+  .header-row { flex-wrap: wrap; }
+  .nav-link { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 0; }
+}
+
+/* 4. FORMULAIRES (Le fix pour qu'ils ne soient pas étirés) */
+form, .form-card {
+  width: 100%;
+  max-width: 800px; /* Force le formulaire à ne pas dépasser 800px */
+  margin: 0 auto;   /* Centre le formulaire */
+}
+
+label {
+  display: block; font-weight: 600; margin-bottom: 8px; color: var(--brand-900);
+}
+
+.input, .textarea, select, input[type="text"], input[type="email"], input[type="tel"], input[type="date"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-bottom: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.textarea {
+  min-height: 120px; /* Hauteur min pour le message */
+  resize: vertical;
+}
+
+/* Focus vert sur les champs */
+.input:focus, .textarea:focus, select:focus, input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.btn {
+  display: inline-block; padding: 12px 24px; border-radius: 12px;
+  background: var(--brand); color: #fff; font-weight: 700; text-align: center;
+  border: none; cursor: pointer; text-decoration: none;
+  transition: transform 0.2s;
+}
+.btn:hover { background: var(--brand-700); transform: translateY(-2px); }
+
+/* 5. FOOTER */
+.site-footer {
+  background: var(--brand-900); color: #e5e7eb;
+  padding: 40px 0; text-align: center; margin-top: auto;
+}

@@ -1,0 +1,16 @@
+# Cadre Django minimal requis.  La version 3.2 LTS est sélectionnée afin
+# d'augmenter les chances qu'elle soit déjà disponible dans l'environnement.
+Django>=3.2,<4.0
+
+# Paramètres facultatifs pour la configuration de la base de données et le déploiement.
+django-environ>=0.11
+dj-database-url>=2.2
+whitenoise>=6.6
+psycopg2-binary>=2.9
+
+# Dépendances nécessaires pour le thème d'administration Jazzmin et la
+# génération de documents PDF professionnels.  ReportLab est utilisé à
+# la fois pour les factures et les devis afin de produire des PDF
+# conformes au cahier des charges.
+django-jazzmin>=2.6
+reportlab>=4.0

@@ -1,5 +1,4 @@
 {% load static %}
-<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -33,8 +32,8 @@
     <div class="container header-row">
       <a href="{% url 'core:home' %}" class="brand" aria-label="Accueil">
         {# Utilise un pictogramme pour le logo afin d'éviter une dépendance à un fichier manquant. #}
-        <span class="brand-icon" aria-hidden="true">🧼</span>
-        <span class="brand-name">NetExpress</span>
+        <span class="brand-icon" aria-hidden="true"> <img src="static/img/logo.svg" width="50"> </span>
+        <span class="brand-name">Nettoyage Express</span>
       </a>
       <!-- Bouton burger pour l'affichage mobile -->
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="primary-navigation">&#9776;</button>

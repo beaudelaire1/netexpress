@@ -1,1 +1,0 @@
-"""Package de services pour l'application factures."""
