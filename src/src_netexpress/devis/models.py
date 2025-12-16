@@ -538,11 +538,11 @@ class QuotePhoto(models.Model):
     def __str__(self) -> str:
         return f"Photo pour {self.quote.number}"
 
-# === Hexagonal‑friendly signaux pour les emails de devis ===
+# === Signaux: notifications devis (PDF + e‑mails) ===
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from core.services.email_service import PremiumEmailService
 
 
 def _guess_quote_email(quote):
@@ -562,43 +562,35 @@ def _guess_quote_email(quote):
 
 @receiver(post_save, sender=Quote)
 def send_quote_created_email(sender, instance: "Quote", created: bool, **kwargs):
-    """Envoi d'un email simple lorsqu'un devis est créé.
+    """Envoi des notifications lorsqu'un devis est créé.
 
-    - Email au client (si adresse détectée)
-    - Email de notification à l'adresse par défaut du projet
+    Objectif: garantir un envoi **réel** (pas de Celery obligatoire) et
+    une génération PDF **avant** l'envoi au client.
     """
     if not created:
         return
 
-    subject = f"Votre demande de devis NetExpress n°{instance.pk}"
-    body = (
-        "Bonjour,\n\n"
-        "Votre demande de devis a bien été enregistrée par NetExpress.\n"
-        "Nous reviendrons vers vous avec une proposition détaillée dans les meilleurs délais.\n\n"
-        "Ceci est un email automatique, merci de ne pas y répondre."
-    )
+    # Ensure totals are up to date before generating the PDF.
+    try:
+        instance.compute_totals()
+    except Exception:
+        pass
 
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@example.com"
-    to_email = _guess_quote_email(instance)
+    email_service = PremiumEmailService()
 
-    # Email client
-    if to_email:
-        try:
-            send_mail(subject, body, from_email, [to_email], fail_silently=True)
-        except Exception:
-            # On reste silencieux pour ne pas casser le flux applicatif
-            pass
+    # Admin notification first (never blocks client email)
+    try:
+        email_service.notify_admin_quote_created(instance)
+    except Exception:
+        pass
 
-    # Notification interne
-    internal_email = getattr(settings, "NETEXPRESS_DEVIS_NOTIFICATION", None)
-    if internal_email:
-        try:
-            send_mail(
-                f"[NetExpress] Nouveau devis #{instance.pk}",
-                f"Un nouveau devis vient d'être créé (ID: {instance.pk}).",
-                from_email,
-                [internal_email],
-                fail_silently=True,
-            )
-        except Exception:
-            pass
+    # Client: premium email + PDF attachment
+    # If accept_token exists, build an acceptance URL.
+    acceptance_url = None
+    site_url = getattr(settings, "SITE_URL", None)
+    token = getattr(instance, "accept_token", None)
+    if site_url and token:
+        acceptance_url = site_url.rstrip("/") + f"/devis/accepter/{token}/"
+
+    # Send loudly in dev/prod logs (no fail_silently)
+    email_service.send_quote_pdf_to_client(instance, acceptance_url=acceptance_url)

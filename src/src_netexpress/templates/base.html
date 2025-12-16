@@ -17,8 +17,9 @@
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
   <!-- Scripts -->
-  <script defer src="{% static 'js/main.js' %}"></script>
-  <script defer src="{% static 'js/forms.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/forms.js' %}"></script>
+  {% block scripts %}{% endblock %}
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -32,7 +33,7 @@
     <div class="container header-row">
       <a href="{% url 'core:home' %}" class="brand" aria-label="Accueil">
         {# Utilise un pictogramme pour le logo afin d'éviter une dépendance à un fichier manquant. #}
-        <span class="brand-icon" aria-hidden="true"> <img src="static/img/logo.svg" width="50"> </span>
+        <span class="brand-icon" aria-hidden="true"> <img src="{% static 'img/logo.svg' %}" alt="Logo" width="50"> </span>
         <span class="brand-name">Nettoyage Express</span>
       </a>
       <!-- Bouton burger pour l'affichage mobile -->
@@ -69,5 +70,9 @@
     -->
     <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
   </footer>
+
+
+
+
 </body>
 </html>

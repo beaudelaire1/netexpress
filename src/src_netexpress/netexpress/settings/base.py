@@ -176,15 +176,38 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # conséquence.  Il est également possible de définir ``logo_path`` via
 # une variable d'environnement dans votre fichier ``.env``.
 INVOICE_BRANDING = {
+    # Nom et slogan utilisés dans le header des documents
     "name": "Nettoyage Express",
     "tagline": "Espaces verts, nettoyage, peinture, bricolage",
     "email": "netexpress@orange.fr",
-    # Chemin absolu vers le logo dans le dossier static du projet
+    # Chemin absolu vers le logo dans le dossier static du projet. Ce chemin
+    # est utilisé par le template PDF ; ajustez‑le si votre logo est
+    # ailleurs.
     "logo_path": str((BASE_DIR / "static" / "img" / "logo.png").resolve()),
+    # Adresse de l'émetteur formatée sur plusieurs lignes (sera splittée)
     "address": "753, Chemin de la Désirée\n97351 Matoury",
     "phone": "05 94 30 23 68 / 06 94 46 20 12",
+    # Coordonnées bancaires pour le pied de page
     "iban": "FR76 3000 4000 1234 5678 9012 345",
     "bic": "NETEEXFRXXX",
+    # Mentions légales supplémentaires
+    "siret": "123 456 789 00012",
+    "tva_intra": "FR1234567890",
+    # Conditions de paiement par défaut affichées si aucune valeur n'est
+    # renseignée sur la facture elle‑même
+    "payment_terms": "Paiement comptant à réception de facture",
+    # Texte par défaut pour le champ notes si le champ est vide sur la facture
+    "default_notes": "Nous vous remercions de votre confiance.",
+    # Taux de pénalité de retard (affiché dans les mentions légales)
+    "penalty_rate": "10%",
+    # La liste d'adresses est dérivée de la chaîne ``address`` pour
+    # permettre un rendu correct dans le template PDF (une ligne par
+    # élément).  Si ``address`` change, mettez à jour cette liste en
+    # conséquence.
+    "address_lines": [
+        "753, Chemin de la Désirée",
+        "97351 Matoury",
+    ],
 }
 
 # -------------------------------------------------------------
@@ -193,13 +216,19 @@ INVOICE_BRANDING = {
 # Configure e‑mail via environment variables.  By default we assume
 # usage of SMTP over SSL on port 465.  If you need to adjust the
 # parameters, define the corresponding variables in your ``.env`` file.
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = env("EMAIL_HOST", default="mail.infomaniak.com")
-EMAIL_PORT = env.int("EMAIL_PORT", default=465)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
-EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=True)
+#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="noreply@example.com")
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend"
+)
+
+EMAIL_HOST = env("EMAIL_HOST", default="mail.google.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="vilmebeaudelaire5@gmail.com")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER

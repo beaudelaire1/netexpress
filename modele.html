@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Facture Premium NetExpress</title>
+    <style>
+        /* Simulation de la feuille A4 pour l'aperçu navigateur */
+        body {
+            background-color: #555;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        .page-a4 {
+            background-color: white;
+            width: 21cm;
+            height: 29.7cm;
+            padding: 1.5cm;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* --- THEME NETEXPRESS (Vert Premium) --- */
+        :root {
+            --primary-color: #104130;
+            /* Votre Vert Foncé Premium */
+            --accent-color: #2d8a5e;
+            /* Votre Vert Accent */
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --light-bg: #f9fafb;
+        }
+
+        /* 1. Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 50px;
+            border-bottom: 2px solid var(--primary-color);
+            /* Bordure verte */
+            padding-bottom: 20px;
+        }
+
+        .logo-section {
+            width: 50%;
+        }
+
+        .logo-placeholder {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-color);
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            font-family: 'Playfair Display', 'Times New Roman', serif;
+            /* Rappel de votre font Titre */
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-color);
+            border-radius: 8px;
+            /* Votre radius standard */
+            margin-right: 10px;
+        }
+
+        .invoice-details {
+            text-align: right;
+            width: 50%;
+        }
+
+        .invoice-details h1 {
+            margin: 0;
+            font-size: 42px;
+            color: #f0fdf4;
+            /* Vert très pâle pour l'effet de fond */
+            text-transform: uppercase;
+            position: absolute;
+            top: 35px;
+            right: 1.5cm;
+            z-index: 0;
+            letter-spacing: 2px;
+        }
+
+        .details-real {
+            position: relative;
+            z-index: 1;
+            margin-top: 10px;
+        }
+
+        .details-real strong {
+            display: block;
+            font-size: 11px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .details-real span {
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+
+        /* 2. Adresses */
+        .addresses {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 50px;
+            gap: 40px;
+        }
+
+        .addr-box {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            /* Votre radius standard */
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
+        .addr-sender {
+            background-color: var(--light-bg);
+            border-left: 4px solid #bdc3c7;
+        }
+
+        .addr-client {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            /* Votre shadow-soft */
+        }
+
+        .box-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .company-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            display: block;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* 3. Tableau (Grille Corrigée) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            border: 1px solid var(--border-color);
+            /* Cadre extérieur du tableau */
+        }
+
+        thead th {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            /* Séparation légère headers */
+        }
+
+        thead th:last-child {
+            border-right: none;
+        }
+
+        tbody td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-color);
+            /* Lignes verticales demandées */
+            border-right: 1px solid var(--border-color);
+        }
+
+        tbody td:last-child {
+            border-right: none;
+            /* Pas de ligne à la toute fin */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+            /* Alternance légère */
+        }
+
+        .col-right {
+            text-align: right;
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        /* 4. Totaux */
+        .footer-section {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .notes {
+            width: 50%;
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+            padding-top: 10px;
+        }
+
+        .totals {
+            width: 40%;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--text-color);
+        }
+
+        .total-row.final {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 5. Pied de page fixe */
+        .footer-legal {
+            position: absolute;
+            bottom: 1.5cm;
+            left: 1.5cm;
+            right: 1.5cm;
+            text-align: center;
+            font-size: 9px;
+            color: #9ca3af;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-a4">
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo-placeholder">
+                    <div class="logo-icon"></div>
+                    NETEXPRESS
+                </div>
+            </div>
+            <div class="invoice-details">
+                <h1>FACTURE</h1>
+                <div class="details-real">
+                    <div style="margin-bottom: 10px;">
+                        <strong>Numéro</strong>
+                        <span>FAC-2025-042</span>
+                    </div>
+                    <div>
+                        <strong>Date d'émission</strong>
+                        <span>14 Décembre 2025</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>Référence Commande</strong>
+                        <span>BC-2025-243</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="addresses">
+            <div class="addr-box addr-sender">
+                <div class="box-title">Émetteur</div>
+                <span class="company-name">NetExpress Services SAS</span>
+                12 Rue de l'Innovation<br>
+                75011 Paris, France<br>
+                contact@netexpress.com<br>
+                SIRET: 888 777 666 00012
+            </div>
+            <div class="addr-box addr-client">
+                <div class="box-title">Facturé à</div>
+                <span class="company-name">Monsieur Jean Dupont</span>
+                45 Avenue des Champs-Élysées<br>
+                75008 Paris<br>
+                France<br>
+                Réf Client: CL-4592
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 45%;">Description</th>
+                    <th class="col-center" style="width: 10%;">Qté</th>
+                    <th class="col-right" style="width: 20%;">Prix Unit.</th>
+                    <th class="col-right" style="width: 25%;">Total HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="font-bold">Développement Site Web Vitrine</span><br>
+                        <span style="font-size:11px; color:#6b7280;">Intégration HTML/CSS, Responsive Design, 5
+                            pages.</span>
+                    </td>
+                    <td class="col-center">1</td>
+                    <td class="col-right">1 200,00 €</td>
+                    <td class="col-right font-bold">1 200,00 €</td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="font-bold">Hébergement Annuel (Serveur Pro)</span><br>
+                        <span style="font-size:11px; color:#6b7280;">Maintenance et SSL inclus.</span>
+                    </td>
+                    <td class="col-center">1</td>
+                    <td class="col-right">150,00 €</td>
+                    <td class="col-right font-bold">150,00 €</td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="font-bold">Module de Paiement Stripe</span><br>
+                        <span style="font-size:11px; color:#6b7280;">Configuration API et tests.</span>
+                    </td>
+                    <td class="col-center">4</td>
+                    <td class="col-right">80,00 €</td>
+                    <td class="col-right font-bold">320,00 €</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer-section">
+            <div class="notes">
+                <strong>Conditions de paiement :</strong><br>
+                Paiement à réception de facture.<br>
+                Virement bancaire : IBAN FR76 3000 ... <br><br>
+                Merci de votre confiance.
+            </div>
+            <div class="totals">
+                <div class="total-row">
+                    <span>Total HT</span>
+                    <span>1 670,00 €</span>
+                </div>
+                <div class="total-row">
+                    <span>TVA (20%)</span>
+                    <span>334,00 €</span>
+                </div>
+                <div class="total-row final">
+                    <span>NET À PAYER</span>
+                    <span>2 004,00 €</span>
+                </div>
+                <div
+                    style="text-align: right; margin-top: 8px; font-size: 11px; color: var(--accent-color); font-weight: bold;">
+                    Échéance : 14/01/2026
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-legal">
+            NetExpress Services - SAS au capital de 10 000€ - RCS Paris B 888 777 666 - TVA FR 32 888777666<br>
+            En cas de retard de paiement, une pénalité de 3 fois le taux d'intérêt légal sera appliquée, ainsi qu'une
+            indemnité forfaitaire de 40€.
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -142,6 +142,7 @@ class Invoice(models.Model):
 
     # Référence en chaîne => évite tout import circulaire
     quote = models.ForeignKey("devis.Quote", on_delete=models.SET_NULL, null=True, blank=True, related_name="invoices")
+    command_ref = models.CharField(max_length=100, blank=True, help_text="Référence bon de commande client.")
 
     number = models.CharField(
         max_length=20,
@@ -177,6 +178,8 @@ class Invoice(models.Model):
     def __str__(self) -> str:
         return f"Facture {self.number or '—'}"
 
+    def amount_letter(self):
+        return  f"{_num2words_fr(self.total_ttc).title()} euros"
     @property
     def items(self) -> List["InvoiceItem"]:
         return list(self.invoice_items.all())
@@ -308,29 +311,41 @@ class Invoice(models.Model):
     # =========================
     def generate_pdf(self, attach: bool = True) -> bytes:
         """
-        Délègue la génération du PDF à un service externe.
+        Génère un fichier PDF premium pour cette facture en s'appuyant sur
+        WeasyPrint et le template ``pdf/invoice_premium.html``.
 
-        Cette méthode crée une instance de ``PDFInvoiceGenerator``
-        (définie dans ``factures.services.pdf_generator``) et appelle sa
-        méthode ``generate_pdf``.  Toutes les options et la logique
-        d'assemblage du document sont ainsi centralisées en dehors
-        du modèle, ce qui simplifie la maintenance et respecte le
-        principe de responsabilité unique.
+        Cette méthode délègue la construction du document au service
+        ``InvoicePdfService`` situé dans ``core.services.pdf_service``.
+        L'instance Django de ``Invoice`` est transmise telle quelle afin
+        que le template puisse accéder aux attributs du modèle et à ses
+        relations (devis, client, etc.).  Si ``attach`` est vrai, le
+        fichier généré est enregistré dans le champ ``pdf`` de la
+        facture.  Dans tous les cas, les octets du PDF sont renvoyés.
 
         Parameters
         ----------
-        attach : bool
-            Si ``True``, le PDF est enregistré dans le champ ``pdf`` de
-            l'instance.  Sinon, seuls les octets sont retournés.
+        attach : bool, optional
+            Indique si le fichier doit être sauvegardé dans le champ
+            ``pdf`` (True par défaut).  Lorsque ``False``, l'instance
+            n'est pas modifiée et seuls les octets sont retournés.
 
         Returns
         -------
         bytes
-            Le contenu du fichier PDF généré.
+            Le contenu binaire du PDF généré.
         """
-        from .services.pdf_generator import PDFInvoiceGenerator
-        generator = PDFInvoiceGenerator(self)
-        return generator.generate_pdf(attach=attach)
+        # Import tardif pour éviter un import circulaire
+        from core.services.pdf_service import InvoicePdfService  # type: ignore
+
+        # Crée le service et génère le PDF.  Le service renvoie un
+        # objet contenant le nom du fichier et son contenu en octets.
+        service = InvoicePdfService()
+        pdf_file = service.generate(self)
+        pdf_bytes = pdf_file.content
+        if attach:
+            from django.core.files.base import ContentFile
+            self.pdf.save(pdf_file.filename, ContentFile(pdf_bytes), save=True)
+        return pdf_bytes
 
 
 class InvoiceItem(models.Model):
