@@ -1,5 +1,6 @@
 """Vues pour l'application ``devis``."""
 
+import logging
 from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -12,6 +13,8 @@ from django.urls import reverse
 from services.models import Service
 from .forms import DevisForm, QuoteRequestForm, QuoteAdminForm, QuoteItemForm
 from .models import Quote, QuoteItem, QuoteRequest
+
+logger = logging.getLogger(__name__)
 
 
 def request_quote(request: HttpRequest) -> HttpResponse:
@@ -30,13 +33,41 @@ def request_quote(request: HttpRequest) -> HttpResponse:
             from .models import QuoteRequestPhoto  # import local pour éviter cycles
             for f in files:
                 photo = QuoteRequestPhoto.objects.create(image=f)
-                quote_request.photos.add(photo)            # Envoi asynchrone de confirmation (HTML brandé)
+                quote_request.photos.add(photo)
+
+            # Envoi asynchrone de confirmation (HTML brandé)
+            # Avec fallback synchrone si Celery est indisponible
             try:
                 from devis.tasks import send_quote_request_received
                 send_quote_request_received.delay(quote_request.pk)
-            except Exception:
-                # Ne bloque jamais le flux utilisateur si Celery est indisponible
-                pass
+                logger.info("Tâche Celery créée pour QuoteRequest %s", quote_request.pk)
+            except Exception as e:
+                logger.warning("Celery indisponible pour QuoteRequest %s: %s. Tentative synchrone.", quote_request.pk, e)
+                # Fallback synchrone
+                try:
+                    from django.conf import settings
+                    from django.core.mail import EmailMessage
+                    from django.template.loader import render_to_string
+
+                    branding = getattr(settings, "INVOICE_BRANDING", {}) or {}
+                    site_url = getattr(settings, "SITE_URL", "http://localhost:8000")
+                    html = render_to_string("emails/new_quote.html", {
+                        "quote_request": quote_request,
+                        "branding": branding,
+                        "cta_url": site_url.rstrip("/") + "/devis/demande/",
+                    })
+                    email = EmailMessage(
+                        subject="Votre demande de devis a bien été reçue",
+                        body=html,
+                        to=[quote_request.email],
+                        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+                    )
+                    email.content_subtype = "html"
+                    email.send(fail_silently=True)
+                    logger.info("Email synchrone envoyé pour QuoteRequest %s", quote_request.pk)
+                except Exception as sync_error:
+                    logger.exception("Envoi synchrone également échoué: %s", sync_error)
+
             return redirect(reverse("devis:quote_success"))
     else:
         form = QuoteRequestForm()
@@ -108,20 +139,37 @@ def admin_quote_edit(request: HttpRequest, pk: int) -> HttpResponse:
             # Recalcul des totaux + génération PDF
             try:
                 quote.compute_totals()
-            except Exception:
-                pass
+                logger.debug("Totaux recalculés pour devis %s", quote.number)
+            except Exception as e:
+                logger.exception("Échec compute_totals pour devis %s: %s", quote.pk, e)
 
-            # Si le devis passe à "Envoyé", on génère le PDF et on envoie au client (Celery)
-            try:
-                if quote.status == Quote.QuoteStatus.SENT and prev_status != Quote.QuoteStatus.SENT:
+            # Si le devis passe à "Envoyé", on génère le PDF et on envoie au client
+            if quote.status == Quote.QuoteStatus.SENT and prev_status != Quote.QuoteStatus.SENT:
+                # Génération PDF
+                try:
                     from django.core.files.base import ContentFile
                     from core.services.pdf_generator import render_quote_pdf
                     pdf_res = render_quote_pdf(quote)
                     quote.pdf.save(pdf_res.filename, ContentFile(pdf_res.content), save=True)
+                    logger.info("PDF généré et sauvegardé pour devis %s", quote.number)
+                except Exception as e:
+                    logger.exception("Échec génération PDF pour devis %s: %s", quote.pk, e)
+
+                # Envoi email via Celery avec fallback synchrone
+                try:
                     from devis.tasks import send_quote_pdf_email
                     send_quote_pdf_email.delay(quote.pk)
-            except Exception:
-                pass
+                    logger.info("Tâche Celery créée pour envoi devis %s", quote.number)
+                except Exception as e:
+                    logger.warning("Celery indisponible pour devis %s: %s. Tentative synchrone.", quote.pk, e)
+                    # Fallback synchrone
+                    try:
+                        from core.services.email_service import PremiumEmailService
+                        email_service = PremiumEmailService()
+                        email_service.send_quote_pdf_to_client(quote)
+                        logger.info("Email devis %s envoyé en synchrone", quote.number)
+                    except Exception as sync_error:
+                        logger.exception("Envoi synchrone également échoué pour devis %s: %s", quote.pk, sync_error)
 
             return redirect(reverse("devis:admin_quote_edit", args=[quote.pk]))
     else:

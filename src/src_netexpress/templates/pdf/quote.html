@@ -10,7 +10,7 @@
     <div class="header">
       <div>
         {% if branding.logo_path %}
-          <img class="logo" src="file://{{ branding.logo_path }}" alt="Logo">
+          <img class="logo" src="{{ branding.logo_path }}" alt="Logo">
         {% else %}
           <div class="kicker">{{ branding.name|default:"NetExpress" }}</div>
         {% endif %}

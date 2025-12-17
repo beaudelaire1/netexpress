@@ -11,7 +11,7 @@
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.08);">
           <tr>
-            <td align="center" style="padding:22px 18px;background:linear-gradient(90deg,#0a36ff,#071a5c);">
+            <td align="center" style="padding:22px 18px;background:linear-gradient(90deg,#0f6d4e,#0a3c28);">
               {% if branding.logo_url %}
                 <img src="{{ branding.logo_url }}" alt="Logo" width="120" style="display:block;border:0;outline:none;text-decoration:none;">
               {% else %}
@@ -29,10 +29,10 @@
           <tr>
             <td style="padding:16px 22px 22px 22px;color:#6b7280;font-size:12px;line-height:1.5;">
               <div style="border-top:1px solid #e6e8ee;padding-top:14px;">
-                <div>Site : <a href="{{ branding.site_url|default:'#' }}" style="color:#0a36ff;text-decoration:none;">{{ branding.site_url|default:"NetExpress" }}</a></div>
+                <div>Site : <a href="{{ branding.site_url|default:'#' }}" style="color:#0f6d4e;text-decoration:none;">{{ branding.site_url|default:"NetExpress" }}</a></div>
                 <div style="margin-top:6px;">
-                  {% if branding.facebook_url %}<a href="{{ branding.facebook_url }}" style="color:#0a36ff;text-decoration:none;">Facebook</a>{% endif %}
-                  {% if branding.instagram_url %}{% if branding.facebook_url %} • {% endif %}<a href="{{ branding.instagram_url }}" style="color:#0a36ff;text-decoration:none;">Instagram</a>{% endif %}
+                  {% if branding.facebook_url %}<a href="{{ branding.facebook_url }}" style="color:#0f6d4e;text-decoration:none;">Facebook</a>{% endif %}
+                  {% if branding.instagram_url %}{% if branding.facebook_url %} • {% endif %}<a href="{{ branding.instagram_url }}" style="color:#0f6d4e;text-decoration:none;">Instagram</a>{% endif %}
                 </div>
                 <div style="margin-top:10px;">© {{ branding.name|default:"NetExpress" }} — Tous droits réservés.</div>
               </div>

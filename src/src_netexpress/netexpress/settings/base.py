@@ -315,3 +315,65 @@ SITE_URL = env("SITE_URL", default="http://localhost:8000")
 # Enrich branding for emails (optional)
 INVOICE_BRANDING.setdefault("site_url", SITE_URL)
 # If you host a public logo URL for emails, set INVOICE_BRANDING["logo_url"]
+
+
+# -------------------------------------------------------------
+# Logging configuration
+# -------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{levelname}] {asctime} {name} {module}:{lineno} - {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{levelname}] {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        # Logger pour l'application devis (PDF, emails)
+        "devis": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Logger pour les services (PDF generator, email service)
+        "core.services": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Logger pour les factures
+        "factures": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Logger Django par défaut
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # Logger Celery
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    # Logger racine
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}

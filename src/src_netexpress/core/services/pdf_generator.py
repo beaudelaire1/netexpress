@@ -37,17 +37,68 @@ class PDFGeneratorError(RuntimeError):
 
 
 def _branding() -> Dict[str, Any]:
-    return getattr(settings, "INVOICE_BRANDING", {}) or {}
+    """Retourne les informations de branding avec résolution du logo."""
+    branding = getattr(settings, "INVOICE_BRANDING", {}) or {}
+    return branding
+
+
+def _resolve_logo_for_weasyprint(logo_path: Optional[str]) -> Optional[str]:
+    """Résout le chemin du logo pour WeasyPrint.
+
+    WeasyPrint a besoin d'un chemin absolu ou d'une URL file://
+    pour pouvoir charger les images locales.
+    """
+    if not logo_path:
+        return None
+
+    import os
+
+    # Si c'est déjà un chemin absolu existant
+    if os.path.isabs(logo_path) and os.path.exists(logo_path):
+        return logo_path
+
+    # Essayer de résoudre via staticfiles
+    try:
+        from django.contrib.staticfiles import finders
+        # Nettoyer le préfixe "static:" si présent
+        rel_path = logo_path.replace("static:", "").lstrip("/\\")
+        resolved = finders.find(rel_path)
+        if resolved and os.path.exists(resolved):
+            return resolved
+    except Exception:
+        pass
+
+    # Fallback: chercher dans STATIC_ROOT ou BASE_DIR/static
+    base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+    candidates = [
+        base_dir / "static" / logo_path.lstrip("/\\"),
+        base_dir / "staticfiles" / logo_path.lstrip("/\\"),
+        Path(logo_path),
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+
+    return None
 
 
 def render_quote_pdf(quote, *, extra_context: Optional[Dict[str, Any]] = None) -> PDFRenderResult:
     if HTML is None:
         raise PDFGeneratorError("WeasyPrint n'est pas disponible. Installez weasyprint et ses dépendances système.")
 
+    # Préparer le branding avec résolution du logo
+    branding = _branding().copy()
+    logo_path = branding.get("logo_path")
+    if logo_path:
+        resolved_logo = _resolve_logo_for_weasyprint(logo_path)
+        if resolved_logo:
+            branding["logo_path"] = resolved_logo
+
     ctx: Dict[str, Any] = {
         "doc_type": "quote",
         "quote": quote,
-        "branding": _branding(),
+        "branding": branding,
     }
     if extra_context:
         ctx.update(extra_context)
@@ -70,10 +121,18 @@ def render_invoice_pdf(invoice, *, extra_context: Optional[Dict[str, Any]] = Non
     if HTML is None:
         raise PDFGeneratorError("WeasyPrint n'est pas disponible. Installez weasyprint et ses dépendances système.")
 
+    # Préparer le branding avec résolution du logo
+    branding = _branding().copy()
+    logo_path = branding.get("logo_path")
+    if logo_path:
+        resolved_logo = _resolve_logo_for_weasyprint(logo_path)
+        if resolved_logo:
+            branding["logo_path"] = resolved_logo
+
     ctx: Dict[str, Any] = {
         "doc_type": "invoice",
         "invoice": invoice,
-        "branding": _branding(),
+        "branding": branding,
     }
     if extra_context:
         ctx.update(extra_context)
