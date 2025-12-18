@@ -11,7 +11,7 @@ def main():
         except ImportError:
             pass
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src_netexpress.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "netexpress.settings.dev")
 
     try:
         from django.core.management import execute_from_command_line
