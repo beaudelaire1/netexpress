@@ -53,6 +53,9 @@ CSRF_TRUSTED_ORIGINS = [
 # ============================================================
 
 INSTALLED_APPS = [
+    # Jazzmin DOIT être AVANT django.contrib.admin
+    'jazzmin',
+
     # Django built-in apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -72,9 +75,141 @@ INSTALLED_APPS = [
     'contact.apps.ContactConfig',
     'tasks.apps.TasksConfig',
     'messaging.apps.MessagingConfig',
-    'accounts.apps.AccountsConfig',  
-
+    'accounts.apps.AccountsConfig',
 ]
+
+# ============================================================
+# 🎨 JAZZMIN CONFIGURATION
+# ============================================================
+
+JAZZMIN_SETTINGS = {
+    # Titre et branding
+    "site_title": "Nettoyage Express Admin",
+    "site_header": "Nettoyage Express",
+    "site_brand": "Nettoyage Express",
+    "site_logo": "img/logo.svg",
+    "login_logo": "img/logo.svg",
+    "login_logo_dark": "img/logo.svg",
+    "site_logo_classes": "img-circle",
+    
+    # Message d'accueil
+    "welcome_sign": "Bienvenue dans l'administration de Nettoyage Express",
+    
+    # Copyright
+    "copyright": "Nettoyage Express",
+    
+    # Recherche de modèles
+    "search_model": ["auth.User", "devis.Quote", "factures.Invoice"],
+    
+    # Utilisateur en haut
+    "user_avatar": None,
+    
+    # Liens dans le menu supérieur
+    "topmenu_links": [
+        {"name": "Site public", "url": "/", "new_window": True},
+        {"name": "Dashboard", "url": "/dashboard/", "new_window": False},
+        {"model": "auth.User"},
+    ],
+    
+    # Afficher la barre latérale
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    
+    # Ordre des apps
+    "order_with_respect_to": [
+        "auth",
+        "devis",
+        "factures", 
+        "services",
+        "tasks",
+        "contact",
+        "messaging",
+        "accounts",
+    ],
+    
+    # Icônes personnalisées
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "devis.Quote": "fas fa-file-contract",
+        "devis.QuoteItem": "fas fa-list",
+        "devis.Client": "fas fa-user-tie",
+        "devis.QuoteRequest": "fas fa-inbox",
+        "factures.Invoice": "fas fa-file-invoice-dollar",
+        "factures.InvoiceItem": "fas fa-receipt",
+        "services.Service": "fas fa-broom",
+        "services.Category": "fas fa-tags",
+        "services.ServiceTask": "fas fa-tasks",
+        "contact.Message": "fas fa-envelope",
+        "tasks.Task": "fas fa-clipboard-list",
+        "messaging.EmailMessage": "fas fa-paper-plane",
+        "accounts.Profile": "fas fa-id-card",
+    },
+    
+    # Icône par défaut
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+    
+    # Liens personnalisés
+    "custom_links": {
+        "devis": [{
+            "name": "Nouveau devis",
+            "url": "/gestion/devis/quote/add/",
+            "icon": "fas fa-plus",
+        }],
+        "factures": [{
+            "name": "Nouvelle facture", 
+            "url": "/gestion/factures/invoice/add/",
+            "icon": "fas fa-plus",
+        }],
+    },
+    
+    # Interface utilisateur
+    "related_modal_active": True,
+    "custom_css": "css/jazzmin_overrides.css",
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+    
+    # Changement de langue
+    "language_chooser": False,
+}
+
+# Configuration de l'interface Jazzmin (couleurs vertes pour Nettoyage Express)
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-success",
+    "accent": "accent-success",
+    "navbar": "navbar-dark navbar-success",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-success",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+}
 
 # ============================================================
 # 🔧 MIDDLEWARE
@@ -153,7 +288,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ============================================================
 
 LANGUAGE_CODE = 'fr-fr'
-TIME_ZONE = 'Europe/Paris'
+TIME_ZONE = 'America/Cayenne'
 USE_I18N = True
 USE_TZ = True
 
@@ -180,6 +315,45 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ============================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================
+# 📧 CONFIGURATION EMAIL (optionnel)
+# ============================================================
+
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+
+# ============================================================
+# 🏢 BRANDING FACTURES/DEVIS
+# ============================================================
+
+INVOICE_BRANDING = {
+    "name": "Nettoyage Express",
+    "tagline": "Espaces verts, nettoyage, peinture, bricolage",
+    "email": "contact@nettoyageexpresse.fr",
+    "logo_path": str((BASE_DIR / "static" / "img" / "logo.png").resolve()),
+    "address": "753, Chemin de la Désirée\n97351 Matoury",
+    "phone": "05 94 30 23 68 / 06 94 46 20 12",
+    "siret": "123 456 789 00012",
+    "tva_intra": "FR1234567890",
+    "iban": "FR76 3000 4000 1234 5678 9012 345",
+    "bic": "NETEEXFRXXX",
+    "payment_terms": "Paiement comptant à réception de facture",
+    "default_notes": "Nous vous remercions de votre confiance.",
+    "penalty_rate": "10%",
+    "address_lines": [
+        "753, Chemin de la Désirée",
+        "97351 Matoury",
+    ],
+}
 
 # ============================================================
 # 📊 LOGGING (POUR DEBUG)
