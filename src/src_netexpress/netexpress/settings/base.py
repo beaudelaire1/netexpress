@@ -53,31 +53,25 @@ CSRF_TRUSTED_ORIGINS = [
 # ============================================================
 
 INSTALLED_APPS = [
+    # Django built-in apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Vos apps ici
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
 
-    # Third‑party app to serve static files in production
-    "whitenoise.runserver_nostatic",
+    # Third-party apps
+    'whitenoise.runserver_nostatic',
 
-    # Project apps - avec chemin complet vers AppConfig
-    "core.apps.CoreConfig",
-    "services.apps.ServicesConfig",
-    "devis.apps.DevisConfig",
-    "factures.apps.FacturesConfig",
-    "contact.apps.ContactConfig",
-    "tasks.apps.TasksConfig",
-    "messaging.apps.MessagingConfig",
+    # Project apps
+    'core.apps.CoreConfig',
+    'services.apps.ServicesConfig',
+    'devis.apps.DevisConfig',
+    'factures.apps.FacturesConfig',
+    'contact.apps.ContactConfig',
+    'tasks.apps.TasksConfig',
+    'messaging.apps.MessagingConfig',
 ]
 
 # ============================================================
@@ -86,7 +80,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Pour les fichiers statiques
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
