@@ -9,3 +9,4 @@ services de NetExpress.  Conçue en 2025, elle apporte une interface
     offrir une expérience utilisateur de qualité sans dépendance à des
     bibliothèques externes comme Unsplash.
 """
+default_app_config = 'services.apps.ServicesConfig'
