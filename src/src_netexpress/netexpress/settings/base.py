@@ -21,8 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Load environment variables from a .env file if present.  The
 # ``django‑environ`` library converts values to the appropriate types.
 env = environ.Env(
+    # Compat: certains environnements utilisent DEBUG/ALLOWED_HOSTS
+    # plutôt que DJANGO_DEBUG/DJANGO_ALLOWED_HOSTS.
     DJANGO_DEBUG=(bool, False),
+    DEBUG=(bool, False),
     DJANGO_ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
+    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
 )
 env_path = BASE_DIR / ".env"
 if env_path.exists():
@@ -38,7 +42,8 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # Convert the DEBUG environment variable to a proper boolean.  Support
 # common truthy/falsey strings in addition to booleans for robustness.
-raw_debug = env("DJANGO_DEBUG", default=True)
+# Supporte DJANGO_DEBUG (préféré) puis DEBUG (compat .env).
+raw_debug = env("DJANGO_DEBUG", default=env("DEBUG", default=True))
 if isinstance(raw_debug, str):
     DEBUG = raw_debug.strip().lower() in {"1", "true", "yes", "on"}
 else:
@@ -47,7 +52,7 @@ else:
 # Parse ALLOWED_HOSTS from a comma‑separated string or a list.  If the
 # environment provides a single string, split it on commas; otherwise
 # assume it is already a list.  Empty values result in an empty list.
-raw_hosts = env("DJANGO_ALLOWED_HOSTS", default="")
+raw_hosts = env("DJANGO_ALLOWED_HOSTS", default=env("ALLOWED_HOSTS", default=""))
 if isinstance(raw_hosts, str):
     ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 else:
@@ -216,34 +221,34 @@ INVOICE_BRANDING = {
 # Configure e‑mail via environment variables.  By default we assume
 # usage of SMTP over SSL on port 465.  If you need to adjust the
 # parameters, define the corresponding variables in your ``.env`` file.
-#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND",
-    default="django.core.mail.backends.smtp.EmailBackend"
+    default="django.core.mail.backends.smtp.EmailBackend",
 )
-
-EMAIL_HOST = env("EMAIL_HOST", default="mail.google.com")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST = env("EMAIL_HOST", default="mail.infomaniak.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=465)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=True)
 
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="vilmebeaudelaire5@gmail.com")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="noreply@example.com")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER
 )
 
-# Utiliser la console comme backend d'e‑mail en mode debug.  Cela
-# permet de visualiser les courriels envoyés directement dans le
-# terminal lors du développement sans nécessiter de serveur SMTP.
-if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# IMPORTANT : ne force PAS le backend console en DEBUG.
+# Si vous voulez afficher les emails dans le terminal, définissez :
+#   EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+# dans le fichier .env.
 
 # Notification routing
 TASK_NOTIFICATION_EMAIL = env(
     "TASK_NOTIFICATION_EMAIL", default=DEFAULT_FROM_EMAIL
 )
+
+# Exigence projet : aucune notification automatique (admin/client) en texte.
+# Les e-mails sont envoyés uniquement sur action explicite (devis, messages).
+TASK_NOTIFICATIONS_ENABLED = env.bool("TASK_NOTIFICATIONS_ENABLED", default=False)
 ADMINS = [("Admin", TASK_NOTIFICATION_EMAIL)]
 MANAGERS = ADMINS
 # -------------------------------------------------------------
@@ -315,3 +320,25 @@ SITE_URL = env("SITE_URL", default="http://localhost:8000")
 # Enrich branding for emails (optional)
 INVOICE_BRANDING.setdefault("site_url", SITE_URL)
 # If you host a public logo URL for emails, set INVOICE_BRANDING["logo_url"]
+
+
+# --- Logging (production-friendly) ---
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        }
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}

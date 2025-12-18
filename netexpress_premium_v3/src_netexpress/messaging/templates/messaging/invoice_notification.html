@@ -1,0 +1,85 @@
+{% extends 'messaging/email_base.html' %}
+
+{% block content %}
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votre facture Nettoyage Express</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Helvetica', 'Arial', sans-serif;">
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f9; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+
+                    <tr>
+                        <td align="center" style="background-color: #104130; padding: 40px 0;">
+                            <div style="color: #ffffff; font-size: 28px; font-weight: bold; font-family: serif; letter-spacing: 1px;">
+                                NETTOYAGE EXPRESS
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 40px 50px;">
+                            <h1 style="color: #1f2937; font-size: 22px; margin: 0 0 20px 0;">Bonjour James,</h1>
+
+                            <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                                Votre facture <strong>{{ invoice.number}}</strong> du {{invoice.created_at}} est disponible.
+                            </p>
+
+                            <table width="100%" style="background-color: #f9fafb; border-radius: 6px; margin-bottom: 30px; border: 1px solid #e5e7eb;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <div style="color: #6b7280; font-size: 12px; text-transform: uppercase; font-weight: bold;">Montant TTC</div>
+                                        <div style="color: #104130; font-size: 24px; font-weight: bold;"> {{invoice.total_ttc}}</div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table width="100%">
+                                <tr>
+                            <table width="100%" style="border-top: 1px dashed #e5e7eb; margin-top: 10px;">
+                                <tr>
+                                    <td align="center" style="padding-top: 20px;">
+                                        <a href="127.0.0.1:8000/gestion/facture" target="_blank"
+                                            style="text-decoration: none; display: inline-flex; align-items: center; background-color: #fff; border: 1px solid #e5e7eb; padding: 10px 20px; border-radius: 8px;">
+                                            <span style="font-size: 24px; margin-right: 10px; color: #e74c3c;">📄</span>
+                                            <span style="color: #333; font-weight: bold; font-size: 14px;">
+                                            Télécharger la facture (PDF)
+
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            </table>
+
+                            <p style="color: #999; font-size: 13px; text-align: center; margin-top: 30px;">
+                                La facture détaillée est jointe à cet email au format PDF.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f9fafb; padding: 20px 50px; border-top: 1px solid #e5e7eb;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">
+                                Si vous avez des questions, n'hésitez pas à nous contacter à <a href="mailto:contact@nettoyageexpress.com">contact@nettoyageexpress.com</a>.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- icone pièce jointe -->
+
+
+                        <td style="background-color: #f1f5f9; padding: 20px; text-align: center; color: #9ca3af; font-size: 11px;">
+                            &copy; {{date.today().year}} Nettoyage Express Services.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+{% endblock %}

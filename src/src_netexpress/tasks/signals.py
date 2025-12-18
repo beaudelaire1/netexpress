@@ -1,166 +1,92 @@
-"""Signal handlers for the tasks application.
-
-These handlers send notification emails whenever a task's status
-changes or when a task approaches its deadline.  The emails are
-addressed to a configurable recipient defined by the
-``TASK_NOTIFICATION_EMAIL`` setting.  If this setting is absent the
-``EMAIL_HOST_USER`` setting is used as a fallback.
-
-The notifications use the :class:`EmailNotificationService` utility
-defined in ``tasks.services`` to send messages via the configured
-SMTP server.  Both the subject and body of the notifications are
-kept deliberately short so that administrators can quickly
-understand what has changed.
-"""
-
 from __future__ import annotations
 
 from datetime import date
 from django.conf import settings
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from .models import Task
 from .services import EmailNotificationService
 
 
-def _get_notification_recipient() -> str | None:
-    """Return the configured recipient for task notifications.
-
-    The ``TASK_NOTIFICATION_EMAIL`` setting takes precedence.  If it
-    is not defined or empty then the ``EMAIL_HOST_USER`` setting is
-    returned.  If neither is defined the function returns ``None`` and
-    no notification will be sent.
-    """
-    to = getattr(settings, "TASK_NOTIFICATION_EMAIL", "")
-    if not to:
-        to = getattr(settings, "EMAIL_HOST_USER", "")
-    # En dernier recours, utiliser DEFAULT_FROM_EMAIL pour que les notifications
-    # ne soient pas perdues si EMAIL_HOST_USER n'est pas défini
-    if not to:
-        to = getattr(settings, "DEFAULT_FROM_EMAIL", "")
-    return to or None
+def _recipient() -> str | None:
+    return (
+        getattr(settings, "TASK_NOTIFICATION_EMAIL", None)
+        or getattr(settings, "EMAIL_HOST_USER", None)
+        or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    )
 
 
 @receiver(pre_save, sender=Task)
 def notify_status_change(sender, instance: Task, **kwargs) -> None:
-    """Send a notification email when a task changes status.
-
-    If the task is being created there is no previous state to compare
-    against and no notification is sent.  When the status field
-    changes from any value to another (including to ``completed``)
-    this handler sends an email describing the change.  The email
-    includes the task title, the previous status and the new status.
-    """
-    # Skip notifications when creating a new task
+    """Notification premium quand une tâche change de statut."""
     if instance.pk is None:
         return
     try:
-        old = Task.objects.get(pk=instance.pk)
+        prev = Task.objects.get(pk=instance.pk)
     except Task.DoesNotExist:
         return
-    if old.status != instance.status:
-        recipient = _get_notification_recipient()
-        if not recipient:
-            return
-        subject = f"Mise à jour de la tâche : {instance.title}"
-        # Formater un message plus formel lorsque le statut passe à "Terminé"
-        if instance.status == Task.STATUS_COMPLETED:
-            body = (
-                f"Bonjour,\n\n"
-                f"La tâche « {instance.title} » a été marquée comme terminée.\n"
-                f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
-                f"Lieu : {instance.location or 'Non spécifié'}\n"
-                f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
-                f"Cordialement."
-            )
-        else:
-            body = (
-                f"Bonjour,\n\n"
-                f"La tâche « {instance.title} » a changé de statut.\n\n"
-                f"Ancien statut : {old.get_status_display()}\n"
-                f"Nouveau statut : {instance.get_status_display()}\n"
-                f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
-                f"Lieu : {instance.location or 'Non spécifié'}\n"
-                f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
-                f"Cordialement."
-            )
-        # Envoyer le message
-        # Ne pas override l'adresse d'expéditeur pour éviter les erreurs "Sender mismatch".
-        EmailNotificationService.send(
-            to_email=recipient,
-            subject=subject,
-            body=body,
-        )
+
+    if prev.status == instance.status:
+        return
+
+    to = _recipient()
+    if not to:
+        return
+
+    subject = f"Tâche mise à jour — {instance.title}"
+    headline = "Tâche mise à jour"
+    intro = f"La tâche <strong>{instance.title}</strong> a changé de statut."
+    rows = [
+        {"label": "Statut", "value": dict(Task.STATUS_CHOICES).get(instance.status, instance.status)},
+        {"label": "Échéance", "value": str(instance.due_date) if instance.due_date else "—"},
+    ]
+    EmailNotificationService.send(
+        to=to,
+        subject=subject,
+        headline=headline,
+        intro=intro,
+        rows=rows,
+        action_url=getattr(settings, "SITE_URL", "") + instance.get_absolute_url() if getattr(settings, "SITE_URL", "") else None,
+        action_label="Voir la tâche",
+    )
 
 
 @receiver(post_save, sender=Task)
-def notify_due_soon(sender, instance: Task, **kwargs) -> None:
-    """Send a reminder email when a task is approaching its deadline.
+def notify_due_soon(sender, instance: Task, created: bool, **kwargs) -> None:
+    """Rappel premium quand une tâche approche de l'échéance."""
+    if instance.status == Task.STATUS_COMPLETED:
+        return
+    if not instance.due_date:
+        return
 
-    After each save operation (creation or update) this handler checks
-    if the task is due within three days and not yet completed.
-    Overdue tasks are excluded to avoid duplicate notifications.  An
-    email reminder is sent only when the task becomes due soon (i.e.
-    when saving brings it within the threshold).  A naive approach is
-    used: reminders may be sent multiple times if the task is saved
-    repeatedly while still within the threshold.  For production use
-    consider tracking whether a reminder has already been sent.
-    """
-    # Do not notify for completed or overdue tasks
-    if instance.status in {Task.STATUS_COMPLETED, Task.STATUS_OVERDUE}:
+    today = date.today()
+    remaining = (instance.due_date - today).days
+
+    # Rappel si proche (<=3 jours) mais pas en retard
+    if remaining < 0:
         return
-    # Only send a reminder if due soon
-    if not instance.is_due_soon():
+    if remaining > 3:
         return
-    recipient = _get_notification_recipient()
-    if not recipient:
+
+    to = _recipient()
+    if not to:
         return
-    remaining_days = (instance.due_date - date.today()).days
-    subject = f"Rappel : tâche bientôt due — {instance.title}"
-    body = (
-        f"Bonjour,\n\n"
-        f"La tâche « {instance.title} » doit être terminée dans {remaining_days} jour(s).\n\n"
-        f"Statut actuel : {instance.get_status_display()}\n"
-        f"Échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
-        f"Lieu : {instance.location or 'Non spécifié'}\n"
-        f"Équipe : {instance.team or 'Non spécifié'}\n\n"
-        f"Cordialement."
-    )
-    # Ne pas override l'adresse d'expéditeur
+
+    subject = f"Rappel — tâche proche de l'échéance ({instance.title})"
+    headline = "Rappel : tâche proche"
+    intro = f"La tâche <strong>{instance.title}</strong> arrive bientôt à échéance."
+    rows = [
+        {"label": "Jours restants", "value": str(remaining)},
+        {"label": "Échéance", "value": str(instance.due_date)},
+        {"label": "Statut", "value": dict(Task.STATUS_CHOICES).get(instance.status, instance.status)},
+    ]
     EmailNotificationService.send(
-        to_email=recipient,
+        to=to,
         subject=subject,
-        body=body,
-    )
-
-# -----------------------------------------------------------------------------
-# Notifications supplémentaires : création de tâche
-# -----------------------------------------------------------------------------
-
-@receiver(post_save, sender=Task)
-def notify_task_created(sender, instance: Task, created: bool, **kwargs) -> None:
-    """Envoyer un e‑mail lors de la création d'une nouvelle tâche."""
-    if not created:
-        return
-    recipient = _get_notification_recipient()
-    if not recipient:
-        return
-    subject = f"Nouvelle tâche créée : {instance.title}"
-    body = (
-        f"Bonjour,\n\n"
-        f"Une nouvelle tâche a été créée.\n\n"
-        f"Titre : {instance.title}\n"
-        f"Description : {instance.description or '—'}\n"
-        f"Date de début : {instance.start_date.strftime('%d/%m/%Y')}\n"
-        f"Date d'échéance : {instance.due_date.strftime('%d/%m/%Y')}\n"
-        f"Lieu : {instance.location or 'Non spécifié'}\n"
-        f"Équipe responsable : {instance.team or 'Non spécifié'}\n\n"
-        f"Cordialement."
-    )
-    # Ne pas override l'adresse d'expéditeur
-    EmailNotificationService.send(
-        to_email=recipient,
-        subject=subject,
-        body=body,
+        headline=headline,
+        intro=intro,
+        rows=rows,
+        action_url=getattr(settings, "SITE_URL", "") + instance.get_absolute_url() if getattr(settings, "SITE_URL", "") else None,
+        action_label="Ouvrir la tâche",
     )

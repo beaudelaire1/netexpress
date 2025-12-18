@@ -52,8 +52,11 @@ def contact_view(request):
             try:
                 notify_new_contact.delay(msg.pk)
             except Exception:
-                # On ne bloque jamais l'utilisateur si Celery est down
-                pass
+                # Fallback synchrone si Celery n'est pas disponible
+                try:
+                    notify_new_contact(msg.pk)
+                except Exception:
+                    pass
 
             messages.success(request, "Votre message a bien été envoyé.")
             return redirect(reverse("contact:success"))

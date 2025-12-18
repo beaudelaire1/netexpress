@@ -1,139 +1,84 @@
-"""
-Configuration de l'administration pour l'app ``devis``.
-
-Les listes affichent les devis avec le numéro, le client, le service et le
-statut.  On ajoute également le modèle ``Client`` pour gérer les fiches
-clients depuis l'interface d'administration.  Les filtres et champs de
-recherche facilitent la gestion commerciale.
-"""
-
-from django.contrib import admin
-
-from .models import Client, Quote, QuoteItem
-from tasks.services import EmailNotificationService
-
-
-@admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "email", "phone", "created_at")
-    search_fields = ("full_name", "email", "phone")
-    list_filter = ("created_at",)
-
-    # Note : le champ téléphone est requis depuis la refonte 2025 pour assurer
-    # une prise de contact fiable.  Aucune configuration supplémentaire n'est
-    # nécessaire côté admin, cette information est renseignée lors de la création
-    # du client.
+from django.contrib import admin, messages
+from django.urls import path, reverse
+from django.shortcuts import get_object_or_404, redirect
+from .models import Quote, QuoteItem
 
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ("number", "client", "status", "issue_date", "total_ttc")
-    list_filter = ("status", "issue_date")
-    search_fields = ("number", "client__full_name", "client__email")
-    readonly_fields = ("created_at", "issue_date", "total_ht", "tva", "total_ttc")
-    list_editable = ("status",)
-    actions = ["send_quotes", "convert_to_invoice"]
+    list_display = ("number", "client", "status", "total_ttc", "pdf")
 
-    # Permettre l'édition des lignes de devis directement dans le devis
-    class QuoteItemInline(admin.TabularInline):
-        model = QuoteItem
-        extra = 1
-        fields = ("service", "description", "quantity", "unit_price", "tax_rate", "total_ht", "total_tva", "total_ttc")
-        readonly_fields = ("total_ht", "total_tva", "total_ttc")
+    actions = [
+        "action_generate_pdf",
+        "action_convert_to_invoice",
+        "action_send_quote_email",
+    ]
 
-    inlines = [QuoteItemInline]
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "<int:pk>/generate-pdf/",
+                self.admin_site.admin_view(self._view_generate_pdf),
+                name="quote-generate-pdf",
+            ),
+            path(
+                "<int:pk>/send-email/",
+                self.admin_site.admin_view(self._view_send_email),
+                name="quote-send-email",
+            ),
+            path(
+                "<int:pk>/convert-invoice/",
+                self.admin_site.admin_view(self._view_convert_invoice),
+                name="quote-convert-invoice",
+            ),
+        ]
+        return custom + urls
 
-    def save_formset(self, request, form, formset, change):
-        """Après sauvegarde des items, recalculer les totaux."""
-        instances = formset.save()
-        if formset.model is QuoteItem:
-            form.instance.compute_totals()
-        return instances
+    def _view_generate_pdf(self, request, pk: int):
+        quote = get_object_or_404(Quote, pk=pk)
+        quote.generate_pdf(attach=True)
+        self.message_user(request, "PDF devis généré.", level=messages.SUCCESS)
+        return redirect(reverse("admin:devis_quote_change", args=[quote.pk]))
 
-    def send_quotes(self, request, queryset):
-        """Action admin pour envoyer des devis par e‑mail aux clients.
+    def _view_send_email(self, request, pk: int):
+        quote = get_object_or_404(Quote, pk=pk)
+        quote.send_email(request=request, force_pdf=True)
+        self.message_user(request, "Email devis envoyé.", level=messages.SUCCESS)
+        return redirect(reverse("admin:devis_quote_change", args=[quote.pk]))
 
-        Pour chaque devis sélectionné cette action calcule les totaux,
-        puis envoie un courriel simple récapitulant le devis.  Si le
-        client ne possède pas d'adresse e‑mail aucune action n'est
-        effectuée.  Les lignes de devis sont incluses dans le corps du
-        message sous forme de liste.  Cette action ne génère pas de
-        fichier PDF.  Pour des documents plus formels il est
-        recommandé de convertir le devis en facture.
-        """
-        count = 0
+    def _view_convert_invoice(self, request, pk: int):
+        quote = get_object_or_404(Quote, pk=pk)
+        invoice = quote.convert_to_invoice()
+        self.message_user(request, f"Devis converti en facture : {invoice.number}", level=messages.SUCCESS)
+        return redirect(f"/admin/factures/invoice/{invoice.pk}/change/")
+
+    @admin.action(description="📄 Générer le devis en PDF")
+    def action_generate_pdf(self, request, queryset):
         for quote in queryset:
-            quote.compute_totals()
-            client = quote.client
-            if not client or not client.email:
-                continue
-            lines = []
-            for item in quote.items:
-                label = item.description or (item.service.title if item.service else "")
-                lines.append(
-                    f"- {label} : {item.quantity} × {item.unit_price} € HT (TVA {item.tax_rate}%\n"
-                    f"  = {item.total_ttc} € TTC)"
-                )
-            body = (
-                f"Bonjour {client.full_name},\n\n"
-                f"Merci de votre demande de devis. Voici le détail de votre proposition :\n"
-                "\n".join(lines)
-                + "\n\n"
-                f"Total HT : {quote.total_ht} €\n"
-                f"TVA : {quote.tva} €\n"
-                f"Total TTC : {quote.total_ttc} €\n"
-                + (f"Ce devis est valable jusqu'au {quote.valid_until.strftime('%d/%m/%Y')}.\n" if quote.valid_until else "")
-                + "\nNous restons à votre disposition pour toute question."
-            )
-            EmailNotificationService.send(
-                client.email,
-                f"Votre devis {quote.number}",
-                body,
-            )
-            count += 1
-        self.message_user(request, f"{count} devis envoyé(s) par e‑mail.")
-    send_quotes.short_description = "Envoyer les devis sélectionnés par e‑mail"
+            if hasattr(quote, "generate_pdf"):
+                quote.generate_pdf()
+        self.message_user(request, "PDF généré.", level=messages.SUCCESS)
 
-    def convert_to_invoice(self, request, queryset):
-        """Convertir les devis sélectionnés en factures.
-
-        Cette action crée une facture pour chaque devis sélectionné qui n'a pas
-        encore été converti. Les lignes de devis sont copiées dans la facture.
-        Après conversion, les totaux sont recalculés. Les factures créées sont
-        enregistrées avec un numéro généré automatiquement.
-        """
-        from datetime import date
-        from factures.models import Invoice, InvoiceItem  # type: ignore
-        converted = 0
+    @admin.action(description="🧾 Convertir en facture")
+    def action_convert_to_invoice(self, request, queryset):
         for quote in queryset:
-            # ne pas convertir s'il existe déjà une facture pour ce devis
-            if hasattr(quote, "invoices") and quote.invoices.exists():
-                continue
-            # Créer la facture liée au devis
-            invoice = Invoice.objects.create(
-                quote=quote,
-                issue_date=date.today(),
-                # Par défaut, une facture convertie est considérée comme envoyée.
-                # On n'utilise plus le statut "demo" afin que le filigrane
-                # indique "FACTURE" et non "DEVIS" sur le PDF.
-                status="sent",
-            )
-            # Copier chaque ligne de devis dans la facture
-            for qitem in quote.items:
-                description = qitem.description or (qitem.service.title if qitem.service else "")
-                InvoiceItem.objects.create(
-                    invoice=invoice,
-                    description=description,
-                    quantity=qitem.quantity,
-                    unit_price=qitem.unit_price,
-                    tax_rate=qitem.tax_rate,
-                )
-            # Calculer les totaux et enregistrer
-            invoice.compute_totals()
-            invoice.save()
-            converted += 1
-        if converted:
-            self.message_user(request, f"{converted} devis converti(s) en facture avec succès.")
-        else:
-            self.message_user(request, "Aucun devis n'a été converti (facture déjà existante ou sélection vide).")
-    convert_to_invoice.short_description = "Convertir en facture"
+            if hasattr(quote, "convert_to_invoice"):
+                invoice = quote.convert_to_invoice()
+                self.message_user(request, f"{quote.number} → {invoice.number}", level=messages.SUCCESS)
+        self.message_user(request, "Devis converti en facture.", level=messages.SUCCESS)
+
+    @admin.action(description="📧 Envoyer le devis par email")
+    def action_send_quote_email(self, request, queryset):
+        for quote in queryset:
+            if hasattr(quote, "send_email"):
+                quote.send_email(request=request, force_pdf=True)
+        self.message_user(request, "Devis envoyés par email.", level=messages.SUCCESS)
+
+
+@admin.register(QuoteItem)
+class QuoteItemAdmin(admin.ModelAdmin):
+    list_display = ("quote", "service", "quantity", "unit_price")
+    list_filter = ("quote",)
+    search_fields = ("service", "description")
+    autocomplete_fields = ("service",)

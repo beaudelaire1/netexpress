@@ -31,6 +31,21 @@ from services.models import Service
 from typing import List
 
 
+def _num2words_fr(v: Decimal) -> str:
+    """Convertit un montant en toutes lettres (fr).
+
+    Utilise num2words (dépendance déjà présente dans requirements/dev.txt).
+    En cas d'absence de la lib, renvoie une valeur simple.
+    """
+    try:
+        from num2words import num2words
+        # num2words gère les décimales avec to='currency' mais on préfère
+        # une sortie simple : "cent vingt-trois".
+        return num2words(v, lang='fr')
+    except Exception:
+        return str(v)
+
+
 class Client(models.Model):
     """Informations de contact pour une demande de devis."""
     full_name = models.CharField(max_length=200)
@@ -125,6 +140,8 @@ class Quote(models.Model):
         blank=True,
         help_text="Numéro de devis format DEV-AAAA-XXX, généré automatiquement."
     )
+
+    public_token = models.CharField(max_length=64, unique=True, blank=True, help_text="Jeton public stable pour consulter le PDF du devis.")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="quotes")
     quote_request = models.ForeignKey(
         "QuoteRequest",
@@ -165,10 +182,17 @@ class Quote(models.Model):
     # repository of generated documents.
     pdf = models.FileField(upload_to="devis", blank=True, null=True)
 
+    def amount_letter(self):
+        """Montant TTC en toutes lettres (affiché sur le PDF devis)."""
+        return f"{_num2words_fr(self.total_ttc).title()} euros"
+
     def __str__(self) -> str:
         return f"Devis {self.number or ''} pour {self.client.full_name}"
 
     def save(self, *args, **kwargs):
+        import secrets
+        if not self.public_token:
+            self.public_token = secrets.token_urlsafe(32)
         # Attribution d'un numéro de devis si nécessaire : DEV-AAAA-XXX
         if not self.number:
             # l'année est celle de la date d'émission
@@ -222,244 +246,97 @@ class Quote(models.Model):
         self.total_ttc = total_ht + total_tva
         self.save(update_fields=["total_ht", "tva", "total_ttc"])
 
+    def amount_letter(self):
+        """Montant TTC en toutes lettres (pour le PDF premium)."""
+        return f"{_num2words_fr(self.total_ttc).title()} euros"
+
     def generate_pdf(self, attach: bool = True) -> bytes:
+        """Génère un PDF premium pour ce devis via WeasyPrint.
+
+        - Utilise le template ``pdf/quote.html`` (modèle premium).
+        - Génère toujours le document à partir des données actuelles.
+        - Si ``attach`` est vrai, le fichier est sauvegardé dans ``self.pdf``.
+
+        Returns
+        -------
+        bytes
+            Le contenu binaire du PDF.
         """
-        Génère un document PDF décrivant ce devis.
-
-        Le PDF inclut l'en‑tête de la société, les coordonnées du client,
-        la liste des lignes de devis et un tableau récapitulatif des
-        montants HT, TVA et TTC.  Un encart « Bon pour accord » et une
-        zone de signature sont également ajoutés.  Si ``attach`` est
-        ``True``, le PDF est enregistré dans le champ ``pdf`` de
-        l'instance et une nouvelle version est générée à chaque appel.
-
-        :param attach: si vrai, le fichier est rattaché au modèle
-        :return: le contenu binaire du PDF généré
-        :raises ImportError: si ReportLab n'est pas installé
-        """
-        # ReportLab importé à la demande pour éviter des dépendances
-        # obligatoires si la génération n'est pas utilisée.
+        # Toujours recalculer les totaux avant génération
         try:
-            from reportlab.lib.pagesizes import A4
-            from reportlab.lib import colors
-            from reportlab.lib.units import mm
-            from reportlab.pdfgen import canvas
-            from reportlab.lib.utils import ImageReader
-        except ImportError as exc:
-            raise ImportError(
-                "La génération de PDF pour les devis requiert ReportLab. "
-                "Installez la dépendance via pip (reportlab>=4.0)."
-            ) from exc
-        from django.conf import settings
-        from django.core.files.base import ContentFile
-        # Le modèle QuoteItem est importé localement uniquement pour
-        # éviter des importations circulaires dans d'autres modules.  Il
-        # n'est pas utilisé directement ici mais conservé pour référence.
-        from .models import QuoteItem  # noqa: F401
-
-        # Préparer le tampon PDF
-        import io
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
-
-        # ------------------------------------------------------------------
-        # Filigrane DEVIS
-        # ------------------------------------------------------------------
-        # Avant tout dessin, ajouter un filigrane léger « DEVIS » centré et
-        # incliné.  L'opacité est simulée via une couleur gris clair.
-        c.saveState()
-        c.setFillColor(colors.HexColor("#F0F0F0"))
-        c.setFont("Helvetica-Bold", 60)
-        c.translate(width / 2, height / 2)
-        c.rotate(35)
-        c.drawCentredString(0, 0, "DEVIS")
-        c.restoreState()
-        # Marges
-        left_margin = 20 * mm
-        right_margin = 20 * mm
-        top_margin = 30 * mm
-        bottom_margin = 20 * mm
-        y = height - top_margin
-
-        # Informations de branding depuis les factures pour réutiliser
-        # l'identité visuelle de l'entreprise.
-        try:
-            from factures.models import _get_branding  # type: ignore
-            branding = _get_branding()
+            self.compute_totals()
         except Exception:
-            branding = getattr(settings, "INVOICE_BRANDING", {}) or {}
-            addr = branding.get("address", "")
-            branding = {
-                "name": branding.get("name", "Nettoyage Express"),
-                "tagline": branding.get("tagline", "Espaces verts, nettoyage, peinture, bricolage"),
-                "email": branding.get("email", ""),
-                "phone": branding.get("phone", ""),
-                "iban": branding.get("iban", ""),
-                "bic": branding.get("bic", ""),
-                "address_lines": [l.strip() for l in str(addr).splitlines() if l.strip()],
-                "logo_path": branding.get("logo_path", None),
-            }
+            # ne bloque pas la génération si un item est mal formé
+            pass
 
-        # Dessiner le bandeau d'en‑tête
-        c.setFont("Helvetica-Bold", 20)
-        c.setFillColor(colors.HexColor("#0B5D46"))
-        c.drawString(left_margin, y, "DEVIS")
-        c.setFont("Helvetica", 10)
-        y -= 8 * mm
-        if branding.get("name"):
-            c.drawString(left_margin, y, branding["name"])
-            y -= 4 * mm
-        if branding.get("tagline"):
-            c.drawString(left_margin, y, branding["tagline"])
-            y -= 4 * mm
-        # Logo (facultatif)
-        logo_path = branding.get("logo_path")
-        if logo_path:
-            try:
-                from factures.models import _resolve_logo_path  # type: ignore
-                resolved = _resolve_logo_path(logo_path)
-                if resolved:
-                    img = ImageReader(resolved)
-                    iw, ih = img.getSize()
-                    max_h = 20 * mm
-                    w = max_h * (iw / ih)
-                    c.drawImage(img, width - right_margin - w, height - top_margin + 5 * mm, width=w, height=max_h, preserveAspectRatio=True, mask="auto")
-            except Exception:
-                pass
+        from django.core.files.base import ContentFile
+        from core.services.pdf_generator import render_quote_pdf
 
-        # Coordonnées client
-        y -= 6 * mm
-        client = self.client
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(left_margin, y, "Client :")
-        y -= 5 * mm
-        c.setFont("Helvetica", 10)
-        c.drawString(left_margin, y, client.full_name)
-        y -= 4 * mm
-        c.drawString(left_margin, y, client.email)
-        y -= 4 * mm
-        c.drawString(left_margin, y, client.phone)
-        if client.address_line:
-            y -= 4 * mm
-            c.drawString(left_margin, y, client.address_line)
-        if client.city or client.zip_code:
-            y -= 4 * mm
-            city_line = f"{client.zip_code} {client.city}".strip()
-            c.drawString(left_margin, y, city_line)
-
-        # Numéro et date du devis
-        y -= 10 * mm
-        c.setFont("Helvetica-Bold", 12)
-        c.drawRightString(width - right_margin, y, f"Devis n° {self.number}")
-        y -= 5 * mm
-        c.setFont("Helvetica", 10)
-        c.drawRightString(width - right_margin, y, f"Date : {self.issue_date.strftime('%d/%m/%Y')}")
-        if self.valid_until:
-            y -= 4 * mm
-            c.drawRightString(width - right_margin, y, f"Valable jusqu’au : {self.valid_until.strftime('%d/%m/%Y')}")
-
-        # Tableau des items
-        y -= 12 * mm
-        table_start_y = y
-        col_x = [left_margin, left_margin + 90*mm, left_margin + 110*mm, left_margin + 130*mm, left_margin + 150*mm]
-        headers = ["Description", "Qté", "PU HT", "TVA %", "Total TTC"]
-        c.setFillColor(colors.HexColor("#F5F7F9"))
-        c.rect(left_margin, y - 6*mm, width - left_margin - right_margin, 6*mm, fill=1, stroke=0)
-        c.setFillColor(colors.black)
-        c.setFont("Helvetica-Bold", 9)
-        for i, h in enumerate(headers):
-            c.drawString(col_x[i] + 2, y - 5*mm, h)
-        # Items
-        y -= 7 * mm
-        c.setFont("Helvetica", 9)
-        for it in self.items:
-            if y < bottom_margin + 40*mm:
-                # Nouvelle page si nécessaire
-                c.showPage()
-                y = height - top_margin
-                # Répétez l'en‑tête du tableau sur la nouvelle page
-                c.setFillColor(colors.HexColor("#F5F7F9"))
-                c.rect(left_margin, y - 6*mm, width - left_margin - right_margin, 6*mm, fill=1, stroke=0)
-                c.setFillColor(colors.black)
-                c.setFont("Helvetica-Bold", 9)
-                for i, h in enumerate(headers):
-                    c.drawString(col_x[i] + 2, y - 5*mm, h)
-                y -= 7*mm
-                c.setFont("Helvetica", 9)
-            desc = it.description or (it.service.title if it.service else "")
-            c.drawString(col_x[0] + 2, y - 5*mm, desc[:55])
-            c.drawRightString(col_x[1] + 18, y - 5*mm, str(it.quantity))
-            c.drawRightString(col_x[2] + 18, y - 5*mm, f"{it.unit_price:.2f} €")
-            c.drawRightString(col_x[3] + 18, y - 5*mm, f"{it.tax_rate:.2f}")
-            c.drawRightString(col_x[4] + 20, y - 5*mm, f"{it.total_ttc:.2f} €")
-            y -= 5*mm
-
-        # Récapitulatif des totaux
-        y -= 5*mm
-        c.setFont("Helvetica-Bold", 10)
-        c.drawRightString(width - right_margin - 60*mm, y, "Total HT :")
-        c.drawRightString(width - right_margin, y, f"{self.total_ht:.2f} €")
-        y -= 4*mm
-        c.drawRightString(width - right_margin - 60*mm, y, "TVA :")
-        c.drawRightString(width - right_margin, y, f"{self.tva:.2f} €")
-        y -= 4*mm
-        c.drawRightString(width - right_margin - 60*mm, y, "Total TTC :")
-        c.drawRightString(width - right_margin, y, f"{self.total_ttc:.2f} €")
-
-        # Encadré "Bon pour accord" et zone de signature
-        #
-        # Après les totaux, nous réservons un espace clairement délimité où
-        # le client peut ajouter la mention manuscrite « Bon pour accord »
-        # avant de signer.  Le cadre occupe toute la largeur disponible et
-        # indique explicitement où écrire et signer.  En dessous du cadre,
-        # une ligne est tracée pour la signature du client.
-        from reportlab.lib.units import mm as _mm
-        y -= 12 * mm
-        box_height = 20 * mm
-        box_width = width - left_margin - right_margin
-        # Dessiner le rectangle délimitant la mention et la signature
-        c.setStrokeColor(colors.HexColor("#C8C8C8"))
-        c.setLineWidth(0.5)
-        c.rect(left_margin, y - box_height, box_width, box_height, stroke=1, fill=0)
-        # Texte à l'intérieur du cadre
-        c.setFont("Helvetica-Bold", 11)
-        c.setFillColor(colors.black)
-        c.drawString(left_margin + 2 * mm, y - 6 * mm, "Écrire \"Bon pour accord\" et signer :")
-        c.setFont("Helvetica", 9)
-        c.drawString(left_margin + 2 * mm, y - 11 * mm, "Date et signature du client")
-        # Ligne pour la signature
-        y = y - box_height - 8 * mm
-        c.setStrokeColor(colors.HexColor("#000000"))
-        c.setLineWidth(0.5)
-        c.line(left_margin, y, left_margin + 80 * mm, y)
-        c.setFont("Helvetica", 9)
-        c.drawString(left_margin, y - 4 * mm, "Signature du client")
-
-        # Pied de page
-        c.setFont("Helvetica", 7)
-        c.setFillColor(colors.HexColor("#6B7280"))
-        footer_y = bottom_margin
-        if branding.get("address_lines"):
-            for line in branding["address_lines"]:
-                c.drawString(left_margin, footer_y, line)
-                footer_y += 3.5*mm
-        if branding.get("phone"):
-            c.drawString(left_margin, footer_y, f"Tél : {branding['phone']}")
-            footer_y += 3.5*mm
-        if branding.get("email"):
-            c.drawString(left_margin, footer_y, f"Email : {branding['email']}")
-
-        c.save()
-        pdf_bytes = buffer.getvalue()
+        pdf_res = render_quote_pdf(self)
+        pdf_bytes = pdf_res.content
         if attach:
-            # Nom de fichier basé sur le numéro du devis
-            filename = f"{self.number or 'devis'}.pdf"
-            # Enregistrer le fichier dans le champ FileField
-            self.pdf.save(filename, ContentFile(pdf_bytes), save=False)
-            self.save(update_fields=["pdf"])
+            # Écrase / met à jour le PDF à chaque génération
+            self.pdf.save(pdf_res.filename, ContentFile(pdf_bytes), save=True)
         return pdf_bytes
 
+    def convert_to_invoice(self):
+        """Convertit ce devis en facture en réutilisant les mêmes lignes.
+
+        - Crée une ``factures.Invoice`` liée à ce devis.
+        - Copie les lignes en ``InvoiceItem``.
+        - Recalcule les totaux de la facture.
+        - Met à jour le statut du devis.
+        """
+        from decimal import Decimal
+        from factures.models import Invoice, InvoiceItem
+
+        # Assure des totaux cohérents sur le devis avant conversion
+        try:
+            self.compute_totals()
+        except Exception:
+            pass
+
+        invoice = Invoice.objects.create(
+            quote=self,
+            issue_date=self.issue_date,
+            status=Invoice.InvoiceStatus.DRAFT,
+            notes=getattr(self, "notes", "") or "",
+            payment_terms="",
+        )
+
+        for it in self.quote_items.all():
+            # InvoiceItem.quantity est un int -> arrondi "pro" (min 1)
+            try:
+                qty = int(Decimal(str(it.quantity)).quantize(Decimal("1")))
+            except Exception:
+                qty = 1
+            qty = max(qty, 1)
+            desc = (it.description or "").strip()
+            if not desc and it.service:
+                desc = getattr(it.service, "name", None) or getattr(it.service, "title", None) or str(it.service)
+
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=desc,
+                quantity=qty,
+                unit_price=it.unit_price,
+                tax_rate=it.tax_rate,
+            )
+
+        # Recalcule les totaux côté facture
+        if hasattr(invoice, "compute_totals"):
+            invoice.compute_totals()
+
+        self.status = self.QuoteStatus.INVOICED
+        self.save(update_fields=["status"])
+        return invoice
+
+    def send_email(self, request=None, *, force_pdf: bool = True):
+        """Envoie au client un email premium avec le PDF en pièce jointe."""
+        if force_pdf and not self.pdf:
+            self.generate_pdf(attach=True)
+        from .email_service import send_quote_email
+        return send_quote_email(self, request=request)
 
 class QuoteItem(models.Model):
     """Une ligne de devis liée à un service ou à une description libre."""
@@ -496,6 +373,7 @@ class QuoteItem(models.Model):
         default=Decimal("20.00"),
         help_text=_("Taux de TVA en pourcentage (ex. 20.00 pour 20 %)."),
     )
+
 
     class Meta:
         verbose_name = _("ligne de devis")
@@ -538,11 +416,88 @@ class QuotePhoto(models.Model):
     def __str__(self) -> str:
         return f"Photo pour {self.quote.number}"
 
-# === Signaux: notifications devis (PDF + e‑mails) ===
+
+class QuoteValidation(models.Model):
+    """Jeton de validation 2 facteurs pour un devis.
+
+    Flux :
+    1) Lien "Valider le devis" -> crée un QuoteValidation (token) et envoie un code.
+    2) Le client saisit le code -> on confirme et le devis passe à ACCEPTED.
+
+    Objectif : éviter une simple validation en 1 clic et empêcher les validations
+    accidentelles.
+    """
+
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="validations")
+    token = models.CharField(max_length=64, unique=True)
+    code = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    attempts = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("validation devis")
+        verbose_name_plural = _("validations devis")
+
+    def __str__(self) -> str:
+        return f"Validation {self.quote.number} ({'OK' if self.confirmed_at else 'EN ATTENTE'})"
+
+    @property
+    def is_expired(self) -> bool:
+        from django.utils import timezone
+        return self.expires_at <= timezone.now()
+
+    @property
+    def is_confirmed(self) -> bool:
+        return self.confirmed_at is not None
+
+    @classmethod
+    def create_for_quote(cls, quote: "Quote", *, ttl_minutes: int = 15) -> "QuoteValidation":
+        """Crée un jeton + code et invalide les précédents jetons non confirmés."""
+        import secrets
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # Invalidate previous pending validations
+        cls.objects.filter(quote=quote, confirmed_at__isnull=True).delete()
+
+        token = secrets.token_urlsafe(32)
+        # 6 digits (000000-999999)
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        return cls.objects.create(
+            quote=quote,
+            token=token,
+            code=code,
+            expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
+        )
+
+    def verify(self, submitted_code: str, *, max_attempts: int = 5) -> bool:
+        """Valide le code : True si OK (et marque confirmed_at)."""
+        from django.utils import timezone
+
+        if self.is_confirmed:
+            return True
+        if self.is_expired:
+            return False
+        if self.attempts >= max_attempts:
+            return False
+
+        self.attempts += 1
+        ok = (submitted_code or "").strip() == (self.code or "").strip()
+        if ok:
+            self.confirmed_at = timezone.now()
+            self.save(update_fields=["attempts", "confirmed_at"])
+            return True
+        self.save(update_fields=["attempts"])
+        return False
+
+# === Hexagonal‑friendly signaux pour les emails de devis ===
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from core.services.email_service import PremiumEmailService
 
 
 def _guess_quote_email(quote):
@@ -562,35 +517,44 @@ def _guess_quote_email(quote):
 
 @receiver(post_save, sender=Quote)
 def send_quote_created_email(sender, instance: "Quote", created: bool, **kwargs):
-    """Envoi des notifications lorsqu'un devis est créé.
+    """Envoi d'un email simple lorsqu'un devis est créé.
 
-    Objectif: garantir un envoi **réel** (pas de Celery obligatoire) et
-    une génération PDF **avant** l'envoi au client.
+    - Email au client (si adresse détectée)
+    - Email de notification à l'adresse par défaut du projet
     """
-    if not created:
-        return
+    # Désactivé : le projet utilise désormais un email premium envoyé
+    # explicitement (admin action / workflow). On évite les emails "en vrac".
+    return
 
-    # Ensure totals are up to date before generating the PDF.
-    try:
-        instance.compute_totals()
-    except Exception:
-        pass
+    subject = f"Votre demande de devis NetExpress n°{instance.pk}"
+    body = (
+        "Bonjour,\n\n"
+        "Votre demande de devis a bien été enregistrée par NetExpress.\n"
+        "Nous reviendrons vers vous avec une proposition détaillée dans les meilleurs délais.\n\n"
+        "Ceci est un email automatique, merci de ne pas y répondre."
+    )
 
-    email_service = PremiumEmailService()
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@example.com"
+    to_email = _guess_quote_email(instance)
 
-    # Admin notification first (never blocks client email)
-    try:
-        email_service.notify_admin_quote_created(instance)
-    except Exception:
-        pass
+    # Email client
+    if to_email:
+        try:
+            send_mail(subject, body, from_email, [to_email], fail_silently=True)
+        except Exception:
+            # On reste silencieux pour ne pas casser le flux applicatif
+            pass
 
-    # Client: premium email + PDF attachment
-    # If accept_token exists, build an acceptance URL.
-    acceptance_url = None
-    site_url = getattr(settings, "SITE_URL", None)
-    token = getattr(instance, "accept_token", None)
-    if site_url and token:
-        acceptance_url = site_url.rstrip("/") + f"/devis/accepter/{token}/"
-
-    # Send loudly in dev/prod logs (no fail_silently)
-    email_service.send_quote_pdf_to_client(instance, acceptance_url=acceptance_url)
+    # Notification interne
+    internal_email = getattr(settings, "NETEXPRESS_DEVIS_NOTIFICATION", None)
+    if internal_email:
+        try:
+            send_mail(
+                f"[NetExpress] Nouveau devis #{instance.pk}",
+                f"Un nouveau devis vient d'être créé (ID: {instance.pk}).",
+                from_email,
+                [internal_email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass

@@ -1,15 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
 
 {% block title %}Messages envoyés — Tableau de bord{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="section__head">
-    <h1>Messages envoyés</h1>
-    <p class="muted">Historique des courriels envoyés via le site.</p>
-  </div>
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation messages">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+      <a href="{% url 'messaging:compose' %}">Nouveau message</a>
+      <a class="is-primary" href="{% url 'messaging:list' %}">Historique</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">Messages envoyés</div>
+        <div class="bo-subtitle">Historique des e-mails (HTML uniquement).</div>
+      </div>
+    </div>
   {% if email_messages %}
-  <table class="table">
+  <table class="bo-table">
     <thead>
       <tr>
         <th>Sujet</th>
@@ -38,5 +54,6 @@
   {% else %}
   <p>Aucun message n'a encore été envoyé.</p>
   {% endif %}
-</section>
+  </main>
+</div>
 {% endblock %}

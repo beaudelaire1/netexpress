@@ -1,15 +1,32 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
 
 {% block title %}Détail du message — {{ message.subject }}{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="section__head">
-    <h1>{{ message.subject }}</h1>
-    <p class="muted">Détails du message envoyé</p>
-  </div>
-  <div class="card">
-    <div class="card__body">
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation messages">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+      <a href="{% url 'messaging:compose' %}">Nouveau message</a>
+      <a class="is-primary" href="{% url 'messaging:list' %}">Historique</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">{{ message.subject }}</div>
+        <div class="bo-subtitle">Détails du message envoyé</div>
+      </div>
+    </div>
+
+    <section class="bo-card">
       <p><strong>Destinataires&nbsp;:</strong> {{ message.recipient }}</p>
       {% if message.cc %}
       <p><strong>Copie&nbsp;:</strong> {{ message.cc }}</p>
@@ -21,15 +38,16 @@
       <p class="error"><strong>Erreur&nbsp;:</strong> {{ message.error_message }}</p>
       {% endif %}
       <h2>Contenu du message</h2>
-      <pre style="white-space: pre-wrap;">{{ message.body }}</pre>
+      <div style="border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff;">
+        {{ message.body|safe }}
+      </div>
       {% if message.attachment %}
       <h2>Pièce jointe</h2>
       <!-- Afficher le nom complet du fichier joint comme lien.  Le chemin
            relatif est suffisant pour identifier le fichier. -->
       <p><a href="{{ message.attachment.url }}" target="_blank">{{ message.attachment.name }}</a></p>
       {% endif %}
-    </div>
-  </div>
-  <p><a href="{% url 'messaging:list' %}">← Retour à la liste des messages</a></p>
-</section>
+    </section>
+  </main>
+</div>
 {% endblock %}

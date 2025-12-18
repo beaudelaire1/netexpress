@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Devis validé{% endblock %}
+{% block content %}
+<section class="section" style="max-width:680px;margin:0 auto;">
+  <div class="card" style="padding:24px;">
+    <h1 style="margin:0 0 10px 0;">Merci !</h1>
+    <p style="margin:0 0 14px 0;opacity:.8;">
+      Le devis <strong>{{ quote.number }}</strong> est maintenant <strong>validé</strong>.
+    </p>
+    <p style="margin:0;opacity:.75;">Vous pouvez fermer cette page.</p>
+  </div>
+</section>
+{% endblock %}

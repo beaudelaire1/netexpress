@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mon espace client — NetExpress{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation client">
+    <div class="bo-brand">Mon espace</div>
+    <nav class="bo-nav">
+      <a class="is-primary" href="{% url 'core:client_dashboard' %}">Tableau de bord</a>
+      <a href="{% url 'core:home' %}">Site public</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">Tableau de bord client</div>
+        <div class="bo-subtitle">Vos devis, factures et documents PDF.</div>
+      </div>
+    </div>
+
+    <section class="bo-card">
+      <h3>Vos devis</h3>
+      {% if quotes %}
+      <table class="bo-table">
+        <thead>
+          <tr>
+            <th>Numéro</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Total TTC</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in quotes %}
+          <tr>
+            <td>{{ q.number }}</td>
+            <td>{{ q.issue_date|date:'d/m/Y' }}</td>
+            <td>{{ q.get_status_display }}</td>
+            <td>{{ q.total_ttc }} €</td>
+            <td>
+              {% if q.pdf %}
+                <a href="{{ q.pdf.url }}" target="_blank">Ouvrir</a>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="muted">Aucun devis associé à votre compte.</p>
+      {% endif %}
+    </section>
+
+    <div style="height:14px;"></div>
+
+    <section class="bo-card">
+      <h3>Vos factures</h3>
+      {% if invoices %}
+      <table class="bo-table">
+        <thead>
+          <tr>
+            <th>Numéro</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>Total TTC</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+          <tr>
+            <td>{{ inv.number }}</td>
+            <td>{{ inv.issue_date|date:'d/m/Y' }}</td>
+            <td>{{ inv.get_status_display }}</td>
+            <td>{{ inv.total_ttc }} €</td>
+            <td>
+              {% if inv.pdf %}
+                <a href="{% url 'factures:download' inv.pk %}" target="_blank">Ouvrir</a>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="muted">Aucune facture associée à votre compte.</p>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

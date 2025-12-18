@@ -1,48 +1,20 @@
-"""Signals for the ``factures`` app.
-
-Goals:
-- Keep signals side-effects **minimal** and **observable**.
-- Do NOT depend on Celery.
-- Do NOT silently swallow SMTP errors.
-
-We intentionally avoid sending client invoices from a signal because
-invoice creation can happen in multiple contexts (admin action, service
-layer, management command). The canonical place for sending is the
-service layer / explicit action.
-
-Here we only create an internal message record for auditability.
-"""
 
 from __future__ import annotations
-
-from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+from django.conf import settings
 from .models import Invoice
-
-
+from messaging.models import EmailMessage
+from factures import Invoice
 @receiver(post_save, sender=Invoice)
-def notify_admin_invoice_created(sender, instance: Invoice, created: bool, **kwargs) -> None:
-    """Create an internal notification entry when an invoice is created."""
+def notify_invoice_created(sender, instance: Invoice, created: bool, **kwargs) -> None:
     if not created:
         return
-
-    recipient = getattr(settings, "TASK_NOTIFICATION_EMAIL", None) or getattr(
-        settings, "NETEXPRESS_DEVIS_NOTIFICATION", None
-    )
+    recipient = getattr(settings, "TASK_NOTIFICATION_EMAIL", getattr(settings, "DEFAULT_FROM_EMAIL", ""))
     if not recipient:
         return
-
-    try:
-        from messaging.models import EmailMessage as DbEmailMessage
-    except Exception:
-        return
-
-    num = instance.number or str(instance.pk)
-    total = getattr(instance, "total_ttc", "")
-    subject = f"[NetExpress] Facture {num} créée"
-    body = f"Une nouvelle facture {num} a été créée. Total TTC: {total}"
-
-    # We store the message for traceability; sending can be manual from the dashboard.
-    DbEmailMessage.objects.create(recipient=recipient, subject=subject, body=body)
+    num =  Invoice.number #getattr(instance, "invoice.number", None)
+    subject = f"[Nettoyage Express] Facture #{num} générée".format(num=instance.number or instance.pk)
+    total = Invoice.total_ttc #getattr(instance, "total_ttc", None) or getattr(instance, "total", "")
+    body =f"Une nouvelle facture #{num} a été générée. Total TTC: {total}".format(num=instance.number or instance.pk, total=total)
+    EmailMessage.objects.create(recipient=recipient, subject=subject, body=body).send()

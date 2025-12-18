@@ -150,3 +150,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// --- CSRF helpers (Django) ---
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Wrapper fetch qui ajoute automatiquement le token CSRF pour les requêtes mutables
+async function safeFetch(url, options = {}) {
+  const opts = { credentials: "same-origin", ...options };
+  const method = (opts.method || "GET").toUpperCase();
+  const needsCsrf = !["GET", "HEAD", "OPTIONS", "TRACE"].includes(method);
+
+  if (needsCsrf) {
+    const csrftoken = getCookie("csrftoken");
+    opts.headers = { ...(opts.headers || {}), "X-CSRFToken": csrftoken };
+  }
+  return fetch(url, opts);
+}
+
+window.safeFetch = safeFetch;

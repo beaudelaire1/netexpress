@@ -1,15 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
 
 {% block title %}Archives des factures — NetExpress{% endblock %}
 
 {% block content %}
-<section class="section">
-  <div class="section__head">
-    <h1>Archives des factures</h1>
-    <p class="muted">Liste des factures générées avec accès rapide aux fichiers PDF.</p>
-  </div>
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation factures">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+      <a href="{% url 'tasks:calendar' %}">Calendrier tâches</a>
+      <a class="is-primary" href="{% url 'factures:archive' %}">Factures</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">Archives des factures</div>
+        <div class="bo-subtitle">Accès rapide aux PDF générés.</div>
+      </div>
+    </div>
   {% if invoices %}
-  <table class="table">
+  <table class="bo-table">
     <thead>
       <tr>
         <th>Numéro</th>
@@ -46,5 +62,6 @@
   {% else %}
   <p>Aucune facture n'a encore été générée.</p>
   {% endif %}
-</section>
+  </main>
+</div>
 {% endblock %}

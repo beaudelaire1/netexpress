@@ -17,10 +17,9 @@
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
   <!-- Scripts -->
-  <script src="{% static 'js/main.js' %}"></script>
-  <script src="{% static 'js/forms.js' %}"></script>
-  {% block scripts %}{% endblock %}
-  {% block extra_head %}{% endblock %}
+  <script src="{% static 'js/main.js' %}" defer></script>
+  <script src="{% static 'js/forms.js' %}" defer></script>
+{% block extra_head %}{% endblock %}
 </head>
 <body>
   <!--
@@ -74,5 +73,6 @@
 
 
 
+  {% block scripts %}{% endblock %}
 </body>
 </html>

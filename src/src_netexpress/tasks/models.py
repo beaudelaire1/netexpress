@@ -71,12 +71,14 @@ class Task(models.Model):
     STATUS_IN_PROGRESS = "in_progress"
     STATUS_COMPLETED = "completed"
     STATUS_OVERDUE = "overdue"
+    STATUS_ALMOST_OVERDUE = "almost_overdue"
 
     STATUS_CHOICES = [
         (STATUS_UPCOMING, "À venir"),
         (STATUS_IN_PROGRESS, "En cours"),
         (STATUS_COMPLETED, "Terminé"),
         (STATUS_OVERDUE, "En retard"),
+        (STATUS_ALMOST_OVERDUE, "Presque en retard"),
     ]
 
     title: str = models.CharField(max_length=200)
@@ -131,14 +133,21 @@ class Task(models.Model):
         Otherwise the status is set to ``in_progress``.
         """
         today = date.today()
-        # Only adjust the status if the task is not marked completed
+        # Recalcule systématiquement le statut (sauf terminé) pour refléter la réalité du planning.
         if self.status != self.STATUS_COMPLETED:
             if self.due_date and self.due_date < today:
+                # Jour passé -> en retard
                 self.status = self.STATUS_OVERDUE
+            elif self.due_date and (self.due_date - today).days <= 1:
+                # 0 ou 1 jour restant -> presque en retard (même si déjà "en cours")
+                self.status = self.STATUS_ALMOST_OVERDUE
             elif self.start_date and self.start_date > today:
+                # Début dans le futur
                 self.status = self.STATUS_UPCOMING
             else:
+                # Par défaut : en cours (si start_date est vide ou <= aujourd'hui)
                 self.status = self.STATUS_IN_PROGRESS
+
         # Enforce that the due date cannot precede the start date
         if self.due_date and self.start_date and self.due_date < self.start_date:
             raise ValueError("La date d'échéance ne peut pas être antérieure à la date de début.")

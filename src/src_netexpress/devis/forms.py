@@ -4,10 +4,18 @@ from decimal import Decimal
 from typing import Optional
 
 from django import forms
+from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
 from services.models import Service
 from .models import Client, Quote, QuoteRequest, QuoteRequestPhoto, QuoteItem
+
+
+phone_validator = RegexValidator(
+    regex=r'^(?:(?:\+|00)594|0)[1-9][0-9]{8}$',
+    message="Entrez un numéro de téléphone valide (Guyane)"
+)
+
 
 class MultiFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -41,7 +49,8 @@ class DevisForm(forms.Form):
     )
     phone = forms.CharField(
         label="Téléphone",
-        max_length=50,
+        max_length=20,
+        validators=[phone_validator],
         widget=forms.TextInput(
             attrs={
                 "class": "input",
@@ -93,12 +102,14 @@ class DevisForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={"class": "input", "type": "date"}),
     )
+
     service = forms.ModelChoiceField(
         label="Service souhaité",
         queryset=Service.objects.filter(is_active=True).order_by("title"),
         required=False,
         widget=forms.Select(attrs={"class": "select"}),
     )
+
     message = forms.CharField(
         label="Votre demande",
         widget=forms.Textarea(
@@ -110,24 +121,22 @@ class DevisForm(forms.Form):
         ),
     )
 
-    # Champs supplémentaires pour correspondre au cahier des charges 2025.
     SERVICE_TYPES = [
         ("nettoyage", "Nettoyage"),
         ("espaces_verts", "Espaces verts"),
         ("renovation", "Rénovation"),
     ]
+
     URGENCY_LEVELS = [
-        ("standard", "Standard (sous 1 semaine)"),
-        ("express", "Express (48 h)"),
-        ("immediat", "Immédiat (24 h)"),
+        ("standard", "Standard (sous 1 semaine)"),
+        ("express", "Express (48 h)"),
+        ("immediat", "Immédiat (24 h)"),
     ]
 
     service_type = forms.ChoiceField(
         label="Type de service",
         choices=SERVICE_TYPES,
-        widget=forms.Select(
-            attrs={"class": "select", "required": True, "aria-required": "true"}
-        ),
+        widget=forms.Select(attrs={"class": "select", "required": True}),
     )
 
     surface = forms.IntegerField(
@@ -140,10 +149,9 @@ class DevisForm(forms.Form):
     urgency = forms.ChoiceField(
         label="Urgence",
         choices=URGENCY_LEVELS,
-        widget=forms.Select(
-            attrs={"class": "select", "required": True, "aria-required": "true"}
-        ),
+        widget=forms.Select(attrs={"class": "select", "required": True}),
     )
+
     images = forms.FileField(
         label="Photos (optionnel)",
         required=False,
@@ -151,41 +159,27 @@ class DevisForm(forms.Form):
     )
 
     def save(self) -> Quote:
-        """Crée un ``Client`` et un ``Quote`` à partir des données du formulaire."""
         cleaned = self.cleaned_data
-        service: Optional[Service] = cleaned.get("service")  # type: ignore[assignment]
+        service: Optional[Service] = cleaned.get("service")
 
-        # Construit le message final en incluant les champs personnalisés si fournis
         message = cleaned.get("message", "")
         extra_lines = []
-        # Ajout de la surface
-        surface_val = cleaned.get("surface")
-        if surface_val:
-            extra_lines.append(f"Surface : {surface_val} m²")
-        # Ajout de l'urgence
-        urgency_val = cleaned.get("urgency")
-        if urgency_val:
-            # Convertit la clé en libellé pour l'enregistrement
-            urgency_label = dict(self.URGENCY_LEVELS).get(urgency_val, urgency_val)
-            extra_lines.append(f"Urgence : {urgency_label}")
-        # Ajout du type de service
-        service_type_val = cleaned.get("service_type")
-        if service_type_val:
-            service_label = dict(self.SERVICE_TYPES).get(service_type_val, service_type_val)
-            extra_lines.append(f"Type de service : {service_label}")
-        # Préfixe le message si des informations supplémentaires sont présentes
+
+        if cleaned.get("surface"):
+            extra_lines.append(f"Surface : {cleaned['surface']} m²")
+
+        if cleaned.get("urgency"):
+            extra_lines.append(
+                f"Urgence : {dict(self.URGENCY_LEVELS).get(cleaned['urgency'])}"
+            )
+
+        if cleaned.get("service_type"):
+            extra_lines.append(
+                f"Type de service : {dict(self.SERVICE_TYPES).get(cleaned['service_type'])}"
+            )
+
         if extra_lines:
             message = "\n".join(extra_lines) + "\n\n" + message
-
-        # Infos complémentaires client (sans migration modèle)
-        address_val = cleaned.get("address")
-        if address_val:
-            message = f"Adresse : {address_val}\n" + message
-        preferred_date_val = cleaned.get("preferred_date")
-        if preferred_date_val:
-            message = f"Date souhaitée : {preferred_date_val}\n" + message
-        
-
 
         client = Client.objects.create(
             full_name=cleaned["full_name"],
@@ -204,15 +198,6 @@ class DevisForm(forms.Form):
             total_ttc=Decimal("0.00"),
         )
 
-        if hasattr(quote, "compute_totals") and callable(getattr(quote, "compute_totals")):
-            quote.compute_totals()  # type: ignore[call-arg]
-
-        if hasattr(quote, "generate_pdf") and callable(getattr(quote, "generate_pdf")):
-            try:
-                quote.generate_pdf(attach=True)  # type: ignore[call-arg]
-            except ImportError:
-                pass
-
         return quote
 
 
@@ -225,33 +210,41 @@ class QuoteRequestForm(forms.ModelForm):
         widget=MultiFileInput(attrs={"multiple": True}),
     )
 
+    def clean_photos(self):
+        files = self.files.getlist("photos")
+        if not files:
+            return None
+
+        if len(files) > 5:
+            raise forms.ValidationError("Maximum 5 fichiers.")
+
+        for f in files:
+            if f.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Chaque fichier doit faire au maximum 5 Mo.")
+
+        self.cleaned_data["photos_list"] = files
+        # conserve une valeur compat (ModelForm) même si on utilise photos_list
+        return files[0]
+
     class Meta:
         model = QuoteRequest
         fields = ["client_name", "email", "phone", "address", "message", "preferred_date"]
-        widgets = {
-            "client_name": forms.TextInput(attrs={"class": "input", "placeholder": _("Nom complet")}),
-            "email": forms.EmailInput(attrs={"class": "input", "placeholder": _("Email")}),
-            "phone": forms.TextInput(attrs={"class": "input", "placeholder": _("Téléphone")}),
-            "address": forms.TextInput(attrs={"class": "input", "placeholder": _("Adresse complète")}),
-            "message": forms.Textarea(
-                attrs={
-                    "class": "textarea",
-                    "placeholder": _("Décrivez votre besoin (surface, fréquence, contraintes...)"),
-                    "rows": 4,
-                }
-            ),
-            "preferred_date": forms.DateInput(
-                attrs={"class": "input", "type": "date"},
-            ),
-        }
 
 
 class QuoteAdminForm(forms.ModelForm):
-    """Formulaire d'édition des métadonnées d'un devis côté back‑office."""
+    """Formulaire d'édition des métadonnées d'un devis côté back-office."""
 
     class Meta:
         model = Quote
-        fields = ["client", "quote_request", "status", "issue_date", "valid_until", "message", "notes"]
+        fields = [
+            "client",
+            "quote_request",
+            "status",
+            "issue_date",
+            "valid_until",
+            "message",
+            "notes",
+        ]
 
 
 class QuoteItemForm(forms.ModelForm):
@@ -260,16 +253,18 @@ class QuoteItemForm(forms.ModelForm):
     class Meta:
         model = QuoteItem
         fields = ["service", "description", "quantity", "unit_price", "tax_rate"]
-        widgets = {
-            "service": forms.Select(attrs={"class": "select js-service"}),
-            "description": forms.TextInput(attrs={"class": "input js-description"}),
-            "quantity": forms.NumberInput(
-                attrs={"class": "input js-quantity", "step": "0.1", "min": "0"}
-            ),
-            "unit_price": forms.NumberInput(
-                attrs={"class": "input js-unit-price", "step": "0.01", "min": "0"}
-            ),
-            "tax_rate": forms.NumberInput(
-                attrs={"class": "input js-tax-rate", "step": "0.01", "min": "0"}
-            ),
-        }
+
+
+class QuoteValidationCodeForm(forms.Form):
+    code = forms.CharField(
+        label="Code de confirmation",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={
+                "class": "input",
+                "placeholder": "Ex : 123456",
+                "autocomplete": "one-time-code",
+                "inputmode": "numeric",
+            }
+        ),
+    )

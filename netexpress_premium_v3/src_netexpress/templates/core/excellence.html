@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{#
+  Page "L’Excellence".  Cette page reprend les valeurs de la société et
+  décrit notre engagement en termes de ponctualité, de discrétion et
+  d'écologie.  Elle réutilise les styles luxe via la feuille de style
+  ``style.css`` et charge les polices et icônes nécessaires.
+#}
+
+{% block extra_head %}
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock %}
+
+{% block title %}L’Excellence — NetExpress{% endblock %}
+
+{% block content %}
+  <!-- Bandeau d'introduction -->
+  <header class="page-header" style="background-image: linear-gradient(rgba(16, 65, 48, 0.8), rgba(16, 65, 48, 0.8)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop');">
+      <div>
+          <h1>Notre Promesse</h1>
+          <p>Pourquoi nous sommes différents.</p>
+      </div>
+  </header>
+
+  <!-- Contenu principal -->
+  <section class="page-content">
+      <div style="max-width: 800px; margin: 0 auto; text-align: center; margin-bottom: 80px;">
+          <h2 style="font-family: 'Playfair Display'; font-size: 2.5rem; color: #104130; margin-bottom: 20px;">L'Exigence comme Standard</h2>
+          <p style="font-size: 1.1rem; line-height: 1.8; color: #555;">
+              En Guyane, trouver un prestataire fiable, ponctuel et soucieux du détail relève souvent du défi.
+              NetExpress est né de ce constat. Nous ne vendons pas seulement du nettoyage ou du jardinage, nous
+              vendons de la <strong>tranquillité d'esprit</strong>. Nos équipes sont formées aux codes du luxe et de
+              l'hôtellerie pour intervenir chez vous en toute discrétion.
+          </p>
+      </div>
+
+      <div class="values-grid">
+          <div class="value-card">
+              <i class="fa-regular fa-clock"></i>
+              <h3>Ponctualité Absolue</h3>
+              <p>Le temps est le luxe ultime. Nous respectons nos créneaux à la minute près. En cas de retard imprévu, vous êtes prévenu immédiatement.</p>
+          </div>
+          <div class="value-card">
+              <i class="fa-solid fa-user-shield"></i>
+              <h3>Discrétion &amp; Confiance</h3>
+              <p>Tous nos intervenants sont sélectionnés rigoureusement, ont un casier vierge et signent une charte de confidentialité stricte.</p>
+          </div>
+          <div class="value-card">
+              <i class="fa-solid fa-leaf"></i>
+              <h3>Engagement Écologique</h3>
+              <p>Nous privilégions les produits bio-sourcés et les techniques respectueuses de l'environnement amazonien exceptionnel qui nous entoure.</p>
+          </div>
+      </div>
+
+      <div style="margin-top: 100px; display: flex; align-items: center; background: white; padding: 50px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+          <div style="flex: 1;">
+              <h3 style="font-family: 'Playfair Display'; font-size: 2rem; color: #104130; margin-bottom: 10px;">Rejoignez le cercle</h3>
+              <p>Déjà plus de 50 villas et entreprises de Guyane nous font confiance.</p>
+          </div>
+          <div>
+              <a href="{% url 'devis:request_quote' %}" class="btn-cta">Devenir Client Privilégié</a>
+          </div>
+      </div>
+  </section>
+{% endblock %}

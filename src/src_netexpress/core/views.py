@@ -8,6 +8,7 @@ Ces vues fournissent :
 """
 
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -109,3 +110,23 @@ def dashboard(request):
             "recent_messages": email_messages,
         },
     )
+
+
+@login_required
+def client_dashboard(request):
+    """Tableau de bord client (devis / factures)."""
+    user_email = getattr(request.user, "email", "") or ""
+    quotes = Quote.objects.filter(client__email__iexact=user_email).order_by("-issue_date")
+    invoices = Invoice.objects.filter(quote__client__email__iexact=user_email).order_by("-issue_date")
+    return render(request, "core/client_dashboard.html", {"quotes": quotes, "invoices": invoices})
+
+
+@login_required
+def worker_dashboard(request):
+    """Tableau de bord ouvrier (tâches à venir / en cours / proches)."""
+    team_names = list(request.user.groups.values_list("name", flat=True))
+    qs = Task.objects.all()
+    if team_names:
+        qs = qs.filter(team__in=team_names)
+    tasks_upcoming = qs.exclude(status=Task.STATUS_COMPLETED).order_by("due_date")[:20]
+    return render(request, "core/worker_dashboard.html", {"tasks": tasks_upcoming, "teams": team_names})

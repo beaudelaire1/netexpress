@@ -1,163 +1,174 @@
-"""Vues pour l'application ``devis``."""
-
-from decimal import Decimal
+from __future__ import annotations
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
-from django.forms import inlineformset_factory
-from django.http import FileResponse, Http404, JsonResponse, HttpRequest, HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.contrib import messages
+from django.core.files.base import ContentFile
+from django.http import FileResponse, Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 
 from services.models import Service
-from .forms import DevisForm, QuoteRequestForm, QuoteAdminForm, QuoteItemForm
-from .models import Quote, QuoteItem, QuoteRequest
+from .forms import QuoteRequestForm, QuoteAdminForm
+from .models import QuoteRequest, Quote, QuoteRequestPhoto, QuoteValidation
+from .quote_to_invoice import QuoteToInvoiceService
+from core.services.pdf_generator import render_quote_pdf
+from .email_service import send_quote_email
+from .forms import QuoteValidationCodeForm
 
 
-def request_quote(request: HttpRequest) -> HttpResponse:
-    """Afficher et traiter le formulaire public de demande de devis.
-
-    Cette vue crée une :class:`QuoteRequest` sans générer immédiatement
-    de devis chiffré. Les éventuelles photos sont associées via un
-    modèle intermédiaire.
-    """
+@require_http_methods(["GET", "POST"])
+def public_devis(request):
+    """Formulaire public : création d'une QuoteRequest."""
     if request.method == "POST":
         form = QuoteRequestForm(request.POST, request.FILES)
         if form.is_valid():
-            quote_request = form.save()
-            # Gestion des fichiers uploadés
-            files = request.FILES.getlist("photos")
-            from .models import QuoteRequestPhoto  # import local pour éviter cycles
+            qr: QuoteRequest = form.save()
+            files = form.cleaned_data.get("photos_list") or []
             for f in files:
                 photo = QuoteRequestPhoto.objects.create(image=f)
-                quote_request.photos.add(photo)            # Envoi asynchrone de confirmation (HTML brandé)
-            try:
-                from devis.tasks import send_quote_request_received
-                send_quote_request_received.delay(quote_request.pk)
-            except Exception:
-                # Ne bloque jamais le flux utilisateur si Celery est indisponible
-                pass
-            return redirect(reverse("devis:quote_success"))
+                qr.photos.add(photo)
+            messages.success(request, "Votre demande de devis a bien été envoyée.")
+            return redirect("devis:quote_success")
     else:
         form = QuoteRequestForm()
-
     return render(request, "devis/request_quote.html", {"form": form})
 
 
-def public_devis(request: HttpRequest) -> HttpResponse:
-    """
-    Formulaire de devis pour le grand public conforme au cahier des charges 2025.
+def quote_success(request):
+    return render(request, "devis/quote_success.html")
 
-    Ce formulaire utilise :class:`DevisForm` avec des champs
-    supplémentaires (type de service, surface en m², niveau d'urgence).
-    À la validation, un ``Quote`` et un ``Client`` sont créés puis
-    enregistrés via la méthode ``save`` du formulaire.  Aucune photo
-    n'est gérée ici.
-    """
-    from .forms import DevisForm
-    # Pré-remplissage depuis la home (GET) : service_type, surface, urgency
-    initial = {}
-    if request.method == "GET":
-        for key in ("service_type", "surface", "urgency"):
-            val = request.GET.get(key)
-            if val:
-                initial[key] = val
 
+@staff_member_required
+def download_quote_pdf(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+    # Ensure PDF exists (generate & attach)
+    if not quote.pdf:
+        quote.generate_pdf(attach=True)
+    try:
+        return FileResponse(quote.pdf.open("rb"), content_type="application/pdf")
+    except Exception as exc:
+        raise Http404() from exc
+
+
+@staff_member_required
+@require_http_methods(["GET", "POST"])
+def admin_quote_edit(request, pk):
+    """Éditeur back-office simple : métadonnées devis + actions."""
+    quote = get_object_or_404(Quote, pk=pk)
     if request.method == "POST":
-        form = DevisForm(request.POST, request.FILES)
+        form = QuoteAdminForm(request.POST, instance=quote)
+        action = request.POST.get("_action")
         if form.is_valid():
             form.save()
-            return redirect(reverse("devis:quote_success"))
-    else:
-        form = DevisForm(initial=initial)
-    return render(request, "devis/devis_form.html", {"form": form})
-
-
-def quote_success(request: HttpRequest) -> HttpResponse:
-    """Page de confirmation après dépôt d'une demande de devis."""
-    return render(request, "devis/quote_success.html", {})
-
-
-@login_required
-@staff_member_required
-def admin_quote_edit(request: HttpRequest, pk: int) -> HttpResponse:
-    """Éditeur avancé de devis pour le back‑office.
-
-    - Permet de modifier les métadonnées du devis (client, dates, statut).
-    - Permet d'ajouter / supprimer des lignes (:class:`QuoteItem`).
-    - Calcule les totaux côté client en JavaScript, avec vérification
-      supplémentaire côté serveur via ``compute_totals``.
-    """
-    quote = get_object_or_404(Quote, pk=pk)
-
-    QuoteItemFormSet = inlineformset_factory(
-        Quote,
-        QuoteItem,
-        form=QuoteItemForm,
-        extra=0,
-        can_delete=True,
-    )
-
-    if request.method == "POST":
-        prev_status = quote.status
-        form = QuoteAdminForm(request.POST, instance=quote)
-        formset = QuoteItemFormSet(request.POST, instance=quote)
-        if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            # Recalcul des totaux + génération PDF
-            try:
-                quote.compute_totals()
-            except Exception:
-                pass
-
-            # Si le devis passe à "Envoyé", on génère le PDF et on envoie au client (Celery)
-            try:
-                if quote.status == Quote.QuoteStatus.SENT and prev_status != Quote.QuoteStatus.SENT:
-                    from django.core.files.base import ContentFile
-                    from core.services.pdf_generator import render_quote_pdf
-                    pdf_res = render_quote_pdf(quote)
-                    quote.pdf.save(pdf_res.filename, ContentFile(pdf_res.content), save=True)
-                    from devis.tasks import send_quote_pdf_email
-                    send_quote_pdf_email.delay(quote.pk)
-            except Exception:
-                pass
-
-            return redirect(reverse("devis:admin_quote_edit", args=[quote.pk]))
+            if action == "generate_pdf":
+                pdf_res = render_quote_pdf(quote)
+                quote.pdf.save(pdf_res.filename, ContentFile(pdf_res.content), save=True)
+                messages.success(request, "PDF généré.")
+            elif action == "send_email":
+                if not quote.pdf:
+                    quote.generate_pdf(attach=True)
+                send_quote_email(quote, quote.pdf.path)
+                messages.success(request, "Email envoyé.")
+            elif action == "convert_invoice":
+                invoice = QuoteToInvoiceService.convert(quote)
+                messages.success(request, f"Converti en facture : {invoice.number}")
+                return redirect(f"/admin/factures/invoice/{invoice.pk}/change/")
+            return redirect("devis:admin_quote_edit", pk=quote.pk)
     else:
         form = QuoteAdminForm(instance=quote)
-        formset = QuoteItemFormSet(instance=quote)
-
-    context = {
-        "quote": quote,
-        "form": form,
-        "formset": formset,
-    }
-    return render(request, "devis/admin_quote_edit.html", context)
-
-
-@login_required
-@staff_member_required
-def service_info(request: HttpRequest, pk: int) -> JsonResponse:
-    """Retourne des informations JSON sur un service.
-
-    Utilisé par l'éditeur de devis pour préremplir la description
-    lorsqu'un service est sélectionné.
-    """
-    service = get_object_or_404(Service, pk=pk)
-    data = {
-        "id": service.pk,
-        "title": service.title,
-        "description": service.description,
-        "unit_type": service.unit_type,
-    }
-    return JsonResponse(data)
+    return render(request, "devis/admin_quote_edit.html", {"form": form, "quote": quote})
 
 
 @staff_member_required
-def download_quote(request: HttpRequest, pk: int) -> HttpResponse:
-    """Servir le fichier PDF associé à un devis pour le staff."""
+def service_info(request, pk):
+    srv = get_object_or_404(Service, pk=pk)
+    return JsonResponse({
+        "id": srv.pk,
+        "name": getattr(srv, "name", str(srv)),
+        "description": getattr(srv, "description", ""),
+        "base_price": str(getattr(srv, "base_price", "")),
+        "tax_rate": str(getattr(srv, "tax_rate", "")),
+    })
+
+@staff_member_required
+def admin_generate_quote_pdf(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
+
+    if hasattr(quote, "generate_pdf"):
+        quote.generate_pdf(attach=True)
+        messages.success(request, "Devis PDF généré avec succès.")
+    else:
+        messages.error(request, "La génération PDF n’est pas disponible.")
+
+    return redirect(
+        "admin:devis_quote_change",
+        object_id=quote.pk,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Validation devis (double facteur)
+# ---------------------------------------------------------------------------
+
+@require_http_methods(["GET"])
+def quote_validate_start(request, token: str):
+    """Étape 1 : le client clique le lien -> on génère/envoie un code."""
+    validation = get_object_or_404(QuoteValidation, token=token)
+    quote = validation.quote
+
+    if validation.is_expired:
+        messages.error(request, "Ce lien de validation a expiré. Merci de demander un nouveau lien.")
+        return render(request, "quotes/validate_expired.html", {"quote": quote})
+
+    # Envoie le code (email) et redirige vers la saisie
+    from .email_service import send_quote_validation_code
+    send_quote_validation_code(quote, validation)
+    return redirect("devis:quote_validate_code", token=validation.token)
+
+
+@require_http_methods(["GET", "POST"])
+def quote_validate_code(request, token: str):
+    """Étape 2 : saisie du code -> validation finale."""
+    validation = get_object_or_404(QuoteValidation, token=token)
+    quote = validation.quote
+
+    if validation.is_expired:
+        messages.error(request, "Ce code a expiré. Merci de relancer une validation.")
+        return render(request, "quotes/validate_expired.html", {"quote": quote})
+
+    if request.method == "POST":
+        form = QuoteValidationCodeForm(request.POST)
+        if form.is_valid():
+            ok = validation.verify(form.cleaned_data["code"])
+            if ok:
+                # Statut devis -> accepté
+                quote.status = Quote.QuoteStatus.ACCEPTED
+                quote.save(update_fields=["status"])
+                messages.success(request, "Merci ! Votre devis est validé.")
+                return render(request, "quotes/validate_success.html", {"quote": quote})
+            messages.error(request, "Code incorrect. Veuillez réessayer.")
+    else:
+        form = QuoteValidationCodeForm()
+
+    return render(
+        request,
+        "quotes/validate_code.html",
+        {"quote": quote, "form": form, "validation": validation},
+    )
+
+
+@require_http_methods(["GET"])
+def quote_public_pdf(request, token: str):
+    """Téléchargement public du PDF via un jeton de validation."""
+    validation = get_object_or_404(QuoteValidation, token=token)
+    quote = validation.quote
+
+    if validation.is_expired:
+        raise Http404()
+
     if not quote.pdf:
-        raise Http404("Ce devis n'a pas encore été généré.")
-    return FileResponse(quote.pdf.open("rb"), filename=quote.pdf.name, as_attachment=False)
+        quote.generate_pdf(attach=True)
+    try:
+        return FileResponse(quote.pdf.open("rb"), content_type="application/pdf")
+    except Exception as exc:
+        raise Http404() from exc

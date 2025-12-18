@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}À propos — NetExpress{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h1>À propos de Nettoyage Express</h1>
+      <p>Cette page a été déplacée. Découvrez désormais notre charte
+      de qualité et nos engagements sur la page « L’Excellence ».</p>
+      <a href="{% url 'core:excellence' %}" class="btn">Voir L’Excellence</a>
+    </div>
+  </section>
+{% endblock %}

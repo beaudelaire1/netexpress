@@ -14,12 +14,8 @@ class TasksConfig(AppConfig):
     verbose_name = "suivi des tâches"
 
     def ready(self) -> None:
-        # Import signal handlers so that they are registered as soon as
-        # Django starts.  The import is done lazily to avoid issues
-        # during migrations.
+    # Toujours activer les signaux : notifications premium (HTML uniquement)
         try:
             from . import signals  # noqa: F401
         except Exception:
-            # During migrations or if dependencies are missing the import
-            # may fail; ignore such errors to avoid breaking startup.
             pass

@@ -162,20 +162,3 @@ class InvoicePdfService:
         number = getattr(invoice, "number", None) or f"FAC-{getattr(invoice, 'pk', 'X')}"
         filename = f"{number}.pdf"
         return PdfFile(filename=filename, content=pdf_bytes)
-
-
-class QuotePdfService:
-    """Service responsible for rendering quote PDFs.
-
-    The project already provides premium HTML templates for quotes
-    under ``templates/pdf/quote.html``. We rely on the existing
-    WeasyPrint-based helper (``core.services.pdf_generator``) to render
-    the document, which guarantees consistent styling with invoices.
-    """
-
-    def generate(self, quote) -> PdfFile:
-        # Import locally to avoid circular imports
-        from core.services.pdf_generator import render_quote_pdf
-
-        res = render_quote_pdf(quote)
-        return PdfFile(filename=res.filename, content=res.content, mimetype=res.mimetype)

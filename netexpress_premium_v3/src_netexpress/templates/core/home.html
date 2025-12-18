@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Accueil — Nettoyage Express{% endblock %}
+
+{% block content %}
+  <!-- En‑tête immersif -->
+  <header class="hero">
+      <div class="overlay"></div>
+      <div class="hero-content">
+          <h1>L'Art du Détail,<br>La Passion du Vert.</h1>
+          <p>Nettoyage de prestige, entretien d'espaces verts et rénovation fine.</p>
+          <div class="hero-buttons">
+              <a href="{% url 'services:list' %}" class="btn-primary">Découvrir nos services</a>
+              <a href="{% url 'contact:contact' %}" class="btn-outline">Nous contacter</a>
+          </div>
+      </div>
+  </header>
+
+  <!-- Section d'expertise avec onglets -->
+  <section class="expertise">
+      <div class="section-head">
+          <h2>Nos Domaines d'Expertise</h2>
+          <p>Une approche globale pour sublimer votre habitat.</p>
+      </div>
+
+      <div class="tabs-wrapper">
+          <div class="tabs-header" role="tablist" aria-label="Domaines d'expertise">
+              <button class="tab-btn active" type="button" role="tab" aria-selected="true" data-tab-target="#nettoyage">Nettoyage Prestige</button>
+              <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab-target="#espaces-verts">Espaces Verts</button>
+              <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab-target="#renovation">Rénovation Express</button>
+          </div>
+
+          <div id="nettoyage" class="tab-content active" role="tabpanel">
+              <div class="content-card">
+                  <div class="card-image">
+                      <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage de prestige">
+                  </div>
+                  <div class="card-text">
+                      <h3>Nettoyage de prestige</h3>
+                      <p>Des finitions irréprochables, un matériel adapté et une intervention discrète pour sublimer vos espaces.</p>
+                      <ul class="features">
+                          <li><i class="fa-solid fa-check"></i> Nettoyage intérieur &amp; vitrerie</li>
+                          <li><i class="fa-solid fa-check"></i> Désinfection &amp; remise en état</li>
+                          <li><i class="fa-solid fa-check"></i> Contrôle qualité en fin d'intervention</li>
+                      </ul>
+                      <a href="{% url 'devis:request_quote' %}" class="link-arrow">Demander un devis <i class="fa-solid fa-arrow-right"></i></a>
+                  </div>
+              </div>
+          </div>
+
+          <div id="espaces-verts" class="tab-content" role="tabpanel" hidden>
+              <div class="content-card">
+                  <div class="card-image">
+                      <img src="{% static 'img/default_category.jpg' %}" alt="Espaces verts">
+                  </div>
+                  <div class="card-text">
+                      <h3>Création &amp; Entretien</h3>
+                      <p>Votre extérieur est le prolongement de votre luxe intérieur. Nous transformons votre jardin en un havre de paix.</p>
+                      <ul class="features">
+                          <li><i class="fa-solid fa-check"></i> Tonte &amp; Taille architecturale</li>
+                          <li><i class="fa-solid fa-check"></i> Design paysager</li>
+                          <li><i class="fa-solid fa-check"></i> Systèmes d'arrosage</li>
+                      </ul>
+                      <a href="{% url 'devis:request_quote' %}" class="link-arrow">Demander un devis <i class="fa-solid fa-arrow-right"></i></a>
+                  </div>
+              </div>
+          </div>
+
+          <div id="renovation" class="tab-content" role="tabpanel" hidden>
+              <div class="content-card">
+                  <div class="card-image">
+                      <img src="{% static 'img/hero_bg.png' %}" alt="Rénovation">
+                  </div>
+                  <div class="card-text">
+                      <h3>Rénovation express</h3>
+                      <p>Petits travaux, retouches et finitions pour remettre votre espace au niveau attendu, rapidement et proprement.</p>
+                      <ul class="features">
+                          <li><i class="fa-solid fa-check"></i> Peinture &amp; retouches</li>
+                          <li><i class="fa-solid fa-check"></i> Petites réparations</li>
+                          <li><i class="fa-solid fa-check"></i> Remise en état avant location/vente</li>
+                      </ul>
+                      <a href="{% url 'devis:request_quote' %}" class="link-arrow">Demander un devis <i class="fa-solid fa-arrow-right"></i></a>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </section>
+
+  <!-- Section devis rapide -->
+  <section class="quote-section" id="devis">
+      <div class="quote-header">
+          <h2>Votre Projet Sur Mesure</h2>
+          <p>Estimez vos besoins et contactez-nous.</p>
+      </div>
+
+      <div class="form-card animated-border">
+          <form method="get" action="{% url 'devis:request_quote' %}" class="quick-quote-form">
+              <label class="section-label" for="qq_service_type">Type de Service</label>
+              <div class="service-selector" data-service-selector>
+                  <button class="option active" type="button" data-service-value="nettoyage">
+                      <i class="fa-solid fa-broom"></i>
+                      <span>Nettoyage</span>
+                  </button>
+                  <button class="option" type="button" data-service-value="espaces_verts">
+                      <i class="fa-solid fa-tree"></i>
+                      <span>Espaces verts</span>
+                  </button>
+                  <button class="option" type="button" data-service-value="renovation">
+                      <i class="fa-solid fa-paint-roller"></i>
+                      <span>Rénovation</span>
+                  </button>
+              </div>
+              <select id="qq_service_type" name="service_type" class="select" hidden>
+                  <option value="nettoyage" selected>Nettoyage</option>
+                  <option value="espaces_verts">Espaces verts</option>
+                  <option value="renovation">Rénovation</option>
+              </select>
+
+              <div class="form-row">
+                  <div class="input-group">
+                      <div class="slider-labels">
+                          <label for="qq_surface">Surface (approximative)</label>
+                          <span id="qq_surface_value" class="highlight-val">50 m²</span>
+                      </div>
+                      <input type="range" min="10" max="5000" value="50" class="styled-slider" id="qq_surface" name="surface" data-range-output="#qq_surface_value">
+                  </div>
+
+                  <div class="input-group">
+                      <label for="qq_urgency">Urgence</label>
+                      <div class="select-wrapper">
+                          <select id="qq_urgency" name="urgency">
+                              <option value="standard" selected>Standard (sous 1 semaine)</option>
+                              <option value="express">Express (48h)</option>
+                              <option value="immediat">Immédiat (24h)</option>
+                          </select>
+                      </div>
+                  </div>
+              </div>
+
+              <p class="muted mt-1">Vous serez redirigé vers le formulaire complet pour renseigner vos coordonnées et votre message.</p>
+              <button type="submit" class="btn-submit">Continuer vers le devis</button>
+          </form>
+      </div>
+  </section>
+
+  <!-- Section portfolio -->
+  <section class="portfolio">
+      <div class="section-head">
+          <h2>Nos Réalisations</h2>
+          <p>Découvrez l'excellence de nos interventions en Guyane.</p>
+      </div>
+
+      <div class="portfolio-grid">
+          <div class="portfolio-item">
+              <img src="{% static 'img/hero_bg.png' %}" alt="Jardin Villa">
+              <div class="overlay-info">
+                  <span class="category">Espaces Verts</span>
+                  <h3 class="title">Villa Montjoly</h3>
+              </div>
+          </div>
+
+          <div class="portfolio-item">
+              <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage Vitres">
+              <div class="overlay-info">
+                  <span class="category">Nettoyage</span>
+                  <h3 class="title">Résidence Kourou</h3>
+              </div>
+          </div>
+
+          <div class="portfolio-item">
+              <img src="{% static 'img/default_category.jpg' %}" alt="Rénovation Salon">
+              <div class="overlay-info">
+                  <span class="category">Rénovation</span>
+                  <h3 class="title">Appartement Cayenne</h3>
+              </div>
+          </div>
+
+          <div class="portfolio-item">
+              <img src="{% static 'img/default_service.jpg' %}" alt="Entretien Palmier">
+              <div class="overlay-info">
+                  <span class="category">Espaces Verts</span>
+                  <h3 class="title">Jardin Tropical Remire</h3>
+              </div>
+          </div>
+      </div>
+
+      <div class="portfolio-footer">
+          <a href="{% url 'core:realisations' %}" class="btn-text">Voir toute la galerie <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
+
+{% block title %}Archives des factures — NetExpress{% endblock %}
+
+{% block content %}
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation factures">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+      <a href="{% url 'tasks:calendar' %}">Calendrier tâches</a>
+      <a class="is-primary" href="{% url 'factures:archive' %}">Factures</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">Archives des factures</div>
+        <div class="bo-subtitle">Accès rapide aux PDF générés.</div>
+      </div>
+    </div>
+  {% if invoices %}
+  <table class="bo-table">
+    <thead>
+      <tr>
+        <th>Numéro</th>
+        <th>Date d'émission</th>
+        <th>Client</th>
+        <th>Montant TTC</th>
+        <th>PDF</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inv in invoices %}
+      <tr>
+        <td>{{ inv.number }}</td>
+        <td>{{ inv.issue_date|date:'d/m/Y' }}</td>
+        <td>
+          {% if inv.quote and inv.quote.client %}
+            {{ inv.quote.client.full_name }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td>{{ inv.total_ttc }} €</td>
+        <td>
+          {% if inv.pdf %}
+            <a href="{% url 'factures:download' inv.pk %}" target="_blank">Ouvrir</a>
+          {% else %}
+            –
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Aucune facture n'a encore été générée.</p>
+  {% endif %}
+  </main>
+</div>
+{% endblock %}

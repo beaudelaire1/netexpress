@@ -16,7 +16,6 @@ from django.conf import settings
 from devis.models import Quote
 from devis.services import create_invoice_from_quote
 from .models import Invoice
-from core.services.email_service import PremiumEmailService
 
 # Import the hexagonal service layer and its adapters
 from hexcore.services.invoice_service import InvoiceService
@@ -64,19 +63,10 @@ def create_invoice(request, quote_id: int):
     try:
         invoice_model.compute_totals()
         invoice_model.generate_pdf(attach=True)
-        # Envoi immédiat de la facture au client (PDF en pièce jointe)
-        PremiumEmailService().send_invoice_notification(invoice_model)
-        # Marquer la facture comme envoyée (si le champ existe)
-        try:
-            if hasattr(invoice_model, "status"):
-                invoice_model.status = Invoice.InvoiceStatus.SENT
-                invoice_model.save(update_fields=["status"])
-        except Exception:
-            pass
     except Exception as e:
         messages.error(
             request,
-            f"La facture a été créée mais l'envoi e‑mail a échoué : {str(e)}",
+            f"La facture a été créée mais le PDF n'a pas pu être généré : {str(e)}",
         )
     # Warn if invoice has no line items
     if not invoice_model.invoice_items.exists():

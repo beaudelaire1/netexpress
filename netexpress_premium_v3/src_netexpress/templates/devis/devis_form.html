@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{#
+  Formulaire public de devis conforme au cahier des charges.  Il
+  utilise ``DevisForm`` et ajoute un slider pour la surface.  Un
+  élément caché ``id_surface`` est mis à jour via le script pour
+  transmettre la valeur au backend.  Les champs sont organisés en
+  grille responsive.
+#}
+
+{% block title %}Demande de devis — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="form-card animated-border">
+    <h1 class="h1">Demande de devis</h1>
+    <p class="muted">Remplissez ce formulaire pour recevoir une proposition personnalisée. Notre équipe reviendra vers vous rapidement.</p>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="row row-2">
+        <!-- Type de service -->
+        <div class="col-span-2">
+          {{ form.service_type.errors }}
+          <label for="id_service_type">Type de service</label>
+          {{ form.service_type }}
+        </div>
+        <!-- Surface avec slider -->
+        <div class="col-span-2">
+          <label>Surface (m²)</label>
+          <div class="slider-row">
+            <input type="range" id="surfaceSlider" min="10" max="1000" value="50" class="styled-slider" data-range-output="#surfaceOutput" data-range-hidden="#id_surface">
+            <span id="surfaceOutput" class="highlight-val">50 m²</span>
+          </div>
+          {{ form.surface }}
+        </div>
+        <!-- Urgence -->
+        <div class="col-span-2">
+          {{ form.urgency.errors }}
+          <label for="id_urgency">Urgence</label>
+          {{ form.urgency }}
+        </div>
+        <!-- Adresse (optionnelle) -->
+        <div class="col-span-2">
+          {{ form.address.errors }}
+          {{ form.address.label_tag }}
+          {{ form.address }}
+        </div>
+        <!-- Date souhaitée (optionnelle) -->
+        <div class="col-span-2">
+          {{ form.preferred_date.errors }}
+          {{ form.preferred_date.label_tag }}
+          {{ form.preferred_date }}
+        </div>
+        <!-- Nom complet -->
+        <div>
+          {{ form.full_name.errors }}
+          {{ form.full_name.label_tag }}
+          {{ form.full_name }}
+        </div>
+        <!-- Email -->
+        <div>
+          {{ form.email.errors }}
+          {{ form.email.label_tag }}
+          {{ form.email }}
+        </div>
+        <!-- Téléphone -->
+        <div>
+          {{ form.phone.errors }}
+          {{ form.phone.label_tag }}
+          {{ form.phone }}
+        </div>
+        <!-- Ville -->
+        <div>
+          {{ form.city.errors }}
+          {{ form.city.label_tag }}
+          {{ form.city }}
+        </div>
+        <!-- Code postal -->
+        <div>
+          {{ form.zip_code.errors }}
+          {{ form.zip_code.label_tag }}
+          {{ form.zip_code }}
+        </div>
+        <!-- Message -->
+        <div class="col-span-2">
+          {{ form.message.errors }}
+          {{ form.message.label_tag }}
+          {{ form.message }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-block">Envoyer ma demande</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

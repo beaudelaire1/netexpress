@@ -1,14 +1,32 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Suivi des tâches — NetExpress{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
+
 {% block content %}
-<section class="section">
-  <div class="section__head">
-    <h1>Suivi des tâches</h1>
-  </div>
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation tâches">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      <a href="{% url 'tasks:calendar' %}">Calendrier</a>
+      <a class="is-primary" href="{% url 'tasks:list' %}">Liste des tâches</a>
+      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">Suivi des tâches</div>
+        <div class="bo-subtitle">Liste complète (statut auto : en retard / presque en retard / etc.).</div>
+      </div>
+    </div>
   {% if tasks %}
-  <table class="table">
+  <table class="bo-table">
     <thead>
       <tr>
         <th>Titre</th>
@@ -33,7 +51,8 @@
     </tbody>
   </table>
   {% else %}
-  <p>Aucune tâche n'a été enregistrée pour le moment.</p>
+  <p class="muted">Aucune tâche n'a été enregistrée pour le moment.</p>
   {% endif %}
-</section>
+  </main>
+</div>
 {% endblock %}

@@ -25,4 +25,6 @@ urlpatterns = [
     path("realisations/", views.realisations, name="realisations"),
     # Tableau de bord agrégé
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/client/", views.client_dashboard, name="client_dashboard"),
+    path("dashboard/ouvrier/", views.worker_dashboard, name="worker_dashboard"),
 ]
