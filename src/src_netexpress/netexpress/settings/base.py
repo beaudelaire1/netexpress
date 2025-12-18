@@ -60,6 +60,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Vos apps ici
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
+    # Third‑party app to serve static files in production
+    "whitenoise.runserver_nostatic",
+
+    # Project apps - avec chemin complet vers AppConfig
+    "core.apps.CoreConfig",
+    "services.apps.ServicesConfig",
+    "devis.apps.DevisConfig",
+    "factures.apps.FacturesConfig",
+    "contact.apps.ContactConfig",
+    "tasks.apps.TasksConfig",
+    "messaging.apps.MessagingConfig",
 ]
 
 # ============================================================
