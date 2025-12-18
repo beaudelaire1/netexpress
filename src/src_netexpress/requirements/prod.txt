@@ -8,6 +8,9 @@
 # Serveur WSGI
 gunicorn>=22.0
 
+celery>=5.3
+redis>=5.0
+
 # PDF (standard unique)
 weasyprint>=62.0
 Pillow>=10.0
