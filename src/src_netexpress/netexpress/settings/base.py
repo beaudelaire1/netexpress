@@ -54,10 +54,18 @@ else:
 # ============================================================
 
 ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "").split(",")
-    if host.strip()
+    # Local
+    "localhost",
+    "127.0.0.1",
+
+    # Domaine public
+    "www.nettoyageexpresse.fr",
+    "nettoyageexpresse.fr",
+
+    # Render
+    "netexpress.onrender.com",
 ]
+
 
 # Sécurité : ne jamais démarrer en prod sans hosts
 if not DEBUG and not ALLOWED_HOSTS:
