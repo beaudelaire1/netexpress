@@ -20,6 +20,7 @@ import environ
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+print("🔥 BASE.PY CHARGÉ 🔥", __file__)
 
 # ============================================================
 # 🌱 ENVIRONMENT
@@ -61,6 +62,8 @@ ALLOWED_HOSTS = [
 # Sécurité : ne jamais démarrer en prod sans hosts
 if not DEBUG and not ALLOWED_HOSTS:
     raise RuntimeError("ALLOWED_HOSTS is empty in production")
+
+print("🔥 ALLOWED_HOSTS =", ALLOWED_HOSTS)
 
 # ============================================================
 # 📦 APPLICATIONS
