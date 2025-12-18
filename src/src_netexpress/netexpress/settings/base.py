@@ -6,7 +6,245 @@ for serving static files in production, and removes hard‑coded secrets.
 Replace placeholders like `YOUR_SECRET_KEY` and `YOUR_EMAIL_PASSWORD`
 with environment variables in your actual deployment to avoid committing
 sensitive data to version control.
+""""""
+Django base settings for NetExpress
+Production-ready (Render compatible)
 """
+
+from pathlib import Path
+import os
+import environ
+
+# ============================================================
+# 📁 BASE DIR
+# ============================================================
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# ============================================================
+# 🌱 ENVIRONMENT
+# ============================================================
+
+env = environ.Env(
+    DJANGO_DEBUG=(bool, False),
+    DEBUG=(bool, False),
+)
+
+env_path = BASE_DIR / ".env"
+if env_path.exists():
+    environ.Env.read_env(env_file=env_path)
+
+# ============================================================
+# 🔐 SECURITY
+# ============================================================
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("DJANGO_SECRET_KEY is not set")
+
+raw_debug = env("DJANGO_DEBUG", default=env("DEBUG", default=False))
+if isinstance(raw_debug, str):
+    DEBUG = raw_debug.strip().lower() in {"1", "true", "yes", "on"}
+else:
+    DEBUG = bool(raw_debug)
+
+# ============================================================
+# 🌍 ALLOWED HOSTS  (BUG FIX DÉFINITIF)
+# ============================================================
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
+
+# Sécurité : ne jamais démarrer en prod sans hosts
+if not DEBUG and not ALLOWED_HOSTS:
+    raise RuntimeError("ALLOWED_HOSTS is empty in production")
+
+# ============================================================
+# 📦 APPLICATIONS
+# ============================================================
+
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
+
+    # Static files (prod)
+    "whitenoise.runserver_nostatic",
+
+    # Project apps
+    "core",
+    "services",
+    "devis",
+    "factures",
+    "contact",
+    "tasks",
+    "messaging",
+    "accounts",
+]
+
+# Optional Jazzmin
+try:
+    import jazzmin  # noqa
+    INSTALLED_APPS.insert(0, "jazzmin")
+except Exception:
+    pass
+
+# ============================================================
+# 🧩 MIDDLEWARE
+# ============================================================
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# ============================================================
+# 🌐 URLS / WSGI
+# ============================================================
+
+ROOT_URLCONF = "netexpress.urls"
+WSGI_APPLICATION = "netexpress.wsgi.application"
+
+# ============================================================
+# 🎨 TEMPLATES
+# ============================================================
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+            "builtins": [
+                "core.templatetags.legacy_filters",
+            ],
+        },
+    },
+]
+
+# ============================================================
+# 🗄️ DATABASE
+# ============================================================
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# ============================================================
+# 🌍 I18N / TIMEZONE
+# ============================================================
+
+LANGUAGE_CODE = "fr-fr"
+TIME_ZONE = "America/Cayenne"
+USE_I18N = True
+USE_TZ = True
+
+# ============================================================
+# 📦 STATIC / MEDIA
+# ============================================================
+
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ============================================================
+# 📧 EMAIL (SMTP INFOMANIAK)
+# ============================================================
+
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = env("EMAIL_HOST", default="mail.infomaniak.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+
+CONTACT_RECEIVER_EMAIL = env(
+    "CONTACT_RECEIVER_EMAIL", default=DEFAULT_FROM_EMAIL
+)
+TASK_NOTIFICATION_EMAIL = env(
+    "TASK_NOTIFICATION_EMAIL", default=DEFAULT_FROM_EMAIL
+)
+
+# ============================================================
+# ⚙️ CELERY (OPTIONNEL)
+# ============================================================
+
+CELERY_BROKER_URL = env(
+    "CELERY_BROKER_URL", default="redis://localhost:6379/0"
+)
+CELERY_RESULT_BACKEND = env(
+    "CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL
+)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+
+# ============================================================
+# 🌐 SITE URL
+# ============================================================
+
+SITE_URL = env("SITE_URL", default="http://localhost:8000")
+
+# ============================================================
+# 🧾 LOGGING
+# ============================================================
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        }
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
 
 from pathlib import Path
 import os
