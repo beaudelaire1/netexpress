@@ -72,6 +72,8 @@ INSTALLED_APPS = [
     'contact.apps.ContactConfig',
     'tasks.apps.TasksConfig',
     'messaging.apps.MessagingConfig',
+    'accounts.apps.AccountsConfig',  
+
 ]
 
 # ============================================================
