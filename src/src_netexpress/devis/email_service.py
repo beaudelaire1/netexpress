@@ -33,13 +33,23 @@ def send_quote_email(quote, request=None, *, to_email: Optional[str] = None) -> 
     if not getattr(quote, 'pdf', None):
         quote.generate_pdf(attach=True)
 
+    # Ensure we have a stable public token for links (backfill if legacy data)
+    if not getattr(quote, 'public_token', None):
+        try:
+            quote.save(update_fields=["public_token"])
+        except Exception:
+            try:
+                quote.save()
+            except Exception:
+                pass
+
     base = _base_url(request)
-    # Public PDF and validation links require a QuoteValidation token.
-    # We create a fresh token each time we send the email.
-    from .models import QuoteValidation
-    validation = QuoteValidation.create_for_quote(quote)
+    # Public PDF link uses Quote.public_token (stable).
+    # Validation link must point to the START step with the *public_token*.
+    # IMPORTANT: Per requirement, the OTP code MUST NOT appear in the quote email.
+    # It is sent in a separate email when the client clicks the validation link.
     pdf_url = f"{base}{reverse('devis:quote_public_pdf', kwargs={'token': quote.public_token})}"
-    validation_url = f"{base}{reverse('devis:quote_validate_start', kwargs={'token': validation.token})}"
+    validation_url = f"{base}{reverse('devis:quote_validate_start', kwargs={'token': quote.public_token})}"
 
     client = getattr(quote, 'client', None)
     client_name = getattr(client, 'full_name', '') if client is not None else ''
@@ -59,7 +69,6 @@ def send_quote_email(quote, request=None, *, to_email: Optional[str] = None) -> 
             'company_name': company_name,
             'pdf_url': pdf_url,
             'validation_url': validation_url,
-            'validation_code': validation.code,
         },
     )
 

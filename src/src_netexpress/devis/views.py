@@ -67,7 +67,7 @@ def admin_quote_edit(request, pk):
             elif action == "send_email":
                 if not quote.pdf:
                     quote.generate_pdf(attach=True)
-                send_quote_email(quote, quote.pdf.path)
+                send_quote_email(quote, request=request)
                 messages.success(request, "Email envoyé.")
             elif action == "convert_invoice":
                 invoice = QuoteToInvoiceService.convert(quote)
@@ -112,15 +112,14 @@ def admin_generate_quote_pdf(request, pk):
 
 @require_http_methods(["GET"])
 def quote_validate_start(request, token: str):
-    """Étape 1 : le client clique le lien -> on génère/envoie un code."""
-    validation = get_object_or_404(QuoteValidation, token=token)
-    quote = validation.quote
+    """Étape 1 : lien de validation (public) -> génération + envoi du code.
 
-    if validation.is_expired:
-        messages.error(request, "Ce lien de validation a expiré. Merci de demander un nouveau lien.")
-        return render(request, "quotes/validate_expired.html", {"quote": quote})
+    Le paramètre ``token`` est le ``Quote.public_token`` (stable).
+    """
+    quote = get_object_or_404(Quote, public_token=token)
+    validation = QuoteValidation.create_for_quote(quote)
 
-    # Envoie le code (email) et redirige vers la saisie
+    # Envoie le code (email premium HTML) et redirige vers la saisie
     from .email_service import send_quote_validation_code
     send_quote_validation_code(quote, validation)
     return redirect("devis:quote_validate_code", token=validation.token)
@@ -159,12 +158,26 @@ def quote_validate_code(request, token: str):
 
 @require_http_methods(["GET"])
 def quote_public_pdf(request, token: str):
-    """Téléchargement public du PDF via un jeton de validation."""
-    validation = get_object_or_404(QuoteValidation, token=token)
-    quote = validation.quote
+    """Téléchargement public du PDF via un jeton *stable*.
 
-    if validation.is_expired:
-        raise Http404()
+    Historique:
+    - v1: le lien pointait vers QuoteValidation.token (peut expirer / être régénéré)
+    - v2+: le lien public pointe vers Quote.public_token (stable)
+    Pour compatibilité, on accepte encore un token de QuoteValidation si nécessaire.
+    """
+    quote = None
+    # 1) Token public stable du devis
+    try:
+        quote = Quote.objects.get(public_token=token)
+    except Exception:
+        quote = None
+
+    # 2) Compatibilité: ancien token de validation 2FA
+    if quote is None:
+        validation = get_object_or_404(QuoteValidation, token=token)
+        if validation.is_expired:
+            raise Http404()
+        quote = validation.quote
 
     if not quote.pdf:
         quote.generate_pdf(attach=True)

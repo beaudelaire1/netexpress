@@ -46,10 +46,10 @@
             <td>{{ q.get_status_display }}</td>
             <td>{{ q.total_ttc }} €</td>
             <td>
-              {% if q.pdf %}
-                <a href="{{ q.pdf.url }}" target="_blank">Ouvrir</a>
-              {% else %}
-                —
+              <a href="{% url 'devis:quote_public_pdf' token=q.public_token %}" target="_blank">Consulter</a>
+              {% if q.status != 'accepted' %}
+                <span style="margin:0 8px;">·</span>
+                <a href="{% url 'devis:quote_validate_start' token=q.public_token %}">Valider</a>
               {% endif %}
             </td>
           </tr>

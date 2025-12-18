@@ -13,7 +13,7 @@ from django.core.files.base import ContentFile
 from .models import EmailMessage
 
 try:
-    # Importer le service SMTP pour envoyer les notifications directement
+    # Service d'envoi HTML premium
     from tasks.services import EmailNotificationService  # type: ignore
 except Exception:
     EmailNotificationService = None  # type: ignore
@@ -48,32 +48,35 @@ def send_contact_notification(contact_message: "contact.models.Message") -> None
     if not dest:
         dest = getattr(settings, "EMAIL_HOST_USER", "")
     recipient = dest or ""
-    # Construire l'objet et le corps du message
     subject = f"Nouveau message de contact – {contact_message.get_topic_display()}"
-    body_lines = [
-        f"Nom : {contact_message.full_name}",
-        f"Email : {contact_message.email}",
-        f"Téléphone : {contact_message.phone}",
-        f"Ville : {contact_message.city}",
-        f"Code postal : {contact_message.zip_code}",
-        "",  # ligne vide
-        contact_message.body,
+
+    # HTML ONLY (exigence projet)
+    rows = [
+        {"label": "Nom", "value": contact_message.full_name},
+        {"label": "Email", "value": contact_message.email},
+        {"label": "Téléphone", "value": contact_message.phone},
+        {"label": "Ville", "value": contact_message.city or "—"},
+        {"label": "Code postal", "value": contact_message.zip_code or "—"},
     ]
-    body = "\n".join(body_lines)
-    # Envoyer directement via le service SMTP si disponible
+    intro = (contact_message.body or "").strip()
+    if not intro:
+        intro = "Un nouveau message a été envoyé depuis le formulaire de contact."
+
     if EmailNotificationService:
-        # Ne pas override l'adresse d'expéditeur pour éviter les erreurs "Sender mismatch".
         EmailNotificationService.send(
-            to_email=recipient,
+            to=recipient,
             subject=subject,
-            body=body,
+            headline="Nouveau message de contact",
+            intro=intro,
+            rows=rows,
         )
+        EmailMessage.objects.create(recipient=recipient, subject=subject, body=intro)
     else:
-        # Fallback : enregistrer et envoyer via EmailMessage
+        # Fallback : e-mail HTML minimal via EmailMessage
         email_obj = EmailMessage.objects.create(
             recipient=recipient,
             subject=subject,
-            body=body,
+            body=intro,
         )
         email_obj.send()
     return None
@@ -179,15 +182,21 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     except Exception:
         attachments = None
 
-    # Envoyer directement via le service SMTP si disponible
+    # Envoyer directement via le service SMTP premium si disponible
     if EmailNotificationService:
         EmailNotificationService.send(
-            to_email=recipient,
+            to=recipient,
             subject=subject,
-            body=body,
-            attachments=attachments,
-            html_body=html_body,
+            headline="Nouvelle demande de devis",
+            intro=f"Devis {quote.number} — {client.full_name}",
+            rows=[
+                {"label": "Client", "value": client.full_name},
+                {"label": "Email", "value": client.email},
+                {"label": "Téléphone", "value": client.phone},
+                {"label": "Total TTC", "value": f"{quote.total_ttc:.2f} €"},
+            ],
         )
+        EmailMessage.objects.create(recipient=recipient, subject=subject, body=body)
         return None
     else:
         # Fallback : enregistrer et envoyer via EmailMessage

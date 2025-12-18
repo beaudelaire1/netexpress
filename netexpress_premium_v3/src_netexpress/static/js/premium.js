@@ -1,1 +1,0 @@
-document.querySelectorAll('.card').forEach(c=>{c.style.opacity=1});

@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "django.contrib.sitemaps",
     # Third‑party app to serve static files in production
     "whitenoise.runserver_nostatic",
 
@@ -81,6 +82,7 @@ INSTALLED_APPS = [
     "contact",
     "tasks",
     "messaging",
+    "accounts",
 ]
 
 # Optionally insert Jazzmin if available for admin theming

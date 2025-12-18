@@ -77,50 +77,56 @@ class EmailMessage(models.Model):
         return f"{self.subject} → {self.recipient}"
 
     def send(self) -> None:
-        """Envoyer le message via le service SMTP.
+        """Envoyer le message (HTML premium uniquement).
 
-        Si l'envoi réussit pour tous les destinataires, le statut est
-        mis à ``sent`` et ``sent_at`` est renseigné.  En cas d'erreur,
-        le statut passe à ``failed`` et l'exception est enregistrée
-        dans ``error_message``.  Les messages déjà envoyés ne sont
-        pas renvoyés.
+        Exigences:
+        - Aucun e-mail en texte brut (pas de multipart text/plain visible)
+        - Le contenu HTML (TinyMCE) est envoyé tel quel
+        - Les destinataires multiples sont envoyés individuellement (pas de fuite d'adresses)
         """
-        # Ne rien faire si le message est déjà envoyé ou en échec
         if self.status == self.STATUS_SENT:
             return
-        if EmailNotificationService is None:
-            self.status = self.STATUS_FAILED
-            self.error_message = "Service d'e‑mail indisponible."
-            self.save(update_fields=["status", "error_message"])
-            return
-        attachments: list[tuple[str, bytes]] = []
-        if self.attachment:
-            # Lire le fichier joint pour le transférer au service SMTP
-            try:
-                content = self.attachment.read()
-                attachments.append((self.attachment.name.rsplit("/", 1)[-1], content))
-            except Exception:
-                pass
-        # Regrouper toutes les adresses (to + cc), en supprimant les espaces et doublons
-        to_addresses = [addr.strip() for addr in self.recipient.split(",") if addr.strip()]
-        cc_addresses = [addr.strip() for addr in self.cc.split(",") if addr.strip()]
-        all_addresses = []
+
+        from django.conf import settings
+
+        # Normaliser les destinataires (to + cc) : on envoie individuellement
+        to_addresses = [a.strip() for a in (self.recipient or "").split(",") if a.strip()]
+        cc_addresses = [a.strip() for a in (self.cc or "").split(",") if a.strip()]
+        all_addresses: list[str] = []
         for addr in to_addresses + cc_addresses:
             if addr and addr not in all_addresses:
                 all_addresses.append(addr)
-        # Envoyer l'e‑mail à chaque destinataire individuellement
-        send_errors: list[str] = []
-        for to_addr in all_addresses:
+
+        # Pièces jointes
+        attachments: list[tuple[str, bytes]] = []
+        if self.attachment:
             try:
-                EmailNotificationService.send(
-                    to_email=to_addr,
+                content = self.attachment.read()
+                filename = (self.attachment.name or "piece-jointe").rsplit("/", 1)[-1]
+                attachments.append((filename, content))
+            except Exception:
+                pass
+
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@nettoyageexpress.com"
+
+        send_errors: list[str] = []
+        for to_addr in all_addresses or []:
+            try:
+                email = EmailMultiAlternatives(
                     subject=self.subject,
-                    body=self.body,
-                    attachments=attachments or None,
+                    body=self.body or "",   # body sera traité en HTML (content_subtype)
+                    from_email=from_email,
+                    to=[to_addr],
                 )
+                email.content_subtype = "html"  # HTML only
+                # Attachements
+                for (fname, data) in attachments:
+                    email.attach(fname, data)
+                email.send(fail_silently=False)
             except Exception as exc:
                 send_errors.append(f"{to_addr}: {exc}")
-        # Mise à jour du statut et du timestamp
+
+        # Mise à jour statut
         if send_errors:
             self.status = self.STATUS_FAILED
             self.error_message = "; ".join(send_errors)
@@ -128,4 +134,4 @@ class EmailMessage(models.Model):
             self.status = self.STATUS_SENT
             self.sent_at = timezone.now()
             self.error_message = ""
-        self.save(update_fields=["status", "sent_at", "error_message"])
+        self.save(update_fields=["status", "sent_at", "error_message", "status"])

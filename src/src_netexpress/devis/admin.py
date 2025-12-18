@@ -4,9 +4,23 @@ from django.shortcuts import get_object_or_404, redirect
 from .models import Quote, QuoteItem
 
 
+class QuoteItemInline(admin.TabularInline):
+    """Lignes de devis *incluses* dans la fiche devis (comme une facture).
+
+    Exigence : ne pas avoir une section/liste séparée "lignes de devis" dans
+    l'admin. Les lignes se gèrent directement dans le devis.
+    """
+
+    model = QuoteItem
+    extra = 1
+    autocomplete_fields = ("service",)
+    fields = ("service", "description", "quantity", "unit_price", "tax_rate")
+
+
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
     list_display = ("number", "client", "status", "total_ttc", "pdf")
+    inlines = [QuoteItemInline]
 
     actions = [
         "action_generate_pdf",
@@ -75,10 +89,4 @@ class QuoteAdmin(admin.ModelAdmin):
                 quote.send_email(request=request, force_pdf=True)
         self.message_user(request, "Devis envoyés par email.", level=messages.SUCCESS)
 
-
-@admin.register(QuoteItem)
-class QuoteItemAdmin(admin.ModelAdmin):
-    list_display = ("quote", "service", "quantity", "unit_price")
-    list_filter = ("quote",)
-    search_fields = ("service", "description")
-    autocomplete_fields = ("service",)
+# NOTE : on ne register pas QuoteItem pour éviter un menu séparé en admin.
