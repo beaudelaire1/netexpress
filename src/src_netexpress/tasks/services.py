@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
+import logging
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -17,9 +21,9 @@ class NotificationRow:
 class EmailNotificationService:
     """Service d'envoi d'e-mails PREMIUM (HTML uniquement).
 
-    Exigence projet :
-    - aucune notification en texte brut
-    - rendu propre (template emails/notification_generic.html)
+    - jamais bloquant
+    - jamais crashant
+    - log les erreurs en production
     """
 
     @staticmethod
@@ -34,6 +38,7 @@ class EmailNotificationService:
         action_label: Optional[str] = None,
     ) -> None:
         brand = getattr(settings, "INVOICE_BRANDING", {}).get("name", "Nettoyage Express")
+
         html = render_to_string(
             "emails/notification_generic.html",
             {
@@ -45,7 +50,23 @@ class EmailNotificationService:
                 "action_label": action_label,
             },
         )
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@example.com"
-        email = EmailMessage(subject=subject, body=html, from_email=from_email, to=[to])
+
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
+
+        email = EmailMessage(
+            subject=subject,
+            body=html,
+            from_email=from_email,
+            to=[to],
+        )
         email.content_subtype = "html"
-        email.send(fail_silently=True)
+
+        try:
+            email.send()  # ⚠️ PAS fail_silently
+        except Exception as exc:
+            logger.error(
+                "EmailNotificationService.send FAILED (ignored): %s | to=%s | subject=%s",
+                exc,
+                to,
+                subject,
+            )
