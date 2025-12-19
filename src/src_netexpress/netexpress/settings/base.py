@@ -1,353 +1,394 @@
 """
-Django settings for the netexpress project with proper static file handling for Render.
-
-This settings file consolidates duplicated values, adds WhiteNoise
-for serving static files in production, and removes hard‑coded secrets.
-Replace placeholders like `YOUR_SECRET_KEY` and `YOUR_EMAIL_PASSWORD`
-with environment variables in your actual deployment to avoid committing
-sensitive data to version control.
+Django settings for netexpress project - BASE CONFIGURATION
 """
 
-from pathlib import Path
 import os
-import environ
+from pathlib import Path
 
-# Base directory of the project
+# ============================================================
+# 📂 CHEMINS DE BASE
+# ============================================================
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# --------------------------------------------------------------------
-# Environment configuration
-# --------------------------------------------------------------------
-# Load environment variables from a .env file if present.  The
-# ``django‑environ`` library converts values to the appropriate types.
-env = environ.Env(
-    # Compat: certains environnements utilisent DEBUG/ALLOWED_HOSTS
-    # plutôt que DJANGO_DEBUG/DJANGO_ALLOWED_HOSTS.
-    DJANGO_DEBUG=(bool, False),
-    DEBUG=(bool, False),
-    DJANGO_ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
-    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
+# ============================================================
+# 🔑 SECRET KEY (DÉFAUT POUR DEV - OVERRIDÉ EN PROD)
+# ============================================================
+
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-dev-key-change-this-in-production"
 )
-env_path = BASE_DIR / ".env"
-if env_path.exists():
-    environ.Env.read_env(env_file=env_path)
 
-# --------------------------------------------------------------------
-# Security settings
-# --------------------------------------------------------------------
-# Secret key used for cryptographic signing.  It must be set via the
-# environment.  If not provided, an exception is raised to avoid
-# running with an insecure default.
-SECRET_KEY = env("DJANGO_SECRET_KEY")
+# ============================================================
+# 🐛 DEBUG MODE (DÉFAUT - OVERRIDÉ PAR ENV)
+# ============================================================
 
-# Convert the DEBUG environment variable to a proper boolean.  Support
-# common truthy/falsey strings in addition to booleans for robustness.
-# Supporte DJANGO_DEBUG (préféré) puis DEBUG (compat .env).
-raw_debug = env("DJANGO_DEBUG", default=env("DEBUG", default=True))
-if isinstance(raw_debug, str):
-    DEBUG = raw_debug.strip().lower() in {"1", "true", "yes", "on"}
-else:
-    DEBUG = bool(raw_debug)
+DEBUG = True
 
-# Parse ALLOWED_HOSTS from a comma‑separated string or a list.  If the
-# environment provides a single string, split it on commas; otherwise
-# assume it is already a list.  Empty values result in an empty list.
-raw_hosts = env("DJANGO_ALLOWED_HOSTS", default=env("ALLOWED_HOSTS", default=""))
-if isinstance(raw_hosts, str):
-    ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
-else:
-    ALLOWED_HOSTS = list(raw_hosts)
+# ============================================================
+# 🌍 HÔTES AUTORISÉS
+# ============================================================
 
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'www.nettoyageexpresse.fr',
+    'nettoyageexpresse.fr',
+    'netexpress.onrender.com',
+]
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+# ============================================================
+# 🔐 CSRF TRUSTED ORIGINS
+# ============================================================
 
-# -------------------------------------------------------------
-# Application definition
-# -------------------------------------------------------------
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.nettoyageexpresse.fr',
+    'https://nettoyageexpresse.fr',
+    'https://netexpress.onrender.com',
+]
+
+# ============================================================
+# 📦 APPLICATIONS INSTALLÉES
+# ============================================================
+
 INSTALLED_APPS = [
-    # Django built‑in apps
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
+    # Jazzmin DOIT être AVANT django.contrib.admin
+    'jazzmin',
 
-    "django.contrib.sitemaps",
-    # Third‑party app to serve static files in production
-    "whitenoise.runserver_nostatic",
+    # Django built-in apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # Third-party apps
+    'whitenoise.runserver_nostatic',
 
     # Project apps
-    "core",
-    "services",
-    "devis",
-    "factures",
-    "contact",
-    "tasks",
-    "messaging",
-    "accounts",
+    'core.apps.CoreConfig',
+    'services.apps.ServicesConfig',
+    'devis.apps.DevisConfig',
+    'factures.apps.FacturesConfig',
+    'contact.apps.ContactConfig',
+    'tasks.apps.TasksConfig',
+    'messaging.apps.MessagingConfig',
+    'accounts.apps.AccountsConfig',
 ]
 
-# Optionally insert Jazzmin if available for admin theming
-try:
-    import jazzmin  # type: ignore
-    INSTALLED_APPS.insert(0, "jazzmin")
-except Exception:
-    pass
+# ============================================================
+# 🎨 JAZZMIN CONFIGURATION
+# ============================================================
+
+JAZZMIN_SETTINGS = {
+    # Titre et branding
+    "site_title": "Nettoyage Express Admin",
+    "site_header": "Nettoyage Express",
+    "site_brand": "Nettoyage Express",
+    "site_logo": "img/logo.svg",
+    "login_logo": "img/logo.svg",
+    "login_logo_dark": "img/logo.svg",
+    "site_logo_classes": "img-circle",
+    
+    # Message d'accueil
+    "welcome_sign": "Bienvenue dans l'administration de Nettoyage Express",
+    
+    # Copyright
+    "copyright": "Nettoyage Express",
+    
+    # Recherche de modèles
+    "search_model": ["auth.User", "devis.Quote", "factures.Invoice"],
+    
+    # Utilisateur en haut
+    "user_avatar": None,
+    
+    # Liens dans le menu supérieur
+    "topmenu_links": [
+        {"name": "Site public", "url": "/", "new_window": True},
+        {"name": "Dashboard", "url": "/dashboard/", "new_window": False},
+        {"model": "auth.User"},
+    ],
+    
+    # Afficher la barre latérale
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    
+    # Ordre des apps
+    "order_with_respect_to": [
+        "auth",
+        "devis",
+        "factures", 
+        "services",
+        "tasks",
+        "contact",
+        "messaging",
+        "accounts",
+    ],
+    
+    # Icônes personnalisées
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "devis.Quote": "fas fa-file-contract",
+        "devis.QuoteItem": "fas fa-list",
+        "devis.Client": "fas fa-user-tie",
+        "devis.QuoteRequest": "fas fa-inbox",
+        "factures.Invoice": "fas fa-file-invoice-dollar",
+        "factures.InvoiceItem": "fas fa-receipt",
+        "services.Service": "fas fa-broom",
+        "services.Category": "fas fa-tags",
+        "services.ServiceTask": "fas fa-tasks",
+        "contact.Message": "fas fa-envelope",
+        "tasks.Task": "fas fa-clipboard-list",
+        "messaging.EmailMessage": "fas fa-paper-plane",
+        "accounts.Profile": "fas fa-id-card",
+    },
+    
+    # Icône par défaut
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+    
+    # Liens personnalisés
+    "custom_links": {
+        "devis": [{
+            "name": "Nouveau devis",
+            "url": "/gestion/devis/quote/add/",
+            "icon": "fas fa-plus",
+        }],
+        "factures": [{
+            "name": "Nouvelle facture", 
+            "url": "/gestion/factures/invoice/add/",
+            "icon": "fas fa-plus",
+        }],
+    },
+    
+    # Interface utilisateur
+    "related_modal_active": True,
+    "custom_css": "css/jazzmin_overrides.css",
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+    
+    # Changement de langue
+    "language_chooser": False,
+}
+
+# Configuration de l'interface Jazzmin (couleurs vertes pour Nettoyage Express)
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-success",
+    "accent": "accent-success",
+    "navbar": "navbar-dark navbar-success",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-success",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+}
+
+# ============================================================
+# 🔧 MIDDLEWARE
+# ============================================================
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    # WhiteNoise middleware must come directly after SecurityMiddleware
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = "netexpress.urls"
+# ============================================================
+# 🌐 URL ET WSGI
+# ============================================================
+
+ROOT_URLCONF = 'netexpress.urls'
+WSGI_APPLICATION = 'netexpress.wsgi.application'
+
+# ============================================================
+# 📄 TEMPLATES
+# ============================================================
 
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-            # Register custom builtins so that the legacy filter 'length_is'
-            # is available in all templates without requiring {% load %}.
-            "builtins": [
-                "core.templatetags.legacy_filters",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = "netexpress.wsgi.application"
+# ============================================================
+# 🗄️ BASE DE DONNÉES
+# ============================================================
 
-# -------------------------------------------------------------
-# Database configuration (SQLite by default)
-# In production you should use Render PostgreSQL with DATABASE_URL
-# -------------------------------------------------------------
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
+# ============================================================
+# 🔐 VALIDATION DES MOTS DE PASSE
+# ============================================================
 
-# -------------------------------------------------------------
-# Internationalization
-# -------------------------------------------------------------
-LANGUAGE_CODE = "fr-fr"
-TIME_ZONE = "America/Cayenne"
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# ============================================================
+# 🌍 INTERNATIONALISATION
+# ============================================================
+
+LANGUAGE_CODE = 'fr-fr'
+TIME_ZONE = 'America/Cayenne'
 USE_I18N = True
 USE_TZ = True
 
-# -------------------------------------------------------------
-# Static files (CSS, JavaScript, Images)
-# -------------------------------------------------------------
-# URL to use when referring to static files located in STATIC_ROOT
-STATIC_URL = "/static/"
+# ============================================================
+# 📁 FICHIERS STATIQUES
+# ============================================================
 
-# Directories where Django will search for additional static files
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Directory where collectstatic will collect static files for production
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# Configuration WhiteNoise pour la compression et le cache
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Use WhiteNoise’s storage backend to compress and hash static files
-# For Django < 4.2, use STATICFILES_STORAGE instead of STORAGES
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# ============================================================
+# 📁 FICHIERS MÉDIAS
+# ============================================================
 
-# Media files (uploaded by users)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# ============================================================
+# 🆔 TYPE DE CLÉ PRIMAIRE PAR DÉFAUT
+# ============================================================
 
-# -------------------------------------------------------------
-# Invoice branding (used by the factures app)
-# -------------------------------------------------------------
-#
-# Configuration du branding utilisée par l'application ``factures``.
-# Le chemin du logo est maintenant résolu en valeur absolue grâce à
-# ``Path`` afin de simplifier sa recherche lors de la génération du
-# PDF.  Si vous placez votre logo ailleurs, ajustez ce chemin en
-# conséquence.  Il est également possible de définir ``logo_path`` via
-# une variable d'environnement dans votre fichier ``.env``.
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================
+# 📧 CONFIGURATION EMAIL (optionnel)
+# ============================================================
+
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+
+# ============================================================
+# 🏢 BRANDING FACTURES/DEVIS
+# ============================================================
+
 INVOICE_BRANDING = {
-    # Nom et slogan utilisés dans le header des documents
     "name": "Nettoyage Express",
     "tagline": "Espaces verts, nettoyage, peinture, bricolage",
-    "email": "netexpress@orange.fr",
-    # Chemin absolu vers le logo dans le dossier static du projet. Ce chemin
-    # est utilisé par le template PDF ; ajustez‑le si votre logo est
-    # ailleurs.
+    "email": "contact@nettoyageexpresse.fr",
     "logo_path": str((BASE_DIR / "static" / "img" / "logo.png").resolve()),
-    # Adresse de l'émetteur formatée sur plusieurs lignes (sera splittée)
     "address": "753, Chemin de la Désirée\n97351 Matoury",
-    "phone": "05 94 30 23 68 / 06 94 46 20 12",
-    # Coordonnées bancaires pour le pied de page
-    "iban": "FR76 3000 4000 1234 5678 9012 345",
-    "bic": "NETEEXFRXXX",
-    # Mentions légales supplémentaires
-    "siret": "123 456 789 00012",
+    "phone": "05 94 30 23 68 / 06 94 46 20 12",
+    "siret": "123 456 789 00012",
     "tva_intra": "FR1234567890",
-    # Conditions de paiement par défaut affichées si aucune valeur n'est
-    # renseignée sur la facture elle‑même
+    "iban": "FR76 3000 4000 1234 5678 9012 345",
+    "bic": "NETEEXFRXXX",
     "payment_terms": "Paiement comptant à réception de facture",
-    # Texte par défaut pour le champ notes si le champ est vide sur la facture
     "default_notes": "Nous vous remercions de votre confiance.",
-    # Taux de pénalité de retard (affiché dans les mentions légales)
     "penalty_rate": "10%",
-    # La liste d'adresses est dérivée de la chaîne ``address`` pour
-    # permettre un rendu correct dans le template PDF (une ligne par
-    # élément).  Si ``address`` change, mettez à jour cette liste en
-    # conséquence.
     "address_lines": [
         "753, Chemin de la Désirée",
         "97351 Matoury",
     ],
 }
 
-# -------------------------------------------------------------
-# E‑mail configuration
-# -------------------------------------------------------------
-# Configure e‑mail via environment variables.  By default we assume
-# usage of SMTP over SSL on port 465.  If you need to adjust the
-# parameters, define the corresponding variables in your ``.env`` file.
-EMAIL_BACKEND = env(
-    "EMAIL_BACKEND",
-    default="django.core.mail.backends.smtp.EmailBackend",
-)
-EMAIL_HOST = env("EMAIL_HOST", default="mail.infomaniak.com")
-EMAIL_PORT = env.int("EMAIL_PORT", default=465)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=True)
+# ============================================================
+# 📊 LOGGING (POUR DEBUG)
+# ============================================================
 
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="noreply@example.com")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = env(
-    "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER
-)
-
-# IMPORTANT : ne force PAS le backend console en DEBUG.
-# Si vous voulez afficher les emails dans le terminal, définissez :
-#   EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-# dans le fichier .env.
-
-# Notification routing
-TASK_NOTIFICATION_EMAIL = env(
-    "TASK_NOTIFICATION_EMAIL", default=DEFAULT_FROM_EMAIL
-)
-
-# Exigence projet : aucune notification automatique (admin/client) en texte.
-# Les e-mails sont envoyés uniquement sur action explicite (devis, messages).
-TASK_NOTIFICATIONS_ENABLED = env.bool("TASK_NOTIFICATIONS_ENABLED", default=False)
-ADMINS = [("Admin", TASK_NOTIFICATION_EMAIL)]
-MANAGERS = ADMINS
-# -------------------------------------------------------------
-# Jazzmin configuration
-# -------------------------------------------------------------
-# Pour harmoniser l'interface d'administration avec l'identité visuelle de
-# Nettoyage Express, nous appliquons ci‑dessous des réglages Jazzmin.
-# Ces options personnalisent le titre, le logo, les icônes et la couleur
-# principale de l'interface.  Jazzmin n'est activé que si installé.
-
-JAZZMIN_SETTINGS = {
-    # Entête et titre du site admin
-    "site_title": "Nettoyage Express Admin",
-    "site_header": "Nettoyage Express",
-    "site_brand": "Nettoyage Express",
-    # Logos (les chemins sont relatifs à static/)
-    "site_logo": "img/logo.svg",
-    "login_logo": "img/logo.svg",
-    "login_logo_dark": "img/logo.svg",
-    # Message d'accueil sur le tableau de bord
-    "welcome_sign": "Bienvenue dans l'administration de Nettoyage Express",
-    # Lien vers le site public depuis le menu supérieur
-    "topmenu_links": [
-        {"name": "Site public", "url": "/", "permissions": []},
-    ],
-    # Icônes personnalisées pour certains modèles
-    "icons": {
-        "factures.Invoice": "fas fa-file-invoice-dollar",
-        "factures.InvoiceItem": "fas fa-list",
-        "devis.Quote": "fas fa-file-contract",
-        "services.Service": "fas fa-broom",
-        "services.Category": "fas fa-tags",
-        "contact.Message": "fas fa-envelope",
-        "tasks.Task": "fas fa-clipboard-list",
-    },
-    # Ordre des applications dans la barre latérale
-    "order_with_respect_to": ["factures", "devis", "services", "tasks", "contact", "messaging"],
-    # Activer l'expansion de la navigation par défaut
-    "navigation_expanded": True,
-    # Activer l'affichage de la barre latérale
-    "show_sidebar": True,
-    # Couleur principale adaptée à la marque
-    "theme_color": "#0B5D46",
-    # Feuille de style supplémentaire pour des surcharges légères (définie dans static/css/jazzmin_overrides.css)
-    "custom_css": "css/jazzmin_overrides.css",
-}
-# -------------------------------------------------------------
-# End of settings
-# -------------------------------------------------------------
-
-
-# -------------------------------------------------------------
-# Celery configuration (asynchronous emails, background jobs)
-# -------------------------------------------------------------
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL)
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
-
-# Default payment terms for documents (can be overridden per invoice/quote)
-INVOICE_BRANDING.setdefault("payment_terms", "Paiement : 30 jours après démarrage des travaux.")
-
-
-# Public URL of the site (used for email CTA links)
-SITE_URL = env("SITE_URL", default="http://localhost:8000")
-
-# Enrich branding for emails (optional)
-INVOICE_BRANDING.setdefault("site_url", SITE_URL)
-# If you host a public logo URL for emails, set INVOICE_BRANDING["logo_url"]
-
-
-# --- Logging (production-friendly) ---
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
-        }
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
     },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        }
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": "INFO",
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
+
+# ============================================================
+# 🔥 DEBUG - AFFICHAGE DE LA CONFIG AU CHARGEMENT
+# ============================================================
+
+}")
