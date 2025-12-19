@@ -1,0 +1,7 @@
+{% extends "admin/change_form.html" %}
+{% block object-tools %}
+{{ block.super }}
+<li><a class="button" href="{% url 'admin:quote-generate-pdf' original.id %}">Générer PDF</a></li>
+<li><a class="button" href="{% url 'admin:quote-send-email' original.id %}">Envoyer au client</a></li>
+<li><a class="button" href="{% url 'admin:quote-convert-invoice' original.id %}">Convertir en facture</a></li>
+{% endblock %}

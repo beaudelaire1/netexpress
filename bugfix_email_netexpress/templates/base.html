@@ -1,0 +1,136 @@
+{% load static %}
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Provide a concise description of the site for search engines -->
+  <meta property="og:site_name" content="Nettoyage Express">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
+  <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
+
+  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
+  <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
+  <title>{% block title %}Nettoyage Express{% endblock %}</title>
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <!-- Polices et icônes : centralisées ici pour éviter duplication/FOUT -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- Scripts -->
+  <script src="{% static 'js/main.js' %}" defer></script>
+  <script src="{% static 'js/forms.js' %}" defer></script>
+
+  <!-- SEO avancé : Schema.org LocalBusiness -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Nettoyage Express",
+    "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
+    "telephone": "05 94 30 23 68",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "753, Chemin de la Désirée",
+      "postalCode": "97351",
+      "addressLocality": "Matoury",
+      "addressCountry": "FR"
+    }
+  }
+  </script>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Nettoyage Express",
+      "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
+      "telephone": "05 94 30 23 68",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "753, Chemin de la Désirée",
+        "postalCode": "97351",
+        "addressLocality": "Matoury",
+        "addressCountry": "GF"
+      }
+    }
+  </script>
+  <!--
+    Barre de navigation principale.
+    Les liens sont identiques sur toutes les pages pour respecter le
+    cahier des charges.  Un bouton CTA est placé en fin de menu pour
+    accéder rapidement au formulaire de devis.
+  -->
+  <header class="site-header">
+    <div class="container header-row">
+      <a href="{% url 'core:home' %}" class="brand" aria-label="Accueil">
+        {# Utilise un pictogramme pour le logo afin d'éviter une dépendance à un fichier manquant. #}
+        <span class="brand-icon" aria-hidden="true"> <img src="{% static 'img/logo.svg' %}" alt="Logo" width="50"> </span>
+        <span class="brand-name">Nettoyage Express</span>
+      </a>
+      <!-- Bouton burger pour l'affichage mobile -->
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="primary-navigation">&#9776;</button>
+      <nav id="primary-navigation" class="nav" hidden>
+        <a class="nav-link" href="{% url 'core:home' %}">Accueil</a>
+        <a class="nav-link" href="{% url 'services:list' %}">Services</a>
+        <a class="nav-link" href="{% url 'core:excellence' %}">L’Excellence</a>
+        <a class="nav-link" href="{% url 'core:realisations' %}">Réalisations</a>
+        <a class="nav-link" href="{% url 'contact:contact' %}">Contact</a>
+        <a class="nav-link cta" href="{% url 'devis:request_quote' %}">Devis Express</a>
+        {% if user.is_authenticated %}
+          {% if user.is_staff %}
+            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+          {% else %}
+            {% if user.profile.role == 'worker' %}
+              <a class="nav-link" href="{% url 'core:worker_dashboard' %}">Mon Dashboard</a>
+            {% else %}
+              <a class="nav-link" href="{% url 'core:client_dashboard' %}">Mon Dashboard</a>
+            {% endif %}
+          {% endif %}
+          <a class="nav-link" href="{% url 'accounts:profile' %}">Profil</a>
+          <a class="nav-link" href="{% url 'logout' %}">Déconnexion</a>
+        {% else %}
+          <a class="nav-link" href="{% url 'accounts:signup' %}">Créer un compte</a>
+          <a class="nav-link" href="{% url 'login' %}">Connexion</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="container messages-wrap">
+      {% for message in messages %}
+        <div class="alert" role="alert">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="container content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <!--
+      The copyright notice is wrapped in its own paragraph.  A missing
+      closing </p> tag caused invalid HTML and could break the
+      rendering of the footer.  Ensure that every opened tag is
+      properly closed to meet the zero syntax error requirement.
+    -->
+    <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
+  </footer>
+
+
+
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

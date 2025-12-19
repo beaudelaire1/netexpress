@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Réalisations — Nettoyage Express{% endblock %}
+
+{% block content %}
+
+<section class="section">
+  <div class="gallery-head">
+    <h1>Nos Réalisations</h1>
+    <p class="muted">
+      Découvrez quelques exemples de projets menés avec soin en Guyane.
+    </p>
+
+    <!-- Boutons de filtre -->
+    <div class="gallery-filters">
+      {% for slug, name in categories %}
+        <button
+          type="button"
+          class="btn filter-btn{% if forloop.first %} active{% endif %}"
+          data-category="{{ slug }}"
+        >
+          {{ name }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Grille de la galerie -->
+  <div class="gallery-grid" id="gallery">
+    {% for image in images %}
+      <div class="gallery-item" data-category="{{ image.category }}">
+        <img src="{% static image.path %}" alt="{{ image.title }}">
+        <div class="gallery-overlay">
+          <span class="gallery-cat">
+            {% if image.category == 'nettoyage' %}
+              Nettoyage
+            {% elif image.category == 'espaces_verts' %}
+              Espaces verts
+            {% elif image.category == 'renovation' %}
+              Rénovation
+            {% else %}
+              {{ image.category }}
+            {% endif %}
+          </span>
+          <h3 class="title">{{ image.title }}</h3>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Lightbox overlay -->
+<div id="lightbox" class="lightbox-overlay">
+  <div class="lightbox-inner">
+    <img src="" alt="">
+    <div class="caption"></div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{% static 'js/realisations.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,9 @@
+Bonjour {{ client_name }},
+
+Votre devis {{ quote.number }} est prêt.
+
+- Télécharger le PDF : {{ pdf_url }}
+- Valider le devis (2 étapes) : {{ validation_url }}
+
+Merci,
+{{ company_name|default:"Nettoyage Express" }}

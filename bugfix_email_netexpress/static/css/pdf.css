@@ -1,0 +1,103 @@
+:root {
+  --ink: #0b0f19;
+  --muted: #3c414be9;
+  --line: #e6e8ee;
+  /* Palette verte inspirée du modèle */
+  --brand: #1c7c54;
+  --brand-2: #14543c;
+}
+
+/* …styles existants… */
+
+/* Styles additionnels pour le bandeau et les cartes */
+.top-bar {
+  background-color: var(--brand);
+  color: #fff;
+  padding: 6mm;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.top-bar .logo-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+
+.top-bar .logo-block .logo {
+  width: 35mm;
+  height: auto;
+}
+
+.top-bar .tagline {
+  font-size: 8pt;
+  color: #fff;
+}
+
+.top-bar .invoice-info {
+  text-align: right;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.top-bar .invoice-info .invoice-number {
+  font-size: 14pt;
+  font-weight: 700;
+  margin-bottom: 1mm;
+}
+
+/* Encadré pour le total TTC */
+.total-ttc-container {
+  margin-top: 4mm;
+  display: flex;
+  justify-content: flex-end;
+}
+.total-ttc-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  padding: 4mm 5mm;
+  width: 60%;
+}
+.total-ttc-label {
+  font-size: 10pt;
+  color: var(--muted);
+}
+.total-ttc-value {
+  background-color: var(--brand);
+  color: #fff;
+  padding: 2mm 4mm;
+  border-radius: 6px;
+  font-size: 16pt;
+  font-weight: 700;
+}
+
+/* Cartes pour l'émetteur et le client */
+.issuer-client {
+  margin-top: 8mm;
+  display: flex;
+  gap: 10mm;
+}
+.issuer-client .card {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background-color: #f9f9f9;
+}
+.issuer-client .card-header {
+  background-color: var(--brand-2);
+  color: #fff;
+  padding: 3mm 4mm;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
+  font-size: 11pt;
+  font-weight: 600;
+}
+.issuer-client .card-body {
+  padding: 5mm 4mm;
+}

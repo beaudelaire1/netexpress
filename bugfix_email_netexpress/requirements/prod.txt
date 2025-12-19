@@ -1,0 +1,28 @@
+# =========================
+# Production requirements
+# =========================
+
+# Base Django & shared libs
+-r base.txt
+
+# WSGI server
+gunicorn>=22.0
+
+# Background task queue
+celery>=5.3
+redis>=5.0
+
+# PDF generation
+weasyprint>=62.0
+Pillow>=10.0
+
+# PostgreSQL driver (psycopg3 binary builds)
+psycopg[binary]>=3.1
+
+# Static files and environment management
+whitenoise>=6.6
+django-environ>=0.11
+dj-database-url>=2.2
+
+# Optional: timezone helpers
+pytz>=2024.1

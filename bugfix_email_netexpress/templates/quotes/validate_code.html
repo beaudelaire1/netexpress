@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Validation du devis {{ quote.number }}{% endblock %}
+
+{% block content %}
+<section class="section" style="max-width:680px;margin:0 auto;">
+  <div class="card" style="padding:24px;">
+    <h1 style="margin:0 0 8px 0;">Confirmer votre devis</h1>
+    <p style="margin:0 0 18px 0;opacity:.78;">
+      Un code de confirmation vient d’être envoyé à votre adresse email.
+      Saisissez-le ci-dessous pour valider le devis <strong>{{ quote.number }}</strong>.
+    </p>
+
+    <form method="post" style="display:grid;gap:12px;">
+      {% csrf_token %}
+      {{ form.code.label_tag }}
+      {{ form.code }}
+      <button class="btn btn-primary" type="submit" style="padding:12px 14px;font-weight:800;">
+        Valider
+      </button>
+    </form>
+
+    <p style="margin-top:14px;opacity:.7;font-size:13px;">
+      Le code expire bientôt. Si vous n’avez rien reçu, vérifiez vos spams puis relancez la validation.
+    </p>
+  </div>
+</section>
+{% endblock %}

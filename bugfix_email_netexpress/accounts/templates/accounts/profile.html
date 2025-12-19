@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Mon profil — NetExpress{% endblock %}
+
+{% block content %}
+<section class="section" style="padding:48px 0;">
+  <div class="container" style="max-width:520px;">
+    <h1 style="font-size:34px;margin:0 0 10px 0;">Mon profil</h1>
+    <p style="color:#4b5563;margin:0 0 22px 0;">Modifiez votre rôle et vos informations.</p>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.06);">
+      <form method="post">
+        {% csrf_token %}
+        <div style="display:grid;gap:12px;">
+          <div>
+            <label>Rôle</label>
+            {{ form.role }}
+          </div>
+          <div>
+            <label>Téléphone</label>
+            {{ form.phone }}
+          </div>
+          <button type="submit" class="btn" style="background:#104130;color:#fff;border:none;border-radius:12px;padding:12px 16px;font-weight:700;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

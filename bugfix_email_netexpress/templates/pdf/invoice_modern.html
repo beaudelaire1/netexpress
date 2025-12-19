@@ -1,0 +1,236 @@
+{%- comment -%}
+Modern invoice template rendered with WeasyPrint.
+
+This template aims to approximate the provided visual model using
+flexbox for layout.  It avoids HTML tables for the main structure,
+reserving ``<table>`` solely for the list of invoice items.  The
+header contains the company logo and invoice number/date aligned
+horizontally.  Sender and client information are displayed side by
+side in bordered panels.  Totals are summarised in a coloured box.
+Payment conditions and legal notices are rendered near the bottom.
+
+All styling is self‑contained to make the template portable.  When
+rendered via WeasyPrint, the ``@page`` rule defines margins and the
+footer is fixed at the bottom of the page using ``position: fixed``.
+
+The template expects the following context variables:
+    invoice  – a domain Invoice dataclass
+    branding – a dict with company information (see settings)
+
+Additional optional variables may be provided via ``extra_context``
+when calling the PDF generator.
+{%- endcomment -%}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <style>
+    /* Page setup */
+    @page {
+      size: A4;
+      margin: 20mm 15mm 35mm 15mm;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #333;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin: 0;
+      padding: 0;
+    }
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10mm;
+    }
+    .logo {
+      width: 45%;
+    }
+    .logo img {
+      max-width: 100%;
+      height: auto;
+    }
+    .invoice-info {
+      width: 50%;
+      text-align: right;
+    }
+    /* Information panels */
+    .info-panels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6mm;
+    }
+    .panel {
+      width: 48%;
+      border: 1px solid #ccc;
+      border-radius: 3mm;
+      padding: 4mm;
+    }
+    .panel-title {
+      font-weight: bold;
+      margin-bottom: 2mm;
+    }
+    /* Table for items */
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4mm;
+    }
+    table.items th, table.items td {
+      border: 1px solid #ddd;
+      padding: 2.5mm;
+    }
+    table.items th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    table.items td {
+      vertical-align: top;
+    }
+    /* Totals summary */
+    .totals {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5mm;
+    }
+    .totals-box {
+      background-color: #0a7149;
+      color: white;
+      padding: 4mm 6mm;
+      border-radius: 3mm;
+      width: 40%;
+    }
+    .totals-box p {
+      margin: 0;
+    }
+    /* Conditions and notes */
+    .conditions {
+      margin-top: 6mm;
+      font-size: 8.5pt;
+      line-height: 1.3;
+    }
+    /* Footer */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-top: 1px solid #ccc;
+      font-size: 7.5pt;
+      color: #666;
+      padding-top: 2mm;
+    }
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with logo and invoice info -->
+  <div class="header">
+    <div class="logo">
+      {% if branding.logo_path %}
+        <img src="{{ branding.logo_path }}" alt="{{ branding.name }}"/>
+      {% endif %}
+      <p><strong>{{ branding.name }}</strong><br/>
+      {{ branding.tagline }}</p>
+    </div>
+    <div class="invoice-info">
+      <h2>Facture {{ invoice.number }}</h2>
+      <p>Date: {{ invoice.issue_date|date:"d/m/Y" }}</p>
+      {% if invoice.due_date %}
+      <p>Échéance: {{ invoice.due_date|date:"d/m/Y" }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sender and client information panels -->
+  <div class="info-panels">
+    <div class="panel">
+      <div class="panel-title">Émetteur</div>
+      {% if branding.address_lines %}
+        {% for line in branding.address_lines %}
+          {{ line }}<br/>
+        {% endfor %}
+      {% endif %}
+      {% if branding.email %}Email : {{ branding.email }}<br/>{% endif %}
+      {% if branding.phone %}Tél. : {{ branding.phone }}<br/>{% endif %}
+    </div>
+    <div class="panel">
+      <div class="panel-title">Client</div>
+      {{ invoice.client_name }}<br/>
+      {{ invoice.client_address }}<br/>
+      {% if invoice.client_email %}Email : {{ invoice.client_email }}<br/>{% endif %}
+      {% if invoice.client_phone %}Tél. : {{ invoice.client_phone }}{% endif %}
+    </div>
+  </div>
+
+  <!-- Items table -->
+  <table class="items">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Quantité</th>
+        <th>PU HT</th>
+        <th>TVA %</th>
+        <th>Montant TTC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in invoice.items %}
+        <tr>
+          <td>{{ item.description }}</td>
+          <td style="text-align:center;">{{ item.quantity }}</td>
+          <td style="text-align:right;">{{ item.unit_price|floatformat:2 }} €</td>
+          <td style="text-align:right;">{{ item.tax_rate|floatformat:2 }} %</td>
+          <td style="text-align:right;">{{ item.total_ttc|floatformat:2 }} €</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Totals box -->
+  <div class="totals">
+    <div class="totals-box">
+      <p><strong>Total HT :</strong> {{ invoice.total_ht|floatformat:2 }} €</p>
+      <p><strong>TVA :</strong> {{ invoice.total_tva|floatformat:2 }} €</p>
+      {% if invoice.discount and invoice.discount > 0 %}
+      <p><strong>Remise :</strong> –{{ invoice.discount|floatformat:2 }} €</p>
+      {% endif %}
+      <p><strong>Total TTC :</strong> {{ invoice.total_ttc|floatformat:2 }} €</p>
+    </div>
+  </div>
+
+  <!-- Payment terms and notes -->
+  <div class="conditions">
+    {% if invoice.payment_terms %}
+      <p><strong>Conditions de paiement :</strong> {{ invoice.payment_terms }}</p>
+    {% elif branding.payment_terms %}
+      <p><strong>Conditions de paiement :</strong> {{ branding.payment_terms }}</p>
+    {% endif %}
+    {% if invoice.notes %}
+      <p><strong>Notes :</strong> {{ invoice.notes }}</p>
+    {% elif branding.default_notes %}
+      <p><strong>Notes :</strong> {{ branding.default_notes }}</p>
+    {% endif %}
+    <p>En cas de retard de paiement, une pénalité de {{ branding.penalty_rate|default:'10%' }} et une indemnité forfaitaire de 40 € s'appliqueront.</p>
+  </div>
+
+  <!-- Footer with legal notices and banking information -->
+  <div class="footer">
+    <div class="footer-content">
+      <div>
+        {{ branding.name }} – SIREN : {{ branding.siret }} – TVA : {{ branding.tva_intra }}
+      </div>
+      <div>
+        IBAN : {{ branding.iban }} – BIC : {{ branding.bic }}
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: netexpress
+    env: docker
+    dockerfilePath: Dockerfile
+    # The autoDeploy flag ensures Render rebuilds and redeploys when
+    # commits are pushed.  Set to false if you prefer manual deploys.
+    autoDeploy: true
+    # Environment variables required by the application.  Secret values
+    # (like EMAIL_HOST_PASSWORD) should be added in the Render dashboard.
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_HOSTS
+        value: netexpress.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://netexpress.onrender.com
+      - key: EMAIL_HOST
+        value: mail.infomaniak.com
+      - key: EMAIL_PORT
+        value: 465
+      - key: EMAIL_USE_SSL
+        value: true
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false

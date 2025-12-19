@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nos Services — NetExpress{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div class="overlay"></div>
+    <div class="hero-content">
+      <h1>Nos Services</h1>
+      <p>Nettoyage, espaces verts et petits travaux : une seule équipe, un niveau d'exigence constant.</p>
+    </div>
+  </header>
+
+  <section class="services-section">
+    <div class="services-toolbar">
+      <h2 class="services-title">Catalogue</h2>
+      <div class="services-filters" aria-label="Filtrer par catégorie">
+        <a class="filter-pill{% if not active_category %} is-active{% endif %}" href="{% url 'services:list' %}">Tous</a>
+        {% for cat in categories %}
+          <a class="filter-pill{% if active_category and active_category.pk == cat.pk %} is-active{% endif %}" href="{% url 'services:list' %}?category={{ cat.slug }}">{{ cat.name }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="services-grid">
+      {% for service in services %}
+        <article class="service-card">
+          <div class="service-media">
+            {% if service.image %}
+              <img src="{{ service.image.url }}" alt="{{ service.title }}">
+            {% else %}
+              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }}">
+            {% endif %}
+          </div>
+          <div class="service-body">
+            <h3>{{ service.title }}</h3>
+            <p class="muted">{{ service.short_description|default:service.description|truncatewords:22 }}</p>
+            <div class="service-actions">
+              <a class="btn" href="{% url 'services:detail' service.slug %}">Voir le détail</a>
+              <a class="btn btn-ghost" href="{% url 'devis:request_quote' %}?service_type={{ service.category.slug|default:'nettoyage' }}">Devis Express</a>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="muted">Aucun service n'est disponible pour le moment.</p>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

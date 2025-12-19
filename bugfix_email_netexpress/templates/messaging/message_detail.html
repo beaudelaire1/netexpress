@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% endblock %}
+
+{% block title %}Détail du message — {{ message.subject }}{% endblock %}
+
+{% block content %}
+<div class="bo-shell">
+  <aside class="bo-sidebar" aria-label="Navigation messages">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+      <a href="{% url 'messaging:compose' %}">Nouveau message</a>
+      <a class="is-primary" href="{% url 'messaging:list' %}">Historique</a>
+    </nav>
+  </aside>
+
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">{{ message.subject }}</div>
+        <div class="bo-subtitle">Détails du message envoyé</div>
+      </div>
+    </div>
+
+    <section class="bo-card">
+      <p><strong>Destinataires&nbsp;:</strong> {{ message.recipient }}</p>
+      {% if message.cc %}
+      <p><strong>Copie&nbsp;:</strong> {{ message.cc }}</p>
+      {% endif %}
+      <p><strong>Statut&nbsp;:</strong> {{ message.get_status_display }}</p>
+      <p><strong>Créé le&nbsp;:</strong> {{ message.created_at|date:'d/m/Y H:i' }}</p>
+      <p><strong>Envoyé le&nbsp;:</strong> {% if message.sent_at %}{{ message.sent_at|date:'d/m/Y H:i' }}{% else %}—{% endif %}</p>
+      {% if message.error_message %}
+      <p class="error"><strong>Erreur&nbsp;:</strong> {{ message.error_message }}</p>
+      {% endif %}
+      <h2>Contenu du message</h2>
+      <div style="border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff;">
+        {{ message.body|safe }}
+      </div>
+      {% if message.attachment %}
+      <h2>Pièce jointe</h2>
+      <!-- Afficher le nom complet du fichier joint comme lien.  Le chemin
+           relatif est suffisant pour identifier le fichier. -->
+      <p><a href="{{ message.attachment.url }}" target="_blank">{{ message.attachment.name }}</a></p>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}
