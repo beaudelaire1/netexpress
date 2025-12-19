@@ -4,6 +4,9 @@
     <list default="true" id="1a77a700-50ad-4497-8d46-686da53ab26e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src_netexpress/.env" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src_netexpress/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/manage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src_netexpress/netexpress/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/netexpress/settings/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src_netexpress/requirements/prod.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/requirements/prod.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -58,6 +58,13 @@ if isinstance(raw_hosts, str):
 else:
     ALLOWED_HOSTS = list(raw_hosts)
 
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # -------------------------------------------------------------
 # Application definition
 # -------------------------------------------------------------
