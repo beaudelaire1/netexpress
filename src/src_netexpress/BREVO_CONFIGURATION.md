@@ -13,7 +13,7 @@ NetExpress utilise maintenant **Brevo** (ex-Sendinblue) pour l'envoi d'emails tr
 EMAIL_BACKEND=core.backends.brevo_backend.BrevoEmailBackend
 
 # Clé API Brevo
-BREVO_API_KEY=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
+BREVO_API_KEY=your-brevo-api-key-here
 
 # Configuration de l'expéditeur
 DEFAULT_FROM_EMAIL=contact@nettoyageexpresse.fr
