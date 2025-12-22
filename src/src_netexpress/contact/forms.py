@@ -17,6 +17,37 @@ class ContactForm(forms.ModelForm):
     class Meta:
         model = Message
         fields = ["topic", "full_name", "email", "phone","street","city", "zip_code", "body"]
+
+        # Messages d'erreur personnalisés pour une meilleure UX
+        error_messages = {
+            'topic': {
+                'required': 'Merci de sélectionner un sujet pour votre demande',
+            },
+            'full_name': {
+                'required': 'Merci de renseigner votre nom complet',
+                'max_length': 'Le nom ne peut pas dépasser 200 caractères',
+            },
+            'email': {
+                'required': 'Votre email est nécessaire pour vous recontacter',
+                'invalid': 'Format email invalide (exemple: nom@exemple.fr)',
+            },
+            'phone': {
+                'required': 'Votre numéro de téléphone est obligatoire pour vous joindre',
+            },
+            'street': {
+                'required': 'Merci de renseigner votre adresse',
+            },
+            'city': {
+                'required': 'Merci de renseigner votre commune',
+            },
+            'zip_code': {
+                'required': 'Merci de renseigner votre code postal',
+            },
+            'body': {
+                'required': 'Merci de décrire votre demande',
+            },
+        }
+
         widgets = {
             "topic": forms.Select(attrs={"class": "select"}),
             "full_name": forms.TextInput(

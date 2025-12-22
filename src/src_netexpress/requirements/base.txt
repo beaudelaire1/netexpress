@@ -9,8 +9,22 @@ whitenoise>=6.6
 psycopg2-binary>=2.9
 
 # Dépendances nécessaires pour le thème d'administration Jazzmin et la
-# génération de documents PDF professionnels.  ReportLab est utilisé à
-# la fois pour les factures et les devis afin de produire des PDF
+# génération de documents PDF professionnels.  ReportLab est utilisé pour
+# les devis et WeasyPrint pour les factures afin de produire des PDF
 # conformes au cahier des charges.
 django-jazzmin>=2.6
 reportlab>=4.0
+weasyprint>=60.1
+
+# Traitement d'images (upload photos devis, logos, etc.)
+pillow>=10.1.0
+
+# Conversion montants en lettres (factures)
+num2words>=0.5.14
+
+# Tâches asynchrones (emails, PDF, notifications)
+celery>=5.3.4
+redis>=5.0.1
+
+# Amélioration de la compatibilité Celery avec Django
+django-celery-results>=2.5.1

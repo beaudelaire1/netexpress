@@ -1,16 +1,20 @@
 -r base.txt
+
+# Outils de test
 pytest>=8.3
 pytest-django>=4.8
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+factory-boy>=3.3.0
 
-# Ajout 2025 : ReportLab et Jazzmin ne sont pas installés par défaut dans
-# cet environnement afin de réduire les dépendances et d’éviter les
-# erreurs liées à l’absence de modules système.  Si vous souhaitez
-# générer des PDF ou améliorer le thème de l’administration, installez
-# manuellement les paquets ci‑dessous :
+# Outils de développement
+django-debug-toolbar>=4.2.0
+ipython>=8.18.0
+black>=23.12.0
+flake8>=7.0.0
 
-num2words==0.5.14
-numpy==2.2.2
-packaging==24.2
-sqlparse==0.5.3
-tzdata==2024.2
-whitenoise==6.9.0
+# Dépendances système (peuvent varier selon l'environnement)
+numpy>=2.2.2
+packaging>=24.2
+sqlparse>=0.5.3
+tzdata>=2024.2

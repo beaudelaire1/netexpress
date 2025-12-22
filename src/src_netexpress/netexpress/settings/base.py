@@ -223,16 +223,16 @@ EMAIL_BACKEND = env(
     default="django.core.mail.backends.smtp.EmailBackend"
 )
 
-EMAIL_HOST = env("EMAIL_HOST", default="mail.google.com")
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.example.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="vilmebeaudelaire5@gmail.com")
+# IMPORTANT: Configurer ces variables dans .env (voir .env.example)
+# NE JAMAIS mettre de credentials réels en default
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = env(
-    "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER
-)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER or "noreply@example.com")
 
 # Utiliser la console comme backend d'e‑mail en mode debug.  Cela
 # permet de visualiser les courriels envoyés directement dans le
@@ -315,3 +315,66 @@ SITE_URL = env("SITE_URL", default="http://localhost:8000")
 # Enrich branding for emails (optional)
 INVOICE_BRANDING.setdefault("site_url", SITE_URL)
 # If you host a public logo URL for emails, set INVOICE_BRANDING["logo_url"]
+
+
+# =============================================================================
+# VALIDATIONS DE SÉCURITÉ (Exécutées au démarrage)
+# =============================================================================
+
+from django.core.exceptions import ImproperlyConfigured
+import warnings
+
+# Validation SECRET_KEY
+if len(SECRET_KEY) < 50:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be at least 50 characters long. "
+        "Generate one with: python -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\""
+    )
+
+# Avertissement si clé de développement en production
+if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
+    raise ImproperlyConfigured(
+        "You are using Django's insecure SECRET_KEY in production! "
+        "Set a proper DJANGO_SECRET_KEY environment variable."
+    )
+
+# Validation ALLOWED_HOSTS en production
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        "ALLOWED_HOSTS must be configured when DEBUG=False. "
+        "Set DJANGO_ALLOWED_HOSTS environment variable (comma-separated)."
+    )
+
+# Avertissement SQLite en production
+if not DEBUG and "sqlite" in DATABASES["default"]["ENGINE"]:
+    warnings.warn(
+        "WARNING: You are using SQLite in production. "
+        "This is NOT recommended. Use PostgreSQL instead. "
+        "Set DATABASE_URL environment variable.",
+        RuntimeWarning,
+        stacklevel=2
+    )
+
+# Validation email configuration
+if not DEBUG:
+    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+        warnings.warn(
+            "WARNING: Email credentials not configured. "
+            "Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD environment variables. "
+            "Email notifications will fail.",
+            RuntimeWarning,
+            stacklevel=2
+        )
+
+# Avertissement Celery en mode ALWAYS_EAGER
+CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=DEBUG)
+if CELERY_TASK_ALWAYS_EAGER:
+    CELERY_TASK_EAGER_PROPAGATES = True
+    if not DEBUG:
+        warnings.warn(
+            "WARNING: CELERY_TASK_ALWAYS_EAGER=True in production. "
+            "Background tasks will run synchronously. "
+            "Set CELERY_TASK_ALWAYS_EAGER=False and configure Redis/Celery workers.",
+            RuntimeWarning,
+            stacklevel=2
+        )
