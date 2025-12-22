@@ -22,6 +22,7 @@ from datetime import date
 from typing import List, Dict, Optional
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.files.base import ContentFile
@@ -177,6 +178,53 @@ class Invoice(models.Model):
 
     def __str__(self) -> str:
         return f"Facture {self.number or '—'}"
+
+    def clean(self):
+        """Validation métier pour les factures."""
+        errors = {}
+
+        # Validation: la date d'échéance doit être postérieure à la date d'émission
+        if self.due_date and self.issue_date:
+            if self.due_date < self.issue_date:
+                errors["due_date"] = ValidationError(
+                    "La date d'échéance doit être postérieure à la date d'émission.",
+                    code="invalid_due_date"
+                )
+
+        # Validation: les totaux ne peuvent pas être négatifs
+        if self.total_ht < 0:
+            errors["total_ht"] = ValidationError(
+                "Le total HT ne peut pas être négatif.",
+                code="negative_total_ht"
+            )
+
+        if self.tva < 0:
+            errors["tva"] = ValidationError(
+                "La TVA ne peut pas être négative.",
+                code="negative_tva"
+            )
+
+        if self.total_ttc < 0:
+            errors["total_ttc"] = ValidationError(
+                "Le total TTC ne peut pas être négatif.",
+                code="negative_total_ttc"
+            )
+
+        # Validation: la remise ne peut pas être négative ni supérieure au total HT
+        if self.discount < 0:
+            errors["discount"] = ValidationError(
+                "La remise ne peut pas être négative.",
+                code="negative_discount"
+            )
+
+        if self.discount > self.total_ht:
+            errors["discount"] = ValidationError(
+                "La remise ne peut pas être supérieure au total HT.",
+                code="discount_exceeds_total"
+            )
+
+        if errors:
+            raise ValidationError(errors)
 
     def amount_letter(self):
         return  f"{_num2words_fr(self.total_ttc).title()} euros"
@@ -362,6 +410,34 @@ class InvoiceItem(models.Model):
 
     def __str__(self) -> str:
         return self.description or "Ligne"
+
+    def clean(self):
+        """Validation métier pour les lignes de facture."""
+        errors = {}
+
+        # Validation: la quantité doit être strictement positive
+        if self.quantity <= 0:
+            errors["quantity"] = ValidationError(
+                "La quantité doit être supérieure à zéro.",
+                code="invalid_quantity"
+            )
+
+        # Validation: le prix unitaire ne peut pas être négatif
+        if self.unit_price < 0:
+            errors["unit_price"] = ValidationError(
+                "Le prix unitaire ne peut pas être négatif.",
+                code="negative_unit_price"
+            )
+
+        # Validation: le taux de TVA doit être entre 0 et 100
+        if self.tax_rate < 0 or self.tax_rate > 100:
+            errors["tax_rate"] = ValidationError(
+                "Le taux de TVA doit être compris entre 0 et 100.",
+                code="invalid_tax_rate"
+            )
+
+        if errors:
+            raise ValidationError(errors)
 
     @property
     def total_ht(self) -> Decimal:

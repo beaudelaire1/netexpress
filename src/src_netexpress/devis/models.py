@@ -24,6 +24,7 @@ dépendances à Unsplash ont été supprimées pour garantir un rendu fiable.
 
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import date
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -167,6 +168,40 @@ class Quote(models.Model):
 
     def __str__(self) -> str:
         return f"Devis {self.number or ''} pour {self.client.full_name}"
+
+    def clean(self):
+        """Validation métier pour les devis."""
+        errors = {}
+
+        # Validation: la date de validité doit être postérieure à la date d'émission
+        if self.valid_until and self.issue_date:
+            if self.valid_until < self.issue_date:
+                errors["valid_until"] = ValidationError(
+                    "La date de validité doit être postérieure à la date d'émission.",
+                    code="invalid_valid_until"
+                )
+
+        # Validation: les totaux ne peuvent pas être négatifs
+        if self.total_ht < 0:
+            errors["total_ht"] = ValidationError(
+                "Le total HT ne peut pas être négatif.",
+                code="negative_total_ht"
+            )
+
+        if self.tva < 0:
+            errors["tva"] = ValidationError(
+                "La TVA ne peut pas être négative.",
+                code="negative_tva"
+            )
+
+        if self.total_ttc < 0:
+            errors["total_ttc"] = ValidationError(
+                "Le total TTC ne peut pas être négatif.",
+                code="negative_total_ttc"
+            )
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Attribution d'un numéro de devis si nécessaire : DEV-AAAA-XXX
@@ -503,6 +538,34 @@ class QuoteItem(models.Model):
 
     def __str__(self) -> str:
         return self.description or (self.service.title if self.service else "Ligne")
+
+    def clean(self):
+        """Validation métier pour les lignes de devis."""
+        errors = {}
+
+        # Validation: la quantité doit être strictement positive
+        if self.quantity <= 0:
+            errors["quantity"] = ValidationError(
+                "La quantité doit être supérieure à zéro.",
+                code="invalid_quantity"
+            )
+
+        # Validation: le prix unitaire ne peut pas être négatif
+        if self.unit_price < 0:
+            errors["unit_price"] = ValidationError(
+                "Le prix unitaire ne peut pas être négatif.",
+                code="negative_unit_price"
+            )
+
+        # Validation: le taux de TVA doit être entre 0 et 100
+        if self.tax_rate < 0 or self.tax_rate > 100:
+            errors["tax_rate"] = ValidationError(
+                "Le taux de TVA doit être compris entre 0 et 100.",
+                code="invalid_tax_rate"
+            )
+
+        if errors:
+            raise ValidationError(errors)
 
     @property
     def total_ht(self) -> Decimal:

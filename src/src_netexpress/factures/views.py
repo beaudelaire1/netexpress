@@ -8,6 +8,7 @@ Compatibles avec factures/urls.py :
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.db import transaction
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -62,15 +63,22 @@ def create_invoice(request, quote_id: int):
     # recalcul les totaux avant la génération pour s'assurer que le
     # document reflète les dernières valeurs.
     try:
-        invoice_model.compute_totals()
+        # Transaction atomique pour le recalcul des totaux
+        with transaction.atomic():
+            invoice_model.compute_totals()
+
+        # Génération PDF et envoi email hors transaction
         invoice_model.generate_pdf(attach=True)
         # Envoi immédiat de la facture au client (PDF en pièce jointe)
         PremiumEmailService().send_invoice_notification(invoice_model)
+
         # Marquer la facture comme envoyée (si le champ existe)
+        # Transaction atomique pour la mise à jour du statut
         try:
             if hasattr(invoice_model, "status"):
-                invoice_model.status = Invoice.InvoiceStatus.SENT
-                invoice_model.save(update_fields=["status"])
+                with transaction.atomic():
+                    invoice_model.status = Invoice.InvoiceStatus.SENT
+                    invoice_model.save(update_fields=["status"])
         except Exception:
             pass
     except Exception as e:

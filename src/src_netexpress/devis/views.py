@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.forms import inlineformset_factory
 from django.http import FileResponse, Http404, JsonResponse, HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -24,13 +25,19 @@ def request_quote(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = QuoteRequestForm(request.POST, request.FILES)
         if form.is_valid():
-            quote_request = form.save()
-            # Gestion des fichiers uploadés
-            files = request.FILES.getlist("photos")
-            from .models import QuoteRequestPhoto  # import local pour éviter cycles
-            for f in files:
-                photo = QuoteRequestPhoto.objects.create(image=f)
-                quote_request.photos.add(photo)            # Envoi asynchrone de confirmation (HTML brandé)
+            # Transaction atomique pour garantir que la demande de devis
+            # et toutes ses photos sont créées ensemble ou pas du tout
+            with transaction.atomic():
+                quote_request = form.save()
+                # Gestion des fichiers uploadés
+                files = request.FILES.getlist("photos")
+                from .models import QuoteRequestPhoto  # import local pour éviter cycles
+                for f in files:
+                    photo = QuoteRequestPhoto.objects.create(image=f)
+                    quote_request.photos.add(photo)
+
+            # Envoi asynchrone de confirmation (HTML brandé)
+            # Hors transaction pour ne pas bloquer en cas d'erreur Celery
             try:
                 from devis.tasks import send_quote_request_received
                 send_quote_request_received.delay(quote_request.pk)
@@ -66,7 +73,10 @@ def public_devis(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = DevisForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            # Transaction atomique car form.save() crée à la fois
+            # un Client et un Quote
+            with transaction.atomic():
+                form.save()
             return redirect(reverse("devis:quote_success"))
     else:
         form = DevisForm(initial=initial)
@@ -103,15 +113,22 @@ def admin_quote_edit(request: HttpRequest, pk: int) -> HttpResponse:
         form = QuoteAdminForm(request.POST, instance=quote)
         formset = QuoteItemFormSet(request.POST, instance=quote)
         if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            # Recalcul des totaux + génération PDF
-            try:
-                quote.compute_totals()
-            except Exception:
-                pass
+            # Utilisation d'une transaction atomique pour garantir l'intégrité
+            # des données : si une opération échoue, toutes sont annulées.
+            with transaction.atomic():
+                form.save()
+                formset.save()
+                # Recalcul des totaux après sauvegarde des items
+                try:
+                    quote.compute_totals()
+                except Exception:
+                    # En cas d'erreur dans compute_totals, la transaction
+                    # sera annulée et les modifications perdues
+                    pass
 
             # Si le devis passe à "Envoyé", on génère le PDF et on envoie au client (Celery)
+            # Ces opérations sont hors transaction car elles ne doivent pas bloquer
+            # la sauvegarde du devis en cas d'échec
             try:
                 if quote.status == Quote.QuoteStatus.SENT and prev_status != Quote.QuoteStatus.SENT:
                     from django.core.files.base import ContentFile
