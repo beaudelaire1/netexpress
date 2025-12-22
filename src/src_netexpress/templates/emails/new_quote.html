@@ -3,7 +3,7 @@
 {% block content %}
   <h1 style="margin:0 0 10px 0;font-size:22px;letter-spacing:-.01em;">Demande reçue</h1>
   <p style="margin:0 0 14px 0;color:#374151;line-height:1.6;">
-    Bonjour <strong> {{ quote_request.full_name }} </strong>,<br>
+    Bonjour <strong>{{ quote_request.full_name }}</strong>,<br>
     Nous avons bien reçu votre demande de devis. Notre équipe vous recontactera rapidement.
   </p>
 
@@ -18,7 +18,7 @@
 
   {% if cta_url %}
   <div style="margin-top:18px;">
-    <a href="{{ cta_url }}" style="display:inline-block;padding:12px 16px;border-radius:12px;background:#0a36ff;color:#fff;text-decoration:none;font-weight:700;">
+    <a href="{{ cta_url }}" style="display:inline-block;padding:12px 16px;border-radius:12px;background:#0f6b4c;color:#fff;text-decoration:none;font-weight:700;">
       Suivre ma demande
     </a>
   </div>

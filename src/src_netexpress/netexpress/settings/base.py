@@ -66,6 +66,8 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'whitenoise.runserver_nostatic',
+    'ckeditor',
+    'ckeditor_uploader',
 
     # Project apps
     'core.apps.CoreConfig',
@@ -77,6 +79,15 @@ INSTALLED_APPS = [
     'messaging.apps.MessagingConfig',
     'accounts.apps.AccountsConfig',
 ]
+
+# ============================================================
+# 🔐 CONFIGURATION D'AUTHENTIFICATION
+# ============================================================
+
+# URLs de redirection après connexion/déconnexion
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 # ============================================================
 # 🎨 JAZZMIN CONFIGURATION
@@ -96,7 +107,7 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Bienvenue dans l'administration de Nettoyage Express",
     
     # Copyright
-    "copyright": "Nettoyage Express",
+    "copyright": "Nettoyage Express © 2024",
     
     # Recherche de modèles
     "search_model": ["auth.User", "devis.Quote", "factures.Invoice"],
@@ -178,21 +189,21 @@ JAZZMIN_SETTINGS = {
     "language_chooser": False,
 }
 
-# Configuration de l'interface Jazzmin (couleurs vertes pour Nettoyage Express)
+# Configuration de l'interface Jazzmin (couleurs Nettoyage Express)
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-success",
-    "accent": "accent-success",
-    "navbar": "navbar-dark navbar-success",
+    "brand_colour": False,  # Désactivé pour utiliser CSS personnalisé
+    "accent": False,        # Désactivé pour utiliser CSS personnalisé
+    "navbar": False,        # Désactivé pour utiliser CSS personnalisé
     "no_navbar_border": False,
     "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
     "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-success",
+    "sidebar": False,       # Désactivé pour utiliser CSS personnalisé
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": True,
@@ -222,6 +233,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.middleware.RoleBasedAccessMiddleware',  # Add role-based access control
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -248,6 +260,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+            ],
+            'builtins': [
+                'core.templatetags.legacy_filters',
             ],
         },
     },
@@ -311,6 +326,66 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ============================================================
+# 📝 CKEDITOR CONFIGURATION
+# ============================================================
+
+# CKEditor settings for WYSIWYG messaging
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_IMAGE_BACKEND = "pillow"
+CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source']
+        ],
+        'height': 200,
+        'width': '100%',
+        'toolbarCanCollapse': True,
+        'forcePasteAsPlainText': True,
+        'removePlugins': 'stylesheetparser',
+        'allowedContent': True,
+    },
+    'messaging': {
+        'toolbar': 'Messaging',
+        'toolbar_Messaging': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat']
+        ],
+        'height': 150,
+        'width': '100%',
+        'removePlugins': 'stylesheetparser',
+        'forcePasteAsPlainText': True,
+        'enterMode': 2,  # Use <br> instead of <p>
+        'shiftEnterMode': 1,  # Use <p> for Shift+Enter
+    },
+    'admin': {
+        'toolbar': 'Admin',
+        'toolbar_Admin': [
+            ['Bold', 'Italic', 'Underline', 'Strike'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink', 'Anchor'],
+            ['Image', 'Table', 'HorizontalRule'],
+            ['TextColor', 'BGColor'],
+            ['Smiley', 'SpecialChar'],
+            ['RemoveFormat', 'Source']
+        ],
+        'height': 300,
+        'width': '100%',
+        'filebrowserWindowWidth': 940,
+        'filebrowserWindowHeight': 725,
+    }
+}
+
+# ============================================================
 # 🆔 TYPE DE CLÉ PRIMAIRE PAR DÉFAUT
 # ============================================================
 
@@ -339,7 +414,7 @@ INVOICE_BRANDING = {
     "name": "Nettoyage Express",
     "tagline": "Espaces verts, nettoyage, peinture, bricolage",
     "email": "contact@nettoyageexpresse.fr",
-    "logo_path": str((BASE_DIR / "static" / "img" / "logo.png").resolve()),
+    "logo_path": "static:img/logo.png",
     "address": "753, Chemin de la Désirée\n97351 Matoury",
     "phone": "05 94 30 23 68 / 06 94 46 20 12",
     "siret": "123 456 789 00012",
@@ -386,5 +461,30 @@ LOGGING = {
         },
     },
 }
+
+# ============================================================
+# 🔄 CELERY CONFIGURATION (Background Tasks)
+# ============================================================
+
+# Celery settings for background task processing (notifications, emails)
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Task routing
+CELERY_TASK_ROUTES = {
+    'messaging.tasks.*': {'queue': 'messaging'},
+    'devis.tasks.*': {'queue': 'documents'},
+    'factures.tasks.*': {'queue': 'documents'},
+    'contact.tasks.*': {'queue': 'notifications'},
+}
+
+# Task time limits
+CELERY_TASK_SOFT_TIME_LIMIT = 60  # 1 minute
+CELERY_TASK_TIME_LIMIT = 120      # 2 minutes
 
 

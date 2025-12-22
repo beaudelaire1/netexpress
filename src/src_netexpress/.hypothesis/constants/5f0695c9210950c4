@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\forms.py
+# hypothesis_version: 6.148.7
+
+['class', 'email', 'form-control', 'password1', 'password2', 'phone', 'role', 'username']

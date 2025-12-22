@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\migrations\0001_initial.py
+# hypothesis_version: 6.148.7
+
+['Client', 'ID', 'Ouvrier', 'Profile', 'client', 'id', 'phone', 'profil', 'profile', 'profils', 'role', 'user', 'verbose_name', 'verbose_name_plural', 'worker']

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\urls.py
+# hypothesis_version: 6.148.7
+
+['archive', 'archive/', 'create', 'download', 'download/<int:pk>/', 'factures']

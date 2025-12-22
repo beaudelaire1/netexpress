@@ -9,6 +9,8 @@ principaux (numéro, devis associé, montant, date).
 from django.contrib import admin
 from django.utils.html import format_html
 from django.core.files.base import ContentFile
+from django import forms
+from ckeditor.widgets import CKEditorWidget
 import os
 from django.urls import reverse
 
@@ -16,8 +18,24 @@ from .models import Invoice, InvoiceItem, _get_branding
 from core.services.email_service import PremiumEmailService
 
 
+class InvoiceAdminForm(forms.ModelForm):
+    """Custom admin form for Invoice with CKEditor for notes field."""
+    
+    notes = forms.CharField(
+        label="Notes",
+        widget=CKEditorWidget(config_name='admin'),
+        required=False,
+        help_text="Notes pour la facture (formatage professionnel disponible)"
+    )
+    
+    class Meta:
+        model = Invoice
+        fields = '__all__'
+
+
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
+    form = InvoiceAdminForm
     list_display = ("number", "quote", "status", "issue_date", "total_ttc", "pdf_link")
     list_filter = ("status", "issue_date")
     search_fields = ("number", "quote__client__full_name")

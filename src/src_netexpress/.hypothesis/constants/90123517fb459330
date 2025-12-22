@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\migrations\0001_initial.py
+# hypothesis_version: 6.148.7
+
+[100, 200, 'En cours', 'En retard', 'ID', 'Task', 'Terminé', 'completed', 'created_at', 'description', 'due_date', 'id', 'in_progress', 'location', 'ordering', 'overdue', 'start_date', 'status', 'team', 'title', 'tâche', 'tâches', 'upcoming', 'updated_at', 'verbose_name', 'verbose_name_plural', 'À venir']

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\netexpress\settings\dev.py
+# hypothesis_version: 6.148.7
+
+['0.0.0.0', '127.0.0.1', '=', 'DJANGO_SECRET_KEY', 'ENGINE', 'INFO', 'NAME', 'class', 'console', 'db.sqlite3', 'default', 'django', 'format', 'formatter', 'formatters', 'handlers', 'level', 'localhost', 'loggers', 'propagate', 'root', 'simple', 'style', 'version', '{']

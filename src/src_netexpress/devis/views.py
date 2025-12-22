@@ -143,6 +143,27 @@ def quote_validate_code(request, token: str):
                 # Statut devis -> accepté
                 quote.status = Quote.QuoteStatus.ACCEPTED
                 quote.save(update_fields=["status"])
+                
+                # Always generate/regenerate PDF to ensure it's current
+                try:
+                    quote.generate_pdf(attach=True)
+                except Exception as e:
+                    # Log the error but don't fail the validation
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"PDF generation failed for quote {quote.number}: {e}")
+                
+                # Send notification about quote validation
+                try:
+                    from core.services.notification_service import NotificationService
+                    notification_service = NotificationService()
+                    notification_service.notify_quote_validation(quote)
+                except Exception as e:
+                    # Log the error but don't fail the validation
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Notification failed for quote {quote.number}: {e}")
+                
                 messages.success(request, "Merci ! Votre devis est validé.")
                 return render(request, "quotes/validate_success.html", {"quote": quote})
             messages.error(request, "Code incorrect. Veuillez réessayer.")

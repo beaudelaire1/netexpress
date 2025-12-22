@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\messaging\migrations\0002_messagethread_message.py
+# hypothesis_version: 6.148.7
+
+[200, '-created_at', '-last_message_at', '0001_initial', 'ID', 'Message', 'MessageThread', 'content', 'created_at', 'fil de discussion', 'fils de discussion', 'id', 'last_message_at', 'message interne', 'message_threads', 'messages', 'messages internes', 'messaging', 'ordering', 'participants', 'read_at', 'received_messages', 'recipient', 'sender', 'sent_messages', 'subject', 'thread', 'verbose_name', 'verbose_name_plural']

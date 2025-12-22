@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\urls_worker.py
+# hypothesis_version: 6.148.7
+
+['calendar', 'calendar/', 'dashboard', 'events', 'events/', 'notification_count', 'notification_list', 'notifications/count/', 'notifications/list/', 'schedule', 'schedule/', 'task_complete', 'task_detail', 'task_list', 'tasks/', 'tasks/<int:pk>/', 'worker_portal']

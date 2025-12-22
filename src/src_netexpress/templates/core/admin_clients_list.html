@@ -1,0 +1,139 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Gestion des Clients — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
+  </a>
+  <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item">
+    <i class="fas fa-users mr-2"></i>Ouvriers
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Gestion des Clients</h1>
+          <p class="text-gray-600">Gérer les clients et leurs devis</p>
+        </div>
+        <a href="{% url 'core:admin_create_client' %}" class="btn btn-primary">
+          <i class="fas fa-plus mr-2"></i>Nouveau Client
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clients List -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {% if clients_with_stats %}
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Client
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Entreprise
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Devis Totaux
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acceptés
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  En Attente
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for client_stat in clients_with_stats %}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-blue-600"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">
+                          {{ client_stat.client.full_name }}
+                        </div>
+                        <div class="text-sm text-gray-500">Client #{{ client_stat.client.pk }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ client_stat.client.email }}</div>
+                    {% if client_stat.client.phone %}
+                      <div class="text-sm text-gray-500">{{ client_stat.client.phone }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">
+                      {{ client_stat.client.company|default:"—" }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ client_stat.total_quotes }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-green-600">{{ client_stat.accepted_quotes }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-yellow-600">{{ client_stat.pending_quotes }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <a href="{% url 'core:admin_create_client' %}" 
+                         class="text-ne-primary-600 hover:text-ne-primary-900" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{% url 'core:admin_create_quote' %}?client={{ client_stat.client.pk }}" 
+                         class="text-blue-600 hover:text-blue-900" title="Nouveau devis">
+                        <i class="fas fa-file-alt"></i>
+                      </a>
+                      <a href="{% url 'core:admin_dashboard' %}" 
+                         class="text-green-600 hover:text-green-900" title="Voir devis">
+                        <i class="fas fa-list"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% else %}
+      <div class="bg-white rounded-lg shadow p-8 text-center">
+        <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun client trouvé</h3>
+        <p class="text-gray-500 mb-6">Commencez par créer des clients pour gérer les devis.</p>
+        <a href="{% url 'core:admin_create_client' %}" class="btn btn-primary">
+          <i class="fas fa-plus mr-2"></i>Créer le premier client
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

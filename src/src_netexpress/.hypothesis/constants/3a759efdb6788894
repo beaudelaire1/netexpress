@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\services\models.py
+# hypothesis_version: 6.148.7
+
+[100, 200, 255, 'Catégorie du service', 'Unité de mesure', 'categories', 'catégorie', 'catégories', 'forfait', 'id', 'is_active', 'name', 'order', 'service', 'services', 'services:detail', 'services:list', 'slug', 'tasks', 'title', 'tâche', 'tâches']

@@ -1,25 +1,532 @@
-/*
-  Jazzmin overrides for Nettoyage Express admin interface
+/* 
+ * Jazzmin Admin Theme Overrides
+ * Utilise la couleur principale du thème Nettoyage Express: #0f6b4c
+ * Version corrigée pour la lisibilité et le fonctionnement des formulaires
+ */
 
-  Cette feuille permet d'ajuster quelques couleurs et styles du thème
-  Jazzmin pour qu'il corresponde à la palette verte de la marque.  Elle
-  est référencée via la clé ``custom_css`` de ``JAZZMIN_SETTINGS``.
-*/
-
+/* Variables CSS pour les couleurs du thème */
 :root {
-  /* Couleur principale pour les éléments interactifs (boutons, liens) */
-  --jazzmin-primary: #0B5D46;
-  --jazzmin-primary-hover: #0c694a;
-  --jazzmin-link: #0B5D46;
-  --jazzmin-link-hover: #0c694a;
+  /* Couleur principale du site */
+  --ne-primary: #0f6b4c;
+  
+  /* Palette dérivée de la couleur principale */
+  --ne-primary-50: #f0fdf7;
+  --ne-primary-100: #dcfce8;
+  --ne-primary-200: #bbf7d1;
+  --ne-primary-300: #86efac;
+  --ne-primary-400: #4ade80;
+  --ne-primary-500: #22c55e;
+  --ne-primary-600: #0f6b4c;  /* Couleur principale */
+  --ne-primary-700: #0d5940;  /* Plus sombre */
+  --ne-primary-800: #0a4734;  /* Encore plus sombre */
+  --ne-primary-900: #083528;  /* Le plus sombre */
+  
+  /* Couleurs dérivées pour les variations */
+  --ne-hover: #0d5940;
+  --ne-active: #0a4734;
+  --ne-light: #f0fdf7;
 }
 
-/* Personnalisation des boutons primaires dans l'admin */
-.btn-primary, .submit-row input.default {
-  background-color: var(--jazzmin-primary) !important;
-  border-color: var(--jazzmin-primary) !important;
+/* Navigation principale */
+.main-header.navbar {
+  background-color: var(--ne-primary) !important;
+  border-bottom: 2px solid var(--ne-primary-700) !important;
 }
-.btn-primary:hover, .submit-row input.default:hover {
-  background-color: var(--jazzmin-primary-hover) !important;
-  border-color: var(--jazzmin-primary-hover) !important;
+
+.main-header .navbar-nav .nav-link {
+  color: white !important;
+}
+
+.main-header .navbar-nav .nav-link:hover {
+  background-color: var(--ne-hover) !important;
+}
+
+/* Sidebar */
+.main-sidebar {
+  background-color: var(--ne-primary-800) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-item .nav-link {
+  color: var(--ne-primary-100) !important;
+}
+
+.main-sidebar .nav-sidebar .nav-item .nav-link:hover {
+  background-color: var(--ne-hover) !important;
+  color: white !important;
+}
+
+.main-sidebar .nav-sidebar .nav-item.menu-open > .nav-link,
+.main-sidebar .nav-sidebar .nav-item .nav-link.active {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+/* Brand logo area */
+.brand-link {
+  background-color: var(--ne-primary-900) !important;
+  border-bottom: 1px solid var(--ne-hover) !important;
+}
+
+.brand-link .brand-text {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Sidebar menu icons */
+.nav-sidebar .nav-icon {
+  color: var(--ne-primary-200) !important;
+}
+
+.nav-sidebar .nav-item .nav-link.active .nav-icon {
+  color: white !important;
+}
+
+/* CORRECTION: Boutons primaires - Amélioration de la visibilité */
+.btn-primary {
+  background-color: var(--ne-primary) !important;
+  border-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--ne-hover) !important;
+  border-color: var(--ne-hover) !important;
+  color: white !important;
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  background-color: var(--ne-primary) !important;
+  border-color: var(--ne-primary) !important;
+  color: white !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 107, 76, 0.25) !important;
+}
+
+.btn-primary:active,
+.btn-primary.active {
+  background-color: var(--ne-hover) !important;
+  border-color: var(--ne-hover) !important;
+  color: white !important;
+}
+
+/* CORRECTION: Boutons success */
+.btn-success {
+  background-color: var(--ne-primary) !important;
+  border-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.btn-success:hover {
+  background-color: var(--ne-hover) !important;
+  border-color: var(--ne-hover) !important;
+  color: white !important;
+}
+
+/* CORRECTION: Liens - Amélioration de la lisibilité */
+a {
+  color: var(--ne-primary) !important;
+}
+
+a:hover {
+  color: var(--ne-hover) !important;
+  text-decoration: underline !important;
+}
+
+/* CORRECTION: Texte dans les cards - Assurer la lisibilité */
+.card-body {
+  color: #333 !important;
+}
+
+.card-header {
+  color: #333 !important;
+}
+
+.card-title {
+  color: #333 !important;
+}
+
+/* CORRECTION: Texte général - Assurer la lisibilité */
+.content-wrapper {
+  background-color: #f8fafc !important;
+  color: #333 !important;
+}
+
+.content-wrapper h1,
+.content-wrapper h2,
+.content-wrapper h3,
+.content-wrapper h4,
+.content-wrapper h5,
+.content-wrapper h6 {
+  color: #333 !important;
+}
+
+.content-wrapper p,
+.content-wrapper div,
+.content-wrapper span,
+.content-wrapper td,
+.content-wrapper th {
+  color: #333 !important;
+}
+
+/* CORRECTION: Labels de formulaires */
+label,
+.form-label,
+.control-label {
+  color: #333 !important;
+  font-weight: 500 !important;
+}
+
+/* CORRECTION: Texte d'aide des formulaires */
+.help-text,
+.form-text,
+.help-block {
+  color: #666 !important;
+  font-size: 0.875rem !important;
+}
+
+/* CORRECTION: Messages d'erreur */
+.errorlist,
+.error,
+.invalid-feedback {
+  color: #dc3545 !important;
+}
+
+/* CORRECTION: Formulaires - Amélioration de la visibilité */
+.form-control {
+  border: 1px solid #ced4da !important;
+  color: #333 !important;
+  background-color: white !important;
+}
+
+.form-control:focus {
+  border-color: var(--ne-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 107, 76, 0.25) !important;
+  color: #333 !important;
+  background-color: white !important;
+}
+
+.form-control::placeholder {
+  color: #6c757d !important;
+}
+
+/* CORRECTION: Select et options */
+select.form-control {
+  color: #333 !important;
+  background-color: white !important;
+}
+
+select.form-control option {
+  color: #333 !important;
+  background-color: white !important;
+}
+
+/* CORRECTION: Checkboxes et radios */
+.form-check-input {
+  background-color: white !important;
+  border: 1px solid #ced4da !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--ne-primary) !important;
+  border-color: var(--ne-primary) !important;
+}
+
+.form-check-label {
+  color: #333 !important;
+}
+
+/* CORRECTION: Tables - Amélioration de la lisibilité */
+.table {
+  color: #333 !important;
+  background-color: white !important;
+}
+
+.table th {
+  background-color: #f8f9fa !important;
+  color: #333 !important;
+  border-bottom: 2px solid #dee2e6 !important;
+}
+
+.table td {
+  color: #333 !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--ne-light) !important;
+  color: #333 !important;
+}
+
+.table tbody tr:hover {
+  background-color: #f5f5f5 !important;
+  color: #333 !important;
+}
+
+/* CORRECTION: Pagination */
+.page-item.active .page-link {
+  background-color: var(--ne-primary) !important;
+  border-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.page-link {
+  color: var(--ne-primary) !important;
+  background-color: white !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+.page-link:hover {
+  color: var(--ne-hover) !important;
+  background-color: var(--ne-light) !important;
+  border-color: var(--ne-primary) !important;
+}
+
+/* CORRECTION: Cards et panels */
+.card {
+  background-color: white !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+.card-primary .card-header {
+  background-color: var(--ne-primary) !important;
+  border-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.card-primary {
+  border-color: var(--ne-primary) !important;
+}
+
+/* CORRECTION: Badges et labels */
+.badge-primary {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.label-primary {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+/* CORRECTION: Alerts */
+.alert-success {
+  background-color: var(--ne-primary-100) !important;
+  border-color: var(--ne-primary-300) !important;
+  color: var(--ne-primary-800) !important;
+}
+
+.alert-info {
+  background-color: #d1ecf1 !important;
+  border-color: #bee5eb !important;
+  color: #0c5460 !important;
+}
+
+.alert-warning {
+  background-color: #fff3cd !important;
+  border-color: #ffeaa7 !important;
+  color: #856404 !important;
+}
+
+.alert-danger {
+  background-color: #f8d7da !important;
+  border-color: #f5c6cb !important;
+  color: #721c24 !important;
+}
+
+/* CORRECTION: Dropdown menus */
+.dropdown-menu {
+  background-color: white !important;
+  border: 1px solid #dee2e6 !important;
+  color: #333 !important;
+}
+
+.dropdown-item {
+  color: #333 !important;
+}
+
+.dropdown-item:hover {
+  background-color: var(--ne-light) !important;
+  color: var(--ne-primary-800) !important;
+}
+
+/* CORRECTION: Tabs */
+.nav-tabs .nav-link {
+  color: #333 !important;
+}
+
+.nav-tabs .nav-link.active {
+  border-color: var(--ne-primary) var(--ne-primary) #fff !important;
+  color: var(--ne-primary) !important;
+  background-color: white !important;
+}
+
+.nav-tabs .nav-link:hover {
+  border-color: var(--ne-primary-200) var(--ne-primary-200) #dee2e6 !important;
+  color: var(--ne-primary) !important;
+}
+
+/* CORRECTION: Breadcrumb */
+.breadcrumb {
+  background-color: #f8f9fa !important;
+}
+
+.breadcrumb-item {
+  color: #6c757d !important;
+}
+
+.breadcrumb-item.active {
+  color: var(--ne-primary) !important;
+}
+
+.breadcrumb-item a {
+  color: var(--ne-primary) !important;
+}
+
+/* CORRECTION: Progress bars */
+.progress {
+  background-color: #e9ecef !important;
+}
+
+.progress-bar {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+/* CORRECTION: Info boxes */
+.info-box {
+  background-color: white !important;
+  color: #333 !important;
+}
+
+.info-box-icon {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.info-box .info-box-number {
+  color: var(--ne-hover) !important;
+  font-weight: 600 !important;
+}
+
+.info-box .info-box-text {
+  color: #333 !important;
+}
+
+/* CORRECTION: Small boxes */
+.small-box {
+  color: white !important;
+}
+
+.small-box.bg-success {
+  background-color: var(--ne-primary) !important;
+}
+
+.small-box .small-box-footer {
+  background-color: var(--ne-hover) !important;
+  color: white !important;
+}
+
+/* CORRECTION: Footer */
+.main-footer {
+  background-color: var(--ne-primary-50) !important;
+  border-top: 1px solid var(--ne-primary-200) !important;
+  color: #333 !important;
+}
+
+/* CORRECTION: Login page */
+.login-page {
+  background: linear-gradient(135deg, var(--ne-primary), var(--ne-primary-800)) !important;
+}
+
+.login-box .card {
+  border: none !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  background-color: white !important;
+}
+
+.login-box .card-body {
+  color: #333 !important;
+}
+
+.login-logo a {
+  color: white !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* CORRECTION: Messages Django */
+.messages .alert {
+  margin-bottom: 1rem !important;
+}
+
+/* CORRECTION: Amélioration générale de la lisibilité */
+.text-primary {
+  color: var(--ne-primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+}
+
+.border-primary {
+  border-color: var(--ne-primary) !important;
+}
+
+/* CORRECTION: Assurer que les textes restent lisibles */
+.content-wrapper * {
+  color: inherit;
+}
+
+/* CORRECTION: Spécifique aux formulaires Django admin */
+.form-row {
+  color: #333 !important;
+}
+
+.form-row label {
+  color: #333 !important;
+}
+
+.vTextField,
+.vLargeTextField,
+.vURLField,
+.vIntegerField,
+.vPositiveSmallIntegerField {
+  color: #333 !important;
+  background-color: white !important;
+}
+
+/* CORRECTION: Inline forms */
+.inline-group {
+  background-color: white !important;
+  color: #333 !important;
+}
+
+.inline-related {
+  background-color: #f8f9fa !important;
+}
+
+/* CORRECTION: Fieldsets */
+fieldset {
+  color: #333 !important;
+}
+
+fieldset h2 {
+  color: var(--ne-primary) !important;
+}
+
+/* CORRECTION: Submit row */
+.submit-row {
+  background-color: #f8f9fa !important;
+  color: #333 !important;
+}
+
+.submit-row input[type="submit"] {
+  background-color: var(--ne-primary) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.submit-row input[type="submit"]:hover {
+  background-color: var(--ne-hover) !important;
 }

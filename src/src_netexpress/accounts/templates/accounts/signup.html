@@ -26,8 +26,13 @@
             {{ form.email.errors }}
           </div>
           <div>
-            <label>Rôle</label>
-            {{ form.role }}
+            <label style="font-weight: 600; color: #333; margin-bottom: 8px; display: block;">Type de compte</label>
+            <div style="margin-bottom: 8px;">
+              <select name="role" id="id_role" class="form-control" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; background: white;">
+                <option value="client">👤 Client - Accès aux devis et factures</option>
+                <option value="worker">🔧 Ouvrier - Accès aux tâches et planning</option>
+              </select>
+            </div>
             {{ form.role.errors }}
           </div>
           <div>

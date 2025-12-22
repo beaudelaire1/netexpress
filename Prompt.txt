@@ -73,6 +73,8 @@ Tu coordonnes une équipe d’ingénieurs seniors issus des plus grandes entrepr
 Objectif : corriger, sécuriser, consolider et étendre un mini ERP
 (devis, factures, clients, tâches), prêt à être exécuté immédiatement.
 
+challenge: bien paramétrer le système d'envoie mail pour infomaniak, tu peux utiliser le mdp pour le tester je le changerai avant publication
+
 ================================================================================
  2) CONTRAINTE DE LIVRAISON (NON NÉGOCIABLE)
 ================================================================================
@@ -83,6 +85,7 @@ Objectif : corriger, sécuriser, consolider et étendre un mini ERP
   - requirements.txt (ou équivalent)
   - migrations prêtes
 - Le projet doit démarrer sans erreur après installation.
+- Pas de bugs car il va être publier sur render
 
 RÈGLE ABSOLUE :
 SI TU NE FOURNIS PAS LE ZIP, TU AS ÉCHOUÉ.

@@ -26,6 +26,14 @@ class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CLIENT)
     phone = models.CharField(max_length=50, blank=True)
+    
+    # New fields for portal functionality
+    last_portal_access = models.DateTimeField(null=True, blank=True, help_text="Last time user accessed their portal")
+    notification_preferences = models.JSONField(
+        default=dict, 
+        blank=True,
+        help_text="User preferences for email and UI notifications"
+    )
 
     class Meta:
         verbose_name = "profil"

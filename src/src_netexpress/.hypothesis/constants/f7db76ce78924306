@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\contact\forms.py
+# hypothesis_version: 6.148.7
+
+['Adresse', 'Code Postal', 'Email', 'Nom complet', 'Téléphone', 'Ville', 'Votre message', 'aria-required', 'body', 'city', 'class', 'email', 'full_name', 'input', 'phone', 'placeholder', 'required', 'rows', 'select', 'street', 'textarea', 'topic', 'true', 'zip_code']

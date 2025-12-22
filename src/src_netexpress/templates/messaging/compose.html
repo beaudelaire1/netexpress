@@ -5,7 +5,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
-<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+{{ form.media }}
 {% endblock %}
 
 {% block content %}
@@ -52,18 +52,4 @@
     </section>
   </main>
 </div>
-{% endblock %}
-
-{% block scripts %}
-{{ block.super }}
-<script>
-  tinymce.init({
-    selector: 'textarea.rich-editor',
-    menubar: false,
-    plugins: 'lists link autoresize',
-    toolbar: 'undo redo | styles | bold italic underline | bullist numlist | link | removeformat',
-    branding: false,
-    height: 360
-  });
-</script>
 {% endblock %}

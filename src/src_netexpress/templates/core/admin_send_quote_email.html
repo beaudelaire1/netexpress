@@ -1,0 +1,191 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Envoyer Devis par Email — Admin Dashboard{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Devis
+  </a>
+  <a href="{% url 'core:admin_send_quote_email' quote.pk %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-envelope mr-2"></i>Envoyer Email
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Envoyer Devis par Email</h1>
+          <p class="text-gray-600">Devis {{ quote.number }} - {{ quote.client.full_name }}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="{% url 'core:admin_quotes_list' %}" 
+             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour aux devis
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Email Form -->
+      <div class="lg:col-span-2">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Composer l'Email</h2>
+            <p class="text-sm text-gray-600">Personnalisez le message qui accompagnera le devis</p>
+          </div>
+          
+          <form method="post" class="px-6 py-4 space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+              <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-red-400"></i>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Erreurs dans le formulaire</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                      <ul class="list-disc pl-5 space-y-1">
+                        {% for field, errors in form.errors.items %}
+                          {% for error in errors %}
+                            <li>{{ field|capfirst }} : {{ error }}</li>
+                          {% endfor %}
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Recipient Email -->
+            <div>
+              <label for="{{ form.recipient_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ form.recipient_email.label }}
+              </label>
+              {{ form.recipient_email }}
+            </div>
+
+            <!-- Subject -->
+            <div>
+              <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ form.subject.label }}
+              </label>
+              {{ form.subject }}
+            </div>
+
+            <!-- Message -->
+            <div>
+              <label for="{{ form.message.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ form.message.label }}
+              </label>
+              {{ form.message }}
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+              <a href="{% url 'core:admin_quotes_list' %}" 
+                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Annuler
+              </a>
+              <button type="submit" 
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-ne-primary-600 hover:bg-ne-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500">
+                <i class="fas fa-paper-plane mr-2"></i>
+                Envoyer le Devis
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Quote Summary -->
+      <div class="lg:col-span-1">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Résumé du Devis</h2>
+          </div>
+          <div class="px-6 py-4 space-y-4">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Numéro</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ quote.number }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Client</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ quote.client.full_name }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Email</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ quote.client.email }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Date d'émission</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ quote.issue_date|date:"d/m/Y" }}</dd>
+            </div>
+            {% if quote.valid_until %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Valide jusqu'au</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.valid_until|date:"d/m/Y" }}</dd>
+              </div>
+            {% endif %}
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Montant Total</dt>
+              <dd class="mt-1 text-lg font-semibold text-gray-900">{{ quote.total_ttc|floatformat:2 }} €</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Statut</dt>
+              <dd class="mt-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                  {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+                  {% elif quote.status == 'sent' %}bg-yellow-100 text-yellow-800
+                  {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+                  {% elif quote.status == 'rejected' %}bg-red-100 text-red-800
+                  {% else %}bg-blue-100 text-blue-800{% endif %}">
+                  {{ quote.get_status_display }}
+                </span>
+              </dd>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDF Preview -->
+        {% if quote.pdf %}
+          <div class="mt-6 bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h2 class="text-lg font-medium text-gray-900">PDF Attaché</h2>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <i class="fas fa-file-pdf text-red-500 text-2xl mr-3"></i>
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">{{ quote.number }}.pdf</p>
+                    <p class="text-xs text-gray-500">Document PDF</p>
+                  </div>
+                </div>
+                <a href="{{ quote.pdf.url }}" target="_blank"
+                   class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <i class="fas fa-external-link-alt"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

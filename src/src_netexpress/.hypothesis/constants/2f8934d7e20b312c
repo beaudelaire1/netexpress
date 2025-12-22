@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\migrations\0003_add_portal_session.py
+# hypothesis_version: 6.148.7
+
+['-login_time', '0002_uinotification', 'Admin Portal', 'Client Portal', 'ID', 'Portal Session', 'Portal Sessions', 'PortalSession', 'Worker Portal', 'admin', 'client', 'core', 'id', 'indexes', 'ip_address', 'last_activity', 'login_time', 'logout_time', 'ordering', 'pages_visited', 'portal_sessions', 'portal_type', 'session_duration', 'user', 'user_agent', 'verbose_name', 'verbose_name_plural', 'worker']

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\urls.py
+# hypothesis_version: 6.148.7
+
+['<int:pk>/', '<int:pk>/complete/', 'calendar', 'calendar/', 'complete', 'detail', 'events', 'events/', 'list', 'list/', 'schedule/', 'tasks', 'worker-events/', 'worker_dashboard', 'worker_events', 'worker_schedule']

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\models.py
+# hypothesis_version: 6.148.7
+
+[200, 500, '-created_at', 'Account Created', 'ClientDocument', 'Document Updated', 'General', 'Invoice Created', 'Message Received', 'Quote Validated', 'Read', 'Task Assigned', 'Task Completed', 'UI Notification', 'UI Notifications', 'UINotification', 'Unread', 'access_granted_at', 'accessible_documents', 'account_created', 'client_accesses', 'client_user', 'devis.Quote', 'document_updated', 'factures.Invoice', 'general', 'invoice', 'invoice_created', 'last_accessed_at', 'message_received', 'notification_type', 'quote', 'quote_validated', 'read', 'read_at', 'task_assigned', 'task_completed', 'ui_notifications', 'user']

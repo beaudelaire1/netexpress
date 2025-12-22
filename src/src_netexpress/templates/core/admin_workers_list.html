@@ -1,0 +1,153 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Gestion des Ouvriers — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
+  </a>
+  <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-users mr-2"></i>Ouvriers
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Gestion des Ouvriers</h1>
+          <p class="text-gray-600">Gérer les comptes et performances des ouvriers</p>
+        </div>
+        <a href="{% url 'core:admin_create_worker' %}" class="btn btn-primary">
+          <i class="fas fa-plus mr-2"></i>Nouvel Ouvrier
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workers List -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {% if workers_with_stats %}
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ouvrier
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tâches Totales
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Terminées
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  En Cours
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  En Retard
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Performance
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for worker_stat in workers_with_stats %}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-10 h-10 bg-ne-primary-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-ne-primary-600"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">
+                          {{ worker_stat.worker.get_full_name|default:worker_stat.worker.username }}
+                        </div>
+                        <div class="text-sm text-gray-500">@{{ worker_stat.worker.username }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ worker_stat.worker.email }}</div>
+                    {% if worker_stat.worker.profile.phone %}
+                      <div class="text-sm text-gray-500">{{ worker_stat.worker.profile.phone }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ worker_stat.total_tasks }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-green-600">{{ worker_stat.completed_tasks }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-yellow-600">{{ worker_stat.pending_tasks }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% if worker_stat.overdue_tasks > 0 %}
+                      <div class="text-sm font-medium text-red-600">{{ worker_stat.overdue_tasks }}</div>
+                    {% else %}
+                      <div class="text-sm text-gray-500">0</div>
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% if worker_stat.total_tasks > 0 %}
+                      {% widthratio worker_stat.completed_tasks worker_stat.total_tasks 100 as completion_rate %}
+                      <div class="flex items-center">
+                        <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                          <div class="bg-ne-primary-600 h-2 rounded-full" style="width: {{ completion_rate }}%"></div>
+                        </div>
+                        <span class="text-sm text-gray-600">{{ completion_rate }}%</span>
+                      </div>
+                    {% else %}
+                      <span class="text-sm text-gray-400">N/A</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <a href="{% url 'core:admin_create_worker' %}" 
+                         class="text-ne-primary-600 hover:text-ne-primary-900" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{% url 'core:admin_global_planning' %}?worker={{ worker_stat.worker.pk }}" 
+                         class="text-blue-600 hover:text-blue-900" title="Voir planning">
+                        <i class="fas fa-calendar-alt"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% else %}
+      <div class="bg-white rounded-lg shadow p-8 text-center">
+        <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun ouvrier trouvé</h3>
+        <p class="text-gray-500 mb-6">Commencez par créer des comptes ouvriers pour gérer les tâches.</p>
+        <a href="{% url 'core:admin_create_worker' %}" class="btn btn-primary">
+          <i class="fas fa-plus mr-2"></i>Créer le premier ouvrier
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

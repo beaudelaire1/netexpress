@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\models.py
+# hypothesis_version: 6.148.7
+
+[100, 200, 'En cours', 'En retard', 'Presque en retard', 'Terminé', 'almost_overdue', 'completed', 'due_date', 'in_progress', 'overdue', 'pk', 'tasks:detail', 'title', 'tâche', 'tâches', 'upcoming', 'À venir']

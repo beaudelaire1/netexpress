@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\messaging\admin.py
+# hypothesis_version: 6.148.7
+
+[', ', 'Lu', 'Participants', 'body', 'content', 'created_at', 'error_message', 'get_participants', 'is_read', 'last_message_at', 'participants', 'read_at', 'recipient', 'recipient__username', 'resend_emails', 'sender', 'sender__username', 'sent_at', 'status', 'subject', 'thread']

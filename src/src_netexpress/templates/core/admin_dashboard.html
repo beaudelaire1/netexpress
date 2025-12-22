@@ -1,0 +1,519 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
+  </a>
+  <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item">
+    <i class="fas fa-users mr-2"></i>Ouvriers
+  </a>
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Devis
+  </a>
+  <a href="{% url 'core:admin_invoices_list' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Factures
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p class="text-gray-600">Vue d'ensemble des performances et KPIs</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="text-sm text-gray-500">
+            Dernière mise à jour : {{ "now"|date:"d/m/Y à H:i" }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Revenue -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-euro-sign text-green-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Chiffre d'Affaires Total</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ total_revenue|floatformat:2 }} €</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Revenue -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-chart-line text-blue-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">CA Mensuel</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ monthly_revenue|floatformat:2 }} €</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Revenue -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-clock text-yellow-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">CA en Attente</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ pending_revenue|floatformat:2 }} €</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversion Rate -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-percentage text-purple-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Taux de Conversion</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ conversion_rate|floatformat:1 }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Task Performance -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Performance des Tâches</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Taux de Completion</span>
+              <span class="text-lg font-semibold text-gray-900">{{ task_completion_rate|floatformat:1 }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-green-600 h-2 rounded-full" style="width: {{ task_completion_rate }}%"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div class="text-center">
+                <p class="text-2xl font-bold text-green-600">{{ task_status_counts.completed }}</p>
+                <p class="text-xs text-gray-500">Terminées</p>
+              </div>
+              <div class="text-center">
+                <p class="text-2xl font-bold text-red-600">{{ overdue_tasks }}</p>
+                <p class="text-xs text-gray-500">En Retard</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Worker Performance -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Performance des Ouvriers</h2>
+            <a href="{% url 'core:admin_global_planning' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir planning <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if worker_stats %}
+            <div class="space-y-3">
+              {% for worker_stat in worker_stats|slice:":5" %}
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-user text-gray-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">
+                        {{ worker_stat.worker.get_full_name|default:worker_stat.worker.username }}
+                      </p>
+                      <p class="text-xs text-gray-500">{{ worker_stat.total_tasks }} tâches</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-semibold text-gray-900">{{ worker_stat.completion_rate|floatformat:1 }}%</p>
+                    {% if worker_stat.overdue_tasks > 0 %}
+                      <p class="text-xs text-red-600">{{ worker_stat.overdue_tasks }} en retard</p>
+                    {% else %}
+                      <p class="text-xs text-green-600">À jour</p>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-users text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucun ouvrier assigné</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Overview -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <!-- Quote Status -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Statut des Devis</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Brouillons</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {{ quote_status_counts.draft }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Envoyés</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                {{ quote_status_counts.sent }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Acceptés</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {{ quote_status_counts.accepted }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Refusés</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                {{ quote_status_counts.rejected }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Status -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Statut des Factures</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Brouillons</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {{ invoice_status_counts.draft }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Envoyées</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                {{ invoice_status_counts.sent }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Payées</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {{ invoice_status_counts.paid }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">En Retard</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                {{ invoice_status_counts.overdue }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Status -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Statut des Tâches</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">À venir</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {{ task_status_counts.upcoming }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">En cours</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                {{ task_status_counts.in_progress }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">Terminées</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {{ task_status_counts.completed }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-gray-600">En Retard</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                {{ task_status_counts.overdue }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Recent Quotes -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Devis Récents</h2>
+            <a href="{% url 'core:admin_quotes_list' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if recent_quotes %}
+            <div class="space-y-3">
+              {% for quote in recent_quotes %}
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-file-alt text-blue-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">{{ quote.number }}</p>
+                      <p class="text-xs text-gray-500">{{ quote.client.full_name }}</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">{{ quote.total_ttc }} €</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                      {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+                      {% elif quote.status == 'sent' %}bg-yellow-100 text-yellow-800
+                      {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+                      {% else %}bg-red-100 text-red-800{% endif %}">
+                      {{ quote.get_status_display }}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-file-alt text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucun devis récent</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Recent Invoices -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Factures Récentes</h2>
+            <a href="{% url 'core:admin_invoices_list' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if recent_invoices %}
+            <div class="space-y-3">
+              {% for invoice in recent_invoices %}
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-receipt text-green-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">{{ invoice.number }}</p>
+                      <p class="text-xs text-gray-500">{{ invoice.issue_date|date:"d/m/Y" }}</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">{{ invoice.total_ttc }} €</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                      {% if invoice.status == 'draft' %}bg-gray-100 text-gray-800
+                      {% elif invoice.status == 'sent' %}bg-yellow-100 text-yellow-800
+                      {% elif invoice.status == 'paid' %}bg-green-100 text-green-800
+                      {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800
+                      {% else %}bg-blue-100 text-blue-800{% endif %}">
+                      {{ invoice.get_status_display }}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-receipt text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucune facture récente</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Recent Tasks -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Tâches Récentes</h2>
+            <a href="{% url 'core:admin_global_planning' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if recent_tasks %}
+            <div class="space-y-3">
+              {% for task in recent_tasks %}
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-tasks text-purple-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">{{ task.title|truncatechars:25 }}</p>
+                      <p class="text-xs text-gray-500">
+                        {% if task.assigned_to %}
+                          {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                        {% else %}
+                          Non assignée
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">{{ task.due_date|date:"d/m" }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                      {% if task.status == 'upcoming' %}bg-blue-100 text-blue-800
+                      {% elif task.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                      {% elif task.status == 'completed' %}bg-green-100 text-green-800
+                      {% elif task.status == 'overdue' %}bg-red-100 text-red-800
+                      {% else %}bg-gray-100 text-gray-800{% endif %}">
+                      {{ task.get_status_display }}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-tasks text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucune tâche récente</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Actions Rapides</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <a href="{% url 'core:admin_create_quote' %}" 
+             class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-plus text-blue-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Nouveau Devis</p>
+              <p class="text-xs text-gray-500">Créer un devis</p>
+            </div>
+          </a>
+
+          <a href="{% url 'core:admin_create_invoice' %}" 
+             class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-receipt text-green-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Nouvelle Facture</p>
+              <p class="text-xs text-gray-500">Créer une facture</p>
+            </div>
+          </a>
+
+          <a href="{% url 'core:admin_create_task' %}" 
+             class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-tasks text-purple-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Nouvelle Tâche</p>
+              <p class="text-xs text-gray-500">Assigner une tâche</p>
+            </div>
+          </a>
+
+          <a href="{% url 'core:admin_create_worker' %}" 
+             class="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-user-plus text-yellow-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Nouvel Ouvrier</p>
+              <p class="text-xs text-gray-500">Créer un compte</p>
+            </div>
+          </a>
+
+          <a href="{% url 'core:admin_workers_list' %}" 
+             class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-users text-gray-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Gérer Ouvriers</p>
+              <p class="text-xs text-gray-500">Liste des ouvriers</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

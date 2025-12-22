@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\contact\migrations\0003_rename_commune_message_city.py
+# hypothesis_version: 6.148.7
+
+['city', 'commune', 'contact', 'message']

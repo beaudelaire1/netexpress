@@ -48,15 +48,19 @@ def contact_view(request):
         if form.is_valid():
             msg = form.save()
 
-            # Email admin asynchrone
+            # Pour le développement, envoi synchrone direct
             try:
+                # Essayer d'abord l'envoi asynchrone avec Celery
                 notify_new_contact.delay(msg.pk)
             except Exception:
                 # Fallback synchrone si Celery n'est pas disponible
                 try:
+                    # Appel direct de la fonction (synchrone)
+                    from .tasks import notify_new_contact
                     notify_new_contact(msg.pk)
-                except Exception:
-                    pass
+                except Exception as e:
+                    # Si l'envoi échoue complètement, on continue quand même
+                    print(f"Erreur envoi email: {e}")
 
             messages.success(request, "Votre message a bien été envoyé.")
             return redirect(reverse("contact:success"))

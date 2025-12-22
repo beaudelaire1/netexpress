@@ -1,0 +1,77 @@
+{% load static %}
+
+<div class="task-card {% if priority == 'high' %}border-l-4 border-red-500{% elif priority == 'medium' %}border-l-4 border-orange-500{% endif %}">
+  <!-- Task Header -->
+  <div class="flex items-start justify-between mb-3">
+    <div class="flex-1">
+      <h3 class="font-semibold text-gray-900 text-lg mb-1">{{ task.title }}</h3>
+      <div class="flex items-center space-x-2 mb-2">
+        <span class="task-status-badge status-{{ task.status }}">
+          {{ task.get_status_display }}
+        </span>
+        {% if task.team %}
+          <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            {{ task.team }}
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Details -->
+  {% if task.description %}
+  <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ task.description }}</p>
+  {% endif %}
+
+  <!-- Location -->
+  {% if task.location %}
+  <div class="flex items-center text-sm text-gray-600 mb-3">
+    <i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>
+    <span>{{ task.location }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Dates -->
+  <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+    <div>
+      <span class="text-gray-500">Début:</span>
+      <div class="font-medium text-gray-900">
+        {{ task.start_date|date:"d/m/Y" }}
+      </div>
+    </div>
+    <div>
+      <span class="text-gray-500">Échéance:</span>
+      <div class="font-medium {% if task.status == 'overdue' %}text-red-600{% elif task.status == 'almost_overdue' %}text-orange-600{% else %}text-gray-900{% endif %}">
+        {{ task.due_date|date:"d/m/Y" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion Notes (for completed tasks) -->
+  {% if completed and task.completion_notes %}
+  <div class="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+    <div class="text-xs text-green-700 font-medium mb-1">Notes de fin:</div>
+    <div class="text-sm text-green-800">{{ task.completion_notes }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div class="flex flex-col sm:flex-row gap-2">
+    <a href="{% url 'worker:task_detail' task.pk %}" 
+       class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors text-center">
+      <i class="fas fa-eye mr-2"></i>Voir détails
+    </a>
+    
+    {% if not completed and task.status != 'completed' %}
+    <button onclick="openCompletionModal({{ task.pk }}, '{{ task.title|escapejs }}')"
+            class="complete-btn"
+            hx-post="{% url 'worker:task_detail' task.pk %}"
+            hx-trigger="click"
+            hx-confirm="Êtes-vous sûr de vouloir marquer cette tâche comme terminée ?">
+      <i class="fas fa-check mr-2"></i>
+      <span class="hidden sm:inline">Marquer terminé</span>
+      <span class="sm:hidden">Terminé</span>
+    </button>
+    {% endif %}
+  </div>
+</div>

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from datetime import date
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Task(models.Model):
@@ -96,6 +97,30 @@ class Task(models.Model):
         choices=STATUS_CHOICES,
         default=STATUS_UPCOMING,
     )
+    
+    # Worker assignment fields
+    assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_tasks',
+        limit_choices_to={'groups__name': 'Workers'},
+        help_text="Worker assigned to this task"
+    )
+    completion_notes = models.TextField(
+        blank=True,
+        help_text="Notes added by the worker upon task completion"
+    )
+    completed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='completed_tasks',
+        help_text="Worker who marked this task as completed"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

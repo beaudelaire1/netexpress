@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\views.py
+# hypothesis_version: 6.148.7
+
+['GET', 'POST', 'Profil mis à jour.', 'accounts/signup.html', 'accounts:profile', 'form', 'next', 'password', 'profile', 'user', 'username', 'validlink']

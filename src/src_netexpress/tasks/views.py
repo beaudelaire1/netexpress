@@ -2,11 +2,18 @@
 
 from datetime import timedelta
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.generic import ListView, DetailView, TemplateView
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
 
 from .models import Task
+from core.decorators import worker_portal_required
 
 
 class TaskListView(ListView):
@@ -27,6 +34,163 @@ class TaskDetailView(DetailView):
 class TaskCalendarView(TemplateView):
     """Vue calendrier mensuel (FullCalendar) pour les tâches."""
     template_name = "tasks/task_calendar.html"
+
+
+@method_decorator(worker_portal_required, name='dispatch')
+class WorkerDashboardView(LoginRequiredMixin, TemplateView):
+    """Worker Portal dashboard showing tasks assigned to the authenticated worker."""
+    template_name = "tasks/worker_dashboard.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Filter tasks by assigned worker
+        user_tasks = Task.objects.filter(assigned_to=self.request.user).order_by('due_date', 'start_date')
+        
+        # Separate tasks by status for better organization
+        context['upcoming_tasks'] = user_tasks.filter(status=Task.STATUS_UPCOMING)
+        context['in_progress_tasks'] = user_tasks.filter(status=Task.STATUS_IN_PROGRESS)
+        context['almost_overdue_tasks'] = user_tasks.filter(status=Task.STATUS_ALMOST_OVERDUE)
+        context['overdue_tasks'] = user_tasks.filter(status=Task.STATUS_OVERDUE)
+        context['completed_tasks'] = user_tasks.filter(status=Task.STATUS_COMPLETED)[:10]  # Show last 10 completed
+        
+        # Summary statistics
+        context['total_assigned'] = user_tasks.count()
+        context['pending_tasks'] = user_tasks.exclude(status=Task.STATUS_COMPLETED).count()
+        
+        return context
+
+
+@method_decorator(worker_portal_required, name='dispatch')
+class WorkerScheduleView(LoginRequiredMixin, TemplateView):
+    """Worker schedule calendar view showing daily and weekly schedules."""
+    template_name = "tasks/worker_schedule.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Filter tasks by assigned worker
+        user_tasks = Task.objects.filter(assigned_to=self.request.user).order_by('start_date', 'due_date')
+        
+        # Get tasks for the current week/month for calendar display
+        context['user_tasks'] = user_tasks
+        
+        return context
+
+
+@require_GET
+def worker_task_events(request):
+    """Return FullCalendar events for worker's assigned tasks with client information.
+    
+    This endpoint provides task events specifically for the authenticated worker,
+    including client details and intervention information.
+    """
+    from datetime import date, timedelta
+    
+    if not request.user.is_authenticated:
+        return JsonResponse([], safe=False)
+    
+    today = date.today()
+    events = []
+    
+    # Filter tasks by assigned worker
+    user_tasks = Task.objects.filter(assigned_to=request.user).select_related('assigned_to').order_by("due_date", "start_date", "pk")
+    
+    for task in user_tasks:
+        # Update task status dynamically (same logic as existing task_events)
+        new_status = task.status
+        if task.status != Task.STATUS_COMPLETED:
+            if task.due_date and task.due_date < today:
+                new_status = Task.STATUS_OVERDUE
+            elif task.due_date and (task.due_date - today).days <= 1:
+                new_status = Task.STATUS_ALMOST_OVERDUE
+            else:
+                if task.start_date and task.start_date > today:
+                    new_status = Task.STATUS_UPCOMING
+                else:
+                    new_status = Task.STATUS_IN_PROGRESS
+        
+        if new_status != task.status:
+            task.status = new_status
+            try:
+                task.save(update_fields=["status"])
+            except Exception:
+                pass
+        
+        # Color coding for worker calendar
+        if task.status == Task.STATUS_COMPLETED:
+            color = "#2563eb"  # blue (completed)
+        elif task.status == Task.STATUS_OVERDUE:
+            color = "#dc2626"  # red
+        elif task.status == Task.STATUS_ALMOST_OVERDUE:
+            color = "#f59e0b"  # orange
+        else:
+            # Proximity coloring for non-completed tasks
+            if task.due_date:
+                remaining = (task.due_date - today).days
+                if remaining <= 3:
+                    color = "#facc15"  # yellow (due soon)
+                else:
+                    color = "#16a34a"  # green (on schedule)
+            else:
+                color = "#16a34a"
+        
+        # FullCalendar requires start date
+        start_date = task.start_date or task.due_date
+        if not start_date:
+            continue
+        end_date = (task.due_date + timedelta(days=1)) if task.due_date else (start_date + timedelta(days=1))
+        
+        # Enhanced title with location information for workers
+        title = (task.title or "").strip() or f"Tâche #{task.pk}"
+        if task.location:
+            title += f" - {task.location}"
+        
+        events.append({
+            "id": task.pk,
+            "title": title,
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "url": task.get_absolute_url(),
+            "backgroundColor": color,
+            "borderColor": color,
+            "textColor": "#ffffff",
+            "extendedProps": {
+                "location": task.location,
+                "description": task.description,
+                "team": task.team,
+                "status": task.get_status_display(),
+            }
+        })
+    
+    return JsonResponse(events, safe=False)
+
+
+@method_decorator(worker_portal_required, name='dispatch')
+class TaskCompleteView(LoginRequiredMixin, View):
+    """Handle task completion by workers."""
+    
+    def post(self, request, pk):
+        task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
+        
+        # Only allow completion if task is not already completed
+        if task.status == Task.STATUS_COMPLETED:
+            messages.warning(request, "Cette tâche est déjà marquée comme terminée.")
+            return redirect('worker:worker_dashboard')
+        
+        # Update task status and completion info
+        task.status = Task.STATUS_COMPLETED
+        task.completed_by = request.user
+        task.completion_notes = request.POST.get('completion_notes', '')
+        task.save()
+        
+        messages.success(request, f"Tâche '{task.title}' marquée comme terminée avec succès!")
+        
+        # Return JSON response for HTMX requests
+        if request.headers.get('HX-Request'):
+            return JsonResponse({'status': 'success', 'message': 'Tâche terminée avec succès!'})
+        
+        return redirect('worker:worker_dashboard')
 
 
 @require_GET

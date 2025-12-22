@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\services.py
+# hypothesis_version: 6.148.7
+
+['DEFAULT_FROM_EMAIL', 'INVOICE_BRANDING', 'Nettoyage Express', 'action_label', 'action_url', 'brand', 'headline', 'html', 'intro', 'name', 'no-reply@example.com', 'rows']

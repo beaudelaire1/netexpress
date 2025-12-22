@@ -1,0 +1,50 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Nouvelle tâche assignée: {{ task.title }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0b0f19;">Nouvelle tâche assignée</h2>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  Bonjour {{ worker.get_full_name|default:worker.username }},
+</p>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  Une nouvelle tâche vous a été assignée: <strong>{{ task.title }}</strong>
+</p>
+
+{% if task.description %}
+<div style="background:#f9fafb;border-left:4px solid #0f6b4c;padding:16px;margin:16px 0;border-radius:6px;">
+  <h3 style="margin:0 0 8px 0;font-size:14px;font-weight:600;color:#374151;">Description:</h3>
+  <p style="margin:0;line-height:1.6;color:#6b7280;">{{ task.description }}</p>
+</div>
+{% endif %}
+
+{% if task.location %}
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  <strong>Lieu:</strong> {{ task.location }}
+</p>
+{% endif %}
+
+{% if task.scheduled_date %}
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  <strong>Date prévue:</strong> {{ task.scheduled_date|date:"d/m/Y" }}
+</p>
+{% endif %}
+
+<div style="text-align:center;margin:24px 0;">
+  <a href="{{ branding.site_url|default:'#' }}/worker/dashboard/" 
+     style="display:inline-block;background:#0f6b4c;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">
+    Voir mes tâches
+  </a>
+</div>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#374151;">
+  Vous pouvez consulter cette tâche et toutes vos autres tâches dans votre portail worker.
+</p>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#6b7280;font-size:14px;">
+  Cordialement,<br>
+  L'équipe {{ company_name|default:"NetExpress" }}
+</p>
+{% endblock %}

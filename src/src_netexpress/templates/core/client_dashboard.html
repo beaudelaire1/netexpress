@@ -1,103 +1,283 @@
-{% extends "base.html" %}
+{% extends "base_v2.html" %}
 {% load static %}
 
-{% block title %}Mon espace client — NetExpress{% endblock %}
+{% block title %}Mon Espace Client — NetExpress{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
 {% endblock %}
 
 {% block content %}
-<div class="bo-shell">
-  <aside class="bo-sidebar" aria-label="Navigation client">
-    <div class="bo-brand">Mon espace</div>
-    <nav class="bo-nav">
-      <a class="is-primary" href="{% url 'core:client_dashboard' %}">Tableau de bord</a>
-      <a href="{% url 'core:home' %}">Site public</a>
-    </nav>
-  </aside>
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Mon Espace Client</h1>
+          <p class="text-gray-600">Bienvenue {{ user.get_full_name|default:user.username }}</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="text-sm text-gray-500">
+            {% if user.profile.last_portal_access %}
+              Dernière connexion : {{ user.profile.last_portal_access|date:"d/m/Y à H:i" }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <main class="bo-main">
-    <div class="bo-head">
-      <div>
-        <div class="bo-title">Tableau de bord client</div>
-        <div class="bo-subtitle">Vos devis, factures et documents PDF.</div>
+  <!-- Stats Cards -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Quotes -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-file-alt text-blue-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total Devis</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ stats.total_quotes }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Quotes -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-clock text-yellow-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Devis en Attente</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ stats.pending_quotes }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Invoices -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-receipt text-green-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total Factures</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ stats.total_invoices }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unpaid Invoices -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-exclamation-triangle text-red-600"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Factures Impayées</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ stats.unpaid_invoices }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <section class="bo-card">
-      <h3>Vos devis</h3>
-      {% if quotes %}
-      <table class="bo-table">
-        <thead>
-          <tr>
-            <th>Numéro</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Total TTC</th>
-            <th>PDF</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for q in quotes %}
-          <tr>
-            <td>{{ q.number }}</td>
-            <td>{{ q.issue_date|date:'d/m/Y' }}</td>
-            <td>{{ q.get_status_display }}</td>
-            <td>{{ q.total_ttc }} €</td>
-            <td>
-              <a href="{% url 'devis:quote_public_pdf' token=q.public_token %}" target="_blank">Consulter</a>
-              {% if q.status != 'accepted' %}
-                <span style="margin:0 8px;">·</span>
-                <a href="{% url 'devis:quote_validate_start' token=q.public_token %}">Valider</a>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-        <p class="muted">Aucun devis associé à votre compte.</p>
-      {% endif %}
-    </section>
+    <!-- Recent Documents -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Recent Quotes -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Devis Récents</h2>
+            <a href="{% url 'core:client_quotes' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if pending_quotes %}
+            <div class="space-y-4">
+              {% for quote in pending_quotes %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                      <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <i class="fas fa-file-alt text-blue-600"></i>
+                        </div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">{{ quote.number }}</p>
+                        <p class="text-sm text-gray-500">{{ quote.issue_date|date:"d/m/Y" }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                      <p class="text-sm font-medium text-gray-900">{{ quote.total_ttc }} €</p>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+                        {% elif quote.status == 'sent' %}bg-yellow-100 text-yellow-800
+                        {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ quote.get_status_display }}
+                      </span>
+                    </div>
+                    <a href="{% url 'core:client_quote_detail' quote.pk %}" 
+                       class="text-ne-primary-600 hover:text-ne-primary-500">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-file-alt text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucun devis récent</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
 
-    <div style="height:14px;"></div>
+      <!-- Recent Invoices -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Factures Récentes</h2>
+            <a href="{% url 'core:client_invoices' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if unpaid_invoices %}
+            <div class="space-y-4">
+              {% for invoice in unpaid_invoices %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                      <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <i class="fas fa-receipt text-green-600"></i>
+                        </div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">{{ invoice.number }}</p>
+                        <p class="text-sm text-gray-500">{{ invoice.issue_date|date:"d/m/Y" }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                      <p class="text-sm font-medium text-gray-900">{{ invoice.total_ttc }} €</p>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if invoice.status == 'draft' %}bg-gray-100 text-gray-800
+                        {% elif invoice.status == 'sent' %}bg-yellow-100 text-yellow-800
+                        {% elif invoice.status == 'paid' %}bg-green-100 text-green-800
+                        {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800
+                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ invoice.get_status_display }}
+                      </span>
+                    </div>
+                    <a href="{% url 'core:client_invoice_detail' invoice.pk %}" 
+                       class="text-ne-primary-600 hover:text-ne-primary-500">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-receipt text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucune facture récente</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
-    <section class="bo-card">
-      <h3>Vos factures</h3>
-      {% if invoices %}
-      <table class="bo-table">
-        <thead>
-          <tr>
-            <th>Numéro</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Total TTC</th>
-            <th>PDF</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for inv in invoices %}
-          <tr>
-            <td>{{ inv.number }}</td>
-            <td>{{ inv.issue_date|date:'d/m/Y' }}</td>
-            <td>{{ inv.get_status_display }}</td>
-            <td>{{ inv.total_ttc }} €</td>
-            <td>
-              {% if inv.pdf %}
-                <a href="{% url 'factures:download' inv.pk %}" target="_blank">Ouvrir</a>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-        <p class="muted">Aucune facture associée à votre compte.</p>
-      {% endif %}
-    </section>
-  </main>
+    <!-- Quick Actions -->
+    <div class="mt-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Actions Rapides</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a href="{% url 'devis:request_quote' %}" 
+             class="flex items-center p-4 bg-ne-primary-50 rounded-lg hover:bg-ne-primary-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-ne-primary-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-plus text-ne-primary-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Nouveau Devis</p>
+              <p class="text-xs text-gray-500">Demander un devis</p>
+            </div>
+          </a>
+
+          <a href="{% url 'messaging:thread_list' %}" 
+             class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-envelope text-blue-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Messages</p>
+              <p class="text-xs text-gray-500">Contacter l'équipe</p>
+            </div>
+          </a>
+
+          <a href="{% url 'core:client_quotes' %}" 
+             class="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-file-alt text-yellow-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Mes Devis</p>
+              <p class="text-xs text-gray-500">Consulter mes devis</p>
+            </div>
+          </a>
+
+          <a href="{% url 'accounts:profile' %}" 
+             class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-gray-600"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Mon Profil</p>
+              <p class="text-xs text-gray-500">Gérer mon compte</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

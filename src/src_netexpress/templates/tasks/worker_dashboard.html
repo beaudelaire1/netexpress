@@ -1,0 +1,255 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Espace Ouvrier — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'worker:worker_dashboard' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'worker:worker_schedule' %}" class="portal-nav-item">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning
+  </a>
+  {% comment %}
+  <a href="{% url 'messaging:internal_message_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+  {% endcomment %}
+{% endblock %}
+
+{% block mobile_nav_items %}
+  <a href="{% url 'worker:worker_dashboard' %}" class="block px-3 py-2 bg-white/10 text-white rounded-md font-medium">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'worker:worker_schedule' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning
+  </a>
+  {% comment %}
+  <a href="{% url 'messaging:internal_message_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+  {% endcomment %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .task-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 hover:shadow-md transition-shadow;
+  }
+  
+  .task-status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .status-upcoming { @apply bg-blue-100 text-blue-800; }
+  .status-in-progress { @apply bg-yellow-100 text-yellow-800; }
+  .status-almost-overdue { @apply bg-orange-100 text-orange-800; }
+  .status-overdue { @apply bg-red-100 text-red-800; }
+  .status-completed { @apply bg-green-100 text-green-800; }
+  
+  .complete-btn {
+    @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 w-full sm:w-auto;
+  }
+  
+  .complete-btn:disabled {
+    @apply bg-gray-400 cursor-not-allowed;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">
+            <i class="fas fa-hard-hat text-ne-primary-600 mr-2"></i>
+            Espace Ouvrier
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Bonjour {{ user.get_full_name|default:user.username }}, voici vos tâches assignées
+          </p>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="mt-4 sm:mt-0 flex space-x-4">
+          <div class="bg-ne-primary-50 rounded-lg px-3 py-2 text-center">
+            <div class="text-lg font-bold text-ne-primary-600">{{ total_assigned }}</div>
+            <div class="text-xs text-ne-primary-700">Total</div>
+          </div>
+          <div class="bg-yellow-50 rounded-lg px-3 py-2 text-center">
+            <div class="text-lg font-bold text-yellow-600">{{ pending_tasks }}</div>
+            <div class="text-xs text-yellow-700">En cours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Overdue Tasks (Priority) -->
+    {% if overdue_tasks %}
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-red-600 mb-4 flex items-center">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        Tâches en retard ({{ overdue_tasks.count }})
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {% for task in overdue_tasks %}
+          {% include 'tasks/partials/worker_task_card.html' with task=task priority="high" %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Almost Overdue Tasks -->
+    {% if almost_overdue_tasks %}
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-orange-600 mb-4 flex items-center">
+        <i class="fas fa-clock mr-2"></i>
+        Tâches urgentes ({{ almost_overdue_tasks.count }})
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {% for task in almost_overdue_tasks %}
+          {% include 'tasks/partials/worker_task_card.html' with task=task priority="medium" %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- In Progress Tasks -->
+    {% if in_progress_tasks %}
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+        <i class="fas fa-play-circle mr-2"></i>
+        En cours ({{ in_progress_tasks.count }})
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {% for task in in_progress_tasks %}
+          {% include 'tasks/partials/worker_task_card.html' with task=task %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Tasks -->
+    {% if upcoming_tasks %}
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-blue-600 mb-4 flex items-center">
+        <i class="fas fa-calendar-plus mr-2"></i>
+        À venir ({{ upcoming_tasks.count }})
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {% for task in upcoming_tasks %}
+          {% include 'tasks/partials/worker_task_card.html' with task=task %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recently Completed Tasks -->
+    {% if completed_tasks %}
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-green-600 mb-4 flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        Récemment terminées
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {% for task in completed_tasks %}
+          {% include 'tasks/partials/worker_task_card.html' with task=task completed=True %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- No Tasks Message -->
+    {% if not overdue_tasks and not almost_overdue_tasks and not in_progress_tasks and not upcoming_tasks %}
+    <div class="text-center py-12">
+      <div class="mx-auto h-24 w-24 text-gray-400">
+        <i class="fas fa-tasks text-6xl"></i>
+      </div>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">Aucune tâche assignée</h3>
+      <p class="mt-2 text-gray-500">
+        Vous n'avez actuellement aucune tâche assignée. Contactez votre superviseur si vous pensez qu'il y a une erreur.
+      </p>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Task Completion Modal -->
+<div id="completion-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50" x-data="{ show: false }" x-show="show">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Marquer comme terminé</h3>
+      <form id="completion-form" method="post">
+        {% csrf_token %}
+        <input type="hidden" id="task-id" name="task_id">
+        
+        <div class="mb-4">
+          <label for="completion-notes" class="block text-sm font-medium text-gray-700 mb-2">
+            Notes de fin de tâche (optionnel)
+          </label>
+          <textarea id="completion-notes" name="completion_notes" rows="3" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500 focus:border-transparent"
+                    placeholder="Ajoutez des notes sur l'exécution de la tâche..."></textarea>
+        </div>
+        
+        <div class="flex space-x-3">
+          <button type="button" onclick="closeCompletionModal()" 
+                  class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
+            Annuler
+          </button>
+          <button type="submit" 
+                  class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            Confirmer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openCompletionModal(taskId, taskTitle) {
+  document.getElementById('task-id').value = taskId;
+  document.getElementById('completion-modal').classList.remove('hidden');
+  document.querySelector('#completion-modal [x-data]').__x.$data.show = true;
+}
+
+function closeCompletionModal() {
+  document.getElementById('completion-modal').classList.add('hidden');
+  document.querySelector('#completion-modal [x-data]').__x.$data.show = false;
+  document.getElementById('completion-form').reset();
+}
+
+// Handle form submission with HTMX
+document.getElementById('completion-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  const taskId = formData.get('task_id');
+  
+  // Use HTMX to submit the form
+  htmx.ajax('POST', `/worker/${taskId}/complete/`, {
+    values: Object.fromEntries(formData),
+    target: 'body',
+    swap: 'none'
+  }).then(() => {
+    closeCompletionModal();
+    showNotification('Tâche marquée comme terminée avec succès!', 'success');
+    // Reload the page to update the task list
+    setTimeout(() => window.location.reload(), 1000);
+  }).catch(() => {
+    showNotification('Erreur lors de la mise à jour de la tâche', 'error');
+  });
+});
+</script>
+{% endblock %}

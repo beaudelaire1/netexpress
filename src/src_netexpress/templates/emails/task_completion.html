@@ -1,0 +1,44 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Tâche terminée: {{ task.title }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0b0f19;">Tâche terminée</h2>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  Bonjour,
+</p>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  La tâche <strong>{{ task.title }}</strong> a été marquée comme terminée par {{ completed_by.get_full_name|default:completed_by.username }}.
+</p>
+
+{% if task.description %}
+<div style="background:#f9fafb;border-left:4px solid #0f6b4c;padding:16px;margin:16px 0;border-radius:6px;">
+  <h3 style="margin:0 0 8px 0;font-size:14px;font-weight:600;color:#374151;">Description de la tâche:</h3>
+  <p style="margin:0;line-height:1.6;color:#6b7280;">{{ task.description }}</p>
+</div>
+{% endif %}
+
+{% if task.location %}
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  <strong>Lieu:</strong> {{ task.location }}
+</p>
+{% endif %}
+
+{% if task.completion_notes %}
+<div style="background:#f0f9ff;border-left:4px solid #0ea5e9;padding:16px;margin:16px 0;border-radius:6px;">
+  <h3 style="margin:0 0 8px 0;font-size:14px;font-weight:600;color:#374151;">Notes de completion:</h3>
+  <p style="margin:0;line-height:1.6;color:#6b7280;">{{ task.completion_notes }}</p>
+</div>
+{% endif %}
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#374151;">
+  Vous pouvez consulter les détails de cette tâche dans l'interface d'administration.
+</p>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#6b7280;font-size:14px;">
+  Cordialement,<br>
+  L'équipe {{ company_name|default:"NetExpress" }}
+</p>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Devis {{ quote.number }} — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <a href="{% url 'core:client_quotes' %}" 
+             class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-arrow-left text-xl"></i>
+          </a>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Devis {{ quote.number }}</h1>
+            <p class="text-gray-600">Émis le {{ quote.issue_date|date:"d/m/Y" }}</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+            {% elif quote.status == 'sent' %}bg-yellow-100 text-yellow-800
+            {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+            {% elif quote.status == 'rejected' %}bg-red-100 text-red-800
+            {% elif quote.status == 'invoiced' %}bg-blue-100 text-blue-800
+            {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ quote.get_status_display }}
+          </span>
+          
+          {% if quote.pdf %}
+            <a href="{% url 'devis:quote_public_pdf' token=quote.public_token %}" 
+               target="_blank"
+               class="btn btn-primary">
+              <i class="fas fa-download mr-2"></i>Télécharger PDF
+            </a>
+          {% endif %}
+          
+          {% if quote.status == 'sent' %}
+            <a href="{% url 'core:client_quote_validate_start' pk=quote.pk %}" 
+               class="btn btn-success">
+              <i class="fas fa-check mr-2"></i>Valider le devis
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Quote Information -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Informations du devis</h2>
+          </div>
+          <div class="p-6">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Numéro</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.number }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Date d'émission</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.issue_date|date:"d/m/Y" }}</dd>
+              </div>
+              {% if quote.valid_until %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Valide jusqu'au</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.valid_until|date:"d/m/Y" }}</dd>
+              </div>
+              {% endif %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Statut</dt>
+                <dd class="mt-1">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+                    {% elif quote.status == 'sent' %}bg-yellow-100 text-yellow-800
+                    {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+                    {% elif quote.status == 'rejected' %}bg-red-100 text-red-800
+                    {% elif quote.status == 'invoiced' %}bg-blue-100 text-blue-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ quote.get_status_display }}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+            
+            {% if quote.service %}
+            <div class="mt-6">
+              <dt class="text-sm font-medium text-gray-500">Service principal</dt>
+              <dd class="mt-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                  <i class="fas fa-tag mr-2"></i>{{ quote.service.name }}
+                </span>
+              </dd>
+            </div>
+            {% endif %}
+            
+            {% if quote.message %}
+            <div class="mt-6">
+              <dt class="text-sm font-medium text-gray-500">Description</dt>
+              <dd class="mt-2 text-sm text-gray-900 whitespace-pre-wrap">{{ quote.message }}</dd>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Quote Items -->
+        {% if quote.quote_items.all %}
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Détail des prestations</h2>
+          </div>
+          <div class="overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Quantité
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Prix unitaire HT
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    TVA
+                  </th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total TTC
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in quote.quote_items.all %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ item.description }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ item.quantity }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ item.unit_price }} €
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ item.tax_rate }}%
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                    {{ item.total_ttc }} €
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if quote.notes %}
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Notes</h2>
+          </div>
+          <div class="p-6">
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ quote.notes }}</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Totals -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Récapitulatif</h2>
+          </div>
+          <div class="p-6">
+            <dl class="space-y-3">
+              <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">Total HT</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ quote.total_ht }} €</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">TVA</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ quote.tva }} €</dd>
+              </div>
+              <div class="flex justify-between border-t border-gray-200 pt-3">
+                <dt class="text-base font-medium text-gray-900">Total TTC</dt>
+                <dd class="text-base font-bold text-gray-900">{{ quote.total_ttc }} €</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Client Information -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Informations client</h2>
+          </div>
+          <div class="p-6">
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Nom</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.client.full_name }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.client.email }}</dd>
+              </div>
+              {% if quote.client.phone %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Téléphone</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ quote.client.phone }}</dd>
+              </div>
+              {% endif %}
+              {% if quote.client.address_line %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Adresse</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ quote.client.address_line }}<br>
+                  {% if quote.client.zip_code %}{{ quote.client.zip_code }} {% endif %}{{ quote.client.city }}
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Actions</h2>
+          </div>
+          <div class="p-6 space-y-3">
+            {% if quote.pdf %}
+              <a href="{% url 'devis:quote_public_pdf' token=quote.public_token %}" 
+                 target="_blank"
+                 class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-ne-primary-600 hover:bg-ne-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500">
+                <i class="fas fa-download mr-2"></i>Télécharger PDF
+              </a>
+            {% endif %}
+            
+            {% if quote.status == 'sent' %}
+              <a href="{% url 'core:client_quote_validate_start' pk=quote.pk %}" 
+                 class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <i class="fas fa-check mr-2"></i>Valider le devis
+              </a>
+            {% endif %}
+            
+            <a href="{% url 'messaging:thread_list' %}" 
+               class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500">
+              <i class="fas fa-envelope mr-2"></i>Contacter l'équipe
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

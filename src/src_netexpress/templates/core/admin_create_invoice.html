@@ -1,0 +1,154 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Créer une Facture — Admin Dashboard{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_invoices_list' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Factures
+  </a>
+  <a href="{% url 'core:admin_create_invoice' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-plus mr-2"></i>Nouvelle Facture
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Créer une Facture</h1>
+          <p class="text-gray-600">Générer une facture à partir d'un devis accepté</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="{% url 'core:admin_invoices_list' %}" 
+             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour aux factures
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-medium text-gray-900">Informations de la Facture</h2>
+        <p class="text-sm text-gray-600">Sélectionnez un devis accepté pour générer la facture correspondante</p>
+      </div>
+      
+      <form method="post" class="px-6 py-4 space-y-6">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-400"></i>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Erreurs dans le formulaire</h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <ul class="list-disc pl-5 space-y-1">
+                    {% for field, errors in form.errors.items %}
+                      {% for error in errors %}
+                        <li>{{ field|capfirst }} : {{ error }}</li>
+                      {% endfor %}
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Quote Selection -->
+          <div class="md:col-span-2">
+            <label for="{{ form.quote.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+              Devis à facturer *
+            </label>
+            {{ form.quote }}
+            {% if form.quote.help_text %}
+              <p class="mt-1 text-sm text-gray-500">{{ form.quote.help_text }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Command Reference -->
+          <div>
+            <label for="{{ form.command_ref.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+              Référence Bon de Commande
+            </label>
+            {{ form.command_ref }}
+            {% if form.command_ref.help_text %}
+              <p class="mt-1 text-sm text-gray-500">{{ form.command_ref.help_text }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Due Date -->
+          <div>
+            <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+              Date d'échéance
+            </label>
+            {{ form.due_date }}
+          </div>
+        </div>
+
+        <!-- Payment Terms -->
+        <div>
+          <label for="{{ form.payment_terms.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Conditions de paiement
+          </label>
+          {{ form.payment_terms }}
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Notes internes
+          </label>
+          {{ form.notes }}
+          {% if form.notes.help_text %}
+            <p class="mt-1 text-sm text-gray-500">{{ form.notes.help_text }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <a href="{% url 'core:admin_invoices_list' %}" 
+             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Annuler
+          </a>
+          <button type="submit" 
+                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-ne-primary-600 hover:bg-ne-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500">
+            <i class="fas fa-plus mr-2"></i>
+            Créer la Facture
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-md p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i class="fas fa-info-circle text-blue-400"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-blue-800">Information</h3>
+          <div class="mt-2 text-sm text-blue-700">
+            <p>Seuls les devis acceptés peuvent être convertis en factures. La facture reprendra automatiquement tous les éléments du devis (client, services, montants).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

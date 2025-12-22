@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\migrations\0003_alter_invoice_status.py
+# hypothesis_version: 6.148.7
+
+['Devis', 'En retard', 'Envoyée', 'Partiellement payée', 'Payée', 'draft', 'factures', 'invoice', 'overdue', 'paid', 'partial', 'sent', 'status']

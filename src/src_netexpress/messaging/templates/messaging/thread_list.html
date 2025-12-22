@@ -1,0 +1,112 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Conversations{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Conversations</h1>
+        <div class="flex space-x-3">
+            <a href="{% url 'messaging:internal_list' %}" 
+               class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                Tous les messages
+            </a>
+            <a href="{% url 'messaging:internal_compose' %}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                Nouveau message
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border">
+        {% if threads %}
+            <div class="divide-y divide-gray-200">
+                {% for thread in threads %}
+                <div class="p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    {{ thread.subject }}
+                                </h3>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ thread.messages.count }} message{{ thread.messages.count|pluralize }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-sm text-gray-600">Participants:</span>
+                                {% for participant in thread.participants.all %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ participant.get_full_name|default:participant.username }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            
+                            {% with last_message=thread.messages.last %}
+                            {% if last_message %}
+                            <p class="text-gray-600 text-sm line-clamp-2">
+                                <strong>{{ last_message.sender.get_full_name|default:last_message.sender.username }}:</strong>
+                                {{ last_message.content|striptags|truncatewords:15 }}
+                            </p>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <div class="text-right text-sm text-gray-500 ml-4">
+                            <div>{{ thread.last_message_at|date:"d/m/Y" }}</div>
+                            <div>{{ thread.last_message_at|time:"H:i" }}</div>
+                            {% with last_message=thread.messages.last %}
+                            {% if last_message %}
+                            <div class="mt-2">
+                                <a href="{% url 'messaging:internal_detail' last_message.pk %}" 
+                                   class="text-blue-600 hover:text-blue-800 text-sm">
+                                    Voir la conversation
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if is_paginated %}
+            <div class="px-4 py-3 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-700">
+                        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                    </div>
+                    <div class="flex space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" 
+                               class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                                Précédent
+                            </a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" 
+                               class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                                Suivant
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="p-8 text-center">
+                <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune conversation</h3>
+                <p class="text-gray-600 mb-4">Vous n'avez pas encore de conversations.</p>
+                <a href="{% url 'messaging:internal_compose' %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Démarrer une conversation
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

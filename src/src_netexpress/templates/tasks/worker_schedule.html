@@ -1,0 +1,360 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Planning Ouvrier — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'worker:worker_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'worker:worker_schedule' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning
+  </a>
+  {% comment %}
+  <a href="{% url 'messaging:internal_message_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+  {% endcomment %}
+{% endblock %}
+
+{% block mobile_nav_items %}
+  <a href="{% url 'worker:worker_dashboard' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'worker:worker_schedule' %}" class="block px-3 py-2 bg-white/10 text-white rounded-md font-medium">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning
+  </a>
+  {% comment %}
+  <a href="{% url 'messaging:internal_message_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+  {% endcomment %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+<style>
+  .fc {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .fc-toolbar {
+    @apply mb-4;
+  }
+  
+  .fc-toolbar-title {
+    @apply text-xl font-bold text-gray-900;
+  }
+  
+  .fc-button {
+    @apply bg-ne-primary-600 border-ne-primary-600 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-ne-primary-700 focus:outline-none focus:ring-2 focus:ring-ne-primary-500;
+  }
+  
+  .fc-button:disabled {
+    @apply bg-gray-300 border-gray-300 text-gray-500 cursor-not-allowed;
+  }
+  
+  .fc-daygrid-day {
+    @apply hover:bg-gray-50;
+  }
+  
+  .fc-event {
+    @apply cursor-pointer border-0 rounded-md text-white font-medium;
+  }
+  
+  .fc-event:hover {
+    @apply opacity-80;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .fc-toolbar {
+      @apply flex-col space-y-2;
+    }
+    
+    .fc-toolbar-chunk {
+      @apply flex justify-center;
+    }
+    
+    .fc-button {
+      @apply text-xs px-2 py-1;
+    }
+    
+    .fc-daygrid-day-number {
+      @apply text-sm;
+    }
+    
+    .fc-event-title {
+      @apply text-xs;
+    }
+  }
+  
+  .legend {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4;
+  }
+  
+  .legend-item {
+    @apply flex items-center space-x-2 text-sm;
+  }
+  
+  .legend-color {
+    @apply w-4 h-4 rounded;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">
+            <i class="fas fa-calendar-alt text-ne-primary-600 mr-2"></i>
+            Mon Planning
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Vue calendrier de vos tâches assignées
+          </p>
+        </div>
+        
+        <!-- View Toggle (Mobile/Desktop) -->
+        <div class="mt-4 sm:mt-0 flex space-x-2">
+          <button onclick="calendar.changeView('dayGridMonth')" 
+                  class="bg-ne-primary-600 hover:bg-ne-primary-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+            <i class="fas fa-calendar mr-1"></i>
+            <span class="hidden sm:inline">Mois</span>
+          </button>
+          <button onclick="calendar.changeView('dayGridWeek')" 
+                  class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+            <i class="fas fa-calendar-week mr-1"></i>
+            <span class="hidden sm:inline">Semaine</span>
+          </button>
+          <button onclick="calendar.changeView('listWeek')" 
+                  class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+            <i class="fas fa-list mr-1"></i>
+            <span class="hidden sm:inline">Liste</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Legend -->
+    <div class="legend">
+      <h3 class="font-medium text-gray-900 mb-3">Légende des couleurs</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="legend-item">
+          <div class="legend-color bg-red-600"></div>
+          <span>En retard</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color bg-orange-500"></div>
+          <span>Urgent</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color bg-yellow-500"></div>
+          <span>Bientôt dû</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color bg-green-600"></div>
+          <span>Dans les temps</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color bg-blue-600"></div>
+          <span>Terminé</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Container -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div id="calendar"></div>
+    </div>
+
+    <!-- Mobile Task List (shown below calendar on small screens) -->
+    <div class="mt-6 md:hidden">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Tâches à venir</h3>
+      <div class="space-y-3">
+        {% for task in user_tasks %}
+          {% if task.status != 'completed' %}
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-900">{{ task.title }}</h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  <i class="fas fa-calendar mr-1"></i>
+                  {{ task.start_date|date:"d/m/Y" }} - {{ task.due_date|date:"d/m/Y" }}
+                </p>
+                {% if task.location %}
+                <p class="text-sm text-gray-600 mt-1">
+                  <i class="fas fa-map-marker-alt mr-1"></i>
+                  {{ task.location }}
+                </p>
+                {% endif %}
+              </div>
+              <span class="task-status-badge status-{{ task.status }} ml-2">
+                {{ task.get_status_display }}
+              </span>
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div id="task-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900" id="modal-title">Détails de la tâche</h3>
+        <button onclick="closeTaskModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div id="modal-content">
+        <!-- Content will be loaded dynamically -->
+      </div>
+      
+      <div class="mt-6 flex space-x-3">
+        <button onclick="closeTaskModal()" 
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
+          Fermer
+        </button>
+        <a id="modal-view-link" href="#" 
+           class="flex-1 bg-ne-primary-600 hover:bg-ne-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-center">
+          Voir détails
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+let calendar;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const calendarEl = document.getElementById('calendar');
+  
+  calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+    locale: 'fr',
+    firstDay: 1, // Monday
+    height: 'auto',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,dayGridWeek,listWeek'
+    },
+    buttonText: {
+      today: 'Aujourd\'hui',
+      month: 'Mois',
+      week: 'Semaine',
+      list: 'Liste'
+    },
+    events: '{% url "worker:worker_events" %}',
+    eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      showTaskModal(info.event);
+    },
+    eventDidMount: function(info) {
+      // Add tooltip for mobile
+      if (window.innerWidth < 768) {
+        info.el.title = info.event.title + 
+          (info.event.extendedProps.location ? ' - ' + info.event.extendedProps.location : '');
+      }
+    },
+    // Responsive settings
+    windowResize: function() {
+      if (window.innerWidth < 768) {
+        calendar.changeView('listWeek');
+      } else {
+        calendar.changeView('dayGridMonth');
+      }
+    }
+  });
+  
+  calendar.render();
+});
+
+function showTaskModal(event) {
+  const modal = document.getElementById('task-modal');
+  const title = document.getElementById('modal-title');
+  const content = document.getElementById('modal-content');
+  const viewLink = document.getElementById('modal-view-link');
+  
+  title.textContent = event.title;
+  viewLink.href = event.url;
+  
+  // Build modal content
+  let modalHTML = `
+    <div class="space-y-3">
+      <div>
+        <span class="text-sm text-gray-500">Statut:</span>
+        <div class="font-medium">${event.extendedProps.status}</div>
+      </div>
+  `;
+  
+  if (event.extendedProps.location) {
+    modalHTML += `
+      <div>
+        <span class="text-sm text-gray-500">Lieu:</span>
+        <div class="font-medium">${event.extendedProps.location}</div>
+      </div>
+    `;
+  }
+  
+  if (event.extendedProps.description) {
+    modalHTML += `
+      <div>
+        <span class="text-sm text-gray-500">Description:</span>
+        <div class="font-medium">${event.extendedProps.description}</div>
+      </div>
+    `;
+  }
+  
+  if (event.extendedProps.team) {
+    modalHTML += `
+      <div>
+        <span class="text-sm text-gray-500">Équipe:</span>
+        <div class="font-medium">${event.extendedProps.team}</div>
+      </div>
+    `;
+  }
+  
+  modalHTML += `
+      <div>
+        <span class="text-sm text-gray-500">Période:</span>
+        <div class="font-medium">${event.start.toLocaleDateString('fr-FR')} - ${event.end ? event.end.toLocaleDateString('fr-FR') : event.start.toLocaleDateString('fr-FR')}</div>
+      </div>
+    </div>
+  `;
+  
+  content.innerHTML = modalHTML;
+  modal.classList.remove('hidden');
+}
+
+function closeTaskModal() {
+  document.getElementById('task-modal').classList.add('hidden');
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeTaskModal();
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\admin.py
+# hypothesis_version: 6.148.7
+
+['phone', 'role', 'user', 'user__email', 'user__first_name', 'user__username']

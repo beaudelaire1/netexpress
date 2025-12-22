@@ -1,0 +1,145 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Créer un Client — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
+  </a>
+  <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item">
+    <i class="fas fa-users mr-2"></i>Ouvriers
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Créer un Client</h1>
+          <p class="text-gray-600">Ajouter un nouveau client au système</p>
+        </div>
+        <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Personal Information -->
+        <div class="border-b border-gray-200 pb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Nom complet *
+              </label>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+              {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Email *
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                {% endif %}
+              </div>
+              
+              <div>
+                <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Téléphone
+                </label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div>
+              <label for="{{ form.company.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Entreprise (optionnel)
+              </label>
+              {{ form.company }}
+              {% if form.company.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.company.errors.0 }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Address Information -->
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Adresse</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="{{ form.address_line.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Adresse
+              </label>
+              {{ form.address_line }}
+              {% if form.address_line.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.address_line.errors.0 }}</p>
+              {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Ville
+                </label>
+                {{ form.city }}
+                {% if form.city.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+                {% endif %}
+              </div>
+              
+              <div>
+                <label for="{{ form.zip_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Code postal
+                </label>
+                {{ form.zip_code }}
+                {% if form.zip_code.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.zip_code.errors.0 }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Submit Buttons -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+          <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary">
+            Annuler
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>Créer le client
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Gestion des Devis — Admin Dashboard{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_invoices_list' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Factures
+  </a>
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-file-alt mr-2"></i>Devis
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Gestion des Devis</h1>
+          <p class="text-gray-600">Liste et gestion de tous les devis</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="{% url 'core:admin_create_quote' %}" 
+             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-ne-primary-600 hover:bg-ne-primary-700">
+            <i class="fas fa-plus mr-2"></i>
+            Nouveau Devis
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {% if quotes %}
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+          {% for quote in quotes %}
+            <li>
+              <div class="px-4 py-4 sm:px-6">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-file-alt text-blue-600"></i>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="flex items-center">
+                        <p class="text-sm font-medium text-ne-primary-600 truncate">
+                          {{ quote.number }}
+                        </p>
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+                          {% elif quote.status == 'sent' %}bg-yellow-100 text-yellow-800
+                          {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+                          {% elif quote.status == 'rejected' %}bg-red-100 text-red-800
+                          {% else %}bg-blue-100 text-blue-800{% endif %}">
+                          {{ quote.get_status_display }}
+                        </span>
+                      </div>
+                      <div class="mt-2 flex items-center text-sm text-gray-500">
+                        <i class="fas fa-user mr-1"></i>
+                        <p>{{ quote.client.full_name }}</p>
+                        <span class="mx-2">•</span>
+                        <i class="fas fa-calendar mr-1"></i>
+                        <p>{{ quote.issue_date|date:"d/m/Y" }}</p>
+                        {% if quote.valid_until %}
+                          <span class="mx-2">•</span>
+                          <i class="fas fa-clock mr-1"></i>
+                          <p>Valide jusqu'au {{ quote.valid_until|date:"d/m/Y" }}</p>
+                        {% endif %}
+                      </div>
+                      {% if quote.service %}
+                        <div class="mt-1 flex items-center text-sm text-gray-500">
+                          <i class="fas fa-cog mr-1"></i>
+                          <p>{{ quote.service.name }}</p>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                      <p class="text-lg font-semibold text-gray-900">{{ quote.total_ttc|floatformat:2 }} €</p>
+                      {% if quote.total_ht != quote.total_ttc %}
+                        <p class="text-sm text-gray-500">{{ quote.total_ht|floatformat:2 }} € HT</p>
+                      {% endif %}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      {% if quote.status == 'draft' or quote.status == 'sent' %}
+                        <a href="{% url 'core:admin_send_quote_email' quote.pk %}"
+                           class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                           title="Envoyer par email">
+                          <i class="fas fa-envelope"></i>
+                        </a>
+                      {% endif %}
+                      {% if quote.pdf %}
+                        <a href="{{ quote.pdf.url }}" target="_blank"
+                           class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                           title="Télécharger PDF">
+                          <i class="fas fa-download"></i>
+                        </a>
+                      {% endif %}
+                      <a href="/gestion/devis/quote/{{ quote.id }}/change/" target="_blank"
+                         class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                         title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      {% if quote.status == 'accepted' %}
+                        <span class="inline-flex items-center p-2 rounded-md text-sm font-medium text-green-700 bg-green-100"
+                              title="Devis accepté">
+                          <i class="fas fa-check"></i>
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <div class="text-center py-12">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-file-alt text-gray-400 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun devis</h3>
+        <p class="text-gray-500 mb-6">Commencez par créer votre premier devis pour un client.</p>
+        <a href="{% url 'core:admin_create_quote' %}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-ne-primary-600 hover:bg-ne-primary-700">
+          <i class="fas fa-plus mr-2"></i>
+          Créer un Devis
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

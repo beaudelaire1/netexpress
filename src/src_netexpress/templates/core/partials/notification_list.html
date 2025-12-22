@@ -1,0 +1,50 @@
+{% if notifications %}
+  {% for notification in notifications %}
+    <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %}"
+         hx-post="{% url 'core:mark_notification_read' notification.id %}"
+         hx-trigger="click"
+         hx-target="#notification-list"
+         hx-swap="innerHTML">
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          {% if notification.notification_type == 'task_completed' %}
+            <i class="fas fa-check-circle text-green-500"></i>
+          {% elif notification.notification_type == 'task_assigned' %}
+            <i class="fas fa-tasks text-blue-500"></i>
+          {% elif notification.notification_type == 'quote_validated' %}
+            <i class="fas fa-file-invoice text-purple-500"></i>
+          {% elif notification.notification_type == 'invoice_created' %}
+            <i class="fas fa-receipt text-orange-500"></i>
+          {% elif notification.notification_type == 'message_received' %}
+            <i class="fas fa-envelope text-indigo-500"></i>
+          {% elif notification.notification_type == 'account_created' %}
+            <i class="fas fa-user-plus text-teal-500"></i>
+          {% else %}
+            <i class="fas fa-bell text-gray-500"></i>
+          {% endif %}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-900 truncate">
+            {{ notification.title }}
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ notification.message|truncatewords:15 }}
+          </p>
+          <p class="text-xs text-gray-400 mt-1">
+            {{ notification.created_at|timesince }} ago
+          </p>
+        </div>
+        {% if not notification.read %}
+          <div class="flex-shrink-0">
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="px-4 py-6 text-center">
+    <i class="fas fa-bell-slash text-gray-300 text-2xl mb-2"></i>
+    <p class="text-sm text-gray-500">Aucune notification</p>
+  </div>
+{% endif %}

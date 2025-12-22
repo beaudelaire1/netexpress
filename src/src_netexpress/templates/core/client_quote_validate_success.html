@@ -1,0 +1,149 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Devis validé — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div class="max-w-2xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <!-- Success Header -->
+      <div class="bg-green-600 px-6 py-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
+          <i class="fas fa-check text-green-600 text-3xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-2">Devis validé avec succès !</h1>
+        <p class="text-green-100">Merci pour votre confiance</p>
+      </div>
+
+      <!-- Content -->
+      <div class="px-6 py-8">
+        <!-- Quote Summary -->
+        <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Récapitulatif du devis</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <span class="text-sm text-gray-500">Numéro de devis</span>
+              <p class="text-lg font-semibold text-gray-900">{{ quote.number }}</p>
+            </div>
+            <div>
+              <span class="text-sm text-gray-500">Montant total</span>
+              <p class="text-lg font-semibold text-gray-900">{{ quote.total_ttc }} € TTC</p>
+            </div>
+            <div>
+              <span class="text-sm text-gray-500">Date d'émission</span>
+              <p class="text-base text-gray-900">{{ quote.issue_date|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+              <span class="text-sm text-gray-500">Statut</span>
+              <p class="text-base">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <i class="fas fa-check-circle mr-2"></i>Accepté
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="mb-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Prochaines étapes</h3>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center w-8 h-8 bg-ne-primary-100 rounded-full">
+                  <span class="text-ne-primary-600 font-semibold">1</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <h4 class="text-sm font-medium text-gray-900">Confirmation par email</h4>
+                <p class="text-sm text-gray-600">Vous allez recevoir un email de confirmation avec le PDF du devis signé.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center w-8 h-8 bg-ne-primary-100 rounded-full">
+                  <span class="text-ne-primary-600 font-semibold">2</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <h4 class="text-sm font-medium text-gray-900">Planification des travaux</h4>
+                <p class="text-sm text-gray-600">Notre équipe va vous contacter pour planifier l'intervention.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center w-8 h-8 bg-ne-primary-100 rounded-full">
+                  <span class="text-ne-primary-600 font-semibold">3</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <h4 class="text-sm font-medium text-gray-900">Suivi en temps réel</h4>
+                <p class="text-sm text-gray-600">Vous pourrez suivre l'avancement des travaux depuis votre portail client.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-3">
+          {% if quote.pdf %}
+            <a href="{% url 'devis:quote_public_pdf' token=quote.public_token %}" 
+               target="_blank"
+               class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-ne-primary-600 hover:bg-ne-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500 transition-colors">
+              <i class="fas fa-download mr-2"></i>Télécharger le PDF signé
+            </a>
+          {% endif %}
+          
+          <a href="{% url 'core:client_quote_detail' pk=quote.pk %}" 
+             class="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500 transition-colors">
+            <i class="fas fa-file-alt mr-2"></i>Voir le détail du devis
+          </a>
+          
+          <a href="{% url 'core:client_portal_dashboard' %}" 
+             class="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500 transition-colors">
+            <i class="fas fa-tachometer-alt mr-2"></i>Retour au tableau de bord
+          </a>
+          
+          <a href="{% url 'messaging:thread_list' %}" 
+             class="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500 transition-colors">
+            <i class="fas fa-envelope mr-2"></i>Contacter l'équipe
+          </a>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i class="fas fa-info-circle text-blue-400 mt-1"></i>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-gray-600">
+                Votre devis a été validé électroniquement et a la même valeur juridique qu'une signature manuscrite. 
+                Vous pouvez télécharger le PDF signé à tout moment depuis votre portail client.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,121 +1,115 @@
 """
-Django settings for netexpress project - PRODUCTION CONFIGURATION
+Django settings for netexpress project - DEVELOPMENT CONFIGURATION
 """
 
 from .base import *  # noqa
 import os
+from pathlib import Path
 
 # ============================================================
-# ⚙️ MODE PRODUCTION
+# 📁 CHARGEMENT DES VARIABLES D'ENVIRONNEMENT
 # ============================================================
 
-DEBUG = False
+# Charger d'abord le fichier .env principal, puis .env.local pour override
+from dotenv import load_dotenv
+
+# Charger .env principal
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+
+# Charger .env.local pour override (priorité plus élevée)
+env_local_path = BASE_DIR / '.env.local'
+if env_local_path.exists():
+    load_dotenv(env_local_path, override=True)
 
 # ============================================================
-# 🔑 SECRET KEY (OBLIGATOIRE EN PROD)
+# ⚙️ MODE DÉVELOPPEMENT
 # ============================================================
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-
-if not SECRET_KEY:
-    raise ValueError("❌ DJANGO_SECRET_KEY must be set in production environment!")
+DEBUG = True
 
 # ============================================================
-# 🌍 HÔTES AUTORISÉS (CRITIQUE)
+# 🔑 SECRET KEY (POUR LE DÉVELOPPEMENT)
 # ============================================================
 
-# Récupérer les hôtes depuis la variable d'environnement
-env_hosts_raw = os.getenv("ALLOWED_HOSTS", "")
-
-if env_hosts_raw:
-    # Si la variable d'environnement existe, parser et nettoyer
-    env_hosts = [host.strip() for host in env_hosts_raw.split(",") if host.strip()]
-    
-    # Fusionner avec les hôtes de base.py (éviter les doublons)
-    ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + env_hosts))
-    print(f"✅ ALLOWED_HOSTS complété depuis ENV: {ALLOWED_HOSTS}")
-else:
-    # Garder les valeurs de base.py
-    print(f"✅ ALLOWED_HOSTS depuis base.py: {ALLOWED_HOSTS}")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-not-for-production-use-only")
 
 # ============================================================
-# 🔐 CSRF TRUSTED ORIGINS (CRITIQUE)
+# 🌍 HÔTES AUTORISÉS (DÉVELOPPEMENT)
 # ============================================================
 
-# Récupérer les origines CSRF depuis la variable d'environnement
-env_csrf_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "")
-
-if env_csrf_raw:
-    # Si la variable d'environnement existe, parser et nettoyer
-    env_csrf = [origin.strip() for origin in env_csrf_raw.split(",") if origin.strip()]
-    
-    # Fusionner avec les origines de base.py (éviter les doublons)
-    CSRF_TRUSTED_ORIGINS = list(set(CSRF_TRUSTED_ORIGINS + env_csrf))
-    print(f"✅ CSRF_TRUSTED_ORIGINS complété depuis ENV: {CSRF_TRUSTED_ORIGINS}")
-else:
-    # Garder les valeurs de base.py
-    print(f"✅ CSRF_TRUSTED_ORIGINS depuis base.py: {CSRF_TRUSTED_ORIGINS}")
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # ============================================================
-# 🔐 SÉCURITÉ HTTPS (RENDER)
+# 🔐 CSRF TRUSTED ORIGINS (DÉVELOPPEMENT)
 # ============================================================
 
-# Render est derrière un proxy HTTPS
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-# Rediriger HTTP vers HTTPS
-SECURE_SSL_REDIRECT = True
-
-# Cookies sécurisés (HTTPS uniquement)
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-# HTTP Strict Transport Security (HSTS)
-SECURE_HSTS_SECONDS = 31536000  # 1 an
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
-# Autres en-têtes de sécurité
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = "DENY"
-SECURE_REFERRER_POLICY = "same-origin"
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 # ============================================================
-# 🗄️ BASE DE DONNÉES (POSTGRESQL SUR RENDER)
+# 🗄️ BASE DE DONNÉES (SQLITE POUR LE DÉVELOPPEMENT)
 # ============================================================
-
-# Parser l'URL de la base de données depuis Render
-import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # ============================================================
-# 📊 LOGGING EN PRODUCTION
+# 🔐 SÉCURITÉ (DÉSACTIVÉE EN DÉVELOPPEMENT)
+# ============================================================
+
+# Pas de HTTPS en développement
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_HSTS_SECONDS = 0
+
+# ============================================================
+# 📧 EMAIL (UTILISE LES VARIABLES D'ENVIRONNEMENT)
+# ============================================================
+
+# Utiliser la configuration email des variables d'environnement
+# Si pas configuré, utiliser le backend console par défaut
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+# Configuration SMTP (pour Gmail ou autre)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+# Configuration Brevo (ex-Sendinblue)
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
+
+# Configuration de l'expéditeur
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+DEFAULT_FROM_NAME = os.getenv('DEFAULT_FROM_NAME', 'Nettoyage Express')
+
+# ============================================================
+# 📊 LOGGING EN DÉVELOPPEMENT
 # ============================================================
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
         'simple': {
-            'format': '{levelname} {message}',
+            'format': '{levelname} {asctime} {name} {message}',
             'style': '{',
         },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
         },
     },
     'root': {
@@ -128,41 +122,17 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'django.security': {
-            'handlers': ['console'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
     },
 }
-
-# ============================================================
-# 📧 EMAIL (OPTIONNEL - À CONFIGURER SELON VOS BESOINS)
-# ============================================================
-
-# Exemple avec un service SMTP
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
 
 # ============================================================
 # 🔥 DEBUG - AFFICHAGE FINAL DE LA CONFIG
 # ============================================================
 
-print("=" * 60)
-print("🚀 PRODUCTION MODE ACTIVÉ")
-print("=" * 60)
-print(f"DEBUG: {DEBUG}")
-print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
-print(f"CSRF_TRUSTED_ORIGINS: {CSRF_TRUSTED_ORIGINS}")
-print(f"DATABASE: {DATABASES['default']['NAME'] if 'NAME' in DATABASES['default'] else 'PostgreSQL'}")
-print("=" * 60)
+print("🛠️  MODE DÉVELOPPEMENT ACTIVÉ - SQLite")
+print(f"DATABASE: {DATABASES['default']['NAME']}")
+print(f"EMAIL_BACKEND: {EMAIL_BACKEND}")
+if EMAIL_HOST_USER:
+    print(f"EMAIL configuré avec: {EMAIL_HOST_USER}")
+else:
+    print("EMAIL: Mode console (pas de SMTP configuré)")

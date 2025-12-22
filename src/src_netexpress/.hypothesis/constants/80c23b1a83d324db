@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\devis\signals.py
+# hypothesis_version: 6.148.7
+
+['DEFAULT_FROM_EMAIL', 'INVOICE_BRANDING', 'NAME', 'Nettoyage Express', 'TESTING', 'application/pdf', 'branding', 'client', 'content', 'default', 'description', 'email', 'footer_note', 'is_quote', 'items', 'name', 'pdf/quote.html', 'quantity', 'quote_items', 'subject', 'test', 'text/html', 'title', 'total_ht', 'total_ttc', 'totals', 'tva', 'unit_price']

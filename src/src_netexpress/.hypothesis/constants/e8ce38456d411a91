@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\netexpress\urls.py
+# hypothesis_version: 6.148.7
+
+['accounts', 'accounts.urls', 'accounts/', 'ckeditor/', 'contact.urls', 'contact/', 'core.urls', 'devis.urls', 'devis/', 'factures.urls', 'factures/', 'gestion/', 'messages/', 'messaging', 'messaging.urls', 'robots.txt', 'services.urls', 'services/', 'sitemap', 'sitemap.xml', 'sitemaps', 'static', 'taches/', 'tasks.urls', 'text/plain']

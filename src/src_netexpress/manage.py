@@ -12,10 +12,10 @@ def main():
     except ImportError:
         pass  # En prod (Render), les variables sont déjà injectées
 
-    # Ne JAMAIS forcer prod ici
+    # Utiliser dev par défaut pour le développement local
     os.environ.setdefault(
         "DJANGO_SETTINGS_MODULE",
-        os.getenv("DJANGO_SETTINGS_MODULE", "netexpress.settings.prod")
+        os.getenv("DJANGO_SETTINGS_MODULE", "netexpress.settings.dev")
     )
 
     try:

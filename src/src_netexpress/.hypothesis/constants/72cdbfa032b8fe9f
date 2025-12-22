@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\sitemaps.py
+# hypothesis_version: 6.148.7
+
+[0.7, 'contact:contact', 'core:excellence', 'core:home', 'core:realisations', 'devis:request_quote', 'services:list', 'weekly']

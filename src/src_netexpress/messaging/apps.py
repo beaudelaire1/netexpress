@@ -12,3 +12,7 @@ class MessagingConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "messaging"
     verbose_name = "messagerie"
+    
+    def ready(self):
+        """Import signals when app is ready."""
+        import messaging.signals

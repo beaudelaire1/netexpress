@@ -175,6 +175,7 @@
             font-size: 9px;
             color: #9ca3af;
             text-align: center;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -210,9 +211,11 @@
 <div class="addresses">
     <div class="box sender">
         <div class="box-title">Émetteur</div>
-        <div class="company">{{ branding.name }}</div>
-        {{ branding.address|linebreaksbr }}<br>
-        {{ branding.email }}
+        <div class="company">{{ branding.name|default:"Nettoyage Express" }}</div>
+        {% for line in branding.address_lines %}
+            {{ line }}<br>
+        {% endfor %}
+        {% if branding.phone %}Tél: {{ branding.phone }}<br>{% endif %}
     </div>
 
     <div class="box client">
@@ -237,9 +240,9 @@
         {% for row in rows %}
         <tr>
             <td>{{ row.description }}</td>
-            <td class="center">{{ row.quantity }}</td>
-            <td class="right">{{ row.unit_price }} €</td>
-            <td class="right bold">{{ row.total_ht }} €</td>
+            <td class="center">{{ row.quantity|floatformat:0 }}</td>
+            <td class="right">{{ row.unit_price|floatformat:2 }} €</td>
+            <td class="right bold">{{ row.total_ht|floatformat:2 }} €</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -248,35 +251,43 @@
 <!-- ===== TOTALS ===== -->
 <div class="footer-section">
     <div class="notes">
+        {% if invoice.notes %}
+        <strong>Notes</strong><br>
+        {{ invoice.notes|linebreaks }}<br><br>
+        {% endif %}
         <strong>Conditions de paiement</strong><br>
-        {{ branding.payment_terms }}
-       <p> <strong>Montant en toutes lettres</strong><br></p>
-        {{invoice.amount_letter}}
+        {{ branding.payment_terms|default:"Paiement comptant à réception de facture" }}<br><br>
+        <div class="amount-letters">
+            <strong>Montant en toutes lettres</strong><br>
+            <span>{{ invoice.amount_letter }}</span>
+        </div>
     </div>
 
     <div class="totals">
         <div class="row">
             <span>Total HT</span>
-            <span>{{ invoice.total_ht }} €</span>
+            <span>{{ invoice.total_ht|floatformat:2 }} €</span>
         </div>
         <div class="row">
             <span>TVA ({{ tva_rate|floatformat:0 }}%)</span>
-            <span>{{ invoice.tva }} €</span>
+            <span>{{ invoice.tva|floatformat:2 }} €</span>
         </div>
         <div class="row final">
             <span>NET À PAYER</span>
-            <span>{{ invoice.total_ttc }} €</span>
+            <span>{{ invoice.total_ttc|floatformat:2 }} €</span>
         </div>
     </div>
 </div>
 
 <!-- ===== FOOTER LEGAL ===== -->
 <div class="legal">
-    {% if branding.legal %}
-        {{ branding.legal }}
-    {% else %}
-        {{ branding.name }} – Mentions légales non renseignées
-    {% endif %}
+    {{ branding.name|default:"Nettoyage Express" }} - 
+    {% for line in branding.address_lines %}{{ line }}{% if not forloop.last %}, {% endif %}{% endfor %} - 
+    Tél: {{ branding.phone|default:"05 94 30 23 68 / 06 94 46 20 12" }} - 
+    Email: {{ branding.email|default:"contact@nettoyageexpresse.fr" }}
+    {% if branding.siret %}<br>SIRET: {{ branding.siret }}{% endif %}
+    {% if branding.tva_intra %} - TVA Intracommunautaire: {{ branding.tva_intra }}{% endif %}
+    {% if branding.penalty_rate %}<br>Pénalités de retard: {{ branding.penalty_rate }} par mois{% endif %}
 </div>
 
 </body>

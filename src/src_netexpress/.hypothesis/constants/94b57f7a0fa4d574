@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\urls.py
+# hypothesis_version: 6.148.7
+
+['a-propos/', 'about', 'admin-dashboard/', 'admin_dashboard', 'client/', 'client/invoices/', 'client/quotes/', 'client_dashboard', 'client_invoices', 'client_quote_detail', 'client_quotes', 'core', 'dashboard', 'dashboard/', 'dashboard/client/', 'dashboard/ouvrier/', 'excellence', 'excellence/', 'health', 'health/', 'home', 'realisations', 'realisations/', 'worker_dashboard']

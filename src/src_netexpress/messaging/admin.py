@@ -7,7 +7,34 @@ message en cas d'échec.
 
 from django.contrib import admin
 
-from .models import EmailMessage
+from .models import EmailMessage, Message, MessageThread
+
+
+@admin.register(MessageThread)
+class MessageThreadAdmin(admin.ModelAdmin):
+    list_display = ("subject", "get_participants", "last_message_at", "created_at")
+    list_filter = ("created_at", "last_message_at")
+    search_fields = ("subject",)
+    readonly_fields = ("created_at", "last_message_at")
+    filter_horizontal = ("participants",)
+    
+    def get_participants(self, obj):
+        return ", ".join([user.username for user in obj.participants.all()])
+    get_participants.short_description = "Participants"
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ("subject", "sender", "recipient", "created_at", "is_read")
+    list_filter = ("created_at", "read_at")
+    search_fields = ("subject", "content", "sender__username", "recipient__username")
+    readonly_fields = ("created_at", "read_at")
+    raw_id_fields = ("sender", "recipient", "thread")
+    
+    def is_read(self, obj):
+        return obj.is_read
+    is_read.boolean = True
+    is_read.short_description = "Lu"
 
 
 @admin.register(EmailMessage)

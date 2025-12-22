@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\devis\migrations\0005_quotevalidation.py
+# hypothesis_version: 6.148.7
+
+['-created_at', 'ID', 'QuoteValidation', 'attempts', 'code', 'confirmed_at', 'created_at', 'devis', 'devis.quote', 'expires_at', 'id', 'ordering', 'quote', 'token', 'validation devis', 'validations', 'validations devis', 'verbose_name', 'verbose_name_plural']

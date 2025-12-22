@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\migrations\0001_initial.py
+# hypothesis_version: 6.148.7
+
+['ClientDocument', 'ID', 'access_granted_at', 'accessible_documents', 'client_accesses', 'client_user', 'devis', 'devis.quote', 'factures', 'factures.invoice', 'id', 'indexes', 'invoice', 'last_accessed_at', 'quote', 'unique_together', 'verbose_name', 'verbose_name_plural']

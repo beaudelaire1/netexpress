@@ -14,6 +14,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.contrib.auth.models import User
 
 try:
     # Importer le service d'envoi depuis l'application des tâches.  La
@@ -135,3 +136,57 @@ class EmailMessage(models.Model):
             self.sent_at = timezone.now()
             self.error_message = ""
         self.save(update_fields=["status", "sent_at", "error_message", "status"])
+
+
+class MessageThread(models.Model):
+    """Groups related messages for conversation threading."""
+    
+    participants = models.ManyToManyField(User, related_name='message_threads')
+    subject = models.CharField(max_length=200)
+    last_message_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["-last_message_at"]
+        verbose_name = "fil de discussion"
+        verbose_name_plural = "fils de discussion"
+    
+    def __str__(self) -> str:
+        return f"{self.subject} ({self.participants.count()} participants)"
+
+
+class Message(models.Model):
+    """Internal messaging system for portal communication."""
+    
+    thread = models.ForeignKey(
+        MessageThread, 
+        on_delete=models.CASCADE, 
+        related_name='messages',
+        null=True,
+        blank=True
+    )
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    subject = models.CharField(max_length=200)
+    content = models.TextField(help_text="Rich HTML content from CKEditor")
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "message interne"
+        verbose_name_plural = "messages internes"
+    
+    def __str__(self) -> str:
+        return f"{self.subject} - {self.sender.username} → {self.recipient.username}"
+    
+    def mark_as_read(self) -> None:
+        """Mark the message as read."""
+        if not self.read_at:
+            self.read_at = timezone.now()
+            self.save(update_fields=['read_at'])
+    
+    @property
+    def is_read(self) -> bool:
+        """Check if the message has been read."""
+        return self.read_at is not None

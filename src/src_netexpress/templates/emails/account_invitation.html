@@ -1,0 +1,48 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}Bienvenue sur NetExpress - Configurez votre compte{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0b0f19;">Bienvenue sur NetExpress</h2>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  Bonjour {{ user.get_full_name|default:user.username }},
+</p>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  Un compte client a été créé pour vous sur notre plateforme NetExpress. Vous pouvez maintenant accéder à votre espace personnel pour consulter vos devis, factures et communiquer avec notre équipe.
+</p>
+
+<div style="background:#f0f9ff;border-left:4px solid #0ea5e9;padding:16px;margin:16px 0;border-radius:6px;">
+  <h3 style="margin:0 0 8px 0;font-size:14px;font-weight:600;color:#374151;">Informations de connexion:</h3>
+  <p style="margin:0 0 8px 0;line-height:1.6;color:#6b7280;"><strong>Email:</strong> {{ user.email }}</p>
+  <p style="margin:0;line-height:1.6;color:#6b7280;">Vous devez configurer votre mot de passe en cliquant sur le lien ci-dessous.</p>
+</div>
+
+<div style="text-align:center;margin:24px 0;">
+  <a href="{{ password_setup_url }}" 
+     style="display:inline-block;background:#0f6b4c;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">
+    Configurer mon mot de passe
+  </a>
+</div>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#374151;">
+  Une fois votre mot de passe configuré, vous pourrez accéder à votre espace client pour:
+</p>
+
+<ul style="margin:8px 0 16px 0;padding-left:20px;line-height:1.6;color:#374151;">
+  <li>Consulter vos devis et factures</li>
+  <li>Suivre l'avancement de vos interventions</li>
+  <li>Communiquer directement avec notre équipe</li>
+  <li>Accéder à l'historique de nos prestations</li>
+</ul>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#6b7280;font-size:14px;">
+  Si vous avez des questions, n'hésitez pas à nous contacter.
+</p>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#6b7280;font-size:14px;">
+  Cordialement,<br>
+  L'équipe {{ company_name|default:"NetExpress" }}
+</p>
+{% endblock %}

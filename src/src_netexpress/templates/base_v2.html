@@ -1,0 +1,404 @@
+{% load static %}
+{% load portal_navigation %}
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- SEO Meta Tags -->
+  <meta property="og:site_name" content="Nettoyage Express">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
+  <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
+  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
+  <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
+  
+  <title>{% block title %}Nettoyage Express{% endblock %}</title>
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ne-primary': {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            'ne-secondary': {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{% static 'css/style_v2.css' %}">
+  {% block extra_css %}{% endblock %}
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  
+  <!-- Alpine.js for enhanced interactivity -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Schema.org LocalBusiness -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Nettoyage Express",
+    "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
+    "telephone": "05 94 30 23 68",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "753, Chemin de la Désirée",
+      "postalCode": "97351",
+      "addressLocality": "Matoury",
+      "addressCountry": "FR"
+    }
+  }
+  </script>
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50" x-data="{ mobileMenuOpen: false, notifications: [] }">
+  
+  <!-- Navigation -->
+  <nav class="portal-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <!-- Logo -->
+          <a href="{% url 'core:home' %}" class="flex items-center space-x-2">
+            <img src="{% static 'img/logo.svg' %}" alt="Logo" class="h-8 w-8">
+            <span class="text-xl font-bold text-white">Nettoyage Express</span>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-4">
+          {% if user.is_authenticated %}
+            <!-- Portal-specific navigation -->
+            {% render_portal_navigation %}
+          {% else %}
+            <!-- Public navigation -->
+            {% block nav_items %}
+              <a href="{% url 'core:home' %}" class="portal-nav-item">Accueil</a>
+              <a href="{% url 'services:list' %}" class="portal-nav-item">Services</a>
+              <a href="{% url 'core:excellence' %}" class="portal-nav-item">L'Excellence</a>
+              <a href="{% url 'core:realisations' %}" class="portal-nav-item">Réalisations</a>
+              <a href="{% url 'contact:contact' %}" class="portal-nav-item">Contact</a>
+              <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Devis Express</a>
+            {% endblock %}
+          {% endif %}
+          
+          <!-- User Menu -->
+          {% if user.is_authenticated %}
+            <!-- Notification Bell -->
+            <div class="relative" x-data="{ notificationOpen: false }">
+              <button @click="notificationOpen = !notificationOpen" 
+                      class="relative text-white hover:text-gray-200 p-2"
+                      hx-get="{% url 'core:notification_count' %}"
+                      hx-trigger="load, every 30s"
+                      hx-target="#notification-count"
+                      hx-swap="innerHTML">
+                <i class="fas fa-bell text-xl"></i>
+                <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {% portal_notification_count user %}
+                </span>
+              </button>
+              
+              <div x-show="notificationOpen" @click.away="notificationOpen = false" 
+                   x-transition:enter="transition ease-out duration-100"
+                   x-transition:enter-start="transform opacity-0 scale-95"
+                   x-transition:enter-end="transform opacity-100 scale-100"
+                   x-transition:leave="transition ease-in duration-75"
+                   x-transition:leave-start="transform opacity-100 scale-100"
+                   x-transition:leave-end="transform opacity-0 scale-95"
+                   class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50"
+                   hx-get="{% url 'core:notification_list' %}"
+                   hx-trigger="revealed"
+                   hx-target="#notification-list"
+                   hx-swap="innerHTML">
+                
+                <div class="px-4 py-2 border-b border-gray-100">
+                  <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                </div>
+                
+                <div id="notification-list" class="max-h-64 overflow-y-auto">
+                  <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                    Chargement des notifications...
+                  </div>
+                </div>
+                
+                <div class="border-t border-gray-100 px-4 py-2">
+                  <button class="text-sm text-blue-600 hover:text-blue-800 w-full text-center"
+                          hx-post="{% url 'core:mark_all_notifications_read' %}"
+                          hx-trigger="click"
+                          hx-target="#notification-list"
+                          hx-swap="innerHTML">
+                    Marquer tout comme lu
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="relative" x-data="{ userMenuOpen: false }">
+              <button @click="userMenuOpen = !userMenuOpen" class="flex items-center space-x-2 text-white hover:text-gray-200">
+                <i class="fas fa-user-circle text-xl"></i>
+                <span>{{ user.get_full_name|default:user.username }}</span>
+                <i class="fas fa-chevron-down text-sm"></i>
+              </button>
+              
+              <div x-show="userMenuOpen" @click.away="userMenuOpen = false" 
+                   x-transition:enter="transition ease-out duration-100"
+                   x-transition:enter-start="transform opacity-0 scale-95"
+                   x-transition:enter-end="transform opacity-100 scale-100"
+                   x-transition:leave="transition ease-in duration-75"
+                   x-transition:leave-start="transform opacity-100 scale-100"
+                   x-transition:leave-end="transform opacity-0 scale-95"
+                   class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                
+                {% portal_navigation as portal_nav %}
+                {% for item in portal_nav.user_menu_items %}
+                  <a href="{{ item.url }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <i class="{{ item.icon }} mr-2"></i>{{ item.label }}
+                  </a>
+                {% endfor %}
+                <div class="border-t border-gray-100"></div>
+                <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                </a>
+              </div>
+            </div>
+          {% else %}
+            <a href="{% url 'login' %}" class="portal-nav-item">Connexion</a>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-outline">Créer un compte</a>
+          {% endif %}
+        </div>
+
+        <!-- Mobile menu button -->
+        <div class="md:hidden flex items-center">
+          <button @click="mobileMenuOpen = !mobileMenuOpen" class="mobile-menu-button">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" class="mobile-menu">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        {% if user.is_authenticated %}
+          <!-- Portal-specific mobile navigation -->
+          {% render_portal_navigation %}
+        {% else %}
+          <!-- Public mobile navigation -->
+          {% block mobile_nav_items %}
+            <a href="{% url 'core:home' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Accueil</a>
+            <a href="{% url 'services:list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Services</a>
+            <a href="{% url 'core:excellence' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">L'Excellence</a>
+            <a href="{% url 'core:realisations' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Réalisations</a>
+            <a href="{% url 'contact:contact' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Contact</a>
+            <a href="{% url 'devis:request_quote' %}" class="block px-3 py-2 bg-white text-ne-primary-600 rounded-md font-medium">Devis Express</a>
+          {% endblock %}
+        {% endif %}
+        
+        {% if user.is_authenticated %}
+          <div class="border-t border-ne-primary-500 pt-2">
+            {% portal_navigation as portal_nav %}
+            {% for item in portal_nav.user_menu_items %}
+              <a href="{{ item.url }}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+                <i class="{{ item.icon }} mr-2"></i>{{ item.label }}
+              </a>
+            {% endfor %}
+            <a href="{% url 'accounts:logout' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+              <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+            </a>
+          </div>
+        {% else %}
+          <div class="border-t border-ne-primary-500 pt-2">
+            <a href="{% url 'login' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Connexion</a>
+            <a href="{% url 'accounts:signup' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Créer un compte</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Messages/Notifications -->
+  {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+      {% for message in messages %}
+        <div class="notification {% if message.tags %}{{ message.tags }}{% endif %} mb-4" 
+             x-data="{ show: true }" 
+             x-show="show"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform translate-y-2">
+          <div class="p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                {% if message.tags == 'success' %}
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                {% elif message.tags == 'error' %}
+                  <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                {% elif message.tags == 'warning' %}
+                  <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                {% else %}
+                  <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                {% endif %}
+                <span class="text-sm font-medium">{{ message }}</span>
+              </div>
+              <button @click="show = false" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Main Content -->
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-ne-secondary-800 text-white mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="flex items-center space-x-2 mb-4">
+            <img src="{% static 'img/logo.svg' %}" alt="Logo" class="h-8 w-8">
+            <span class="text-xl font-bold">Nettoyage Express</span>
+          </div>
+          <p class="text-gray-300">Votre partenaire local pour l'entretien de la maison et du bureau en Guyane.</p>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Contact</h3>
+          <div class="space-y-2 text-gray-300">
+            <p><i class="fas fa-phone mr-2"></i>05 94 30 23 68</p>
+            <p><i class="fas fa-mobile-alt mr-2"></i>06 94 46 20 12</p>
+            <p><i class="fas fa-envelope mr-2"></i>contact@nettoyageexpresse.fr</p>
+            <p><i class="fas fa-map-marker-alt mr-2"></i>753, Chemin de la Désirée<br>97351 Matoury</p>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Services</h3>
+          <div class="space-y-2 text-gray-300">
+            <p>• Nettoyage professionnel</p>
+            <p>• Entretien espaces verts</p>
+            <p>• Peinture et bricolage</p>
+            <p>• Maintenance générale</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
+        <p>© {% now "Y" %} Nettoyage Express — Tous droits réservés.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- HTMX Loading Indicator -->
+  <div id="htmx-indicator" class="htmx-indicator fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+    <div class="bg-ne-primary-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
+      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+      <span>Chargement...</span>
+    </div>
+  </div>
+
+  <!-- Custom Scripts -->
+  <script>
+    // HTMX configuration
+    document.addEventListener('DOMContentLoaded', function() {
+      // Configure HTMX
+      htmx.config.globalViewTransitions = true;
+      htmx.config.useTemplateFragments = true;
+      
+      // Add loading indicator
+      document.body.addEventListener('htmx:beforeRequest', function(evt) {
+        document.getElementById('htmx-indicator').classList.add('htmx-request');
+      });
+      
+      document.body.addEventListener('htmx:afterRequest', function(evt) {
+        document.getElementById('htmx-indicator').classList.remove('htmx-request');
+      });
+      
+      // Handle HTMX errors
+      document.body.addEventListener('htmx:responseError', function(evt) {
+        console.error('HTMX Error:', evt.detail);
+        // Show user-friendly error message
+        showNotification('Une erreur est survenue. Veuillez réessayer.', 'error');
+      });
+    });
+    
+    // Notification system
+    function showNotification(message, type = 'info', duration = 5000) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type} fixed top-4 right-4 max-w-sm z-50`;
+      notification.innerHTML = `
+        <div class="p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>
+              <span class="text-sm font-medium">${message}</span>
+            </div>
+            <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Auto-remove after duration
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, duration);
+    }
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

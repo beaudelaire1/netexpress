@@ -1,7 +1,24 @@
 from django.contrib import admin, messages
 from django.urls import path, reverse
 from django.shortcuts import get_object_or_404, redirect
-from .models import Quote, QuoteItem
+from django import forms
+from ckeditor.widgets import CKEditorWidget
+from .models import Quote, QuoteItem, Client
+
+
+class QuoteAdminForm(forms.ModelForm):
+    """Custom admin form for Quote with CKEditor for notes field."""
+    
+    notes = forms.CharField(
+        label="Notes internes",
+        widget=CKEditorWidget(config_name='admin'),
+        required=False,
+        help_text="Notes internes pour le devis (formatage professionnel disponible)"
+    )
+    
+    class Meta:
+        model = Quote
+        fields = '__all__'
 
 
 class QuoteItemInline(admin.TabularInline):
@@ -17,8 +34,32 @@ class QuoteItemInline(admin.TabularInline):
     fields = ("service", "description", "quantity", "unit_price", "tax_rate")
 
 
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    """Administration des clients."""
+    
+    list_display = ('full_name', 'email', 'phone', 'city', 'created_at')
+    list_filter = ('created_at', 'city')
+    search_fields = ('full_name', 'email', 'phone', 'city', 'address_line')
+    readonly_fields = ('created_at',)
+    
+    fieldsets = (
+        ('Informations personnelles', {
+            'fields': ('full_name', 'email', 'phone', 'company')
+        }),
+        ('Adresse', {
+            'fields': ('address_line', 'city', 'zip_code')
+        }),
+        ('Informations système', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
+    form = QuoteAdminForm
     list_display = ("number", "client", "status", "total_ttc", "pdf")
     inlines = [QuoteItemInline]
 
