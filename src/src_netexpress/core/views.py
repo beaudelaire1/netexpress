@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.template.response import TemplateResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.utils import timezone
 
 from services.models import Service, Category
 from devis.models import Quote, Client
@@ -841,8 +842,7 @@ def mark_all_notifications_read(request):
     from core.models import UINotification
     from django.utils import timezone
     
-    UINotification.objects.filter(user=request.user, read=False).update(
-        read=True,
+    UINotification.objects.filter(user=request.user, read_at__isnull=True).update(
         read_at=timezone.now()
     )
     
@@ -853,33 +853,42 @@ def mark_all_notifications_read(request):
         "core/partials/notification_list.html",
         {"notifications": notifications}
     )
-    )
+
 
 
 @login_required
 def mark_notification_read(request, notification_id):
     """HTMX endpoint to mark a notification as read."""
-    from core.services import notification_service
+    from core.models import UINotification
     
-    if request.method == 'POST':
-        success = notification_service.mark_notification_as_read(notification_id, request.user)
-        if success:
-            # Return updated notification list
-            return notification_list(request)
+    try:
+        notification = UINotification.objects.get(id=notification_id, user=request.user)
+        notification.mark_as_read()
+    except UINotification.DoesNotExist:
+        pass
     
+    # Return updated notification count
+    count = UINotification.get_unread_count(request.user)
     return render(
         request,
-        "core/partials/notification_list.html",
-        {"notifications": []}
+        "core/partials/notification_count.html",
+        {"count": count}
     )
 
 
 @login_required
 def mark_all_notifications_read(request):
     """HTMX endpoint to mark all notifications as read."""
-    from core.services import notification_service
+    from core.models import UINotification
     
-    if request.method == 'POST':
-        count = notification_service.mark_all_notifications_as_read(request.user)
-        # Return updated notification list
-        return notification_list(request)
+    UINotification.objects.filter(user=request.user, read_at__isnull=True).update(
+        read_at=timezone.now()
+    )
+    
+    # Return updated notification count
+    count = UINotification.get_unread_count(request.user)
+    return render(
+        request,
+        "core/partials/notification_count.html",
+        {"count": count}
+    )
