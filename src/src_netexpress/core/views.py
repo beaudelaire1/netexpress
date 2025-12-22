@@ -807,7 +807,7 @@ def notification_list(request):
     """HTMX endpoint to get notification list."""
     from core.models import UINotification
     
-    notifications = UINotification.get_user_notifications(request.user)[:10]
+    notifications = UINotification.get_recent_notifications(request.user, limit=10)
     return render(
         request,
         "core/partials/notification_list.html",
@@ -839,25 +839,20 @@ def mark_notification_read(request, notification_id):
 def mark_all_notifications_read(request):
     """HTMX endpoint to mark all notifications as read."""
     from core.models import UINotification
+    from django.utils import timezone
     
-    UINotification.objects.filter(user=request.user, read_at__isnull=True).update(
+    UINotification.objects.filter(user=request.user, read=False).update(
+        read=True,
         read_at=timezone.now()
     )
     
-    # Return updated notification count
-    count = UINotification.get_unread_count(request.user)
-    return render(
-        request,
-        "core/partials/notification_count.html",
-        {"count": count}
-    )
-    from core.models import UINotification
-    
+    # Return updated notification list
     notifications = UINotification.get_recent_notifications(request.user, limit=10)
     return render(
         request,
         "core/partials/notification_list.html",
         {"notifications": notifications}
+    )
     )
 
 
