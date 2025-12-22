@@ -19,10 +19,12 @@ urlpatterns = [
     path("health/", views.health, name="health"),
     # Page "À propos" selon le cahier des charges
     path("a-propos/", views.about, name="about"),
-    # Page "L’Excellence" dédiée aux valeurs de l'entreprise
+    # Page "L'Excellence" dédiée aux valeurs de l'entreprise
     path("excellence/", views.excellence, name="excellence"),
     # Galerie de réalisations avec filtrage et lightbox
     path("realisations/", views.realisations, name="realisations"),
     # Tableau de bord agrégé
     path("dashboard/", views.dashboard, name="dashboard"),
+    # Protection fichiers media (devis, factures PDF)
+    path("media/<path:path>", views.protected_media, name="protected_media"),
 ]
