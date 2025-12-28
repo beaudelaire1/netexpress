@@ -100,4 +100,4 @@ if 'test' in os.environ.get('DJANGO_SETTINGS_MODULE', ''):
     django.db.models.signals.post_delete.receivers = []
     django.db.models.signals.pre_delete.receivers = []
 
-print("🧪 TEST MODE ACTIVATED - Using SQLite in-memory database")
+print("[TEST] TEST MODE ACTIVATED - Using SQLite in-memory database")

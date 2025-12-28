@@ -64,10 +64,7 @@
     
     {% if not completed and task.status != 'completed' %}
     <button onclick="openCompletionModal({{ task.pk }}, '{{ task.title|escapejs }}')"
-            class="complete-btn"
-            hx-post="{% url 'worker:task_detail' task.pk %}"
-            hx-trigger="click"
-            hx-confirm="Êtes-vous sûr de vouloir marquer cette tâche comme terminée ?">
+            class="complete-btn bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
       <i class="fas fa-check mr-2"></i>
       <span class="hidden sm:inline">Marquer terminé</span>
       <span class="sm:hidden">Terminé</span>

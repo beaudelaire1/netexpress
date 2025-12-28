@@ -1,0 +1,343 @@
+/* ==========================================================================
+   NetExpress — Design Tokens
+   Version 1.0 — Décembre 2025
+   
+   Ce fichier centralise TOUTES les variables CSS du projet.
+   À inclure en PREMIER dans la chaîne de styles.
+   ========================================================================== */
+
+:root {
+  /* ========================================
+     COULEURS — PALETTE BLEUE NETEXPRESS
+     ======================================== */
+  
+  /* Bleu Principal */
+  --ne-blue-50:  #eff6ff;
+  --ne-blue-100: #dbeafe;
+  --ne-blue-200: #bfdbfe;
+  --ne-blue-300: #93c5fd;
+  --ne-blue-400: #60a5fa;
+  --ne-blue-500: #3b82f6;
+  --ne-blue-600: #2563eb;
+  --ne-blue-700: #1d4ed8;
+  --ne-blue-800: #1e40af;
+  --ne-blue-900: #1e3a8a;
+  --ne-blue-950: #172554;
+
+  /* Succès / Vert */
+  --ne-success-50:  #f0fdf4;
+  --ne-success-100: #dcfce7;
+  --ne-success-200: #bbf7d0;
+  --ne-success-300: #86efac;
+  --ne-success-400: #4ade80;
+  --ne-success-500: #22c55e;
+  --ne-success-600: #16a34a;
+  --ne-success-700: #15803d;
+  --ne-success-800: #166534;
+  --ne-success-900: #14532d;
+
+  /* Attention / Orange */
+  --ne-warning-50:  #fffbeb;
+  --ne-warning-100: #fef3c7;
+  --ne-warning-200: #fde68a;
+  --ne-warning-300: #fcd34d;
+  --ne-warning-400: #fbbf24;
+  --ne-warning-500: #f59e0b;
+  --ne-warning-600: #d97706;
+  --ne-warning-700: #b45309;
+  --ne-warning-800: #92400e;
+  --ne-warning-900: #78350f;
+
+  /* Erreur / Rouge */
+  --ne-error-50:  #fef2f2;
+  --ne-error-100: #fee2e2;
+  --ne-error-200: #fecaca;
+  --ne-error-300: #fca5a5;
+  --ne-error-400: #f87171;
+  --ne-error-500: #ef4444;
+  --ne-error-600: #dc2626;
+  --ne-error-700: #b91c1c;
+  --ne-error-800: #991b1b;
+  --ne-error-900: #7f1d1d;
+
+  /* Info / Cyan */
+  --ne-info-50:  #ecfeff;
+  --ne-info-100: #cffafe;
+  --ne-info-200: #a5f3fc;
+  --ne-info-300: #67e8f9;
+  --ne-info-400: #22d3ee;
+  --ne-info-500: #06b6d4;
+  --ne-info-600: #0891b2;
+  --ne-info-700: #0e7490;
+  --ne-info-800: #155e75;
+  --ne-info-900: #164e63;
+
+  /* Neutres */
+  --ne-gray-50:  #f9fafb;
+  --ne-gray-100: #f3f4f6;
+  --ne-gray-200: #e5e7eb;
+  --ne-gray-300: #d1d5db;
+  --ne-gray-400: #9ca3af;
+  --ne-gray-500: #6b7280;
+  --ne-gray-600: #4b5563;
+  --ne-gray-700: #374151;
+  --ne-gray-800: #1f2937;
+  --ne-gray-900: #111827;
+  --ne-gray-950: #030712;
+
+  /* Blanc/Noir purs */
+  --ne-white: #ffffff;
+  --ne-black: #000000;
+
+  /* ========================================
+     ALIAS SÉMANTIQUES
+     ======================================== */
+  
+  /* Couleurs de marque */
+  --ne-brand-primary: var(--ne-blue-500);
+  --ne-brand-primary-hover: var(--ne-blue-600);
+  --ne-brand-primary-active: var(--ne-blue-700);
+  --ne-brand-primary-subtle: var(--ne-blue-50);
+  --ne-brand-dark: var(--ne-blue-900);
+
+  /* Surfaces */
+  --ne-surface-page: var(--ne-gray-50);
+  --ne-surface-card: var(--ne-white);
+  --ne-surface-elevated: var(--ne-white);
+  --ne-surface-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Bordures */
+  --ne-border-light: var(--ne-gray-200);
+  --ne-border-medium: var(--ne-gray-300);
+  --ne-border-strong: var(--ne-gray-400);
+  --ne-border-focus: var(--ne-blue-500);
+
+  /* Textes */
+  --ne-text-primary: var(--ne-gray-900);
+  --ne-text-secondary: var(--ne-gray-600);
+  --ne-text-tertiary: var(--ne-gray-500);
+  --ne-text-disabled: var(--ne-gray-400);
+  --ne-text-inverse: var(--ne-white);
+  --ne-text-link: var(--ne-blue-600);
+  --ne-text-link-hover: var(--ne-blue-700);
+
+  /* États interactifs */
+  --ne-state-hover: rgba(59, 130, 246, 0.08);
+  --ne-state-active: rgba(59, 130, 246, 0.12);
+  --ne-state-focus-ring: rgba(59, 130, 246, 0.4);
+
+  /* ========================================
+     TYPOGRAPHIE
+     ======================================== */
+  
+  /* Familles */
+  --ne-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ne-font-display: 'Plus Jakarta Sans', var(--ne-font-sans);
+  --ne-font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+
+  /* Tailles */
+  --ne-text-xs:   0.75rem;   /* 12px */
+  --ne-text-sm:   0.875rem;  /* 14px */
+  --ne-text-base: 1rem;      /* 16px */
+  --ne-text-lg:   1.125rem;  /* 18px */
+  --ne-text-xl:   1.25rem;   /* 20px */
+  --ne-text-2xl:  1.5rem;    /* 24px */
+  --ne-text-3xl:  1.875rem;  /* 30px */
+  --ne-text-4xl:  2.25rem;   /* 36px */
+  --ne-text-5xl:  3rem;      /* 48px */
+  --ne-text-6xl:  3.75rem;   /* 60px */
+
+  /* Poids */
+  --ne-font-light:    300;
+  --ne-font-normal:   400;
+  --ne-font-medium:   500;
+  --ne-font-semibold: 600;
+  --ne-font-bold:     700;
+  --ne-font-extrabold: 800;
+
+  /* Hauteur de ligne */
+  --ne-leading-none:    1;
+  --ne-leading-tight:   1.25;
+  --ne-leading-snug:    1.375;
+  --ne-leading-normal:  1.5;
+  --ne-leading-relaxed: 1.625;
+  --ne-leading-loose:   2;
+
+  /* Espacement lettres */
+  --ne-tracking-tighter: -0.05em;
+  --ne-tracking-tight:   -0.025em;
+  --ne-tracking-normal:  0;
+  --ne-tracking-wide:    0.025em;
+  --ne-tracking-wider:   0.05em;
+  --ne-tracking-widest:  0.1em;
+
+  /* ========================================
+     ESPACEMENTS
+     ======================================== */
+  --ne-space-0:   0;
+  --ne-space-px:  1px;
+  --ne-space-0-5: 0.125rem;  /* 2px */
+  --ne-space-1:   0.25rem;   /* 4px */
+  --ne-space-1-5: 0.375rem;  /* 6px */
+  --ne-space-2:   0.5rem;    /* 8px */
+  --ne-space-2-5: 0.625rem;  /* 10px */
+  --ne-space-3:   0.75rem;   /* 12px */
+  --ne-space-3-5: 0.875rem;  /* 14px */
+  --ne-space-4:   1rem;      /* 16px */
+  --ne-space-5:   1.25rem;   /* 20px */
+  --ne-space-6:   1.5rem;    /* 24px */
+  --ne-space-7:   1.75rem;   /* 28px */
+  --ne-space-8:   2rem;      /* 32px */
+  --ne-space-9:   2.25rem;   /* 36px */
+  --ne-space-10:  2.5rem;    /* 40px */
+  --ne-space-11:  2.75rem;   /* 44px */
+  --ne-space-12:  3rem;      /* 48px */
+  --ne-space-14:  3.5rem;    /* 56px */
+  --ne-space-16:  4rem;      /* 64px */
+  --ne-space-20:  5rem;      /* 80px */
+  --ne-space-24:  6rem;      /* 96px */
+  --ne-space-28:  7rem;      /* 112px */
+  --ne-space-32:  8rem;      /* 128px */
+
+  /* ========================================
+     RAYONS DE BORDURE
+     ======================================== */
+  --ne-radius-none: 0;
+  --ne-radius-sm:   4px;
+  --ne-radius-md:   6px;
+  --ne-radius-lg:   8px;
+  --ne-radius-xl:   12px;
+  --ne-radius-2xl:  16px;
+  --ne-radius-3xl:  24px;
+  --ne-radius-full: 9999px;
+
+  /* ========================================
+     OMBRES
+     ======================================== */
+  --ne-shadow-xs:  0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ne-shadow-sm:  0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --ne-shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --ne-shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --ne-shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --ne-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --ne-shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  --ne-shadow-none: 0 0 #0000;
+
+  /* Ombres colorées pour CTAs */
+  --ne-shadow-blue:    0 10px 30px -5px rgba(59, 130, 246, 0.3);
+  --ne-shadow-success: 0 10px 30px -5px rgba(34, 197, 94, 0.3);
+  --ne-shadow-warning: 0 10px 30px -5px rgba(245, 158, 11, 0.3);
+  --ne-shadow-error:   0 10px 30px -5px rgba(239, 68, 68, 0.3);
+
+  /* ========================================
+     Z-INDEX
+     ======================================== */
+  --ne-z-base:     0;
+  --ne-z-dropdown: 10;
+  --ne-z-sticky:   20;
+  --ne-z-fixed:    30;
+  --ne-z-overlay:  40;
+  --ne-z-modal:    50;
+  --ne-z-popover:  60;
+  --ne-z-tooltip:  70;
+  --ne-z-toast:    80;
+  --ne-z-max:      9999;
+
+  /* ========================================
+     TRANSITIONS
+     ======================================== */
+  --ne-duration-fast:   100ms;
+  --ne-duration-normal: 200ms;
+  --ne-duration-slow:   300ms;
+  --ne-duration-slower: 500ms;
+
+  --ne-ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ne-ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ne-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ne-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  --ne-transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ne-transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ne-transition-slow:   300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ========================================
+     LAYOUT
+     ======================================== */
+  --ne-container-sm:  640px;
+  --ne-container-md:  768px;
+  --ne-container-lg:  1024px;
+  --ne-container-xl:  1280px;
+  --ne-container-2xl: 1536px;
+
+  --ne-sidebar-width: 280px;
+  --ne-sidebar-collapsed: 80px;
+  --ne-header-height: 64px;
+  --ne-footer-height: 80px;
+
+  /* ========================================
+     BREAKPOINTS (référence, utilisés en media queries)
+     ======================================== */
+  /* 
+   * sm:  640px
+   * md:  768px
+   * lg:  1024px
+   * xl:  1280px
+   * 2xl: 1536px
+   */
+
+  /* ========================================
+     COMPOSANTS SPÉCIFIQUES
+     ======================================== */
+
+  /* Boutons */
+  --ne-btn-height-sm: 32px;
+  --ne-btn-height-md: 40px;
+  --ne-btn-height-lg: 48px;
+  --ne-btn-height-xl: 56px;
+
+  /* Inputs */
+  --ne-input-height-sm: 32px;
+  --ne-input-height-md: 40px;
+  --ne-input-height-lg: 48px;
+
+  /* Avatars */
+  --ne-avatar-xs: 24px;
+  --ne-avatar-sm: 32px;
+  --ne-avatar-md: 40px;
+  --ne-avatar-lg: 48px;
+  --ne-avatar-xl: 64px;
+  --ne-avatar-2xl: 96px;
+
+  /* ========================================
+     LEGACY COMPATIBILITY
+     Variables pour rétrocompatibilité avec l'ancien thème vert
+     ======================================== */
+  --brand: var(--ne-blue-600);
+  --brand-700: var(--ne-blue-700);
+  --brand-900: var(--ne-blue-900);
+  --primary-green: var(--ne-blue-600);
+  --accent-green: var(--ne-blue-500);
+  --ring: var(--ne-state-focus-ring);
+  --ink: var(--ne-text-primary);
+  --muted: var(--ne-text-secondary);
+  --surface: var(--ne-surface-page);
+  --card: var(--ne-surface-card);
+}
+
+/* ========================================
+   MODE SOMBRE (préparation future)
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  :root.dark-mode {
+    --ne-surface-page: var(--ne-gray-900);
+    --ne-surface-card: var(--ne-gray-800);
+    --ne-surface-elevated: var(--ne-gray-700);
+    
+    --ne-text-primary: var(--ne-gray-100);
+    --ne-text-secondary: var(--ne-gray-400);
+    --ne-text-tertiary: var(--ne-gray-500);
+    
+    --ne-border-light: var(--ne-gray-700);
+    --ne-border-medium: var(--ne-gray-600);
+  }
+}

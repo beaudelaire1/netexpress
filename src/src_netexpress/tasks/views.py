@@ -14,6 +14,7 @@ from django.views import View
 
 from .models import Task
 from core.decorators import worker_portal_required
+from tasks.application.status import sync_task_status
 
 
 class TaskListView(ListView):
@@ -47,16 +48,27 @@ class WorkerDashboardView(LoginRequiredMixin, TemplateView):
         # Filter tasks by assigned worker
         user_tasks = Task.objects.filter(assigned_to=self.request.user).order_by('due_date', 'start_date')
         
-        # Separate tasks by status for better organization
-        context['upcoming_tasks'] = user_tasks.filter(status=Task.STATUS_UPCOMING)
-        context['in_progress_tasks'] = user_tasks.filter(status=Task.STATUS_IN_PROGRESS)
-        context['almost_overdue_tasks'] = user_tasks.filter(status=Task.STATUS_ALMOST_OVERDUE)
-        context['overdue_tasks'] = user_tasks.filter(status=Task.STATUS_OVERDUE)
-        context['completed_tasks'] = user_tasks.filter(status=Task.STATUS_COMPLETED)[:10]  # Show last 10 completed
+        # Separate tasks by status for better organization (evaluate QuerySets to avoid multiple DB queries)
+        upcoming_tasks_qs = user_tasks.filter(status=Task.STATUS_UPCOMING)
+        in_progress_tasks_qs = user_tasks.filter(status=Task.STATUS_IN_PROGRESS)
+        almost_overdue_tasks_qs = user_tasks.filter(status=Task.STATUS_ALMOST_OVERDUE)
+        overdue_tasks_qs = user_tasks.filter(status=Task.STATUS_OVERDUE)
+        completed_tasks_qs = user_tasks.filter(status=Task.STATUS_COMPLETED)[:10]  # Show last 10 completed
         
-        # Summary statistics
+        # Convert to lists to avoid lazy evaluation issues in templates
+        context['upcoming_tasks'] = list(upcoming_tasks_qs)
+        context['in_progress_tasks'] = list(in_progress_tasks_qs)
+        context['almost_overdue_tasks'] = list(almost_overdue_tasks_qs)
+        context['overdue_tasks'] = list(overdue_tasks_qs)
+        context['completed_tasks'] = list(completed_tasks_qs)
+        
+        # Summary statistics (pre-calculate counts to avoid template queries)
         context['total_assigned'] = user_tasks.count()
         context['pending_tasks'] = user_tasks.exclude(status=Task.STATUS_COMPLETED).count()
+        context['upcoming_tasks_count'] = len(context['upcoming_tasks'])
+        context['in_progress_tasks_count'] = len(context['in_progress_tasks'])
+        context['almost_overdue_tasks_count'] = len(context['almost_overdue_tasks'])
+        context['overdue_tasks_count'] = len(context['overdue_tasks'])
         
         return context
 
@@ -97,25 +109,11 @@ def worker_task_events(request):
     user_tasks = Task.objects.filter(assigned_to=request.user).select_related('assigned_to').order_by("due_date", "start_date", "pk")
     
     for task in user_tasks:
-        # Update task status dynamically (same logic as existing task_events)
-        new_status = task.status
-        if task.status != Task.STATUS_COMPLETED:
-            if task.due_date and task.due_date < today:
-                new_status = Task.STATUS_OVERDUE
-            elif task.due_date and (task.due_date - today).days <= 1:
-                new_status = Task.STATUS_ALMOST_OVERDUE
-            else:
-                if task.start_date and task.start_date > today:
-                    new_status = Task.STATUS_UPCOMING
-                else:
-                    new_status = Task.STATUS_IN_PROGRESS
-        
-        if new_status != task.status:
-            task.status = new_status
-            try:
-                task.save(update_fields=["status"])
-            except Exception:
-                pass
+        # Update task status dynamically via application service (best-effort persist)
+        try:
+            sync_task_status(task, today=today, save_if_changed=True)
+        except Exception:
+            pass
         
         # Color coding for worker calendar
         if task.status == Task.STATUS_COMPLETED:
@@ -210,25 +208,10 @@ def task_events(request):
 
     for t in qs:
         # --- Calcul dynamique du statut (et correction en base si nécessaire)
-        new_status = t.status
-        if t.status != Task.STATUS_COMPLETED:
-            if t.due_date and t.due_date < today:
-                new_status = Task.STATUS_OVERDUE
-            elif t.due_date and (t.due_date - today).days <= 1:
-                new_status = Task.STATUS_ALMOST_OVERDUE
-            else:
-                # si start_date est dans le futur => à venir, sinon en cours
-                if t.start_date and t.start_date > today:
-                    new_status = Task.STATUS_UPCOMING
-                else:
-                    new_status = Task.STATUS_IN_PROGRESS
-
-        if new_status != t.status:
-            t.status = new_status
-            try:
-                t.save(update_fields=["status"])
-            except Exception:
-                pass
+        try:
+            sync_task_status(t, today=today, save_if_changed=True)
+        except Exception:
+            pass
 
         # --- Couleur FullCalendar
         if t.status == Task.STATUS_COMPLETED:

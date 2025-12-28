@@ -259,7 +259,7 @@ class NotificationService:
             title=f"Document mis à jour: {document_type}",
             message=f"Le document {document_type} a été mis à jour.",
             notification_type='document_updated',
-            link_url='/client/dashboard/' if hasattr(user, 'profile') and user.profile.role == 'client' else '/admin/'
+            link_url='/client/' if hasattr(user, 'profile') and user.profile.role == 'client' else '/admin-dashboard/'
         )
     
     def get_unread_notifications(self, user: User, limit: int = 10) -> List[UINotification]:

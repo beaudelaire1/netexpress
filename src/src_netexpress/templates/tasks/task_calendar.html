@@ -15,7 +15,13 @@
     <nav class="bo-nav">
       <a class="is-primary" href="{% url 'tasks:calendar' %}">Calendrier</a>
       <a href="{% url 'tasks:list' %}">Liste des tâches</a>
-      <a href="{% url 'core:dashboard' %}">Retour dashboard</a>
+      {% if user.profile.role == 'worker' %}
+        <a href="{% url 'worker:worker_dashboard' %}">Retour dashboard</a>
+      {% elif user.is_staff or user.is_superuser %}
+        <a href="{% url 'core:admin_dashboard' %}">Retour dashboard</a>
+      {% else %}
+        <a href="{% url 'core:client_portal_dashboard' %}">Retour dashboard</a>
+      {% endif %}
     </nav>
   </aside>
 

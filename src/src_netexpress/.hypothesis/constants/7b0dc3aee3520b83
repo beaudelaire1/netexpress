@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\services\document_service.py
+# hypothesis_version: 6.148.7
+
+['-issue_date', 'access_granted_at', 'draft', 'email', 'invoices', 'overdue', 'partial', 'pending_quotes', 'quotes', 'sent', 'total_invoices', 'total_quotes', 'unpaid_invoices']

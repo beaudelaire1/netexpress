@@ -98,15 +98,25 @@ function attachRowEvents(row) {
       const url = baseUrl.replace(/0\/?$/, String(serviceId) + "/");
 
       fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then((resp) => (resp.ok ? resp.json() : null))
+        .then((resp) => {
+          if (!resp.ok) {
+            throw new Error(`HTTP error! status: ${resp.status}`);
+          }
+          return resp.json();
+        })
         .then((data) => {
           if (!data) return;
           if (!descriptionInput.value) {
             descriptionInput.value = data.title || "";
           }
         })
-        .catch(() => {
-          // En cas d'erreur, on ne bloque pas l'utilisateur.
+        .catch((error) => {
+          // Log error but don't block user
+          console.warn('Erreur lors de la récupération des informations du service:', error);
+          // Optionally show a subtle notification if NetExpress is available
+          if (typeof window.NetExpress !== 'undefined' && window.NetExpress.showNotification) {
+            window.NetExpress.showNotification('Impossible de charger les informations du service', 'warning', 2000);
+          }
         });
     });
   }
@@ -129,7 +139,13 @@ function setupAddLineButton() {
     const maxForms = maxFormsInput ? parseInt(maxFormsInput.value, 10) || 1000 : 1000;
 
     if (totalForms >= maxForms) {
-      alert("Nombre maximal de lignes atteint.");
+      // Use modern notification instead of alert
+      if (typeof window.NetExpress !== 'undefined' && window.NetExpress.showNotification) {
+        window.NetExpress.showNotification("Nombre maximal de lignes atteint.", 'warning', 3000);
+      } else {
+        // Fallback to alert if NetExpress is not available
+        alert("Nombre maximal de lignes atteint.");
+      }
       return;
     }
 

@@ -118,7 +118,7 @@ JAZZMIN_SETTINGS = {
     # Liens dans le menu supérieur
     "topmenu_links": [
         {"name": "Site public", "url": "/", "new_window": True},
-        {"name": "Dashboard", "url": "/dashboard/", "new_window": False},
+        {"name": "Dashboard Admin", "url": "/admin-dashboard/", "new_window": False},
         {"model": "auth.User"},
     ],
     
@@ -233,8 +233,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',  # Doit être avant RoleBasedAccessMiddleware
     'accounts.middleware.RoleBasedAccessMiddleware',  # Add role-based access control
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 

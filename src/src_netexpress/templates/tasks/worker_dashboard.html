@@ -3,34 +3,6 @@
 
 {% block title %}Espace Ouvrier — NetExpress{% endblock %}
 
-{% block nav_items %}
-  <a href="{% url 'worker:worker_dashboard' %}" class="portal-nav-item bg-white/10 rounded-md">
-    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-  </a>
-  <a href="{% url 'worker:worker_schedule' %}" class="portal-nav-item">
-    <i class="fas fa-calendar-alt mr-2"></i>Planning
-  </a>
-  {% comment %}
-  <a href="{% url 'messaging:internal_message_list' %}" class="portal-nav-item">
-    <i class="fas fa-envelope mr-2"></i>Messages
-  </a>
-  {% endcomment %}
-{% endblock %}
-
-{% block mobile_nav_items %}
-  <a href="{% url 'worker:worker_dashboard' %}" class="block px-3 py-2 bg-white/10 text-white rounded-md font-medium">
-    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-  </a>
-  <a href="{% url 'worker:worker_schedule' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
-    <i class="fas fa-calendar-alt mr-2"></i>Planning
-  </a>
-  {% comment %}
-  <a href="{% url 'messaging:internal_message_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
-    <i class="fas fa-envelope mr-2"></i>Messages
-  </a>
-  {% endcomment %}
-{% endblock %}
-
 {% block extra_css %}
 <style>
   .task-card {
@@ -96,7 +68,7 @@
     <div class="mb-8">
       <h2 class="text-lg font-semibold text-red-600 mb-4 flex items-center">
         <i class="fas fa-exclamation-triangle mr-2"></i>
-        Tâches en retard ({{ overdue_tasks.count }})
+        Tâches en retard ({{ overdue_tasks_count }})
       </h2>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {% for task in overdue_tasks %}
@@ -111,7 +83,7 @@
     <div class="mb-8">
       <h2 class="text-lg font-semibold text-orange-600 mb-4 flex items-center">
         <i class="fas fa-clock mr-2"></i>
-        Tâches urgentes ({{ almost_overdue_tasks.count }})
+        Tâches urgentes ({{ almost_overdue_tasks_count }})
       </h2>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {% for task in almost_overdue_tasks %}
@@ -126,7 +98,7 @@
     <div class="mb-8">
       <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
         <i class="fas fa-play-circle mr-2"></i>
-        En cours ({{ in_progress_tasks.count }})
+        En cours ({{ in_progress_tasks_count }})
       </h2>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {% for task in in_progress_tasks %}
@@ -141,7 +113,7 @@
     <div class="mb-8">
       <h2 class="text-lg font-semibold text-blue-600 mb-4 flex items-center">
         <i class="fas fa-calendar-plus mr-2"></i>
-        À venir ({{ upcoming_tasks.count }})
+        À venir ({{ upcoming_tasks_count }})
       </h2>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {% for task in upcoming_tasks %}
@@ -230,26 +202,45 @@ function closeCompletionModal() {
   document.getElementById('completion-form').reset();
 }
 
-// Handle form submission with HTMX
-document.getElementById('completion-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const formData = new FormData(this);
-  const taskId = formData.get('task_id');
-  
-  // Use HTMX to submit the form
-  htmx.ajax('POST', `/worker/${taskId}/complete/`, {
-    values: Object.fromEntries(formData),
-    target: 'body',
-    swap: 'none'
-  }).then(() => {
-    closeCompletionModal();
-    showNotification('Tâche marquée comme terminée avec succès!', 'success');
-    // Reload the page to update the task list
-    setTimeout(() => window.location.reload(), 1000);
-  }).catch(() => {
-    showNotification('Erreur lors de la mise à jour de la tâche', 'error');
-  });
+// Handle form submission
+document.addEventListener('DOMContentLoaded', function() {
+  const completionForm = document.getElementById('completion-form');
+  if (completionForm) {
+    completionForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const taskId = formData.get('task_id');
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      
+      // Submit form via fetch instead of HTMX to avoid conflicts
+      fetch(`/worker/tasks/${taskId}/complete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(formData)
+      })
+      .then(response => {
+        if (response.ok) {
+          closeCompletionModal();
+          if (typeof showNotification !== 'undefined') {
+            showNotification('Tâche marquée comme terminée avec succès!', 'success');
+          }
+          // Reload the page to update the task list
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          throw new Error('Erreur lors de la mise à jour');
+        }
+      })
+      .catch(() => {
+        if (typeof showNotification !== 'undefined') {
+          showNotification('Erreur lors de la mise à jour de la tâche', 'error');
+        }
+      });
+    });
+  }
 });
 </script>
 {% endblock %}

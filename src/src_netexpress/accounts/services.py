@@ -103,15 +103,30 @@ class ClientAccountCreationService:
             email: Email address to base username on
             
         Returns:
-            str: Unique username
+            str: Unique username (normalized to valid Django username characters)
         """
+        import re
+        
         base_username = email.split('@')[0]
+        # Normalize: remove invalid characters (Django usernames allow: letters, digits, @, +, -, _, .)
+        # Keep only alphanumeric, underscore, and hyphen
+        base_username = re.sub(r'[^a-zA-Z0-9_-]', '_', base_username)
+        # Ensure it starts with alphanumeric
+        base_username = re.sub(r'^[^a-zA-Z0-9]+', '', base_username) or 'user'
+        # Limit length (Django username max_length is 150)
+        base_username = base_username[:140]  # Leave room for counter suffix
+        
         username = base_username
         counter = 1
         
         while User.objects.filter(username=username).exists():
             username = f"{base_username}_{counter}"
             counter += 1
+            # Prevent infinite loop (unlikely but safe)
+            if counter > 10000:
+                import secrets
+                username = f"{base_username}_{secrets.token_hex(4)}"
+                break
             
         return username
     

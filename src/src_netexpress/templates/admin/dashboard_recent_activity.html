@@ -1,0 +1,45 @@
+<!-- Activité Récente -->
+<div class="recent-activity">
+    <div class="activity-card">
+        <h3><i class="fas fa-file-alt"></i> Devis Récents</h3>
+        {% for quote in recent_quotes %}
+        <div class="activity-item">
+            <strong>{{ quote.client.name }}</strong> - 
+            <span class="status-badge status-{{ quote.status }}">{{ quote.get_status_display }}</span>
+            <br>
+            <small>{{ quote.total_ttc|floatformat:2 }} € - {{ quote.created_at|date:"d/m/Y" }}</small>
+        </div>
+        {% empty %}
+        <p class="text-muted">Aucun devis récent</p>
+        {% endfor %}
+    </div>
+
+    <div class="activity-card">
+        <h3><i class="fas fa-receipt"></i> Factures Récentes</h3>
+        {% for invoice in recent_invoices %}
+        <div class="activity-item">
+            <strong>{{ invoice.client.name }}</strong> - 
+            <span class="status-badge status-{{ invoice.status }}">{{ invoice.get_status_display }}</span>
+            <br>
+            <small>{{ invoice.total_ttc|floatformat:2 }} € - {{ invoice.created_at|date:"d/m/Y" }}</small>
+        </div>
+        {% empty %}
+        <p class="text-muted">Aucune facture récente</p>
+        {% endfor %}
+    </div>
+
+    <div class="activity-card">
+        <h3><i class="fas fa-tasks"></i> Tâches Récentes</h3>
+        {% for task in recent_tasks %}
+        <div class="activity-item">
+            <strong>{{ task.title }}</strong> - 
+            <span class="status-badge status-{{ task.status }}">{{ task.get_status_display }}</span>
+            <br>
+            <small>Échéance: {{ task.due_date|date:"d/m/Y" }}</small>
+        </div>
+        {% empty %}
+        <p class="text-muted">Aucune tâche récente</p>
+        {% endfor %}
+    </div>
+</div>
+

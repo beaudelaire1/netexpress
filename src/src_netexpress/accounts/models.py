@@ -10,17 +10,22 @@ class Profile(models.Model):
     """Profil utilisateur (rôle + infos) pour l'ERP.
 
     Rôles:
-      - client : accès au dashboard client
-      - worker : accès au dashboard ouvrier
-      - staff/admin : utilise l'admin Django et le dashboard interne
+      - client : accès au dashboard client (/client/)
+      - worker : accès au dashboard ouvrier (/worker/)
+      - admin_business : accès au dashboard admin business (/admin-dashboard/) + lecture /gestion/
+      - admin_technical : accès à l'interface technique Django Admin (/gestion/)
     """
 
     ROLE_CLIENT = "client"
     ROLE_WORKER = "worker"
+    ROLE_ADMIN_BUSINESS = "admin_business"
+    ROLE_ADMIN_TECHNICAL = "admin_technical"
 
     ROLE_CHOICES = [
         (ROLE_CLIENT, "Client"),
         (ROLE_WORKER, "Ouvrier"),
+        (ROLE_ADMIN_BUSINESS, "Administrateur Business"),
+        (ROLE_ADMIN_TECHNICAL, "Administrateur Technique"),
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")

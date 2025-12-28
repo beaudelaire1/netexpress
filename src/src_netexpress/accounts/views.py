@@ -102,7 +102,7 @@ def password_setup(request, uidb64, token):
                 messages.success(request, 'Votre mot de passe a été configuré avec succès. Bienvenue !')
                 
                 # Redirect to client portal
-                return redirect('core:client_dashboard')
+                return redirect('core:client_portal_dashboard')
         else:
             form = SetPasswordForm(user)
         

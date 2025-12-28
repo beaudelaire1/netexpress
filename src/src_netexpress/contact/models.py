@@ -24,8 +24,8 @@ class Message(models.Model):
     topic = models.CharField(max_length=50, choices=TOPIC_CHOICES)
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
-    city= models.CharField(max_length=200)
-    street= models.CharField(max_length=200)
+    city = models.CharField(max_length=200, blank=True, help_text="Ville (optionnel)")
+    street = models.CharField(max_length=200, blank=True, help_text="Rue (optionnel)")
     # Utiliser un champ de caractères pour le code postal afin de
     # prendre en charge à la fois les codes numériques et alphanumériques
     # (certaines régions ont des codes avec des lettres).  L'option

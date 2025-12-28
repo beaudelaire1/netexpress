@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\urls_admin.py
+# hypothesis_version: 6.148.7
+
+['admin_clients_list', 'admin_create_client', 'admin_create_invoice', 'admin_create_quote', 'admin_create_task', 'admin_create_worker', 'admin_dashboard', 'admin_invoices_list', 'admin_quotes_list', 'admin_workers_list', 'clients/', 'clients/create/', 'core', 'dashboard/', 'invoices/', 'invoices/create/', 'legacy_dashboard', 'notification_count', 'notification_list', 'notifications/count/', 'notifications/list/', 'planning/', 'quotes/', 'quotes/create/', 'tasks/create/', 'workers/', 'workers/create/']

@@ -8,28 +8,35 @@ All URLs in this file are prefixed with /admin-dashboard/ by the main URL config
 from django.urls import path
 from . import views
 
-app_name = "admin_portal"
+# Note: app_name is not set here to avoid namespace conflicts with core.urls
+# The namespace is specified explicitly in netexpress/urls.py
 
 urlpatterns = [
     # Admin Portal Dashboard
-    path("", views.admin_dashboard, name="dashboard"),
+    path("", views.admin_dashboard, name="admin_dashboard"),
     
     # Global Planning and Management
-    path("planning/", views.admin_global_planning, name="global_planning"),
+    path("planning/", views.admin_global_planning, name="admin_global_planning"),
     
     # Worker Management
-    path("workers/", views.admin_workers_list, name="workers_list"),
-    path("workers/create/", views.admin_create_worker, name="create_worker"),
+    path("workers/", views.admin_workers_list, name="admin_workers_list"),
+    path("workers/create/", views.admin_create_worker, name="admin_create_worker"),
     
     # Client Management
-    path("clients/", views.admin_clients_list, name="clients_list"),
-    path("clients/create/", views.admin_create_client, name="create_client"),
+    path("clients/", views.admin_clients_list, name="admin_clients_list"),
+    path("clients/create/", views.admin_create_client, name="admin_create_client"),
     
     # Quote Management
-    path("quotes/create/", views.admin_create_quote, name="create_quote"),
+    path("quotes/", views.admin_quotes_list, name="admin_quotes_list"),
+    path("quotes/create/", views.admin_create_quote, name="admin_create_quote"),
+    path("quotes/<int:pk>/send-email/", views.admin_send_quote_email, name="admin_send_quote_email"),
+    
+    # Invoice Management
+    path("invoices/", views.admin_invoices_list, name="admin_invoices_list"),
+    path("invoices/create/", views.admin_create_invoice, name="admin_create_invoice"),
     
     # Task Management
-    path("tasks/create/", views.admin_create_task, name="create_task"),
+    path("tasks/create/", views.admin_create_task, name="admin_create_task"),
     
     # Legacy dashboard redirects for backward compatibility
     path("dashboard/", views.dashboard, name="legacy_dashboard"),

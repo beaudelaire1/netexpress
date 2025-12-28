@@ -1,0 +1,28 @@
+<!-- KPIs -->
+<div class="dashboard-kpi">
+    <div class="kpi-card success">
+        <div class="kpi-label">Chiffre d'Affaires Total</div>
+        <div class="kpi-value">{{ total_revenue|floatformat:2 }} €</div>
+    </div>
+    <div class="kpi-card primary">
+        <div class="kpi-label">CA Mensuel</div>
+        <div class="kpi-value">{{ monthly_revenue|floatformat:2 }} €</div>
+    </div>
+    <div class="kpi-card warning">
+        <div class="kpi-label">CA en Attente</div>
+        <div class="kpi-value">{{ pending_revenue|floatformat:2 }} €</div>
+    </div>
+    <div class="kpi-card info">
+        <div class="kpi-label">Taux de Conversion</div>
+        <div class="kpi-value">{{ conversion_rate|floatformat:1 }}%</div>
+    </div>
+    <div class="kpi-card {% if task_completion_rate >= 80 %}success{% elif task_completion_rate >= 60 %}warning{% else %}danger{% endif %}">
+        <div class="kpi-label">Taux de Complétion Tâches</div>
+        <div class="kpi-value">{{ task_completion_rate|floatformat:1 }}%</div>
+    </div>
+    <div class="kpi-card {% if overdue_tasks == 0 %}success{% else %}danger{% endif %}">
+        <div class="kpi-label">Tâches en Retard</div>
+        <div class="kpi-value">{{ overdue_tasks }}</div>
+    </div>
+</div>
+

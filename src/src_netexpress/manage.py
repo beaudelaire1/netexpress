@@ -18,6 +18,13 @@ def main():
         os.getenv("DJANGO_SETTINGS_MODULE", "netexpress.settings.dev")
     )
 
+    # Warning utile: en local, on se retrouve souvent en prod par erreur via variable d'environnement.
+    # On n'ecrase rien ici, on alerte juste.
+    if os.getenv("DJANGO_SETTINGS_MODULE") == "netexpress.settings.prod" and any(
+        cmd in sys.argv for cmd in ("runserver", "shell", "check_brevo")
+    ):
+        print("[WARN] DJANGO_SETTINGS_MODULE=netexpress.settings.prod (tu voulais peut-etre dev ?)")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

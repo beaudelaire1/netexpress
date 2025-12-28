@@ -14,6 +14,12 @@ from .quote_to_invoice import QuoteToInvoiceService
 from core.services.pdf_generator import render_quote_pdf
 from .email_service import send_quote_email
 from .forms import QuoteValidationCodeForm
+from devis.application.quote_validation import (
+    QuoteNotValidatableError,
+    QuoteValidationExpiredError,
+    confirm_quote_validation_code,
+    start_quote_validation,
+)
 
 
 @require_http_methods(["GET", "POST"])
@@ -40,12 +46,26 @@ def quote_success(request):
 
 @staff_member_required
 def download_quote_pdf(request, pk):
+    """Download quote PDF with optimized streaming and caching."""
+    from django.views.decorators.cache import cache_control
+    from django.http import HttpResponse
+    
     quote = get_object_or_404(Quote, pk=pk)
     # Ensure PDF exists (generate & attach)
     if not quote.pdf:
         quote.generate_pdf(attach=True)
+    
     try:
-        return FileResponse(quote.pdf.open("rb"), content_type="application/pdf")
+        # Use streaming for better performance with large files
+        response = FileResponse(
+            quote.pdf.open("rb"),
+            content_type="application/pdf",
+            filename=f"devis_{quote.number}.pdf"
+        )
+        # Add cache headers for better performance
+        response['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+        response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
+        return response
     except Exception as exc:
         raise Http404() from exc
 
@@ -117,12 +137,12 @@ def quote_validate_start(request, token: str):
     Le paramètre ``token`` est le ``Quote.public_token`` (stable).
     """
     quote = get_object_or_404(Quote, public_token=token)
-    validation = QuoteValidation.create_for_quote(quote)
-
-    # Envoie le code (email premium HTML) et redirige vers la saisie
-    from .email_service import send_quote_validation_code
-    send_quote_validation_code(quote, validation)
-    return redirect("devis:quote_validate_code", token=validation.token)
+    try:
+        res = start_quote_validation(quote, request=request)
+    except QuoteNotValidatableError:
+        messages.error(request, "Ce devis ne peut pas être validé dans son état actuel.")
+        return redirect("devis:quote_success")
+    return redirect("devis:quote_validate_code", token=res.validation.token)
 
 
 @require_http_methods(["GET", "POST"])
@@ -138,34 +158,17 @@ def quote_validate_code(request, token: str):
     if request.method == "POST":
         form = QuoteValidationCodeForm(request.POST)
         if form.is_valid():
-            ok = validation.verify(form.cleaned_data["code"])
+            try:
+                ok = confirm_quote_validation_code(validation=validation, submitted_code=form.cleaned_data["code"])
+            except QuoteValidationExpiredError:
+                ok = False
+                messages.error(request, "Ce code a expiré. Merci de relancer une validation.")
+                return render(request, "quotes/validate_expired.html", {"quote": quote})
+
             if ok:
-                # Statut devis -> accepté
-                quote.status = Quote.QuoteStatus.ACCEPTED
-                quote.save(update_fields=["status"])
-                
-                # Always generate/regenerate PDF to ensure it's current
-                try:
-                    quote.generate_pdf(attach=True)
-                except Exception as e:
-                    # Log the error but don't fail the validation
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"PDF generation failed for quote {quote.number}: {e}")
-                
-                # Send notification about quote validation
-                try:
-                    from core.services.notification_service import NotificationService
-                    notification_service = NotificationService()
-                    notification_service.notify_quote_validation(quote)
-                except Exception as e:
-                    # Log the error but don't fail the validation
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"Notification failed for quote {quote.number}: {e}")
-                
                 messages.success(request, "Merci ! Votre devis est validé.")
                 return render(request, "quotes/validate_success.html", {"quote": quote})
+
             messages.error(request, "Code incorrect. Veuillez réessayer.")
     else:
         form = QuoteValidationCodeForm()
@@ -203,6 +206,14 @@ def quote_public_pdf(request, token: str):
     if not quote.pdf:
         quote.generate_pdf(attach=True)
     try:
-        return FileResponse(quote.pdf.open("rb"), content_type="application/pdf")
+        # Use streaming for better performance
+        response = FileResponse(
+            quote.pdf.open("rb"),
+            content_type="application/pdf",
+            filename=f"devis_{quote.number}.pdf"
+        )
+        response['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+        response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
+        return response
     except Exception as exc:
         raise Http404() from exc

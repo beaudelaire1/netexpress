@@ -1,0 +1,121 @@
+{% extends "admin/index.html" %}
+{% load static %}
+{% load admin_dashboard %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard-kpi {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .kpi-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid;
+    }
+    .kpi-card.primary { border-left-color: #007bff; }
+    .kpi-card.success { border-left-color: #28a745; }
+    .kpi-card.warning { border-left-color: #ffc107; }
+    .kpi-card.danger { border-left-color: #dc3545; }
+    .kpi-card.info { border-left-color: #17a2b8; }
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+    .kpi-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+    }
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .action-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .action-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+    .action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .action-title {
+        font-weight: 600;
+        margin: 0;
+    }
+    .recent-activity {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .activity-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .activity-card h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+    }
+    .activity-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-draft { background: #e9ecef; color: #495057; }
+    .status-sent { background: #cfe2ff; color: #084298; }
+    .status-accepted { background: #d1e7dd; color: #0f5132; }
+    .status-paid { background: #d1e7dd; color: #0f5132; }
+    .status-overdue { background: #f8d7da; color: #842029; }
+    .status-completed { background: #d1e7dd; color: #0f5132; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- KPIs -->
+    {% dashboard_kpis %}
+    
+    <!-- Actions Rapides -->
+    {% dashboard_quick_actions %}
+    
+    <!-- Activité Récente -->
+    {% dashboard_recent_activity %}
+    
+    <!-- Appels Django Admin standard -->
+    {{ block.super }}
+</div>
+{% endblock %}

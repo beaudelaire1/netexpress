@@ -19,6 +19,7 @@ sitemaps = {"static": StaticViewSitemap}
 
 urlpatterns = [
     # Expose the admin under a custom path as defined in the cahier des charges
+    # Le dashboard personnalisé est intégré via admin.site.index_template
     path("gestion/", admin.site.urls),
 
     # Public URLs (accessible to all)
@@ -42,7 +43,7 @@ urlpatterns = [
     path("worker/messages/", include(("messaging.urls", "messaging"), namespace="worker_messaging")),
     
     # Admin Portal (/admin-dashboard/...)
-    path("admin-dashboard/", include("core.urls_admin")),
+    # Admin URLs are now defined in core/urls.py to avoid namespace conflicts
     path("admin-dashboard/messages/", include(("messaging.urls", "messaging"), namespace="admin_messaging")),
     
     # Legacy URLs (for backward compatibility)

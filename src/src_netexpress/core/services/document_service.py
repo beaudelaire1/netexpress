@@ -60,11 +60,13 @@ class ClientDocumentService:
             return True
         
         # Client users can only access their own quotes
+        # Use case-insensitive comparison consistently
         user_email = getattr(user, 'email', '') or ''
         if not user_email:
             return False
         
-        return quote.client.email.lower() == user_email.lower()
+        quote_email = getattr(quote.client, 'email', '') or ''
+        return quote_email.lower() == user_email.lower()
     
     @staticmethod
     def can_access_invoice(user: User, invoice: Invoice) -> bool:
@@ -110,9 +112,11 @@ class ClientDocumentService:
                 )
                 if not created:
                     client_doc.update_last_accessed()
-        except Exception:
-            # Silently fail to avoid breaking the main flow
-            pass
+        except Exception as e:
+            # Log error instead of silently failing
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur lors du suivi d'accès au document pour {user}: {e}", exc_info=True)
     
     @staticmethod
     def get_client_document_stats(user: User) -> dict:

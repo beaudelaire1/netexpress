@@ -1,5 +1,4 @@
 {% load static %}
-{% load portal_navigation %}
 <!DOCTYPE html>
 <html lang="fr" class="h-full">
 <head>
@@ -109,17 +108,26 @@
         <div class="hidden md:flex items-center space-x-4">
           {% if user.is_authenticated %}
             <!-- Portal-specific navigation -->
-            {% render_portal_navigation %}
+            {% if user.is_staff %}
+              <a href="/admin-dashboard/" class="portal-nav-item">Dashboard</a>
+              <a href="/admin-dashboard/planning/" class="portal-nav-item">Planning</a>
+              <a href="/gestion/" class="portal-nav-item">Gestion</a>
+            {% elif user.groups.all.0.name == 'Workers' %}
+              <a href="/worker/" class="portal-nav-item">Mes Tâches</a>
+              <a href="/worker/schedule/" class="portal-nav-item">Planning</a>
+            {% else %}
+              <a href="/client/" class="portal-nav-item">Dashboard</a>
+              <a href="/client/quotes/" class="portal-nav-item">Devis</a>
+              <a href="/client/invoices/" class="portal-nav-item">Factures</a>
+            {% endif %}
           {% else %}
             <!-- Public navigation -->
-            {% block nav_items %}
-              <a href="{% url 'core:home' %}" class="portal-nav-item">Accueil</a>
-              <a href="{% url 'services:list' %}" class="portal-nav-item">Services</a>
-              <a href="{% url 'core:excellence' %}" class="portal-nav-item">L'Excellence</a>
-              <a href="{% url 'core:realisations' %}" class="portal-nav-item">Réalisations</a>
-              <a href="{% url 'contact:contact' %}" class="portal-nav-item">Contact</a>
-              <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Devis Express</a>
-            {% endblock %}
+            <a href="{% url 'core:home' %}" class="portal-nav-item">Accueil</a>
+            <a href="{% url 'services:list' %}" class="portal-nav-item">Services</a>
+            <a href="{% url 'core:excellence' %}" class="portal-nav-item">L'Excellence</a>
+            <a href="{% url 'core:realisations' %}" class="portal-nav-item">Réalisations</a>
+            <a href="{% url 'contact:contact' %}" class="portal-nav-item">Contact</a>
+            <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Devis Express</a>
           {% endif %}
           
           <!-- User Menu -->
@@ -127,14 +135,10 @@
             <!-- Notification Bell -->
             <div class="relative" x-data="{ notificationOpen: false }">
               <button @click="notificationOpen = !notificationOpen" 
-                      class="relative text-white hover:text-gray-200 p-2"
-                      hx-get="{% url 'core:notification_count' %}"
-                      hx-trigger="load, every 30s"
-                      hx-target="#notification-count"
-                      hx-swap="innerHTML">
+                      class="relative text-white hover:text-gray-200 p-2">
                 <i class="fas fa-bell text-xl"></i>
-                <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {% portal_notification_count user %}
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  0
                 </span>
               </button>
               
@@ -145,30 +149,16 @@
                    x-transition:leave="transition ease-in duration-75"
                    x-transition:leave-start="transform opacity-100 scale-100"
                    x-transition:leave-end="transform opacity-0 scale-95"
-                   class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50"
-                   hx-get="{% url 'core:notification_list' %}"
-                   hx-trigger="revealed"
-                   hx-target="#notification-list"
-                   hx-swap="innerHTML">
+                   class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50">
                 
                 <div class="px-4 py-2 border-b border-gray-100">
                   <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                 </div>
                 
-                <div id="notification-list" class="max-h-64 overflow-y-auto">
+                <div class="max-h-64 overflow-y-auto">
                   <div class="px-4 py-3 text-sm text-gray-500 text-center">
-                    Chargement des notifications...
+                    Aucune notification
                   </div>
-                </div>
-                
-                <div class="border-t border-gray-100 px-4 py-2">
-                  <button class="text-sm text-blue-600 hover:text-blue-800 w-full text-center"
-                          hx-post="{% url 'core:mark_all_notifications_read' %}"
-                          hx-trigger="click"
-                          hx-target="#notification-list"
-                          hx-swap="innerHTML">
-                    Marquer tout comme lu
-                  </button>
                 </div>
               </div>
             </div>
@@ -189,12 +179,9 @@
                    x-transition:leave-end="transform opacity-0 scale-95"
                    class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                 
-                {% portal_navigation as portal_nav %}
-                {% for item in portal_nav.user_menu_items %}
-                  <a href="{{ item.url }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    <i class="{{ item.icon }} mr-2"></i>{{ item.label }}
-                  </a>
-                {% endfor %}
+                <a href="/accounts/profile/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-user mr-2"></i>Mon Profil
+                </a>
                 <div class="border-t border-gray-100"></div>
                 <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                   <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
@@ -221,27 +208,33 @@
       <div class="px-2 pt-2 pb-3 space-y-1">
         {% if user.is_authenticated %}
           <!-- Portal-specific mobile navigation -->
-          {% render_portal_navigation %}
+          {% if user.is_staff %}
+            <a href="/admin-dashboard/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Dashboard</a>
+            <a href="/admin-dashboard/planning/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Planning</a>
+            <a href="/gestion/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Gestion</a>
+          {% elif user.groups.all.0.name == 'Workers' %}
+            <a href="/worker/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Mes Tâches</a>
+            <a href="/worker/schedule/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Planning</a>
+          {% else %}
+            <a href="/client/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Dashboard</a>
+            <a href="/client/quotes/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Devis</a>
+            <a href="/client/invoices/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Factures</a>
+          {% endif %}
         {% else %}
           <!-- Public mobile navigation -->
-          {% block mobile_nav_items %}
-            <a href="{% url 'core:home' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Accueil</a>
-            <a href="{% url 'services:list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Services</a>
-            <a href="{% url 'core:excellence' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">L'Excellence</a>
-            <a href="{% url 'core:realisations' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Réalisations</a>
-            <a href="{% url 'contact:contact' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Contact</a>
-            <a href="{% url 'devis:request_quote' %}" class="block px-3 py-2 bg-white text-ne-primary-600 rounded-md font-medium">Devis Express</a>
-          {% endblock %}
+          <a href="{% url 'core:home' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Accueil</a>
+          <a href="{% url 'services:list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Services</a>
+          <a href="{% url 'core:excellence' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">L'Excellence</a>
+          <a href="{% url 'core:realisations' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Réalisations</a>
+          <a href="{% url 'contact:contact' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Contact</a>
+          <a href="{% url 'devis:request_quote' %}" class="block px-3 py-2 bg-white text-ne-primary-600 rounded-md font-medium">Devis Express</a>
         {% endif %}
         
         {% if user.is_authenticated %}
           <div class="border-t border-ne-primary-500 pt-2">
-            {% portal_navigation as portal_nav %}
-            {% for item in portal_nav.user_menu_items %}
-              <a href="{{ item.url }}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
-                <i class="{{ item.icon }} mr-2"></i>{{ item.label }}
-              </a>
-            {% endfor %}
+            <a href="/accounts/profile/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
+              <i class="fas fa-user mr-2"></i>Mon Profil
+            </a>
             <a href="{% url 'accounts:logout' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">
               <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
             </a>
@@ -346,57 +339,17 @@
   </div>
 
   <!-- Custom Scripts -->
+  <!-- Note: HTMX handlers and showNotification are defined in static/js/portal.js to avoid duplication -->
   <script>
-    // HTMX configuration
+    // HTMX configuration (only if HTMX is loaded)
     document.addEventListener('DOMContentLoaded', function() {
-      // Configure HTMX
-      htmx.config.globalViewTransitions = true;
-      htmx.config.useTemplateFragments = true;
-      
-      // Add loading indicator
-      document.body.addEventListener('htmx:beforeRequest', function(evt) {
-        document.getElementById('htmx-indicator').classList.add('htmx-request');
-      });
-      
-      document.body.addEventListener('htmx:afterRequest', function(evt) {
-        document.getElementById('htmx-indicator').classList.remove('htmx-request');
-      });
-      
-      // Handle HTMX errors
-      document.body.addEventListener('htmx:responseError', function(evt) {
-        console.error('HTMX Error:', evt.detail);
-        // Show user-friendly error message
-        showNotification('Une erreur est survenue. Veuillez réessayer.', 'error');
-      });
+      // Wait for HTMX to be available
+      if (typeof htmx !== 'undefined') {
+        // Configure HTMX
+        htmx.config.globalViewTransitions = true;
+        htmx.config.useTemplateFragments = true;
+      }
     });
-    
-    // Notification system
-    function showNotification(message, type = 'info', duration = 5000) {
-      const notification = document.createElement('div');
-      notification.className = `notification ${type} fixed top-4 right-4 max-w-sm z-50`;
-      notification.innerHTML = `
-        <div class="p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>
-              <span class="text-sm font-medium">${message}</span>
-            </div>
-            <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(notification);
-      
-      // Auto-remove after duration
-      setTimeout(() => {
-        if (notification.parentElement) {
-          notification.remove();
-        }
-      }, duration);
-    }
   </script>
 
   {% block extra_js %}{% endblock %}

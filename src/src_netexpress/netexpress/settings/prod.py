@@ -33,10 +33,10 @@ if env_hosts_raw:
     
     # Fusionner avec les hôtes de base.py (éviter les doublons)
     ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + env_hosts))
-    print(f"✅ ALLOWED_HOSTS complété depuis ENV: {ALLOWED_HOSTS}")
+    print(f"[OK] ALLOWED_HOSTS complete depuis ENV: {ALLOWED_HOSTS}")
 else:
     # Garder les valeurs de base.py
-    print(f"✅ ALLOWED_HOSTS depuis base.py: {ALLOWED_HOSTS}")
+    print(f"[OK] ALLOWED_HOSTS depuis base.py: {ALLOWED_HOSTS}")
 
 # ============================================================
 # 🔐 CSRF TRUSTED ORIGINS (CRITIQUE)
@@ -51,10 +51,10 @@ if env_csrf_raw:
     
     # Fusionner avec les origines de base.py (éviter les doublons)
     CSRF_TRUSTED_ORIGINS = list(set(CSRF_TRUSTED_ORIGINS + env_csrf))
-    print(f"✅ CSRF_TRUSTED_ORIGINS complété depuis ENV: {CSRF_TRUSTED_ORIGINS}")
+    print(f"[OK] CSRF_TRUSTED_ORIGINS complete depuis ENV: {CSRF_TRUSTED_ORIGINS}")
 else:
     # Garder les valeurs de base.py
-    print(f"✅ CSRF_TRUSTED_ORIGINS depuis base.py: {CSRF_TRUSTED_ORIGINS}")
+    print(f"[OK] CSRF_TRUSTED_ORIGINS depuis base.py: {CSRF_TRUSTED_ORIGINS}")
 
 # ============================================================
 # 🔐 SÉCURITÉ HTTPS (RENDER)
@@ -142,18 +142,25 @@ LOGGING = {
 }
 
 # ============================================================
-# 📧 EMAIL (OPTIONNEL - À CONFIGURER SELON VOS BESOINS)
+# 📧 EMAIL - CONFIGURATION BREVO (PRODUCTION)
 # ============================================================
 
-# Exemple avec un service SMTP
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'mail.infomaniak.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+# Configuration Brevo (ex-Sendinblue) - Backend principal en production
+# La clé API par défaut est définie ici, mais peut être surchargée par une variable d'environnement
+BREVO_API_KEY = (os.getenv('BREVO_API_KEY') or '').strip()
+
+# Utiliser le backend Brevo si la clé API est configurée
+if BREVO_API_KEY and BREVO_API_KEY.strip():
+    EMAIL_BACKEND = 'core.backends.brevo_backend.BrevoEmailBackend'
+    print("[OK] Email backend: Brevo (API) - Production")
+else:
+    # En prod, on force Brevo API (pas de fallback SMTP)
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("BREVO_API_KEY manquante en production: l'envoi email est configure en mode API uniquement.")
+
+# Configuration de l'expéditeur
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
-EMAIL_TIMEOUT = 10  # secondes, CRITIQUE pour éviter les blocages
+DEFAULT_FROM_NAME = os.getenv('DEFAULT_FROM_NAME', 'Nettoyage Express')
 
 # ============================================================
 # 🔥 DEBUG - AFFICHAGE FINAL DE LA CONFIG

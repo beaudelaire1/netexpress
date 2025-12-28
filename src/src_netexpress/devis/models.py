@@ -191,23 +191,41 @@ class Quote(models.Model):
 
     def save(self, *args, **kwargs):
         import secrets
+        from django.db import transaction
+        
         if not self.public_token:
-            self.public_token = secrets.token_urlsafe(32)
+            # Generate unique public token
+            while True:
+                token = secrets.token_urlsafe(32)
+                if not Quote.objects.filter(public_token=token).exists():
+                    self.public_token = token
+                    break
+        
         # Attribution d'un numéro de devis si nécessaire : DEV-AAAA-XXX
-        if not self.number:
+        # Use atomic transaction with select_for_update to avoid race conditions
+        if not self.pk and not self.number:
             # l'année est celle de la date d'émission
             year = self.issue_date.year if getattr(self, "issue_date", None) else date.today().year
             prefix = f"DEV-{year}-"
-            last_number = Quote.objects.filter(number__startswith=prefix).order_by("number").last()
-            if last_number:
-                try:
-                    last_counter = int(last_number.number.split("-")[-1])
-                except ValueError:
-                    last_counter = 0
-            else:
-                last_counter = 0
-            # Use a three‑digit counter (000–999)
-            self.number = f"{prefix}{last_counter + 1:03d}"
+            
+            # Use atomic block to avoid race conditions
+            with transaction.atomic():
+                last = (
+                    Quote.objects
+                    .select_for_update()
+                    .filter(number__startswith=prefix)
+                    .order_by("number")
+                    .last()
+                )
+                counter = 0
+                if last:
+                    try:
+                        counter = int(str(last.number).split("-")[-1])
+                    except ValueError:
+                        counter = 0
+                # Use a three‑digit counter (000–999)
+                self.number = f"{prefix}{counter + 1:03d}"
+        
         # Définir une date de validité par défaut (30 jours) si non
         # renseignée.  Cette logique est placée dans ``save`` afin
         # d'éviter des migrations supplémentaires et de garantir un
@@ -483,9 +501,13 @@ class QuoteValidation(models.Model):
             return False
         if self.attempts >= max_attempts:
             return False
+        
+        # Validate that submitted code is not empty
+        if not submitted_code or not submitted_code.strip():
+            return False
 
         self.attempts += 1
-        ok = (submitted_code or "").strip() == (self.code or "").strip()
+        ok = submitted_code.strip() == (self.code or "").strip()
         if ok:
             self.confirmed_at = timezone.now()
             self.save(update_fields=["attempts", "confirmed_at"])

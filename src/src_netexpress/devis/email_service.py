@@ -80,11 +80,21 @@ def send_quote_email(quote, request=None, *, to_email: Optional[str] = None) -> 
     try:
         if quote.pdf and hasattr(quote.pdf, 'open'):
             with quote.pdf.open('rb') as f:
-                email.attach(f"{quote.number}.pdf", f.read(), 'application/pdf')
-    except Exception:
-        pass
+                pdf_bytes = f.read()
+                email.attach(f"{quote.number}.pdf", pdf_bytes, 'application/pdf')
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erreur lors de l'attachement du PDF pour le devis {quote.number}: {e}")
+        # Ne pas bloquer l'envoi, mais logger l'erreur
 
-    email.send(fail_silently=False)
+    try:
+        email.send(fail_silently=False)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erreur lors de l'envoi de l'email pour le devis {quote.number}: {e}")
+        raise  # Re-raise pour que l'appelant puisse gérer
 
 
 def send_quote_validation_code(quote, validation, request=None, *, to_email: Optional[str] = None) -> None:

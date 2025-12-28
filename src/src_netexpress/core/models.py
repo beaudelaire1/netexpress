@@ -58,6 +58,20 @@ class ClientDocument(models.Model):
             models.Index(fields=['invoice', 'client_user']),
         ]
     
+    def clean(self):
+        """Validate that at least one of quote or invoice is set, and not both."""
+        from django.core.exceptions import ValidationError
+        
+        if not self.quote and not self.invoice:
+            raise ValidationError("Au moins un de 'quote' ou 'invoice' doit être défini.")
+        if self.quote and self.invoice:
+            raise ValidationError("Un ClientDocument ne peut pas avoir à la fois un quote et une invoice.")
+    
+    def save(self, *args, **kwargs):
+        """Override save to call clean validation."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         if self.quote:
             return f"{self.client_user.username} -> Quote {self.quote.number}"

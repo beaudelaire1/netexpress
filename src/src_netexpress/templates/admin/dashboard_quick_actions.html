@@ -1,0 +1,15 @@
+<!-- Actions Rapides -->
+<div class="module">
+    <h2>Actions Rapides</h2>
+    <div class="quick-actions">
+        {% for action in quick_actions %}
+        <a href="{{ action.url }}" class="action-card">
+            <div class="action-icon">
+                <i class="{{ action.icon }} text-{{ action.color }}"></i>
+            </div>
+            <div class="action-title">{{ action.title }}</div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+

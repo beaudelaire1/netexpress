@@ -1,11 +1,14 @@
 {% if notifications %}
   {% for notification in notifications %}
-    <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %}"
-         hx-post="{% url 'core:mark_notification_read' notification.id %}"
-         hx-trigger="click"
-         hx-target="#notification-list"
-         hx-swap="innerHTML">
-      <div class="flex items-start space-x-3">
+    <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %}">
+      <div class="flex items-start space-x-3 cursor-pointer"
+           hx-post="{% url 'core:mark_notification_read' notification.id %}"
+           hx-trigger="click"
+           hx-target="#notification-list"
+           hx-swap="innerHTML"
+           role="button"
+           tabindex="0"
+           onkeypress="if(event.key === 'Enter') this.click()">
         <div class="flex-shrink-0">
           {% if notification.notification_type == 'task_completed' %}
             <i class="fas fa-check-circle text-green-500"></i>

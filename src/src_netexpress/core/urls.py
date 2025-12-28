@@ -9,6 +9,7 @@ templates.
 
 from django.urls import path
 from . import views
+from . import views_campaigns
 
 app_name = "core"
 
@@ -23,10 +24,11 @@ urlpatterns = [
     path("excellence/", views.excellence, name="excellence"),
     # Galerie de réalisations avec filtrage et lightbox
     path("realisations/", views.realisations, name="realisations"),
-    # Tableau de bord agrégé
-    path("dashboard/", views.dashboard, name="dashboard"),
-    path("dashboard/client/", views.client_dashboard, name="client_dashboard"),
-    path("dashboard/ouvrier/", views.worker_dashboard, name="worker_dashboard"),
+    # Dashboard technique supprimé - Migration vers /admin-dashboard/
+    # Les clients utilisent /client/
+    # Les ouvriers utilisent /worker/
+    # Les admins business utilisent /admin-dashboard/
+    # Les admins techniques utilisent /gestion/ (Django Admin)
     
     # Client Portal URLs
     path("client/", views.client_dashboard, name="client_portal_dashboard"),
@@ -39,7 +41,7 @@ urlpatterns = [
     path("client/quotes/<int:pk>/validate/", views.client_quote_validate_start, name="client_quote_validate_start"),
     path("client/quotes/<int:pk>/validate/code/", views.client_quote_validate_code, name="client_quote_validate_code"),
     
-    # Admin Portal URLs
+    # Admin Portal URLs (moved from urls_admin.py to avoid namespace conflicts)
     path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
     path("admin-dashboard/planning/", views.admin_global_planning, name="admin_global_planning"),
     path("admin-dashboard/workers/", views.admin_workers_list, name="admin_workers_list"),
@@ -58,4 +60,11 @@ urlpatterns = [
     path("notifications/list/", views.notification_list, name="notification_list"),
     path("notifications/<int:notification_id>/read/", views.mark_notification_read, name="mark_notification_read"),
     path("notifications/mark-all-read/", views.mark_all_notifications_read, name="mark_all_notifications_read"),
+    
+    # Email Campaigns (Brevo)
+    path("admin-dashboard/campaigns/", views_campaigns.campaigns_list, name="campaigns_list"),
+    path("admin-dashboard/campaigns/create/", views_campaigns.create_campaign, name="create_campaign"),
+    path("admin-dashboard/campaigns/<int:campaign_id>/", views_campaigns.campaign_detail, name="campaign_detail"),
+    path("admin-dashboard/campaigns/<int:campaign_id>/send/", views_campaigns.send_campaign, name="send_campaign"),
+    path("admin-dashboard/campaigns/<int:campaign_id>/delete/", views_campaigns.delete_campaign, name="delete_campaign"),
 ]

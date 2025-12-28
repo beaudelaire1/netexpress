@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\devis\admin.py
+# hypothesis_version: 6.148.7
+
+['<int:pk>/send-email/', 'Adresse', 'Email devis envoyé.', 'Informations système', 'Notes internes', 'PDF devis généré.', 'PDF généré.', '__all__', 'action_generate_pdf', 'address_line', 'admin', 'city', 'classes', 'client', 'collapse', 'company', 'convert_to_invoice', 'created_at', 'description', 'email', 'fields', 'full_name', 'generate_pdf', 'number', 'pdf', 'phone', 'quantity', 'quote-generate-pdf', 'quote-send-email', 'send_email', 'service', 'status', 'tax_rate', 'total_ttc', 'unit_price', 'zip_code']

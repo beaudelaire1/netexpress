@@ -1,0 +1,156 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Créer une Campagne — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:campaigns_list' %}" class="portal-nav-item">
+    <i class="fas fa-bullhorn mr-2"></i>Campagnes
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+  <!-- Header -->
+  <div class="bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Créer une Campagne Email
+          </h1>
+          <p class="text-gray-600 mt-1">Créez et envoyez des campagnes marketing via Brevo</p>
+        </div>
+        <a href="{% url 'core:campaigns_list' %}" 
+           class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+          <i class="fas fa-arrow-left mr-2"></i>Retour
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-xl shadow-xl p-8">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Nom de la campagne -->
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+            Nom de la campagne <span class="text-red-500">*</span>
+          </label>
+          <input type="text" 
+                 id="name" 
+                 name="name" 
+                 required
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 placeholder="Ex: Newsletter Janvier 2024">
+        </div>
+
+        <!-- Sujet -->
+        <div>
+          <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">
+            Sujet de l'email <span class="text-red-500">*</span>
+          </label>
+          <input type="text" 
+                 id="subject" 
+                 name="subject" 
+                 required
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 placeholder="Ex: Nos nouvelles offres de nettoyage">
+        </div>
+
+        <!-- Expéditeur -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="sender_name" class="block text-sm font-medium text-gray-700 mb-2">
+              Nom de l'expéditeur
+            </label>
+            <input type="text" 
+                   id="sender_name" 
+                   name="sender_name"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="Nettoyage Express"
+                   value="Nettoyage Express">
+          </div>
+          <div>
+            <label for="sender_email" class="block text-sm font-medium text-gray-700 mb-2">
+              Email de l'expéditeur
+            </label>
+            <input type="email" 
+                   id="sender_email" 
+                   name="sender_email"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="noreply@nettoyageexpresse.fr"
+                   value="noreply@nettoyageexpresse.fr">
+          </div>
+        </div>
+
+        <!-- Liste IDs (optionnel pour l'instant) -->
+        <div>
+          <label for="list_ids" class="block text-sm font-medium text-gray-700 mb-2">
+            IDs des listes de contacts (optionnel)
+          </label>
+          <input type="text" 
+                 id="list_ids" 
+                 name="list_ids"
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 placeholder="Ex: 2, 7 (séparés par des virgules)">
+          <p class="mt-2 text-sm text-gray-500">
+            Laissez vide pour envoyer à tous les contacts. Les IDs de listes doivent être créés dans Brevo.
+          </p>
+        </div>
+
+        <!-- Contenu HTML -->
+        <div>
+          <label for="html_content" class="block text-sm font-medium text-gray-700 mb-2">
+            Contenu HTML <span class="text-red-500">*</span>
+          </label>
+          <textarea id="html_content" 
+                    name="html_content" 
+                    required
+                    rows="15"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                    placeholder="<html>
+  <body>
+    <h1>Bienvenue !</h1>
+    <p>Votre contenu HTML ici...</p>
+  </body>
+</html>"></textarea>
+          <p class="mt-2 text-sm text-gray-500">
+            Utilisez du HTML valide pour le contenu de votre email.
+          </p>
+        </div>
+
+        <!-- Options -->
+        <div class="flex items-center">
+          <input type="checkbox" 
+                 id="send_now" 
+                 name="send_now"
+                 class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+          <label for="send_now" class="ml-2 block text-sm text-gray-700">
+            Envoyer immédiatement après création
+          </label>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <a href="{% url 'core:campaigns_list' %}" 
+             class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+            Annuler
+          </a>
+          <button type="submit" 
+                  class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg">
+            <i class="fas fa-save mr-2"></i>Créer la Campagne
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

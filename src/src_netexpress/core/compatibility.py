@@ -55,7 +55,7 @@ class BackwardCompatibilityMiddleware:
         
         # Define legacy URL mappings
         self.legacy_redirects = {
-            '/dashboard/': self._handle_dashboard_redirect,
+            '/dashboard/': self._handle_dashboard_redirect,  # Redirige vers /admin-dashboard/ ou /gestion/ selon le rôle
             '/dashboard/client/': 'core:client_portal_dashboard',
             '/dashboard/ouvrier/': 'tasks:worker_dashboard',
         }
@@ -84,16 +84,25 @@ class BackwardCompatibilityMiddleware:
         if not request.user.is_authenticated:
             return HttpResponseRedirect(reverse('accounts:login'))
         
+        # Superuser → /gestion/
+        if request.user.is_superuser:
+            return HttpResponseRedirect('/gestion/')
+        
         # Redirect based on user role
         if hasattr(request.user, 'profile') and request.user.profile:
-            if request.user.profile.role == 'client':
-                return HttpResponseRedirect(reverse('core:client_portal_dashboard'))
-            elif request.user.profile.role == 'worker':
-                return HttpResponseRedirect(reverse('tasks:worker_dashboard'))
+            role = request.user.profile.role
+            if role == 'client':
+                return HttpResponseRedirect('/client/')
+            elif role == 'worker':
+                return HttpResponseRedirect('/worker/')
+            elif role == 'admin_business':
+                return HttpResponseRedirect('/admin-dashboard/')
+            elif role == 'admin_technical':
+                return HttpResponseRedirect('/gestion/')
         
-        # Default to admin dashboard for staff users
-        if request.user.is_staff or request.user.is_superuser:
-            return HttpResponseRedirect(reverse('core:admin_dashboard'))
+        # Default to admin dashboard for staff users (compatibilité)
+        if request.user.is_staff:
+            return HttpResponseRedirect('/admin-dashboard/')
         
         # Fallback to home page
         return HttpResponseRedirect(reverse('core:home'))
@@ -110,8 +119,10 @@ def ensure_profile_exists(user):
         from accounts.models import Profile
         
         # Determine appropriate role
-        if user.is_staff or user.is_superuser:
-            role = Profile.ROLE_CLIENT  # Staff use admin, not portals
+        if user.is_superuser:
+            role = Profile.ROLE_ADMIN_TECHNICAL
+        elif user.is_staff:
+            role = Profile.ROLE_ADMIN_BUSINESS
         elif user.groups.filter(name='Workers').exists():
             role = Profile.ROLE_WORKER
         else:

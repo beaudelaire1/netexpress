@@ -22,6 +22,7 @@ from __future__ import annotations
 from datetime import date
 from django.db import models
 from django.contrib.auth.models import User
+from tasks.domain.status import compute_task_status, validate_task_dates
 
 
 class Task(models.Model):
@@ -157,25 +158,23 @@ class Task(models.Model):
         start date is in the future the status becomes ``upcoming``.
         Otherwise the status is set to ``in_progress``.
         """
+        # Validation en premier : enforce that the due date cannot precede the start date
+        validate_task_dates(start_date=self.start_date, due_date=self.due_date)
+
         today = date.today()
         # Recalcule systématiquement le statut (sauf terminé) pour refléter la réalité du planning.
         if self.status != self.STATUS_COMPLETED:
-            if self.due_date and self.due_date < today:
-                # Jour passé -> en retard
-                self.status = self.STATUS_OVERDUE
-            elif self.due_date and (self.due_date - today).days <= 1:
-                # 0 ou 1 jour restant -> presque en retard (même si déjà "en cours")
-                self.status = self.STATUS_ALMOST_OVERDUE
-            elif self.start_date and self.start_date > today:
-                # Début dans le futur
-                self.status = self.STATUS_UPCOMING
-            else:
-                # Par défaut : en cours (si start_date est vide ou <= aujourd'hui)
-                self.status = self.STATUS_IN_PROGRESS
+            computed = compute_task_status(start_date=self.start_date, due_date=self.due_date, today=today)
+            # Map vers les constantes (sécurité / cohérence)
+            mapping = {
+                "upcoming": self.STATUS_UPCOMING,
+                "in_progress": self.STATUS_IN_PROGRESS,
+                "completed": self.STATUS_COMPLETED,
+                "overdue": self.STATUS_OVERDUE,
+                "almost_overdue": self.STATUS_ALMOST_OVERDUE,
+            }
+            self.status = mapping.get(computed, self.STATUS_IN_PROGRESS)
 
-        # Enforce that the due date cannot precede the start date
-        if self.due_date and self.start_date and self.due_date < self.start_date:
-            raise ValueError("La date d'échéance ne peut pas être antérieure à la date de début.")
         super().save(*args, **kwargs)
 
     def is_due_soon(self, days_threshold: int = 3) -> bool:

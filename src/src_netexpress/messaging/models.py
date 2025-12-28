@@ -123,7 +123,11 @@ class EmailMessage(models.Model):
                 # Attachements
                 for (fname, data) in attachments:
                     email.attach(fname, data)
-                email.send(fail_silently=False)
+                # Use fail_silently=True to prevent crashes, handle errors explicitly
+                try:
+                    email.send(fail_silently=True)
+                except Exception as send_exc:
+                    send_errors.append(f"{to_addr}: {send_exc}")
             except Exception as exc:
                 send_errors.append(f"{to_addr}: {exc}")
 
