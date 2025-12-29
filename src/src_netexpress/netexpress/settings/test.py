@@ -91,13 +91,4 @@ class DisableMigrations:
 # Uncomment the line below to disable migrations during tests (faster but may miss migration issues)
 # MIGRATION_MODULES = DisableMigrations()
 
-# Disable Django signals during testing to avoid side effects
-import os
-if 'test' in os.environ.get('DJANGO_SETTINGS_MODULE', ''):
-    import django.db.models.signals
-    django.db.models.signals.post_save.receivers = []
-    django.db.models.signals.pre_save.receivers = []
-    django.db.models.signals.post_delete.receivers = []
-    django.db.models.signals.pre_delete.receivers = []
-
 print("[TEST] TEST MODE ACTIVATED - Using SQLite in-memory database")

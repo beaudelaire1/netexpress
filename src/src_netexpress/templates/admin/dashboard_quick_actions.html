@@ -5,7 +5,7 @@
         {% for action in quick_actions %}
         <a href="{{ action.url }}" class="action-card">
             <div class="action-icon">
-                <i class="{{ action.icon }} text-{{ action.color }}"></i>
+                <i class="{{ action.icon }} icon-{{ action.color|default:'primary' }}"></i>
             </div>
             <div class="action-title">{{ action.title }}</div>
         </a>

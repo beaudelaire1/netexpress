@@ -1,864 +1,716 @@
-# 📐 NetExpress — Guide UX/UI Complet
+# NetExpress — Guide UX/UI Complet
 
-> **Version:** 2.0  
-> **Date:** Décembre 2025  
-> **Responsable UX/UI:** Guide de conception  
-
----
-
-## 📋 Table des matières
-
-1. [Vue d'ensemble](#vue-densemble)
-2. [Analyse de l'existant](#analyse-de-lexistant)
-3. [Design System — Charte Bleue NetExpress](#design-system)
-4. [Parcours utilisateurs par profil](#parcours-utilisateurs)
-5. [Maquettes fonctionnelles](#maquettes-fonctionnelles)
-6. [Recommandations UI](#recommandations-ui)
-7. [Accessibilité & Responsive](#accessibilite-responsive)
-8. [Plan d'implémentation](#plan-dimplementation)
+**Version 1.0 — Décembre 2025**  
+**Responsable UX/UI**
 
 ---
 
-## 🎯 Vue d'ensemble
+## Table des matières
 
-### Contexte
-
-NetExpress est un ERP destiné à des **utilisateurs non techniques** dans le secteur du nettoyage et de l'entretien en Guyane. L'interface doit être :
-
-- **Simple** : Pas de jargon technique
-- **Efficace** : Actions en 2-3 clics maximum
-- **Lisible** : Hiérarchie visuelle claire
-- **Premium** : Cohérente avec l'image de marque
-
-### Profils utilisateurs
-
-| Profil | Description | Niveau technique | Besoins principaux |
-|--------|-------------|------------------|-------------------|
-| **Client** | Particuliers ou entreprises | Faible | Voir devis/factures, demander des prestations |
-| **Worker** | Ouvriers sur le terrain | Moyen | Consulter tâches, planning, valider interventions |
-| **Admin Business** | Gestionnaires métier | Moyen | Gérer devis/factures/tâches, suivre KPIs |
-| **Admin Technique** | Administrateurs IT | Élevé | Configuration système, gestion utilisateurs |
+1. [Vision Produit](#1-vision-produit)
+2. [Profils Utilisateurs](#2-profils-utilisateurs)
+3. [Parcours UX Détaillés](#3-parcours-ux-détaillés)
+4. [Design System](#4-design-system)
+5. [Composants UI](#5-composants-ui)
+6. [Maquettes Fonctionnelles](#6-maquettes-fonctionnelles)
+7. [Responsive & Mobile](#7-responsive--mobile)
+8. [Accessibilité](#8-accessibilité)
+9. [Recommandations](#9-recommandations)
 
 ---
 
-## 🔍 Analyse de l'existant
+## 1. Vision Produit
 
-### Architecture actuelle des portails
+### 1.1 Objectif
+
+NetExpress est un **ERP métier** conçu pour les entreprises de services (nettoyage, entretien, espaces verts). L'interface doit être :
+
+- **Accessible** : utilisateurs non techniques
+- **Efficace** : tâches accomplies en minimum de clics
+- **Premium** : image professionnelle cohérente
+- **Sobre** : pas de surcharge visuelle
+
+### 1.2 Principes Directeurs
+
+| Principe | Description |
+|----------|-------------|
+| **Clarté** | Chaque écran a un objectif unique et évident |
+| **Cohérence** | Mêmes patterns dans tous les portails |
+| **Feedback** | L'utilisateur sait toujours ce qui se passe |
+| **Efficacité** | Actions principales en ≤3 clics |
+| **Sobriété** | Espace blanc généreux, hiérarchie claire |
+
+---
+
+## 2. Profils Utilisateurs
+
+### 2.1 Client
+
+| Attribut | Description |
+|----------|-------------|
+| **Profil type** | Particulier ou entreprise, utilisateur occasionnel |
+| **Objectifs** | Demander devis, suivre factures, communiquer |
+| **Compétences** | Faibles à moyennes en informatique |
+| **Fréquence** | 1-5 fois/mois |
+| **Priorité UX** | Simplicité maximale, assistance guidée |
+
+### 2.2 Ouvrier (Worker)
+
+| Attribut | Description |
+|----------|-------------|
+| **Profil type** | Technicien terrain, utilise principalement mobile |
+| **Objectifs** | Voir planning, marquer tâches terminées |
+| **Compétences** | Variables, souvent faibles |
+| **Fréquence** | Quotidienne |
+| **Priorité UX** | Rapidité, gros boutons tactiles, mode hors-ligne |
+
+### 2.3 Administrateur Business
+
+| Attribut | Description |
+|----------|-------------|
+| **Profil type** | Gestionnaire, responsable commercial |
+| **Objectifs** | Créer devis/factures, gérer planning, suivre KPIs |
+| **Compétences** | Moyennes |
+| **Fréquence** | Plusieurs fois/jour |
+| **Priorité UX** | Efficacité, vue d'ensemble, actions rapides |
+
+### 2.4 Administrateur Technique
+
+| Attribut | Description |
+|----------|-------------|
+| **Profil type** | IT, développeur, technicien |
+| **Objectifs** | Configuration système, gestion utilisateurs |
+| **Compétences** | Élevées |
+| **Fréquence** | Hebdomadaire à mensuelle |
+| **Priorité UX** | Puissance, accès à toutes les données |
+
+---
+
+## 3. Parcours UX Détaillés
+
+### 3.1 Parcours Client
+
+#### 3.1.1 Demande de Devis (Nouveau Client)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     NETEXPRESS - PORTAILS                       │
-├─────────────────────────────────────────────────────────────────┤
+│  1. PAGE D'ACCUEIL                                              │
+│     └── CTA "Devis Express" (visible immédiatement)             │
 │                                                                 │
-│  🏠 Site Public (/)                                             │
-│  ├── Accueil                                                    │
-│  ├── Services                                                   │
-│  ├── Excellence                                                 │
-│  ├── Réalisations                                               │
-│  ├── Contact                                                    │
-│  └── Demande de devis                                           │
+│  2. FORMULAIRE DEVIS                                            │
+│     ├── Sélection service (icônes cliquables)                   │
+│     ├── Surface estimée (slider intuitif)                       │
+│     ├── Fréquence souhaitée                                     │
+│     └── Coordonnées                                             │
 │                                                                 │
-│  👤 Portail Client (/client/)                                   │
-│  ├── Dashboard (vue d'ensemble)                                 │
-│  ├── Mes Devis                                                  │
-│  ├── Mes Factures                                               │
-│  └── Messages                                                   │
+│  3. CONFIRMATION                                                │
+│     ├── Résumé de la demande                                    │
+│     ├── Email de confirmation envoyé                            │
+│     └── Proposition de créer un compte                          │
 │                                                                 │
-│  👷 Portail Worker (/worker/)                                   │
-│  ├── Tableau de bord                                            │
-│  ├── Calendrier tâches                                          │
-│  └── Liste des tâches                                           │
-│                                                                 │
-│  📊 Portail Admin Business (/admin-dashboard/)                  │
-│  ├── Dashboard KPIs                                             │
-│  ├── Planning global                                            │
-│  ├── Gestion ouvriers/clients                                   │
-│  ├── Devis & Factures                                           │
-│  ├── Campagnes marketing                                        │
-│  └── Messages                                                   │
-│                                                                 │
-│  ⚙️ Admin Technique (/gestion/)                                 │
-│  └── Django Admin (interface native)                            │
-│                                                                 │
+│  4. SUIVI (après inscription)                                   │
+│     └── Dashboard client → Devis reçu → Validation              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Points forts identifiés ✅
+**Points clés UX :**
+- Formulaire en une seule page, pas d'étapes multiples
+- Validation en temps réel
+- Estimation indicative affichée dynamiquement
+- Possibilité de joindre des photos
 
-1. **Séparation claire des portails** par rôle
-2. **Dashboard Admin riche** avec KPIs et graphiques
-3. **Design system CSS** bien structuré (variables, composants)
-4. **Responsive** : Support mobile avec menu burger
-5. **Accessibilité** : Support `prefers-reduced-motion`, `prefers-contrast`
+#### 3.1.2 Espace Client Connecté
 
-### Points d'amélioration 🔄
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  DASHBOARD CLIENT                                               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
+│  │ Mes Devis   │  │ Mes Factures│  │ Messages    │              │
+│  │ (3 en cours)│  │ (1 impayée) │  │ (2 non lus) │              │
+│  └─────────────┘  └─────────────┘  └─────────────┘              │
+│                                                                 │
+│  ACTIONS RAPIDES                                                │
+│  [+ Nouveau Devis] [📬 Contacter] [👤 Mon Profil]               │
+│                                                                 │
+│  DOCUMENTS RÉCENTS (vue liste épurée)                           │
+│  ├── Devis #D-2025-0042 — En attente — 1 250,00 €               │
+│  ├── Facture #F-2025-0018 — Payée — 890,00 €                    │
+│  └── Devis #D-2025-0039 — Accepté — 2 100,00 €                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-1. **Incohérence de palette** : Vert utilisé (style_v2.css) vs Bleu prévu (design-system.css)
-2. **Portail Worker basique** : Manque de fonctionnalités par rapport aux autres
-3. **Navigation hétérogène** : Différents patterns entre portails
-4. **Deux templates de base** : `base.html` et `base_v2.html` créent de l'incohérence
-5. **Actions rapides** : Manque de raccourcis contextuels pour le client
+**Flux de validation d'un devis :**
+1. Client reçoit email avec lien sécurisé
+2. Vue détaillée du devis (PDF consultable)
+3. Bouton "Accepter" + saisie code de validation (SMS/email)
+4. Confirmation + génération facture automatique
 
 ---
 
-## 🎨 Design System
+### 3.2 Parcours Ouvrier
 
-### 1. Palette de couleurs — Charte Bleue NetExpress
+#### 3.2.1 Consultation Planning Quotidien
 
-La palette bleue communique **professionnalisme**, **fiabilité** et **confiance**.
-
-```css
-:root {
-  /* ═══════════════════════════════════════════
-     BLEU NETEXPRESS — Couleur principale
-     ═══════════════════════════════════════════ */
-  --ne-blue-50:  #eff6ff;   /* Fond très léger */
-  --ne-blue-100: #dbeafe;   /* Fond léger */
-  --ne-blue-200: #bfdbfe;   /* Bordures légères */
-  --ne-blue-300: #93c5fd;   /* Hover léger */
-  --ne-blue-400: #60a5fa;   /* Éléments secondaires */
-  --ne-blue-500: #3b82f6;   /* ⭐ COULEUR PRINCIPALE */
-  --ne-blue-600: #2563eb;   /* Hover / Active */
-  --ne-blue-700: #1d4ed8;   /* États pressed */
-  --ne-blue-800: #1e40af;   /* Textes forts */
-  --ne-blue-900: #1e3a8a;   /* Titres */
-  --ne-blue-950: #172554;   /* Header / Sidebar */
-
-  /* ═══════════════════════════════════════════
-     COULEURS SÉMANTIQUES
-     ═══════════════════════════════════════════ */
-  
-  /* Succès — Vert */
-  --ne-success-50:  #f0fdf4;
-  --ne-success-500: #22c55e;
-  --ne-success-700: #15803d;
-  
-  /* Avertissement — Orange */
-  --ne-warning-50:  #fffbeb;
-  --ne-warning-500: #f59e0b;
-  --ne-warning-700: #b45309;
-  
-  /* Erreur — Rouge */
-  --ne-error-50:  #fef2f2;
-  --ne-error-500: #ef4444;
-  --ne-error-700: #b91c1c;
-  
-  /* Information — Cyan */
-  --ne-info-50:  #f0f9ff;
-  --ne-info-500: #0ea5e9;
-  --ne-info-700: #0369a1;
-
-  /* ═══════════════════════════════════════════
-     NEUTRES
-     ═══════════════════════════════════════════ */
-  --ne-gray-50:  #f9fafb;   /* Fond de page */
-  --ne-gray-100: #f3f4f6;   /* Cartes secondaires */
-  --ne-gray-200: #e5e7eb;   /* Bordures */
-  --ne-gray-300: #d1d5db;   /* Bordures focus */
-  --ne-gray-400: #9ca3af;   /* Placeholder */
-  --ne-gray-500: #6b7280;   /* Texte secondaire */
-  --ne-gray-600: #4b5563;   /* Texte standard */
-  --ne-gray-700: #374151;   /* Texte fort */
-  --ne-gray-800: #1f2937;   /* Titres */
-  --ne-gray-900: #111827;   /* Noir presque pur */
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ÉCRAN PRINCIPAL OUVRIER (optimisé mobile)                      │
+│                                                                 │
+│  ╭────────────────────────────────────────╮                     │
+│  │  📅 AUJOURD'HUI — Lundi 28 Déc.        │                     │
+│  │                                        │                     │
+│  │  🕐 08:00-10:00                        │                     │
+│  │  Nettoyage bureaux — SCI Matoury       │                     │
+│  │  📍 12 rue des Palmiers                │                     │
+│  │  [🗺️ Itinéraire] [✅ Commencer]         │                     │
+│  ╰────────────────────────────────────────╯                     │
+│                                                                 │
+│  ╭────────────────────────────────────────╮                     │
+│  │  🕐 10:30-12:00                        │                     │
+│  │  Entretien jardin — M. Dupont          │                     │
+│  │  📍 45 allée des Orchidées             │                     │
+│  │  [🗺️ Itinéraire]                        │                     │
+│  ╰────────────────────────────────────────╯                     │
+│                                                                 │
+│  [📋 Semaine] [📊 Mes Stats]                                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 2. Typographie
+**Workflow tâche :**
+1. **À faire** → Clic "Commencer" → **En cours**
+2. **En cours** → Clic "Terminer" → **Terminée**
+   - Option : Ajouter photo avant/après
+   - Option : Signaler un problème
+3. Notification automatique à l'admin
 
-```css
-:root {
-  /* Familles de police */
-  --ne-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  --ne-font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --ne-font-mono: 'JetBrains Mono', monospace;
+---
 
-  /* Échelle typographique */
-  --ne-text-xs:   0.75rem;   /* 12px — Labels, badges */
-  --ne-text-sm:   0.875rem;  /* 14px — Corps secondaire */
-  --ne-text-base: 1rem;      /* 16px — Corps principal */
-  --ne-text-lg:   1.125rem;  /* 18px — Sous-titres */
-  --ne-text-xl:   1.25rem;   /* 20px — Titres de section */
-  --ne-text-2xl:  1.5rem;    /* 24px — Titres de page */
-  --ne-text-3xl:  1.875rem;  /* 30px — Titres principaux */
-  --ne-text-4xl:  2.25rem;   /* 36px — Grands titres */
-}
+### 3.3 Parcours Administrateur Business
+
+#### 3.3.1 Vue Dashboard
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ┌─────────┬─────────┬─────────┬─────────┐                      │
+│  │ CA MOIS │ EN      │ IMPAYÉS │ TAUX    │  ← KPIs en haut      │
+│  │ 12 450€ │ ATTENTE │ 890€    │ CONV.   │                      │
+│  │         │ 3 200€  │         │ 72%     │                      │
+│  └─────────┴─────────┴─────────┴─────────┘                      │
+│                                                                 │
+│  ┌──────────────────────┐ ┌──────────────────────┐              │
+│  │ DEVIS RÉCENTS        │ │ TÂCHES DU JOUR       │              │
+│  │ ▸ #D-042 En attente  │ │ ▸ 3 en cours         │              │
+│  │ ▸ #D-041 Accepté     │ │ ▸ 2 à venir          │              │
+│  │ [Voir tous]          │ │ [Voir planning]      │              │
+│  └──────────────────────┘ └──────────────────────┘              │
+│                                                                 │
+│  ACTIONS RAPIDES                                                │
+│  [+ Devis] [+ Facture] [+ Tâche] [+ Ouvrier]                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Espacements
+#### 3.3.2 Création de Devis
 
-```css
-:root {
-  --ne-space-1:  0.25rem;  /* 4px  */
-  --ne-space-2:  0.5rem;   /* 8px  */
-  --ne-space-3:  0.75rem;  /* 12px */
-  --ne-space-4:  1rem;     /* 16px */
-  --ne-space-5:  1.25rem;  /* 20px */
-  --ne-space-6:  1.5rem;   /* 24px */
-  --ne-space-8:  2rem;     /* 32px */
-  --ne-space-10: 2.5rem;   /* 40px */
-  --ne-space-12: 3rem;     /* 48px */
-  --ne-space-16: 4rem;     /* 64px */
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  NOUVEAU DEVIS                                                  │
+│                                                                 │
+│  CLIENT ────────────────────────────────────────────────        │
+│  [🔍 Rechercher client existant...        ]                     │
+│  [+ Créer nouveau client]                                       │
+│                                                                 │
+│  LIGNES DE DEVIS ───────────────────────────────────────        │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │ Service           │ Qté │ Prix U. │ Total           │       │
+│  ├──────────────────────────────────────────────────────┤       │
+│  │ Nettoyage bureaux │  1  │ 150,00  │ 150,00 €        │       │
+│  │ [✏️] [🗑️]                                            │       │
+│  ├──────────────────────────────────────────────────────┤       │
+│  │ [+ Ajouter une ligne]                                │       │
+│  └──────────────────────────────────────────────────────┘       │
+│                                                                 │
+│                           Sous-total : 150,00 €                 │
+│                           TVA (20%)  :  30,00 €                 │
+│                           ─────────────────────                 │
+│                           TOTAL TTC  : 180,00 €                 │
+│                                                                 │
+│  [💾 Brouillon] [📧 Envoyer au client] [📄 Voir PDF]            │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 4. Rayons & Ombres
+---
+
+### 3.4 Parcours Administrateur Technique
+
+Accès à l'interface Django Admin (`/gestion/`) avec :
+- Gestion complète des utilisateurs et rôles
+- Configuration système
+- Logs et audit
+- Import/Export de données
+
+---
+
+## 4. Design System
+
+### 4.1 Palette de Couleurs — Charte Verte NetExpress
+
+#### Couleurs Principales
+
+| Token | Valeur | Usage |
+|-------|--------|-------|
+| `--ne-green-500` | `#0e6b4c` | Couleur principale, CTAs |
+| `--ne-green-600` | `#0c5a40` | Hover, liens actifs |
+| `--ne-green-700` | `#0a4934` | Headers, accents forts |
+| `--ne-green-800` | `#083828` | Textes importants |
+| `--ne-green-900` | `#06271c` | Sidebar, footer |
+
+#### Couleurs Sémantiques
+
+| Token | Valeur | Usage |
+|-------|--------|-------|
+| `--ne-success-500` | `#22c55e` | Succès, validé, payé |
+| `--ne-warning-500` | `#f59e0b` | Attention, en attente |
+| `--ne-error-500` | `#ef4444` | Erreur, rejeté, impayé |
+| `--ne-info-500` | `#0ea5e9` | Information |
+
+#### Neutres
+
+| Token | Valeur | Usage |
+|-------|--------|-------|
+| `--ne-gray-50` | `#f9fafb` | Fond de page |
+| `--ne-gray-100` | `#f3f4f6` | Fond de tableaux |
+| `--ne-gray-500` | `#6b7280` | Texte secondaire |
+| `--ne-gray-800` | `#1f2937` | Texte principal |
+
+### 4.2 Typographie
+
+#### Familles
 
 ```css
-:root {
-  /* Rayons de bordure */
-  --ne-radius-sm:   6px;
-  --ne-radius-md:   10px;
-  --ne-radius-lg:   14px;
-  --ne-radius-xl:   18px;
-  --ne-radius-2xl:  24px;
-  --ne-radius-full: 9999px;  /* Boutons pills */
-
-  /* Ombres */
-  --ne-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --ne-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
-  --ne-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-  --ne-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
-  
-  /* Ombres colorées pour CTAs */
-  --ne-shadow-blue: 0 10px 30px -5px rgba(37, 99, 235, 0.25);
-}
+--ne-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+--ne-font-body: 'Inter', system-ui, sans-serif;
+--ne-font-mono: 'JetBrains Mono', monospace;
 ```
 
-### 5. Composants UI
+#### Échelle
 
-#### Boutons
+| Niveau | Taille | Usage |
+|--------|--------|-------|
+| `text-xs` | 12px | Badges, labels |
+| `text-sm` | 14px | Texte secondaire, nav |
+| `text-base` | 16px | Texte courant |
+| `text-lg` | 18px | Sous-titres |
+| `text-xl` | 20px | Titres de section |
+| `text-2xl` | 24px | Titres de page |
+| `text-3xl` | 30px | KPIs |
+| `text-4xl` | 36px | Hero, dashboard |
 
-| Variante | Usage | Exemple |
-|----------|-------|---------|
-| **Primary** | Actions principales | "Valider", "Envoyer" |
-| **Secondary** | Actions secondaires | "Annuler", "Retour" |
-| **Ghost** | Actions tertiaires | "En savoir plus" |
-| **Danger** | Actions destructives | "Supprimer" |
+### 4.3 Espacements
 
+```css
+--ne-space-1: 4px;    /* Marges internes serrées */
+--ne-space-2: 8px;    /* Gaps entre éléments proches */
+--ne-space-3: 12px;   /* Padding boutons */
+--ne-space-4: 16px;   /* Padding cartes */
+--ne-space-6: 24px;   /* Marges sections */
+--ne-space-8: 32px;   /* Espacement entre sections */
+--ne-space-12: 48px;  /* Grandes marges */
+```
+
+### 4.4 Rayons et Ombres
+
+```css
+/* Rayons */
+--ne-radius-sm: 6px;      /* Badges, inputs */
+--ne-radius-md: 10px;     /* Boutons */
+--ne-radius-lg: 14px;     /* Cartes */
+--ne-radius-xl: 18px;     /* Modals */
+--ne-radius-full: 9999px; /* Pills */
+
+/* Ombres */
+--ne-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+--ne-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+--ne-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
+--ne-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.08);
+--ne-shadow-green: 0 10px 30px rgba(22, 163, 74, 0.25);
+```
+
+---
+
+## 5. Composants UI
+
+### 5.1 Boutons
+
+#### Primaire (Actions principales)
 ```html
-<!-- Primary Button -->
 <button class="ne-btn ne-btn-primary">
-  <i class="fas fa-check"></i> Valider le devis
+  Envoyer le devis
 </button>
+```
+- Fond : gradient vert
+- Texte : blanc, semi-bold
+- Ombre colorée
+- Hover : légère élévation
 
-<!-- Secondary Button -->
+#### Secondaire (Actions alternatives)
+```html
 <button class="ne-btn ne-btn-secondary">
   Annuler
 </button>
 ```
+- Fond : transparent
+- Bordure : verte
+- Texte : vert
 
-#### Badges de statut
-
-| Statut | Couleur | Contexte |
-|--------|---------|----------|
-| `draft` | Gris | Brouillon |
-| `pending` / `sent` | Jaune | En attente |
-| `accepted` / `paid` | Vert | Validé/Payé |
-| `rejected` / `overdue` | Rouge | Refusé/En retard |
-| `in_progress` | Bleu | En cours |
-
-#### Cartes KPI
-
+#### Ghost (Actions tertiaires)
 ```html
-<div class="ne-card-kpi is-blue">
-  <div class="ne-kpi-label">Chiffre d'Affaires</div>
-  <div class="ne-kpi-value">24 580 €</div>
+<button class="ne-btn ne-btn-ghost">
+  <i class="fas fa-eye"></i> Voir détails
+</button>
+```
+- Fond : transparent
+- Texte : gris
+- Hover : fond gris léger
+
+### 5.2 Cartes
+
+#### Carte Standard
+```html
+<div class="ne-card">
+  <div class="ne-card-header">
+    <h3 class="ne-card-title">Titre</h3>
+    <a href="#">Voir tout</a>
+  </div>
+  <div class="ne-card-body">
+    Contenu...
+  </div>
+</div>
+```
+
+#### Carte KPI
+```html
+<div class="ne-card-kpi is-green">
+  <span class="ne-kpi-label">Chiffre d'Affaires</span>
+  <span class="ne-kpi-value">12 450 €</span>
   <div class="ne-kpi-icon">
     <i class="fas fa-euro-sign"></i>
   </div>
 </div>
 ```
 
----
+### 5.3 Badges de Statut
 
-## 🚶 Parcours utilisateurs
+| Statut | Classe | Couleur |
+|--------|--------|---------|
+| Brouillon | `ne-badge-draft` | Gris |
+| Envoyé | `ne-badge-sent` | Jaune |
+| Accepté | `ne-badge-accepted` | Vert |
+| Rejeté | `ne-badge-rejected` | Rouge |
+| Payé | `ne-badge-paid` | Vert |
+| Impayé | `ne-badge-overdue` | Rouge |
+| En cours | `ne-badge-in-progress` | Vert |
 
-### Parcours Client
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PARCOURS CLIENT                              │
-└─────────────────────────────────────────────────────────────────┘
-
-🌐 VISITEUR NON CONNECTÉ
-│
-├─► Découverte du site
-│   └── Accueil → Services → Excellence → Réalisations
-│
-├─► Demande de devis express
-│   └── Formulaire rapide → Confirmation
-│
-└─► Création de compte
-    └── Inscription → Email confirmation → Connexion
-
-
-👤 CLIENT CONNECTÉ
-│
-├─► Dashboard (/client/)
-│   │
-│   ├── Vue résumée
-│   │   ├── Nombre de devis (total / en attente)
-│   │   ├── Nombre de factures (total / impayées)
-│   │   └── Documents récents
-│   │
-│   └── Actions rapides
-│       ├── [Nouveau devis] → Formulaire → Confirmation
-│       ├── [Messages] → Liste conversations
-│       └── [Mon profil] → Édition informations
-│
-├─► Mes Devis (/client/quotes/)
-│   │
-│   ├── Liste avec filtres (statut, date)
-│   │
-│   └── Détail devis (/client/quotes/<id>/)
-│       ├── Visualisation PDF
-│       ├── [Accepter] → Code validation → Signature → Confirmation
-│       └── [Refuser] → Motif (optionnel) → Confirmation
-│
-├─► Mes Factures (/client/invoices/)
-│   │
-│   ├── Liste avec filtres (statut, date)
-│   │
-│   └── Détail facture (/client/invoices/<id>/)
-│       ├── Visualisation PDF
-│       ├── [Télécharger PDF]
-│       └── Historique paiements
-│
-└─► Messages (/messaging/)
-    ├── Liste des conversations
-    └── Nouvelle conversation → Envoi → Notification admin
-```
-
-#### Wireframe Dashboard Client
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  🏠 Nettoyage Express          Dashboard ▾  👤 Jean Dupont ▾    │
-├─────────────────────────────────────────────────────────────────┤
-│  Dashboard │ Mes Devis │ Mes Factures │ Messages               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Bienvenue, Jean                          Dernière connexion:   │
-│  ─────────────────────                    12/12/2025 à 14:32   │
-│                                                                 │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐       │
-│  │    📄     │ │    ⏳     │ │    📃     │ │    ⚠️     │       │
-│  │    5      │ │    2      │ │    8      │ │    1      │       │
-│  │  Devis    │ │ En attente│ │ Factures  │ │ Impayées  │       │
-│  └───────────┘ └───────────┘ └───────────┘ └───────────┘       │
-│                                                                 │
-│  ┌─────────────────────────────┐ ┌─────────────────────────────┐│
-│  │ 📄 Devis Récents           │ │ 📃 Factures Récentes        ││
-│  │ ─────────────────────────  │ │ ─────────────────────────   ││
-│  │                            │ │                             ││
-│  │ DEV-2025-0042  1 250,00 €  │ │ FAC-2025-0089  890,00 €     ││
-│  │ ⏳ En attente   [Voir]     │ │ ✅ Payée        [Voir]       ││
-│  │                            │ │                             ││
-│  │ DEV-2025-0038    680,00 €  │ │ FAC-2025-0085  450,00 €     ││
-│  │ ✅ Accepté      [Voir]     │ │ ⚠️ En attente   [Voir]       ││
-│  │                            │ │                             ││
-│  │        [Voir tous →]       │ │        [Voir toutes →]      ││
-│  └─────────────────────────────┘ └─────────────────────────────┘│
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │ ⚡ Actions Rapides                                          ││
-│  │ ─────────────────────────────────────────────────────────── ││
-│  │                                                             ││
-│  │  [➕ Nouveau Devis]  [💬 Messages]  [📄 Mes Devis]  [👤 Profil]││
-│  │                                                             ││
-│  └─────────────────────────────────────────────────────────────┘│
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### Parcours Worker
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PARCOURS WORKER                              │
-└─────────────────────────────────────────────────────────────────┘
-
-👷 OUVRIER CONNECTÉ
-│
-├─► Dashboard (/worker/)
-│   │
-│   ├── Vue du jour
-│   │   ├── Tâches du jour (priorité haute en premier)
-│   │   ├── Tâches en retard (alerte visuelle)
-│   │   └── Prochaines tâches (J+1, J+2)
-│   │
-│   └── KPIs personnels
-│       ├── Tâches terminées ce mois
-│       ├── Taux de complétion
-│       └── Heures travaillées
-│
-├─► Calendrier (/worker/calendar/)
-│   │
-│   ├── Vue mensuelle/semaine/jour
-│   ├── Code couleur par type de tâche
-│   └── Clic sur événement → Détail tâche
-│
-├─► Liste des tâches (/tasks/list/)
-│   │
-│   ├── Filtres : Statut, Date, Client
-│   ├── Tri : Priorité, Date échéance
-│   │
-│   └── Détail tâche (/tasks/<id>/)
-│       ├── Informations : Titre, Description, Lieu
-│       ├── Client associé (contact, adresse)
-│       ├── Documents liés (devis, facture)
-│       │
-│       └── Actions
-│           ├── [Commencer] → Statut "En cours"
-│           ├── [Terminer] → Statut "Terminé" + Note optionnelle
-│           ├── [Signaler problème] → Message vers admin
-│           └── [Ajouter photo] → Upload preuve intervention
-│
-└─► Messages (/messaging/)
-    └── Communication avec l'administration
-```
-
-#### Wireframe Dashboard Worker (Amélioré)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  🏠 Nettoyage Express                          👷 Marc Dubois ▾ │
-├─────────────────────────────────────────────────────────────────┤
-│  Mon Dashboard │ Calendrier │ Mes Tâches                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Bonjour Marc ! Voici vos tâches du jour               📅 Lun 28│
-│  ───────────────────────────────────────────────────────────────│
-│                                                                 │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐                           │
-│  │   12    │ │   85%   │ │   42h   │                           │
-│  │ Tâches  │ │ Taux    │ │ Ce mois │                           │
-│  │ terminées│ │ complet.│ │         │                           │
-│  └─────────┘ └─────────┘ └─────────┘                           │
-│                                                                 │
-│  ⚠️ EN RETARD (1)                                               │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │ 🔴 Nettoyage bureaux - SCI Amazonie                         ││
-│  │    📍 753 Chemin de la Désirée, Matoury                     ││
-│  │    ⏰ Échéance: 27/12 (hier)     [Commencer]  [Signaler]    ││
-│  └─────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  📋 AUJOURD'HUI (3)                                             │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │ 🟡 Entretien jardin - M. Dupont                             ││
-│  │    📍 12 Rue des Palmiers, Cayenne                          ││
-│  │    ⏰ 09:00 - 12:00              [Commencer]                ││
-│  ├─────────────────────────────────────────────────────────────┤│
-│  │ 🟢 Peinture façade - Mme Martin (EN COURS)                  ││
-│  │    📍 45 Avenue du Général, Rémire                          ││
-│  │    ⏰ 14:00 - 17:00              [Terminer]   [Ajouter photo]││
-│  └─────────────────────────────────────────────────────────────┘│
-│                                                                 │
-│  📆 DEMAIN (2)                                                  │
-│  └── [Voir toutes →]                                            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### Parcours Admin Business
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PARCOURS ADMIN BUSINESS                      │
-└─────────────────────────────────────────────────────────────────┘
-
-📊 ADMINISTRATEUR MÉTIER
-│
-├─► Dashboard (/admin-dashboard/)
-│   │
-│   ├── KPIs temps réel
-│   │   ├── Chiffre d'Affaires (total, mensuel, en attente)
-│   │   ├── Taux de conversion devis
-│   │   ├── Tâches (terminées, en retard)
-│   │   └── Performance ouvriers
-│   │
-│   ├── Graphiques
-│   │   ├── Évolution CA (6 mois)
-│   │   └── Répartition statuts
-│   │
-│   ├── Activité récente
-│   │   ├── Derniers devis
-│   │   ├── Dernières factures
-│   │   └── Dernières tâches
-│   │
-│   └── Actions rapides
-│       ├── [+ Devis]
-│       ├── [+ Facture]
-│       ├── [+ Tâche]
-│       └── [+ Ouvrier]
-│
-├─► Planning Global (/admin-dashboard/planning/)
-│   │
-│   ├── Vue calendrier tous ouvriers
-│   ├── Affectation par drag & drop
-│   └── Filtres par ouvrier, client, statut
-│
-├─► Gestion Équipe
-│   ├── Liste ouvriers (/admin-dashboard/workers/)
-│   └── Création ouvrier (/admin-dashboard/workers/create/)
-│
-├─► Gestion Clients
-│   ├── Liste clients (/admin-dashboard/clients/)
-│   └── Création client (/admin-dashboard/clients/create/)
-│
-├─► Devis
-│   ├── Liste (/admin-dashboard/quotes/)
-│   │   ├── Filtres (statut, client, date)
-│   │   ├── Export PDF/Excel
-│   │   └── Actions en masse
-│   │
-│   └── Création (/admin-dashboard/quotes/create/)
-│       ├── Sélection client (existant ou nouveau)
-│       ├── Ajout lignes (produits/services)
-│       ├── Calcul automatique TVA
-│       ├── Aperçu PDF
-│       └── [Enregistrer] ou [Enregistrer & Envoyer]
-│
-├─► Factures
-│   ├── Liste (/admin-dashboard/invoices/)
-│   └── Création (/admin-dashboard/invoices/create/)
-│
-├─► Campagnes Marketing (/admin-dashboard/campaigns/)
-│   ├── Liste des campagnes
-│   ├── Création campagne email
-│   └── Statistiques d'envoi
-│
-└─► Messages (/messaging/)
-    └── Conversations avec clients/ouvriers
-```
-
----
-
-### Parcours Admin Technique
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PARCOURS ADMIN TECHNIQUE                     │
-└─────────────────────────────────────────────────────────────────┘
-
-⚙️ ADMINISTRATEUR TECHNIQUE
-│
-└─► Django Admin (/gestion/)
-    │
-    ├── Gestion des utilisateurs
-    │   ├── Créer/Modifier/Supprimer
-    │   ├── Attribution des rôles
-    │   └── Réinitialisation mot de passe
-    │
-    ├── Configuration système
-    │   ├── Services disponibles
-    │   ├── Templates email
-    │   └── Paramètres Brevo (emailing)
-    │
-    ├── Données métier
-    │   ├── Devis (accès complet)
-    │   ├── Factures (accès complet)
-    │   ├── Tâches (accès complet)
-    │   └── Messages
-    │
-    └── Monitoring
-        ├── Logs d'activité
-        ├── Sessions actives
-        └── Notifications UI
-```
-
----
-
-## 🖼️ Maquettes fonctionnelles
-
-### Navigation unifiée
-
-La navigation doit être **consistante** entre tous les portails :
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     STRUCTURE NAVIGATION                        │
-└─────────────────────────────────────────────────────────────────┘
-
-HEADER (toujours visible)
-├── Logo + Nom (lien vers Dashboard du profil)
-├── Navigation contextuelle (liens du portail)
-├── 🔔 Notifications (badge compteur)
-├── 👤 Menu utilisateur
-│   ├── Mon Profil
-│   ├── Aide (optionnel)
-│   └── Déconnexion
-└── 🍔 Menu burger (mobile)
-
-NAVIGATION LATÉRALE (Admin Business uniquement)
-├── Dashboard
-├── Planning Global
-├── ─────────────
-├── Ouvriers
-├── Clients
-├── ─────────────
-├── Devis
-├── Factures
-├── ─────────────
-├── Campagnes
-├── Messages
-└── ─────────────
-    ⚙️ Gestion (lien vers Django Admin)
-```
-
-### Composants récurrents
-
-#### Card Document (Devis/Facture)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  📄 DEV-2025-0042                                    ⏳ Envoyé   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Client: Jean Dupont                                            │
-│  Date: 15/12/2025                                               │
-│  Échéance: 30/12/2025                                           │
-│                                                                 │
-│  ─────────────────────────────────────────────────────────────  │
-│                                                                 │
-│  Montant HT:     1 041,67 €                                     │
-│  TVA (20%):        208,33 €                                     │
-│  Total TTC:      1 250,00 €                                     │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│  [👁️ Voir]  [📥 Télécharger]  [✉️ Envoyer]  [✏️ Modifier]        │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-#### Card Tâche
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  🟡 En cours                                        ⏰ 14:00    │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Nettoyage bureaux SCI Amazonie                                 │
-│  ─────────────────────────────────────────────────────────────  │
-│  📍 753 Chemin de la Désirée, Matoury                           │
-│  👤 Client: SCI Amazonie                                        │
-│  👷 Assigné: Marc Dubois, Sophie Martin                         │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│  [Voir détails]                              Dernière màj: 14:32│
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 💡 Recommandations UI
-
-### 1. Unification de la palette
-
-**Action immédiate** : Migrer de la palette verte vers la palette bleue définie dans `netexpress-design-system.css`.
-
-```css
-/* Remplacer */
-.portal-nav { background-color: #16a34a; }
-
-/* Par */
-.portal-nav { 
-  background: linear-gradient(135deg, var(--ne-blue-600), var(--ne-blue-800)); 
-}
-```
-
-### 2. Amélioration du portail Worker
-
-Le portail Worker actuel est trop basique. Ajouter :
-
-- **Vue du jour** avec tâches priorisées
-- **KPIs personnels** (motivation)
-- **Actions rapides** sur les tâches
-- **Upload photo** pour preuves d'intervention
-- **Géolocalisation** pour les trajets
-
-### 3. Enrichissement du portail Client
-
-Ajouter :
-
-- **Historique des interventions** passées
-- **Évaluation** post-intervention (5 étoiles)
-- **Rappel de paiement** visuel pour factures en attente
-- **Chat en temps réel** avec l'administration
-
-### 4. Micro-interactions
-
-Ajouter des animations subtiles pour améliorer l'expérience :
-
-```css
-/* Animation d'apparition des cartes */
-.ne-card {
-  animation: ne-fade-in 0.3s ease-out;
-}
-
-/* Effet hover sur les lignes de tableau */
-.ne-table tr:hover td {
-  background: var(--ne-blue-50);
-  transition: background 0.15s ease;
-}
-
-/* Bouton avec effet de pression */
-.ne-btn:active {
-  transform: translateY(1px);
-}
-```
-
-### 5. États vides (Empty States)
-
-Ajouter des illustrations et messages contextuels :
+### 5.4 Formulaires
 
 ```html
-<div class="ne-empty-state">
-  <img src="/static/img/empty-quotes.svg" alt="" aria-hidden="true">
-  <h3>Aucun devis pour le moment</h3>
-  <p>Vos devis apparaîtront ici une fois créés.</p>
-  <a href="{% url 'devis:request_quote' %}" class="ne-btn ne-btn-primary">
-    Demander un devis
-  </a>
+<div class="ne-form-group">
+  <label class="ne-label">Email *</label>
+  <input type="email" class="ne-input" placeholder="client@exemple.fr">
 </div>
 ```
 
-### 6. Feedback utilisateur
+**États :**
+- Normal : bordure grise
+- Focus : bordure verte + ombre verte légère
+- Erreur : bordure rouge + message d'erreur
+- Désactivé : fond gris, curseur interdit
 
-Améliorer les notifications avec des toasts animés :
+### 5.5 Tables
 
 ```html
-<div class="ne-toast ne-toast-success" role="alert">
-  <i class="fas fa-check-circle"></i>
-  <span>Devis envoyé avec succès !</span>
-  <button class="ne-toast-close" aria-label="Fermer">×</button>
+<div class="ne-table-wrapper">
+  <table class="ne-table">
+    <thead>
+      <tr>
+        <th>Numéro</th>
+        <th>Client</th>
+        <th>Montant</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>#D-2025-0042</td>
+        <td>SCI Matoury</td>
+        <td>1 250,00 €</td>
+        <td><span class="ne-badge ne-badge-sent">Envoyé</span></td>
+        <td>
+          <button class="ne-btn ne-btn-ghost ne-btn-sm">
+            <i class="fas fa-eye"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 ```
 
 ---
 
-## ♿ Accessibilité & Responsive
+## 6. Maquettes Fonctionnelles
 
-### Accessibilité (WCAG 2.1 AA)
+### 6.1 Page d'Accueil Public
 
-1. **Contrastes** : Ratio minimum 4.5:1 pour le texte
-2. **Focus visible** : Outline bleu de 3px sur tous les éléments interactifs
-3. **Labels** : Tous les champs de formulaire ont des labels associés
-4. **Navigation clavier** : Tous les éléments accessibles via Tab
-5. **Lecteurs d'écran** : Attributs `aria-*` sur les éléments dynamiques
+```
+┌────────────────────────────────────────────────────────────────────┐
+│ HEADER                                                             │
+│ [Logo] Nettoyage Express        [Services] [Contact] [DEVIS ✨]    │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  █████████████████████████████████████████████████████████████████ │
+│  █                                                               █ │
+│  █   Propreté Premium                                           █ │
+│  █   en Guyane                                                  █ │
+│  █                                                               █ │
+│  █   Services d'entretien professionnels                        █ │
+│  █   pour particuliers et entreprises                           █ │
+│  █                                                               █ │
+│  █   [Demander un devis gratuit]   [Nos services →]             █ │
+│  █                                                               █ │
+│  █████████████████████████████████████████████████████████████████ │
+│                                                                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
+│  │ 🧹 Nettoyage │  │ 🌿 Espaces   │  │ 🔨 Bricolage │              │
+│  │   bureaux    │  │    verts     │  │   peinture   │              │
+│  └──────────────┘  └──────────────┘  └──────────────┘              │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────┤
+│ FOOTER — Contact — Mentions légales — © 2025                       │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 Dashboard Client
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ HEADER VERT                                                         │
+│ [Logo]               [Dashboard] [Devis] [Factures] [Messages] [👤] │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Bonjour, Jean Dupont                                               │
+│  Dernière connexion : 27/12/2025 à 14:32                            │
+│                                                                     │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐                 │
+│  │ Devis   │  │ En      │  │ Factures│  │ Impayées│                 │
+│  │   5     │  │ attente │  │   12    │  │    1    │                 │
+│  │         │  │   2     │  │         │  │         │                 │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘                 │
+│                                                                     │
+│  ┌──────────────────────────────┐  ┌──────────────────────────────┐ │
+│  │ 📄 DEVIS RÉCENTS             │  │ 🧾 FACTURES RÉCENTES         │ │
+│  ├──────────────────────────────┤  ├──────────────────────────────┤ │
+│  │ #D-042  En attente  1250€    │  │ #F-018  Payée      890€      │ │
+│  │ #D-041  Accepté     2100€    │  │ #F-017  À payer   1250€ ⚠️   │ │
+│  │ [Voir tous →]                │  │ [Voir toutes →]              │ │
+│  └──────────────────────────────┘  └──────────────────────────────┘ │
+│                                                                     │
+│  ACTIONS RAPIDES                                                    │
+│  [➕ Nouveau Devis] [✉️ Contacter] [👤 Mon Profil]                   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.3 Dashboard Admin
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ HEADER VERT FONCÉ                                                   │
+│ [Logo]        [Dashboard] [Planning] [Devis] [Factures] [Équipe]    │
+├───────┬─────────────────────────────────────────────────────────────┤
+│       │                                                             │
+│  S    │  Dashboard Administrateur                                   │
+│  I    │  Vue d'ensemble des performances                            │
+│  D    │                                                             │
+│  E    │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                │
+│  B    │  │ CA     │ │ MOIS   │ │IMPAYÉS │ │ TAUX   │                │
+│  A    │  │145 800€│ │ 12 450€│ │ 3 200€ │ │  72%   │                │
+│  R    │  └────────┘ └────────┘ └────────┘ └────────┘                │
+│       │                                                             │
+│  📊   │  ┌─────────────────────┐ ┌────────────────────┐             │
+│  Dash │  │ 📈 ÉVOLUTION CA     │ │ 🥧 STATUTS DEVIS   │             │
+│       │  │     (Graphique)     │ │    (Camembert)     │             │
+│  📅   │  └─────────────────────┘ └────────────────────┘             │
+│ Plan. │                                                             │
+│       │  ┌──────────┐ ┌──────────┐ ┌──────────┐                     │
+│  👥   │  │ Devis    │ │ Factures │ │ Tâches   │                     │
+│ Équipe│  │ récents  │ │ récentes │ │ récentes │                     │
+│       │  └──────────┘ └──────────┘ └──────────┘                     │
+│  📄   │                                                             │
+│ Devis │  ACTIONS RAPIDES                                            │
+│       │  [+ Devis] [+ Facture] [+ Tâche] [+ Ouvrier] [⚙️ Gestion]   │
+│  🧾   │                                                             │
+│ Fact. │                                                             │
+│       │                                                             │
+└───────┴─────────────────────────────────────────────────────────────┘
+```
+
+### 6.4 Dashboard Ouvrier (Mobile First)
+
+```
+┌─────────────────────────────────┐
+│ HEADER VERT                     │
+│ [☰]  Mes Tâches  [🔔]           │
+├─────────────────────────────────┤
+│                                 │
+│  📅 Lundi 28 Décembre           │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━   │
+│                                 │
+│  ╭─────────────────────────╮    │
+│  │ 🕗 08:00 - 10:00        │    │
+│  │                         │    │
+│  │ Nettoyage bureaux       │    │
+│  │ SCI Matoury             │    │
+│  │                         │    │
+│  │ 📍 12 rue des Palmiers  │    │
+│  │                         │    │
+│  │ ┌─────────┐ ┌─────────┐ │    │
+│  │ │ 🗺️ GPS  │ │ ✅ START│ │    │
+│  │ └─────────┘ └─────────┘ │    │
+│  ╰─────────────────────────╯    │
+│                                 │
+│  ╭─────────────────────────╮    │
+│  │ 🕥 10:30 - 12:00        │    │
+│  │                         │    │
+│  │ Entretien jardin        │    │
+│  │ M. Dupont               │    │
+│  │                         │    │
+│  │ 📍 45 allée Orchidées   │    │
+│  │                         │    │
+│  │ [🗺️ GPS]                │    │
+│  ╰─────────────────────────╯    │
+│                                 │
+├─────────────────────────────────┤
+│  [📋 Liste] [📅 Semaine] [📊]   │
+└─────────────────────────────────┘
+```
+
+---
+
+## 7. Responsive & Mobile
+
+### 7.1 Breakpoints
+
+| Nom | Largeur | Usage |
+|-----|---------|-------|
+| `sm` | 640px | Mobiles larges |
+| `md` | 768px | Tablettes portrait |
+| `lg` | 1024px | Tablettes paysage |
+| `xl` | 1280px | Desktop |
+| `2xl` | 1536px | Grands écrans |
+
+### 7.2 Stratégie Mobile
+
+#### Client
+- Dashboard simplifié
+- Liste de documents scrollable
+- Actions principales en bas d'écran
+- Formulaire de devis optimisé tactile
+
+#### Ouvrier
+- **Mobile First obligatoire**
+- Cartes de tâches grandes et espacées
+- Boutons d'action minimum 48x48px
+- Accès GPS en un clic
+- Mode hors-ligne pour consultation
+
+#### Admin
+- Sidebar rétractable en drawer
+- Tableaux scrollables horizontalement
+- KPIs empilés sur mobile
+- Graphiques adaptatifs
+
+---
+
+## 8. Accessibilité
+
+### 8.1 Standards
+
+- **WCAG 2.1 niveau AA**
+- Contraste minimum 4.5:1 (texte) / 3:1 (éléments)
+- Navigation clavier complète
+- Labels ARIA sur éléments interactifs
+- Skip links pour navigation rapide
+
+### 8.2 Implémentation
 
 ```css
 /* Focus visible */
-.ne-btn:focus-visible,
-.ne-input:focus-visible,
-.ne-nav-link:focus-visible {
-  outline: 3px solid var(--ne-blue-300);
+*:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
   outline-offset: 2px;
-}
-
-/* Mode contraste élevé */
-@media (prefers-contrast: high) {
-  .ne-card { border: 2px solid #000; }
-  .ne-btn { border: 2px solid currentColor; }
 }
 
 /* Mouvement réduit */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
-```
 
-### Responsive Design
-
-| Breakpoint | Taille | Adaptation |
-|------------|--------|------------|
-| Mobile | < 640px | Navigation burger, 1 colonne, boutons pleine largeur |
-| Tablette | 640px - 1024px | 2 colonnes, sidebar repliable |
-| Desktop | > 1024px | Sidebar fixe, 3-4 colonnes |
-
-```css
-/* Mobile first */
-.ne-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--ne-space-4);
-}
-
-@media (min-width: 768px) {
-  .ne-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (min-width: 1024px) {
-  .ne-grid { grid-template-columns: repeat(4, 1fr); }
+/* Contraste élevé */
+@media (prefers-contrast: high) {
+  .ne-card { border: 2px solid #000; }
+  .ne-btn { border: 2px solid currentColor; }
 }
 ```
 
 ---
 
-## 📅 Plan d'implémentation
+## 9. Recommandations
 
-### Phase 1 : Uniformisation (2 semaines)
+### 9.1 Actions Prioritaires
 
-1. ✅ Migrer tous les templates vers `base_v2.html`
-2. ✅ Appliquer la palette bleue NetExpress
-3. ✅ Unifier les composants (boutons, cartes, badges)
-4. ✅ Corriger les incohérences de navigation
+| Priorité | Action | Impact |
+|----------|--------|--------|
+| 🔴 P1 | Valider la charte verte | Cohérence visuelle |
+| 🔴 P1 | Optimiser dashboard ouvrier mobile | UX terrain |
+| 🟡 P2 | Ajouter mode hors-ligne ouvrier | Fiabilité |
+| 🟡 P2 | Implémenter validation devis en 1 clic | Conversion |
+| 🟢 P3 | Ajouter dark mode (optionnel) | Confort |
+| 🟢 P3 | Animations de chargement squelette | Perception perf. |
 
-### Phase 2 : Amélioration Worker (1 semaine)
+### 9.2 À Éviter
 
-1. Refonte du dashboard Worker
-2. Ajout des KPIs personnels
-3. Actions rapides sur les tâches
-4. Upload photo d'intervention
+❌ Surcharge d'informations sur un même écran  
+❌ Menus à plus de 2 niveaux de profondeur  
+❌ Tableaux avec trop de colonnes sur mobile  
+❌ Pop-ups modaux intrusifs  
+❌ Couleurs non sémantiques (ex: rouge pour succès)  
+❌ Textes trop petits (< 14px)  
+❌ Contrastes insuffisants  
 
-### Phase 3 : Enrichissement Client (1 semaine)
+### 9.3 Bonnes Pratiques
 
-1. Historique des interventions
-2. Système d'évaluation
-3. Rappels visuels de paiement
-4. États vides illustrés
-
-### Phase 4 : Polish (1 semaine)
-
-1. Micro-interactions et animations
-2. Toasts de notification améliorés
-3. Audit accessibilité
-4. Tests responsive sur appareils réels
+✅ 1 objectif principal par écran  
+✅ Feedback immédiat sur chaque action  
+✅ Confirmation avant actions destructives  
+✅ États de chargement visuels  
+✅ Messages d'erreur explicites et actionnables  
+✅ Raccourcis clavier pour utilisateurs experts  
+✅ Historique/Undo quand possible  
 
 ---
 
-## 📎 Annexes
-
-### Fichiers de référence
+## Annexe : Fichiers de Référence
 
 | Fichier | Description |
 |---------|-------------|
-| `static/css/netexpress-design-system.css` | Design system complet (à utiliser) |
-| `static/css/style_v2.css` | Styles portails (à migrer vers bleu) |
-| `static/css/backoffice.css` | Styles backoffice Worker |
-| `templates/base_v2.html` | Template de base moderne |
-
-### Icônes recommandées
-
-Utiliser **Font Awesome 6** pour la cohérence :
-
-- 📊 `fa-tachometer-alt` — Dashboard
-- 📄 `fa-file-alt` — Devis
-- 📃 `fa-receipt` — Factures
-- 📋 `fa-tasks` — Tâches
-- 👥 `fa-users` — Équipe
-- 📆 `fa-calendar-alt` — Planning
-- 💬 `fa-envelope` — Messages
-- ⚙️ `fa-cogs` — Paramètres
+| `static/css/style_v2.css` | Styles principaux (charte verte) |
+| `templates/base_v2.html` | Template de base portails |
+| `tailwind.config.js` | Configuration Tailwind |
 
 ---
 
-*Document généré pour le projet NetExpress — Décembre 2025*
-
+**Document maintenu par l'équipe UX/UI NetExpress**  
+*Dernière mise à jour : 28 Décembre 2025*

@@ -1,134 +1,41 @@
 """
-Portal routing utilities.
+Utilities de routing des portails NetExpress.
 
-This module provides utilities for handling portal-specific routing logic,
-including automatic redirects based on user roles and portal access validation.
+NB: La source de vérité des rôles + mapping rôle -> URL est dans `accounts.portal`.
+Ce module conserve une API stable utilisée par templates/middlewares/tests.
 """
 
 from django.shortcuts import redirect
-from django.urls import reverse
-from django.http import HttpResponseRedirect
 
-
-def get_user_role(user):
-    """
-    Get the user's role from their profile.
-    
-    Args:
-        user: Django User instance
-        
-    Returns:
-        str: User role ('client', 'worker', or 'admin')
-    """
-    if user.is_staff or user.is_superuser:
-        return 'admin'
-    
-    try:
-        return user.profile.role
-    except AttributeError:
-        return 'client'  # Default role for users without profiles
-
-
-def get_portal_home_url(user):
-    """
-    Get the home URL for a user's appropriate portal.
-    
-    Args:
-        user: Django User instance
-        
-    Returns:
-        str: Portal home URL
-    """
-    role = get_user_role(user)
-    
-    if role == 'admin':
-        return '/admin-dashboard/'
-    elif role == 'worker':
-        return '/worker/'
-    else:  # client
-        return '/client/'
-
-
-def redirect_to_user_portal(user):
-    """
-    Create a redirect response to the user's appropriate portal.
-    
-    Args:
-        user: Django User instance
-        
-    Returns:
-        HttpResponseRedirect: Redirect to appropriate portal
-    """
-    portal_url = get_portal_home_url(user)
-    return redirect(portal_url)
-
-
-def redirect_after_login(user):
-    """
-    Determine where to redirect a user after successful login.
-    
-    Args:
-        user: Django User instance
-        
-    Returns:
-        str: URL to redirect to after login
-    """
-    return get_portal_home_url(user)
-
-
-def is_portal_url(path):
-    """
-    Check if a URL path belongs to any portal.
-    
-    Args:
-        path (str): URL path to check
-        
-    Returns:
-        bool: True if path is a portal URL
-    """
-    portal_prefixes = ['/client/', '/worker/', '/admin-dashboard/']
-    return any(path.startswith(prefix) for prefix in portal_prefixes)
+from accounts.portal import (
+    get_user_role,
+    get_portal_home_url,
+    redirect_after_login,
+    redirect_to_user_portal,
+    get_portal_area_from_url,
+    is_portal_url,
+    user_can_access_portal_area,
+)
 
 
 def get_portal_type_from_url(path):
     """
-    Determine which portal a URL belongs to.
-    
-    Args:
-        path (str): URL path to analyze
-        
-    Returns:
-        str: Portal type ('client', 'worker', 'admin') or None if not a portal URL
+    Retourne le type de portail depuis une URL.
+
+    Historique:
+    - Cette fonction est consommée par le tracking et les tests.
+    - On distingue désormais `admin_dashboard` (business) et `gestion` (technique).
     """
-    if path.startswith('/client/'):
-        return 'client'
-    elif path.startswith('/worker/'):
-        return 'worker'
-    elif path.startswith('/admin-dashboard/'):
-        return 'admin'
-    else:
-        return None
+    return get_portal_area_from_url(path)
 
 
 def user_can_access_portal(user, portal_type):
     """
-    Check if a user can access a specific portal type.
-    
-    Args:
-        user: Django User instance
-        portal_type (str): Portal type ('client', 'worker', 'admin')
-        
-    Returns:
-        bool: True if user can access the portal
+    Compat: wrapper sur `accounts.portal.user_can_access_portal_area`.
     """
-    user_role = get_user_role(user)
-    
-    # Staff and superusers can access any portal
-    if user.is_staff or user.is_superuser:
+    if not portal_type:
         return True
-    
-    # Regular users can only access their own portal type
-    return user_role == portal_type
+    return user_can_access_portal_area(user, portal_type)
 
 
 def validate_portal_access(user, path):
@@ -198,8 +105,10 @@ class PortalRouter:
     
     def get_messages_url(self):
         """Get the messages URL for the user's portal."""
-        if self.user_role == 'admin':
+        if self.user_role == 'admin_business':
             return '/admin-dashboard/messages/'
+        elif self.user_role == 'admin_technical':
+            return '/gestion/'
         elif self.user_role == 'worker':
             return '/worker/messages/'
         else:  # client
@@ -207,8 +116,10 @@ class PortalRouter:
     
     def get_notifications_url(self):
         """Get the notifications URL for the user's portal."""
-        if self.user_role == 'admin':
+        if self.user_role == 'admin_business':
             return '/admin-dashboard/notifications/'
+        elif self.user_role == 'admin_technical':
+            return '/gestion/'
         elif self.user_role == 'worker':
             return '/worker/notifications/'
         else:  # client

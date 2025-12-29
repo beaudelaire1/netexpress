@@ -1,0 +1,273 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Devis {{ quote.number }} — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
+    <i class="fas fa-file-invoice mr-2"></i>Devis
+  </a>
+  <a href="{% url 'core:admin_clients_list' %}" class="portal-nav-item">
+    <i class="fas fa-users mr-2"></i>Clients
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+            <i class="fas fa-file-invoice-dollar text-ne-primary-600 mr-3"></i>
+            Devis {{ quote.number }}
+          </h1>
+          <p class="text-gray-600 mt-1">
+            Client: <a href="{% url 'core:admin_client_detail' quote.client.pk %}" class="text-ne-primary-600 hover:underline">{{ quote.client.full_name }}</a>
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a href="{% url 'core:admin_edit_quote' quote.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit mr-2"></i>Modifier
+          </a>
+          {% if quote.pdf %}
+            <a href="{{ quote.pdf.url }}" target="_blank" class="btn btn-secondary">
+              <i class="fas fa-download mr-2"></i>Télécharger PDF
+            </a>
+          {% endif %}
+          {% if quote.status != 'invoiced' %}
+            <a href="{% url 'core:admin_send_quote_email' quote.pk %}" class="btn btn-secondary">
+              <i class="fas fa-envelope mr-2"></i>Envoyer par email
+            </a>
+            <a href="{% url 'core:admin_convert_quote_to_invoice' quote.pk %}" class="btn btn-secondary" onclick="return confirm('Convertir ce devis en facture ?');">
+              <i class="fas fa-exchange-alt mr-2"></i>Convertir en facture
+            </a>
+          {% endif %}
+          <a href="{% url 'core:admin_quotes_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i>Retour
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Left Column - Quote Info -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- Status Card -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Statut</h3>
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium
+            {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+            {% elif quote.status == 'sent' %}bg-blue-100 text-blue-800
+            {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+            {% elif quote.status == 'rejected' %}bg-red-100 text-red-800
+            {% elif quote.status == 'invoiced' %}bg-purple-100 text-purple-800
+            {% endif %}">
+            {% if quote.status == 'draft' %}<i class="fas fa-edit mr-2"></i>
+            {% elif quote.status == 'sent' %}<i class="fas fa-paper-plane mr-2"></i>
+            {% elif quote.status == 'accepted' %}<i class="fas fa-check-circle mr-2"></i>
+            {% elif quote.status == 'rejected' %}<i class="fas fa-times-circle mr-2"></i>
+            {% elif quote.status == 'invoiced' %}<i class="fas fa-file-invoice mr-2"></i>
+            {% endif %}
+            {{ quote.get_status_display }}
+          </span>
+          
+          {% if invoice %}
+            <div class="mt-4 p-3 bg-purple-50 rounded-lg">
+              <p class="text-sm text-purple-800">
+                <i class="fas fa-file-invoice mr-2"></i>
+                Converti en: <a href="{% url 'core:admin_invoice_detail' invoice.pk %}" class="font-medium underline">{{ invoice.number }}</a>
+              </p>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Client Info -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-user text-ne-primary-600 mr-2"></i>Client
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <p class="font-medium text-gray-900">{{ quote.client.full_name }}</p>
+              {% if quote.client.company %}
+                <p class="text-sm text-gray-600">{{ quote.client.company }}</p>
+              {% endif %}
+            </div>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p><i class="fas fa-envelope mr-2 text-gray-400"></i>{{ quote.client.email }}</p>
+              <p><i class="fas fa-phone mr-2 text-gray-400"></i>{{ quote.client.phone }}</p>
+              {% if quote.client.address_line %}
+                <p><i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>{{ quote.client.address_line }}</p>
+              {% endif %}
+              {% if quote.client.city or quote.client.zip_code %}
+                <p class="pl-5">{{ quote.client.zip_code }} {{ quote.client.city }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-calendar text-ne-primary-600 mr-2"></i>Dates
+          </h3>
+          <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <dt class="text-gray-600">Date d'émission:</dt>
+              <dd class="font-medium">{{ quote.issue_date|date:"d/m/Y" }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-gray-600">Valide jusqu'au:</dt>
+              <dd class="font-medium">{{ quote.valid_until|date:"d/m/Y"|default:"-" }}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-gray-600">Créé le:</dt>
+              <dd class="font-medium">{{ quote.created_at|date:"d/m/Y H:i" }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Notes -->
+        {% if quote.message or quote.notes %}
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              <i class="fas fa-sticky-note text-ne-primary-600 mr-2"></i>Notes
+            </h3>
+            {% if quote.message %}
+              <div class="mb-4">
+                <p class="text-sm font-medium text-gray-700 mb-1">Message client:</p>
+                <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ quote.message }}</p>
+              </div>
+            {% endif %}
+            {% if quote.notes %}
+              <div>
+                <p class="text-sm font-medium text-gray-700 mb-1">Notes internes:</p>
+                <p class="text-sm text-gray-600 whitespace-pre-wrap">{{ quote.notes }}</p>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column - Quote Items & Totals -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Quote Items -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">
+              <i class="fas fa-list text-ne-primary-600 mr-2"></i>Lignes du devis
+            </h3>
+            <span class="text-sm text-gray-500">{{ quote_items|length }} ligne{{ quote_items|length|pluralize }}</span>
+          </div>
+          
+          {% if quote_items %}
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Qté</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Prix HT</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">TVA</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total HT</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  {% for item in quote_items %}
+                    <tr>
+                      <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">{{ item.description }}</div>
+                        {% if item.service %}
+                          <div class="text-xs text-gray-500">Service: {{ item.service.title }}</div>
+                        {% endif %}
+                      </td>
+                      <td class="px-6 py-4 text-right text-sm text-gray-900">{{ item.quantity|floatformat:2 }}</td>
+                      <td class="px-6 py-4 text-right text-sm text-gray-900">{{ item.unit_price|floatformat:2 }} €</td>
+                      <td class="px-6 py-4 text-right text-sm text-gray-500">{{ item.tax_rate|floatformat:2 }}%</td>
+                      <td class="px-6 py-4 text-right text-sm font-medium text-gray-900">{{ item.total_ht|floatformat:2 }} €</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="px-6 py-12 text-center">
+              <i class="fas fa-inbox text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucune ligne dans ce devis</p>
+              <a href="{% url 'core:admin_edit_quote' quote.pk %}" class="mt-4 inline-flex items-center text-ne-primary-600 hover:underline">
+                <i class="fas fa-plus mr-2"></i>Ajouter des lignes
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Totals -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-calculator text-ne-primary-600 mr-2"></i>Récapitulatif
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Total HT:</span>
+              <span class="font-medium text-gray-900">{{ quote.total_ht|floatformat:2 }} €</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">TVA:</span>
+              <span class="font-medium text-gray-900">{{ quote.tva|floatformat:2 }} €</span>
+            </div>
+            <div class="flex justify-between text-xl font-bold border-t border-gray-200 pt-3">
+              <span class="text-gray-900">Total TTC:</span>
+              <span class="text-ne-primary-600">{{ quote.total_ttc|floatformat:2 }} €</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-bolt text-ne-primary-600 mr-2"></i>Actions rapides
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href="{% url 'core:admin_edit_quote' quote.pk %}" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+              <i class="fas fa-edit mr-2 text-ne-primary-600"></i>
+              Modifier le devis
+            </a>
+            {% if not quote.pdf %}
+              <form method="post" action="{% url 'core:admin_send_quote_email' quote.pk %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" name="generate_pdf_only" value="1" class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                  <i class="fas fa-file-pdf mr-2 text-red-500"></i>
+                  Générer le PDF
+                </button>
+              </form>
+            {% else %}
+              <a href="{{ quote.pdf.url }}" target="_blank" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                <i class="fas fa-file-pdf mr-2 text-red-500"></i>
+                Voir le PDF
+              </a>
+            {% endif %}
+            <a href="{% url 'core:admin_send_quote_email' quote.pk %}" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+              <i class="fas fa-envelope mr-2 text-blue-500"></i>
+              Envoyer par email
+            </a>
+            {% if quote.status != 'invoiced' %}
+              <a href="{% url 'core:admin_convert_quote_to_invoice' quote.pk %}" onclick="return confirm('Êtes-vous sûr de vouloir convertir ce devis en facture ?');" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                <i class="fas fa-exchange-alt mr-2 text-purple-500"></i>
+                Convertir en facture
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

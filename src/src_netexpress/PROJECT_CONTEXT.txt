@@ -1,0 +1,282 @@
+PROJECT
+NetExpress — Mini ERP Django
+
+GLOBAL OBJECTIVE
+Construire un mini-ERP professionnel, léger et maintenable pour une entreprise de services.
+Le système doit être exploitable en production, compréhensible par des non-techniciens
+et évoluer sans sur-complexité.
+
+USER PROFILES
+1. Client
+2. Ouvrier (Worker)
+3. Administrateur
+4. Administrateur avancé (Super Admin)
+
+TECHNICAL STACK
+- Django (rendu serveur)
+- HTML / CSS / JavaScript léger
+- Jazzmin pour l’administration
+- Base de données relationnelle
+- Architecture orientée services
+
+ARCHITECTURAL PRINCIPLES
+- Séparation stricte des responsabilités
+- Aucune logique métier dans les templates ou les vues
+- Logique métier centralisée dans des services
+- Permissions explicites par rôle
+- ERP volontairement léger
+
+UX / UI PRINCIPLES
+- Interface sobre, professionnelle et premium
+- Charte graphique dominante vert NetExpress (#0e6b4c)
+- Interfaces adaptées au niveau de chaque profil
+- Lisibilité et efficacité prioritaires
+
+COLLABORATION RULES
+- Tous les agents travaillent sur un même objectif
+- Chaque agent doit prendre en compte le travail existant
+- Aucune décision ne doit contredire une décision validée
+- Toute incohérence doit être signalée explicitement
+- Pas de duplication de responsabilités
+
+FILES POLICY
+- Workspace propre et minimal
+- Suppression des fichiers inutiles (.md, exemples, brouillons)
+- Aucun fichier sans utilité directe pour le projet
+
+
+plan à suivre selon ton rôle:
+(les phases peuvent être lancées simultanément)
+Plan
+de développement NetExpress ERP — 7 Phases
+
+Contexte actuel
+Le projet NetExpress dispose déjà d'une base solide :
+
+8 applications Django fonctionnelles (accounts, core, devis, factures, tasks, messaging, services, contact)
+Système de rôles et portails multi-utilisateurs
+Jazzmin configuré
+Design system avec TailwindCSS
+Nombreux fichiers de documentation dans docs/
+Phase 0 — Clean Workspace & Socle de Gouvernance
+Objectif
+Nettoyer le workspace et valider le socle de gouvernance avant toute évolution.
+
+Actions
+Audit des fichiers du workspace
+Identifier les fichiers .md non essentiels dans docs/
+Repérer les fichiers exemples, brouillons et fichiers morts
+Lister les fichiers de configuration inutiles
+Nettoyage sélectif
+Conserver uniquement :
+PROJECT_CONTEXT.txt (référence absolue)
+docs/UX_UI_NetExpress.md (spécifications UX/UI)
+docs/ARCHITECTURE.md (si à jour)
+Supprimer les fichiers redondants, brouillons et exemples
+Nettoyer les fichiers temporaires dans scripts/ si non essentiels
+Validation PROJECT_CONTEXT.txt
+Vérifier que le fichier est complet et à jour
+S'assurer qu'il reflète l'état actuel du projet
+Livrables
+Workspace propre avec uniquement les fichiers essentiels
+PROJECT_CONTEXT.txt validé comme référence unique
+Structure minimale du projet documentée
+---
+
+Phase 1 — Architecture & Découpage ERP
+Objectif
+Valider et optimiser l'architecture modulaire existante sans sur-ingénierie.
+
+Actions
+Audit de l'architecture actuelle
+Vérifier le découpage des apps Django existantes
+Identifier les responsabilités par app
+Détecter les chevauchements ou incohérences
+Validation du service layer
+Vérifier que la logique métier est bien dans les services
+Identifier les vues/templates contenant de la logique métier
+Centraliser la logique dans les services appropriés
+Documentation de l'architecture
+Mettre à jour docs/ARCHITECTURE.md avec l'état réel
+Documenter les flux principaux par module
+Créer un schéma d'architecture visuel
+Livrables
+Schéma d'architecture validé
+Découpage des apps clarifié
+Flux métier documentés par module
+Service layer vérifié et corrigé si nécessaire
+---
+
+Phase 2 — Modélisation Métier & Permissions
+Objectif
+Structurer le cœur fonctionnel de l'ERP avec des modèles cohérents et des permissions explicites.
+
+Actions
+Audit des modèles métier
+Vérifier les modèles principaux : Client, Worker, Intervention, Devis, Facture
+Valider les relations entre modèles
+Vérifier les statuts et historiques
+Système de rôles et permissions
+Valider les 4 rôles : Client, Worker, Admin, Super Admin
+Vérifier les permissions explicites par rôle
+Tester les accès par portail (/client/, /worker/, /admin-dashboard/, /gestion/)
+Sécurité des accès
+Vérifier le middleware RoleBasedAccessMiddleware
+Tester les décorateurs @require_role, @require_portal_access
+Valider la séparation Admin / Super Admin
+Livrables
+Schéma des modèles validé
+Matrice rôles / permissions documentée
+Règles d'accès testées et validées
+Permissions granulaire fonctionnelles
+---
+
+Phase 3 — UX & Parcours Utilisateurs
+Objectif
+Garantir une expérience fluide, claire et professionnelle pour chaque profil utilisateur.
+
+Actions
+Validation des parcours par profil
+Client : simplicité, clarté, suivi (dashboard, devis, factures)
+Worker : rapidité, efficacité terrain (planning mobile-first)
+Admin : vision globale, contrôle (dashboard, KPIs)
+Super Admin : densité maîtrisée (interface Django Admin)
+Hiérarchisation des écrans
+Identifier les écrans prioritaires par profil
+Valider la navigation et les flux utilisateurs
+Vérifier l'accessibilité (WCAG 2.1 niveau AA)
+Design system
+Valider l'application de la charte verte NetExpress
+Vérifier la cohérence des composants UI
+Tester le responsive (mobile-first pour Worker)
+Livrables
+Parcours UX validés par rôle
+Design system appliqué et cohérent
+Wireframes / maquettes fonctionnelles validées
+Tests d'accessibilité passés
+---
+
+Phase 4 — Frontend Django (Templates)
+Objectif
+Transformer l'UX en interfaces réelles, robustes et sobres.
+
+Actions
+Templates Django par portail
+Templates client (templates/core/client_*.html)
+Templates worker (templates/core/worker_*.html)
+Templates admin (templates/core/admin_*.html)
+Templates de base (templates/base_v2.html)
+CSS responsive
+Vérifier l'application du design system
+Tester le responsive sur tous les breakpoints
+Optimiser pour mobile (Worker)
+JavaScript fonctionnel
+Limiter aux besoins fonctionnels (HTMX si nécessaire)
+Interactions dynamiques minimales
+Pas de sur-ingénierie frontend
+Composants réutilisables
+Tableaux de données
+Formulaires cohérents
+Dashboards par profil
+Livrables
+Templates HTML complets et cohérents
+CSS structuré et responsive
+Scripts JS utilitaires minimaux
+Interfaces fonctionnelles par portail
+---
+
+Phase 5 — Administration Avancée (Jazzmin)
+Objectif
+Offrir une interface admin puissante mais exploitable sans faille technique.
+
+Actions
+Configuration avancée Jazzmin
+Personnaliser l'interface selon les besoins
+Configurer les dashboards admin
+Actions personnalisées pour les workflows métier
+Séparation Admin / Super Admin
+Vérifier les permissions différenciées
+Interface admin business vs technique
+Accès contrôlés par rôle
+Ergonomie orientée gestion
+Optimiser les vues d'administration
+Faciliter les actions courantes
+Améliorer la navigation dans l'admin
+Livrables
+Admin Django opérationnel et optimisé
+Interface Jazzmin finalisée
+Rôles admin fonctionnels et testés
+Workflows métier intégrés
+---
+
+Phase 6 — Audit, Simplification & Performance
+Objectif
+Éliminer toute complexité inutile avant stabilisation.
+
+Actions
+Audit global du code
+Détecter les doublons
+Identifier le code mort
+Repérer les patterns à simplifier
+Simplification des flux
+Réduire la complexité des vues
+Simplifier les services si nécessaire
+Optimiser les requêtes base de données
+Optimisation des performances
+Analyser les temps de chargement
+Optimiser les requêtes N+1
+Mettre en cache si nécessaire
+Nettoyage final
+Supprimer les fichiers inutiles restants
+Nettoyer les imports non utilisés
+Vérifier la cohérence du code
+Livrables
+Rapport d'audit complet
+Recommandations appliquées
+Code allégé et lisible
+Performances optimisées
+---
+
+Phase 7 — Stabilisation & Pré-Production
+Objectif
+Préparer NetExpress pour un usage réel en production.
+
+Actions
+Vérification des permissions
+Tests complets des accès par rôle
+Validation de la sécurité
+Tests de cas limites
+Tests fonctionnels
+Parcours utilisateurs complets
+Workflows métier (devis → facture)
+Gestion des erreurs
+Validation admin / super admin
+Tests des interfaces d'administration
+Validation des workflows admin
+Vérification de la séparation des rôles
+Documentation minimale interne
+Guide de déploiement
+Documentation des rôles et permissions
+Guide d'utilisation par profil
+Livrables
+Version stable et testée
+ERP prêt à être utilisé en production
+Base saine pour évolutions futures
+Documentation minimale complète
+---
+
+Fichiers clés à modifier
+PROJECT_CONTEXT.txt — Référence absolue (validation Phase 0)
+docs/ARCHITECTURE.md — Documentation architecture (Phase 1)
+accounts/models.py — Modèles utilisateurs et rôles (Phase 2)
+core/decorators.py — Permissions et accès (Phase 2)
+templates/base_v2.html — Template de base (Phase 4)
+templates/core/*.html — Templates par portail (Phase 4)
+static/css/netexpress-design-system.css — Design system (Phase 3-4)
+netexpress/settings/base.py — Configuration Jazzmin (Phase 5)
+*/admin.py — Configurations admin par app (Phase 5)
+Principes à respecter
+Pas de fichiers inutiles
+Pas de sur-ingénierie
+Pas de logique métier hors services
+Signalement obligatoire des incohérences

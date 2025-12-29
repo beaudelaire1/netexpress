@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\views_campaigns.py
+# hypothesis_version: 6.148.7
+
+[',', 'GET', 'POST', 'campaign', 'campaigns', 'core:campaign_detail', 'core:campaigns_list', 'html_content', 'id', 'list_ids', 'name', 'on', 'page', 'page_obj', 'send_now', 'sender_email', 'sender_name', 'subject']

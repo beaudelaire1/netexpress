@@ -181,7 +181,7 @@ JAZZMIN_SETTINGS = {
     # Interface utilisateur
     "related_modal_active": True,
     "custom_css": "css/jazzmin_overrides.css",
-    "custom_js": None,
+    "custom_js": "js/jazzmin_logout_fix.js",
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
     
@@ -233,6 +233,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.session_tracking.PortalSessionTrackingMiddleware',  # Analytics sessions portail
     'django.contrib.messages.middleware.MessageMiddleware',  # Doit être avant RoleBasedAccessMiddleware
     'accounts.middleware.RoleBasedAccessMiddleware',  # Add role-based access control
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

@@ -37,7 +37,7 @@ def portal_navigation(context):
     nav_items = []
     
     # Role-specific navigation items
-    if role == 'admin':
+    if role == 'admin_business':
         nav_items = [
             {
                 'label': 'Dashboard Admin',
@@ -57,6 +57,15 @@ def portal_navigation(context):
                 'icon': 'fas fa-envelope',
                 'active_patterns': ['/admin-dashboard/messages/']
             },
+            {
+                'label': 'Gestion',
+                'url': '/gestion/',
+                'icon': 'fas fa-cogs',
+                'active_patterns': ['/gestion/']
+            }
+        ]
+    elif role == 'admin_technical':
+        nav_items = [
             {
                 'label': 'Gestion',
                 'url': '/gestion/',
@@ -131,11 +140,17 @@ def portal_navigation(context):
     ]
     
     # Add role-specific user menu items
-    if role == 'admin':
+    if role == 'admin_business':
         user_menu_items.insert(0, {
             'label': 'Dashboard Admin',
             'url': '/admin-dashboard/',
             'icon': 'fas fa-tachometer-alt'
+        })
+    elif role == 'admin_technical':
+        user_menu_items.insert(0, {
+            'label': 'Gestion',
+            'url': '/gestion/',
+            'icon': 'fas fa-cogs'
         })
     elif role == 'worker':
         user_menu_items.insert(0, {
@@ -184,10 +199,15 @@ def portal_breadcrumb(context):
     breadcrumbs = []
     
     # Add home breadcrumb
-    if role == 'admin':
+    if role == 'admin_business':
         breadcrumbs.append({
             'label': 'Dashboard Admin',
             'url': '/admin-dashboard/'
+        })
+    elif role == 'admin_technical':
+        breadcrumbs.append({
+            'label': 'Gestion',
+            'url': '/gestion/'
         })
     elif role == 'worker':
         breadcrumbs.append({
@@ -267,19 +287,28 @@ def portal_quick_actions(context):
     role = get_user_role(user)
     actions = []
     
-    if role == 'admin':
+    if role == 'admin_business':
         actions = [
             {
                 'label': 'Nouveau Devis',
-                'url': '/gestion/devis/quote/add/',
+                'url': reverse('core:admin_create_quote'),
                 'icon': 'fas fa-plus',
                 'class': 'btn-primary'
             },
             {
                 'label': 'Nouvelle Tâche',
-                'url': '/gestion/tasks/task/add/',
+                'url': reverse('core:admin_create_task'),
                 'icon': 'fas fa-tasks',
                 'class': 'btn-secondary'
+            }
+        ]
+    elif role == 'admin_technical':
+        actions = [
+            {
+                'label': 'Gestion',
+                'url': '/gestion/',
+                'icon': 'fas fa-cogs',
+                'class': 'btn-primary'
             }
         ]
     elif role == 'worker':

@@ -18,16 +18,23 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border-left: 4px solid;
     }
-    .kpi-card.primary { border-left-color: #007bff; }
-    .kpi-card.success { border-left-color: #28a745; }
-    .kpi-card.warning { border-left-color: #ffc107; }
-    .kpi-card.danger { border-left-color: #dc3545; }
-    .kpi-card.info { border-left-color: #17a2b8; }
+    .kpi-card.primary { border-left-color: var(--ne-primary); }
+    .kpi-card.success { border-left-color: var(--ne-success); }
+    .kpi-card.warning { border-left-color: var(--ne-warning); }
+    .kpi-card.danger { border-left-color: var(--ne-error); }
+    .kpi-card.info { border-left-color: var(--ne-info); }
     .kpi-value {
         font-size: 2rem;
         font-weight: bold;
         margin: 0.5rem 0;
+        color: var(--ne-primary);
     }
+    /* Icônes actions rapides alignées sur la palette NetExpress */
+    .icon-primary { color: var(--ne-primary); }
+    .icon-success { color: var(--ne-success); }
+    .icon-warning { color: var(--ne-warning); }
+    .icon-danger  { color: var(--ne-error); }
+    .icon-info    { color: var(--ne-info); }
     .kpi-label {
         color: #6c757d;
         font-size: 0.875rem;
@@ -95,12 +102,12 @@
         font-size: 0.75rem;
         font-weight: 600;
     }
-    .status-draft { background: #e9ecef; color: #495057; }
-    .status-sent { background: #cfe2ff; color: #084298; }
-    .status-accepted { background: #d1e7dd; color: #0f5132; }
-    .status-paid { background: #d1e7dd; color: #0f5132; }
-    .status-overdue { background: #f8d7da; color: #842029; }
-    .status-completed { background: #d1e7dd; color: #0f5132; }
+    .status-draft { background: var(--ne-gray-100); color: var(--ne-gray-800); }
+    .status-sent { background: var(--ne-blue-100); color: var(--ne-blue-900); }
+    .status-accepted { background: #dcfce7; color: #166534; }
+    .status-paid { background: #dcfce7; color: #166534; }
+    .status-overdue { background: #fee2e2; color: #991b1b; }
+    .status-completed { background: #dcfce7; color: #166534; }
 </style>
 {% endblock %}
 

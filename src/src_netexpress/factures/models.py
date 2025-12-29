@@ -116,30 +116,6 @@ class Invoice(models.Model):
                 self.number = f"{prefix}{counter + 1:03d}"
         super().save(*args, **kwargs)
 
-    @classmethod
-    def create_from_quote(cls, quote: "devis.Quote") -> "Invoice":
-        """
-        Crée une facture à partir d'un devis.
-        """
-        from django.db import transaction
-        from .models import InvoiceItem
-        with transaction.atomic():
-            invoice = cls.objects.create(quote=quote, issue_date=date.today())
-            try:
-                quote_items = quote.items.all()
-            except Exception:
-                quote_items = []
-            for item in quote_items:
-                InvoiceItem.objects.create(
-                    invoice=invoice,
-                    description=getattr(item, "description", ""),
-                    quantity=getattr(item, "quantity", 1),
-                    unit_price=getattr(item, "unit_price", Decimal("0.00")),
-                    tax_rate=getattr(item, "tax_rate", Decimal("0.00")),
-                )
-            invoice.compute_totals()
-        return invoice
-
     def compute_totals(self):
         """
         Calcule les totaux HT, TVA et TTC.
@@ -169,15 +145,10 @@ class Invoice(models.Model):
 
     def generate_pdf(self, attach: bool = True) -> bytes:
         """
-        Génère le PDF de la facture via InvoicePdfService.
+        Génère le PDF de la facture via DocumentGenerator.
         """
-        from core.services.pdf_service import InvoicePdfService
-        service = InvoicePdfService()
-        pdf_file = service.generate(self)
-        pdf_bytes = pdf_file.content
-        if attach:
-            self.pdf.save(pdf_file.filename, ContentFile(pdf_bytes), save=True)
-        return pdf_bytes
+        from core.services.document_generator import DocumentGenerator
+        return DocumentGenerator.generate_invoice_pdf(self, attach=attach)
 
 
 class InvoiceItem(models.Model):

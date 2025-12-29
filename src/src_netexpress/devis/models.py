@@ -288,66 +288,15 @@ class Quote(models.Model):
             pass
 
         from django.core.files.base import ContentFile
-        from core.services.pdf_generator import render_quote_pdf
+        from core.services.document_generator import DocumentGenerator
 
-        pdf_res = render_quote_pdf(self)
-        pdf_bytes = pdf_res.content
-        if attach:
-            # Écrase / met à jour le PDF à chaque génération
-            self.pdf.save(pdf_res.filename, ContentFile(pdf_bytes), save=True)
-        return pdf_bytes
+        return DocumentGenerator.generate_quote_pdf(self, attach=attach)
 
     def convert_to_invoice(self):
-        """Convertit ce devis en facture en réutilisant les mêmes lignes.
-
-        - Crée une ``factures.Invoice`` liée à ce devis.
-        - Copie les lignes en ``InvoiceItem``.
-        - Recalcule les totaux de la facture.
-        - Met à jour le statut du devis.
-        """
-        from decimal import Decimal
-        from factures.models import Invoice, InvoiceItem
-
-        # Assure des totaux cohérents sur le devis avant conversion
-        try:
-            self.compute_totals()
-        except Exception:
-            pass
-
-        invoice = Invoice.objects.create(
-            quote=self,
-            issue_date=self.issue_date,
-            status=Invoice.InvoiceStatus.DRAFT,
-            notes=getattr(self, "notes", "") or "",
-            payment_terms="",
-        )
-
-        for it in self.quote_items.all():
-            # InvoiceItem.quantity est un int -> arrondi "pro" (min 1)
-            try:
-                qty = int(Decimal(str(it.quantity)).quantize(Decimal("1")))
-            except Exception:
-                qty = 1
-            qty = max(qty, 1)
-            desc = (it.description or "").strip()
-            if not desc and it.service:
-                desc = getattr(it.service, "name", None) or getattr(it.service, "title", None) or str(it.service)
-
-            InvoiceItem.objects.create(
-                invoice=invoice,
-                description=desc,
-                quantity=qty,
-                unit_price=it.unit_price,
-                tax_rate=it.tax_rate,
-            )
-
-        # Recalcule les totaux côté facture
-        if hasattr(invoice, "compute_totals"):
-            invoice.compute_totals()
-
-        self.status = self.QuoteStatus.INVOICED
-        self.save(update_fields=["status"])
-        return invoice
+        """Convertit ce devis en facture en utilisant le service dédié."""
+        from .services import create_invoice_from_quote
+        result = create_invoice_from_quote(self)
+        return result.invoice
 
     def send_email(self, request=None, *, force_pdf: bool = True):
         """Envoie au client un email premium avec le PDF en pièce jointe."""

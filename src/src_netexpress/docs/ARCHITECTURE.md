@@ -35,7 +35,7 @@ netexpress/
 ├── messaging/         # Système de messagerie interne
 ├── services/          # Catalogue de services
 ├── contact/           # Formulaire de contact public
-└── hexcore/           # Architecture hexagonale (facturation) - expérimental
+└── netexpress/         # Configuration projet (settings, urls, wsgi/asgi)
 ```
 
 ### 2.2 Applications et responsabilités
@@ -194,19 +194,10 @@ factures/services/           # Logique métier factures
 tasks/services.py            # Logique métier tâches
 ```
 
-### 5.2 Architecture hexagonale (expérimental)
+### 5.2 Note sur l'historique "hexcore"
 
-Le module `hexcore/` implémente une architecture hexagonale pour la facturation :
-
-```
-hexcore/
-├── domain/          # Entités métier pures (Invoice, InvoiceItem)
-├── ports/           # Interfaces (InvoiceRepository, PdfGenerator)
-└── services/        # Services applicatifs (InvoiceService)
-```
-
-**État actuel** : Expérimental, non complètement intégré.  
-**Recommandation** : Évaluer l'utilité avant généralisation.
+Une couche expérimentale type "hexagonale" (`hexcore/`) a été évoquée dans la documentation historique,
+mais **elle n'existe pas dans le code actuel** (rationalisation vers une approche Django simple).
 
 ---
 
@@ -310,18 +301,15 @@ netexpress/settings/
 
 ## 11. Points d'attention architecturaux
 
-### 11.1 Architecture hexagonale partielle
+### 11.1 Alignement documentation ↔ code
 
-**Problème** : Le module `hexcore/` n'est pas complètement intégré.  
-**Recommandation** : 
-- Soit compléter l'intégration
-- Soit supprimer si non utilisé
-- Ne pas créer de nouvelles fonctionnalités avec cette approche sans validation
+**Constat** : certaines références historiques (ex: `hexcore/`) ne correspondent plus au code actuel.  
+**Action** : la documentation doit refléter l'état réel (ERP Django léger + couche services).
 
 ### 11.2 Duplication de code
 
-**Problème** : Certaines fonctionnalités sont dupliquées (ex: `middleware.py` vs `middleware_v2.py`).  
-**Recommandation** : Nettoyer les fichiers obsolètes après migration complète.
+**Constat** : la documentation historique mentionne des fichiers `_v2` (ex: `middleware_v2.py`) qui **n'existent pas**.  
+**Action** : standardiser l'emplacement des services et conserver une seule implémentation par responsabilité.
 
 ### 11.3 Services dispersés
 
@@ -334,9 +322,9 @@ netexpress/settings/
 
 ### 12.1 Court terme
 
-- Finalisation de la migration vers `middleware_v2.py`
-- Nettoyage des fichiers obsolètes
-- Documentation des APIs internes
+- Standardiser les utilitaires de routing/roles (source de vérité)
+- Nettoyage des références doc obsolètes
+- Documentation minimale des APIs internes
 
 ### 12.2 Moyen terme
 

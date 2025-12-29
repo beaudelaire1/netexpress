@@ -625,14 +625,23 @@ class TestCrossPortalIntegration(BaseWorkflowTest):
         ).first()
         self.assertIsNotNone(worker_session, "Worker session should be tracked")
         
-        # Test admin session tracking
-        self.test_client.login(username='admin', password='testpass123')
+        # Test admin business session tracking (/admin-dashboard/)
+        admin_business_user = User.objects.create_user(
+            username='admin_business',
+            email='admin_business@test.com',
+            password='testpass123',
+            is_staff=True
+        )
+        admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
+        admin_business_user.profile.save()
+
+        self.test_client.login(username='admin_business', password='testpass123')
         response = self.test_client.get('/admin-dashboard/')
         self.assertEqual(response.status_code, 200)
         
         # Verify session was created
         admin_session = PortalSession.objects.filter(
-            user=self.admin_user,
+            user=admin_business_user,
             portal_type='admin'
         ).first()
         self.assertIsNotNone(admin_session, "Admin session should be tracked")

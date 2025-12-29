@@ -60,9 +60,18 @@ class TestPortalURLPatterns(TestCase):
         self.worker_user.profile.role = Profile.ROLE_WORKER
         self.worker_user.profile.save()
         
-        self.admin_user = User.objects.create_user(
-            username='admin_test',
-            email='admin@test.com',
+        self.admin_business_user = User.objects.create_user(
+            username='admin_business_test',
+            email='admin_business@test.com',
+            password='testpass123',
+            is_staff=True
+        )
+        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
+        self.admin_business_user.profile.save()
+
+        self.admin_technical_user = User.objects.create_user(
+            username='admin_technical_test',
+            email='admin_technical@test.com',
             password='testpass123',
             is_staff=True,
             is_superuser=True
@@ -142,7 +151,7 @@ class TestPortalURLPatterns(TestCase):
         Test that admin portal URLs are accessible to admin users.
         **Requirements: 1.1, 1.2**
         """
-        self.client.force_login(self.admin_user)
+        self.client.force_login(self.admin_business_user)
         
         # Test main admin portal URLs
         admin_urls = [
@@ -167,6 +176,14 @@ class TestPortalURLPatterns(TestCase):
                     else:
                         # Re-raise other exceptions
                         raise
+
+    def test_technical_admin_gestion_url_patterns(self):
+        """
+        Test that technical admins (superusers) are redirected to /gestion/.
+        """
+        self.client.force_login(self.admin_technical_user)
+        response = self.client.get('/gestion/')
+        self.assertIn(response.status_code, [200, 302])
     
     def test_cross_portal_access_denied(self):
         """
@@ -190,6 +207,12 @@ class TestPortalURLPatterns(TestCase):
         response = self.client.get('/admin-dashboard/')
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.startswith('/client/'))
+
+        # Admin business trying to access client portal -> redirected to admin dashboard
+        self.client.force_login(self.admin_business_user)
+        response = self.client.get('/client/')
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('/admin-dashboard/'))
     
     def test_anonymous_user_redirects(self):
         """
@@ -233,11 +256,21 @@ class TestRedirectLogic(TestCase):
         self.worker_user.profile.role = Profile.ROLE_WORKER
         self.worker_user.profile.save()
         
-        self.admin_user = User.objects.create_user(
-            username='admin_redirect',
-            email='admin@redirect.com',
+        self.admin_business_user = User.objects.create_user(
+            username='admin_business_redirect',
+            email='admin_business@redirect.com',
             password='testpass123',
             is_staff=True
+        )
+        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
+        self.admin_business_user.profile.save()
+
+        self.admin_technical_user = User.objects.create_user(
+            username='admin_technical_redirect',
+            email='admin_technical@redirect.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True
         )
     
     def test_get_user_role_function(self):
@@ -253,9 +286,13 @@ class TestRedirectLogic(TestCase):
         role = get_user_role(self.worker_user)
         self.assertEqual(role, 'worker')
         
-        # Test admin role (staff user)
-        role = get_user_role(self.admin_user)
-        self.assertEqual(role, 'admin')
+        # Test admin business role (staff user)
+        role = get_user_role(self.admin_business_user)
+        self.assertEqual(role, 'admin_business')
+
+        # Test admin technical role (superuser)
+        role = get_user_role(self.admin_technical_user)
+        self.assertEqual(role, 'admin_technical')
         
         # Test user without profile (should default to client)
         user_no_profile = User.objects.create_user(
@@ -281,9 +318,13 @@ class TestRedirectLogic(TestCase):
         url = get_portal_home_url(self.worker_user)
         self.assertEqual(url, '/worker/')
         
-        # Test admin portal URL
-        url = get_portal_home_url(self.admin_user)
+        # Test admin business portal URL
+        url = get_portal_home_url(self.admin_business_user)
         self.assertEqual(url, '/admin-dashboard/')
+
+        # Test admin technical portal URL
+        url = get_portal_home_url(self.admin_technical_user)
+        self.assertEqual(url, '/gestion/')
     
     def test_redirect_to_user_portal_function(self):
         """
@@ -300,10 +341,15 @@ class TestRedirectLogic(TestCase):
         self.assertIsInstance(response, HttpResponseRedirect)
         self.assertEqual(response.url, '/worker/')
         
-        # Test admin redirect
-        response = redirect_to_user_portal(self.admin_user)
+        # Test admin business redirect
+        response = redirect_to_user_portal(self.admin_business_user)
         self.assertIsInstance(response, HttpResponseRedirect)
         self.assertEqual(response.url, '/admin-dashboard/')
+
+        # Test admin technical redirect
+        response = redirect_to_user_portal(self.admin_technical_user)
+        self.assertIsInstance(response, HttpResponseRedirect)
+        self.assertEqual(response.url, '/gestion/')
     
     def test_is_portal_url_function(self):
         """
@@ -318,6 +364,8 @@ class TestRedirectLogic(TestCase):
             '/worker/tasks/',
             '/admin-dashboard/',
             '/admin-dashboard/planning/',
+            '/gestion/',
+            '/gestion/auth/user/',
         ]
         
         for url in portal_urls:
@@ -354,11 +402,17 @@ class TestRedirectLogic(TestCase):
             with self.subTest(url=url):
                 self.assertEqual(get_portal_type_from_url(url), 'worker')
         
-        # Test admin portal URLs
+        # Test admin dashboard URLs
         admin_urls = ['/admin-dashboard/', '/admin-dashboard/planning/']
         for url in admin_urls:
             with self.subTest(url=url):
-                self.assertEqual(get_portal_type_from_url(url), 'admin')
+                self.assertEqual(get_portal_type_from_url(url), 'admin_dashboard')
+
+        # Test gestion URLs
+        gestion_urls = ['/gestion/', '/gestion/auth/user/']
+        for url in gestion_urls:
+            with self.subTest(url=url):
+                self.assertEqual(get_portal_type_from_url(url), 'gestion')
         
         # Test non-portal URLs
         non_portal_urls = ['/', '/accounts/login/', '/services/']
@@ -374,17 +428,24 @@ class TestRedirectLogic(TestCase):
         # Test client access
         self.assertTrue(user_can_access_portal(self.client_user, 'client'))
         self.assertFalse(user_can_access_portal(self.client_user, 'worker'))
-        self.assertFalse(user_can_access_portal(self.client_user, 'admin'))
+        self.assertFalse(user_can_access_portal(self.client_user, 'admin_dashboard'))
+        self.assertFalse(user_can_access_portal(self.client_user, 'gestion'))
         
         # Test worker access
         self.assertFalse(user_can_access_portal(self.worker_user, 'client'))
         self.assertTrue(user_can_access_portal(self.worker_user, 'worker'))
-        self.assertFalse(user_can_access_portal(self.worker_user, 'admin'))
+        self.assertFalse(user_can_access_portal(self.worker_user, 'admin_dashboard'))
+        self.assertFalse(user_can_access_portal(self.worker_user, 'gestion'))
         
-        # Test admin access (staff can access all portals)
-        self.assertTrue(user_can_access_portal(self.admin_user, 'client'))
-        self.assertTrue(user_can_access_portal(self.admin_user, 'worker'))
-        self.assertTrue(user_can_access_portal(self.admin_user, 'admin'))
+        # Test admin business access (admin dashboard + gestion)
+        self.assertFalse(user_can_access_portal(self.admin_business_user, 'client'))
+        self.assertFalse(user_can_access_portal(self.admin_business_user, 'worker'))
+        self.assertTrue(user_can_access_portal(self.admin_business_user, 'admin_dashboard'))
+        self.assertTrue(user_can_access_portal(self.admin_business_user, 'gestion'))
+
+        # Test admin technical access (gestion only)
+        self.assertFalse(user_can_access_portal(self.admin_technical_user, 'admin_dashboard'))
+        self.assertTrue(user_can_access_portal(self.admin_technical_user, 'gestion'))
     
     def test_validate_portal_access_function(self):
         """
@@ -452,11 +513,21 @@ class TestPortalRouter(TestCase):
         self.worker_user.profile.role = Profile.ROLE_WORKER
         self.worker_user.profile.save()
         
-        self.admin_user = User.objects.create_user(
-            username='admin_router',
-            email='admin@router.com',
+        self.admin_business_user = User.objects.create_user(
+            username='admin_business_router',
+            email='admin_business@router.com',
             password='testpass123',
             is_staff=True
+        )
+        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
+        self.admin_business_user.profile.save()
+
+        self.admin_technical_user = User.objects.create_user(
+            username='admin_technical_router',
+            email='admin_technical@router.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True
         )
     
     def test_portal_router_initialization(self):
@@ -472,9 +543,13 @@ class TestPortalRouter(TestCase):
         self.assertEqual(router.user, self.worker_user)
         self.assertEqual(router.user_role, 'worker')
         
-        router = PortalRouter(self.admin_user)
-        self.assertEqual(router.user, self.admin_user)
-        self.assertEqual(router.user_role, 'admin')
+        router = PortalRouter(self.admin_business_user)
+        self.assertEqual(router.user, self.admin_business_user)
+        self.assertEqual(router.user_role, 'admin_business')
+
+        router = PortalRouter(self.admin_technical_user)
+        self.assertEqual(router.user, self.admin_technical_user)
+        self.assertEqual(router.user_role, 'admin_technical')
     
     def test_portal_router_get_dashboard_url(self):
         """
@@ -487,8 +562,11 @@ class TestPortalRouter(TestCase):
         worker_router = PortalRouter(self.worker_user)
         self.assertEqual(worker_router.get_dashboard_url(), '/worker/')
         
-        admin_router = PortalRouter(self.admin_user)
+        admin_router = PortalRouter(self.admin_business_user)
         self.assertEqual(admin_router.get_dashboard_url(), '/admin-dashboard/')
+
+        tech_router = PortalRouter(self.admin_technical_user)
+        self.assertEqual(tech_router.get_dashboard_url(), '/gestion/')
     
     def test_portal_router_get_messages_url(self):
         """
@@ -501,8 +579,11 @@ class TestPortalRouter(TestCase):
         worker_router = PortalRouter(self.worker_user)
         self.assertEqual(worker_router.get_messages_url(), '/worker/messages/')
         
-        admin_router = PortalRouter(self.admin_user)
+        admin_router = PortalRouter(self.admin_business_user)
         self.assertEqual(admin_router.get_messages_url(), '/admin-dashboard/messages/')
+
+        tech_router = PortalRouter(self.admin_technical_user)
+        self.assertEqual(tech_router.get_messages_url(), '/gestion/')
     
     def test_portal_router_can_access_url(self):
         """
@@ -517,10 +598,15 @@ class TestPortalRouter(TestCase):
         self.assertTrue(worker_router.can_access_url('/worker/'))
         self.assertFalse(worker_router.can_access_url('/client/'))
         
-        admin_router = PortalRouter(self.admin_user)
-        self.assertTrue(admin_router.can_access_url('/client/'))
-        self.assertTrue(admin_router.can_access_url('/worker/'))
+        admin_router = PortalRouter(self.admin_business_user)
+        self.assertFalse(admin_router.can_access_url('/client/'))
+        self.assertFalse(admin_router.can_access_url('/worker/'))
         self.assertTrue(admin_router.can_access_url('/admin-dashboard/'))
+        self.assertTrue(admin_router.can_access_url('/gestion/'))
+
+        tech_router = PortalRouter(self.admin_technical_user)
+        self.assertFalse(tech_router.can_access_url('/admin-dashboard/'))
+        self.assertTrue(tech_router.can_access_url('/gestion/'))
 
 
 class TestAccessControlDecorators(TestCase):
@@ -547,12 +633,14 @@ class TestAccessControlDecorators(TestCase):
         self.worker_user.profile.role = Profile.ROLE_WORKER
         self.worker_user.profile.save()
         
-        self.admin_user = User.objects.create_user(
-            username='admin_decorator',
-            email='admin@decorator.com',
+        self.admin_business_user = User.objects.create_user(
+            username='admin_business_decorator',
+            email='admin_business@decorator.com',
             password='testpass123',
             is_staff=True
         )
+        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
+        self.admin_business_user.profile.save()
         
         # Create mock views for testing decorators
         @client_portal_required
@@ -600,12 +688,12 @@ class TestAccessControlDecorators(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/worker/')
         
-        # Test admin user access (should work - staff can access all)
+        # Test admin business user access (should redirect)
         request = self.factory.get('/client/test/')
-        request.user = self.admin_user
+        request.user = self.admin_business_user
         response = self.mock_client_view(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"Client View")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin-dashboard/')
     
     def test_worker_portal_required_decorator(self):
         """
@@ -626,21 +714,21 @@ class TestAccessControlDecorators(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/client/')
         
-        # Test admin user access (should work - staff can access all)
+        # Test admin business user access (should redirect)
         request = self.factory.get('/worker/test/')
-        request.user = self.admin_user
+        request.user = self.admin_business_user
         response = self.mock_worker_view(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"Worker View")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin-dashboard/')
     
     def test_admin_portal_required_decorator(self):
         """
         Test admin_portal_required decorator.
         **Requirements: 1.2, 1.3**
         """
-        # Test admin user access (should work)
+        # Test admin business user access (should work)
         request = self.factory.get('/admin-dashboard/test/')
-        request.user = self.admin_user
+        request.user = self.admin_business_user
         response = self.mock_admin_view(request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"Admin View")
@@ -678,12 +766,12 @@ class TestAccessControlDecorators(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"Multi Role View")
         
-        # Test admin user access (should work - staff can access all)
+        # Test admin business user access (should redirect - role not allowed)
         request = self.factory.get('/multi/test/')
-        request.user = self.admin_user
+        request.user = self.admin_business_user
         response = self.mock_multi_role_view(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"Multi Role View")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin-dashboard/')
     
     def test_ajax_portal_access_required_decorator(self):
         """

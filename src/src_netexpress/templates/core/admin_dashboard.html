@@ -40,7 +40,7 @@
           <p class="text-gray-600 mt-1">Vue d'ensemble des performances et KPIs en temps réel</p>
         </div>
         <div class="flex items-center space-x-4">
-          <button onclick="location.reload()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg">
+          <button onclick="location.reload()" class="px-4 py-2 bg-ne-primary-600 text-white rounded-lg hover:bg-ne-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
             <i class="fas fa-sync-alt mr-2"></i>Actualiser
           </button>
           <div class="text-sm text-gray-500">
@@ -127,7 +127,9 @@
           <h2 class="text-xl font-bold text-gray-900">Évolution du Chiffre d'Affaires</h2>
           <span class="text-sm text-gray-500">6 derniers mois</span>
         </div>
-        <canvas id="revenueChart" height="100"></canvas>
+        <div class="relative h-64">
+          <canvas id="revenueChart"></canvas>
+        </div>
       </div>
 
       <!-- Status Distribution Chart -->
@@ -136,7 +138,9 @@
           <h2 class="text-xl font-bold text-gray-900">Répartition des Statuts</h2>
           <span class="text-sm text-gray-500">Vue d'ensemble</span>
         </div>
-        <canvas id="statusChart" height="100"></canvas>
+        <div class="relative h-64">
+          <canvas id="statusChart"></canvas>
+        </div>
       </div>
     </div>
 
@@ -237,7 +241,9 @@
           <h2 class="text-lg font-bold text-gray-900">Statut des Devis</h2>
         </div>
         <div class="px-6 py-4">
-          <canvas id="quoteStatusChart" height="200"></canvas>
+          <div class="relative h-48 mx-auto" style="max-width: 200px;">
+            <canvas id="quoteStatusChart"></canvas>
+          </div>
           <div class="mt-4 space-y-2">
             <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
               <div class="flex items-center">
@@ -277,7 +283,9 @@
           <h2 class="text-lg font-bold text-gray-900">Statut des Factures</h2>
         </div>
         <div class="px-6 py-4">
-          <canvas id="invoiceStatusChart" height="200"></canvas>
+          <div class="relative h-48 mx-auto" style="max-width: 200px;">
+            <canvas id="invoiceStatusChart"></canvas>
+          </div>
           <div class="mt-4 space-y-2">
             <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
               <div class="flex items-center">
@@ -317,7 +325,9 @@
           <h2 class="text-lg font-bold text-gray-900">Statut des Tâches</h2>
         </div>
         <div class="px-6 py-4">
-          <canvas id="taskStatusChart" height="200"></canvas>
+          <div class="relative h-48 mx-auto" style="max-width: 200px;">
+            <canvas id="taskStatusChart"></canvas>
+          </div>
           <div class="mt-4 space-y-2">
             <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
               <div class="flex items-center">
@@ -753,19 +763,18 @@
 </script>
 
 <script>
-  // Animation au chargement
+  // Animation au chargement des cartes KPI
   document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.transform');
+    // Sélectionner uniquement les cartes KPI (éviter l'indicateur HTMX)
+    const cards = document.querySelectorAll('.grid .transform.hover\\:scale-105');
     cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      card.style.transition = 'all 0.5s ease';
       setTimeout(() => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.5s ease';
-        setTimeout(() => {
-          card.style.opacity = '1';
-          card.style.transform = 'translateY(0)';
-        }, 50);
-      }, index * 100);
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100 + 50);
     });
   });
 </script>

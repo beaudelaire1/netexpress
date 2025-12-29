@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\domain\status.py
+# hypothesis_version: 6.148.7
+
+['almost_overdue', 'in_progress', 'overdue', 'upcoming']

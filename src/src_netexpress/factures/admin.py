@@ -14,7 +14,7 @@ from ckeditor.widgets import CKEditorWidget
 import os
 from django.urls import reverse
 
-from .models import Invoice, InvoiceItem, _get_branding
+from .models import Invoice, InvoiceItem
 from core.services.email_service import PremiumEmailService
 
 

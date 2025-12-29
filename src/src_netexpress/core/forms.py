@@ -1,9 +1,11 @@
 """Forms for admin portal functionality."""
 
+from decimal import Decimal
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
-from devis.models import Quote, Client
+from django.forms import inlineformset_factory
+from devis.models import Quote, QuoteItem, Client
 from factures.models import Invoice
 from tasks.models import Task
 from services.models import Service
@@ -123,33 +125,95 @@ class ClientCreationForm(forms.ModelForm):
 
 
 class QuoteCreationForm(forms.ModelForm):
-    """Form for creating quotes in admin portal."""
+    """Form for creating quotes in admin portal - like Django Admin."""
     
     class Meta:
         model = Quote
-        fields = ['client', 'service', 'message', 'notes', 'valid_until']
+        fields = ['client', 'status', 'issue_date', 'valid_until', 'message', 'notes']
         widgets = {
             'client': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
             }),
-            'service': forms.Select(attrs={
+            'status': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
             }),
-            'message': forms.Textarea(attrs={
+            'issue_date': forms.DateInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-                'rows': 4,
-                'placeholder': 'Message pour le client...'
-            }),
-            'notes': forms.Textarea(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-                'rows': 3,
-                'placeholder': 'Notes internes (optionnel)...'
+                'type': 'date'
             }),
             'valid_until': forms.DateInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
                 'type': 'date'
             }),
+            'message': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'rows': 3,
+                'placeholder': 'Message pour le client...'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'rows': 2,
+                'placeholder': 'Notes internes (optionnel)...'
+            }),
         }
+
+
+class QuoteItemForm(forms.ModelForm):
+    """Form for a single quote line item."""
+    
+    class Meta:
+        model = QuoteItem
+        fields = ['service', 'description', 'quantity', 'unit_price', 'tax_rate']
+        widgets = {
+            'service': forms.Select(attrs={
+                'class': 'w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 service-select',
+            }),
+            'description': forms.TextInput(attrs={
+                'class': 'w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500',
+                'placeholder': 'Description de la ligne...'
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input',
+                'step': '0.01',
+                'min': '0.01',
+                'value': '1.00'
+            }),
+            'unit_price': forms.NumberInput(attrs={
+                'class': 'w-24 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right price-input',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': '0.00'
+            }),
+            'tax_rate': forms.NumberInput(attrs={
+                'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input',
+                'step': '0.01',
+                'value': '20.00'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['service'].queryset = Service.objects.filter(is_active=True).order_by('title')
+        self.fields['service'].required = False
+        self.fields['service'].empty_label = "-- Libre --"
+        self.fields['description'].required = True
+        # Set default values
+        if not self.initial.get('quantity'):
+            self.initial['quantity'] = Decimal('1.00')
+        if not self.initial.get('tax_rate'):
+            self.initial['tax_rate'] = Decimal('20.00')
+
+
+# Formset for quote items - like Django Admin TabularInline
+QuoteItemFormset = inlineformset_factory(
+    Quote,
+    QuoteItem,
+    form=QuoteItemForm,
+    extra=3,  # Show 3 empty lines by default
+    can_delete=True,
+    min_num=0,
+    validate_min=False,
+)
 
 
 class TaskCreationForm(forms.ModelForm):

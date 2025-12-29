@@ -2,14 +2,18 @@
 Middleware d'accès NetExpress - Gestion des rôles, sessions et audit.
 """
 
+from .portal import get_user_role, get_portal_home_url
+import logging
+import re
+
+from django.contrib import messages
+from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth.models import AnonymousUser
-from django.http import HttpResponseForbidden
-from django.contrib import messages
-import re
-import logging
+
+from .portal import get_portal_home_url, get_user_role
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +47,7 @@ class RoleBasedAccessMiddleware:
             '/accounts/logout/',
             '/accounts/signup/',
             '/accounts/password-setup/',
+            '/gestion/logout/',  # Django Admin logout
             '/contact/',
             '/services/',
             '/devis/',
@@ -111,11 +116,15 @@ class RoleBasedAccessMiddleware:
         """Vérifier l'accès aux portails selon les rôles."""
         path = request.path
         user = request.user
-        user_role = self._get_user_role(user)
+        user_role = get_user_role(user)
         
-        # 1. Superuser/Admin technical -> /gestion/
+        # 1. Superuser ou Admin technical -> accès à /gestion/ ET /admin-dashboard/
         if user.is_superuser or user_role == 'admin_technical':
-            if not self.portal_patterns['gestion'].match(path):
+            # Permettre l'accès à /gestion/ et /admin-dashboard/
+            if self.portal_patterns['gestion'].match(path) or self.portal_patterns['admin_dashboard'].match(path):
+                return None
+            # Bloquer l'accès aux portails client/worker
+            if any(self.portal_patterns[p].match(path) for p in ['client', 'worker']):
                 return redirect('/gestion/')
             return None
         
@@ -135,35 +144,17 @@ class RoleBasedAccessMiddleware:
         # 3. Worker -> /worker/
         if user_role == 'worker':
             if not self.portal_patterns['worker'].match(path):
-                return redirect('/worker/')
+                return redirect(get_portal_home_url(user))
             return None
         
         # 4. Client -> /client/
         if user_role == 'client':
             if not self.portal_patterns['client'].match(path):
-                return redirect('/client/')
+                return redirect(get_portal_home_url(user))
             return None
         
         return None
     
-    def _get_user_role(self, user):
-        """Récupérer le rôle utilisateur."""
-        if user.is_superuser:
-            return 'admin_technical'
-        
-        try:
-            if hasattr(user, 'profile') and user.profile:
-                return user.profile.role
-        except Exception:
-            pass
-        
-        # Fallbacks
-        if user.is_staff:
-            return 'admin_business'
-        if user.groups.filter(name='Workers').exists():
-            return 'worker'
-        return 'client'
-
     def _update_user_activity(self, request):
         """Mettre à jour la date de dernière activité."""
         try:
@@ -220,14 +211,4 @@ class SecurityAuditMiddleware:
 # Helpers
 def get_user_portal_redirect_url(user):
     """URL de redirection selon le rôle."""
-    if user.is_superuser: return '/gestion/'
-    try:
-        role = user.profile.role
-        return {
-            'admin_technical': '/gestion/',
-            'admin_business': '/admin-dashboard/',
-            'worker': '/worker/',
-            'client': '/client/',
-        }.get(role, '/client/')
-    except Exception:
-        return '/client/'
+    return get_portal_home_url(user)

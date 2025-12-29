@@ -1,30 +1,55 @@
-/* 
+/*
  * Jazzmin Admin Theme Overrides
- * Utilise la couleur principale du thème Nettoyage Express: #0f6b4c
- * Version corrigée pour la lisibilité et le fonctionnement des formulaires
+ * Palette conforme à la charte NetExpress (vert #0e6a4c) + lisibilité accrue
  */
 
 /* Variables CSS pour les couleurs du thème */
 :root {
-  /* Couleur principale du site */
-  --ne-primary: #0f6b4c;
-  
-  /* Palette dérivée de la couleur principale */
-  --ne-primary-50: #f0fdf7;
-  --ne-primary-100: #dcfce8;
-  --ne-primary-200: #bbf7d1;
-  --ne-primary-300: #86efac;
-  --ne-primary-400: #4ade80;
-  --ne-primary-500: #22c55e;
-  --ne-primary-600: #0f6b4c;  /* Couleur principale */
-  --ne-primary-700: #0d5940;  /* Plus sombre */
-  --ne-primary-800: #0a4734;  /* Encore plus sombre */
-  --ne-primary-900: #083528;  /* Le plus sombre */
-  
-  /* Couleurs dérivées pour les variations */
-  --ne-hover: #0d5940;
-  --ne-active: #0a4734;
-  --ne-light: #f0fdf7;
+  /* Palette principale vert NetExpress (#0e6a4c) */
+  --ne-blue-50: #f0fdf7;
+  --ne-blue-100: #d9f3e7;
+  --ne-blue-200: #b3e7cf;
+  --ne-blue-300: #8bdab6;
+  --ne-blue-400: #63ce9e;
+  --ne-blue-500: #3bc287;
+  --ne-blue-600: #0e6a4c;
+  --ne-blue-700: #0b563d;
+  --ne-blue-800: #09422f;
+  --ne-blue-900: #062d21;
+  --ne-blue-950: #041b15;
+
+  --ne-primary: var(--ne-blue-600);
+  --ne-primary-50: var(--ne-blue-50);
+  --ne-primary-100: var(--ne-blue-100);
+  --ne-primary-200: var(--ne-blue-200);
+  --ne-primary-300: var(--ne-blue-300);
+  --ne-primary-400: var(--ne-blue-400);
+  --ne-primary-500: var(--ne-blue-500);
+  --ne-primary-600: var(--ne-blue-600);
+  --ne-primary-700: var(--ne-blue-700);
+  --ne-primary-800: var(--ne-blue-800);
+  --ne-primary-900: var(--ne-blue-900);
+  --ne-primary-950: var(--ne-blue-950);
+
+  /* Couleurs sémantiques de la charte */
+  --ne-success: #22c55e;
+  --ne-warning: #f59e0b;
+  --ne-error: #ef4444;
+  --ne-info: #0ea5e9;
+
+  /* Neutres */
+  --ne-gray-50: #f9fafb;
+  --ne-gray-100: #f3f4f6;
+  --ne-gray-500: #6b7280;
+  --ne-gray-800: #1f2937;
+
+  /* Variations */
+  --ne-hover: var(--ne-blue-700);
+  --ne-active: var(--ne-blue-800);
+  --ne-light: var(--ne-blue-50);
+
+  /* Typo */
+  --ne-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 /* Navigation principale */
@@ -111,14 +136,14 @@
 
 /* CORRECTION: Boutons success */
 .btn-success {
-  background-color: var(--ne-primary) !important;
-  border-color: var(--ne-primary) !important;
+  background-color: var(--ne-success) !important;
+  border-color: var(--ne-success) !important;
   color: white !important;
 }
 
 .btn-success:hover {
-  background-color: var(--ne-hover) !important;
-  border-color: var(--ne-hover) !important;
+  background-color: #16a34a !important;
+  border-color: #16a34a !important;
   color: white !important;
 }
 
@@ -147,8 +172,9 @@ a:hover {
 
 /* CORRECTION: Texte général - Assurer la lisibilité */
 .content-wrapper {
-  background-color: #f8fafc !important;
+  background-color: var(--ne-gray-50) !important;
   color: #333 !important;
+  font-family: var(--ne-font-body);
 }
 
 .content-wrapper h1,
@@ -310,27 +336,27 @@ select.form-control option {
 
 /* CORRECTION: Alerts */
 .alert-success {
-  background-color: var(--ne-primary-100) !important;
-  border-color: var(--ne-primary-300) !important;
-  color: var(--ne-primary-800) !important;
+  background-color: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
 }
 
 .alert-info {
-  background-color: #d1ecf1 !important;
-  border-color: #bee5eb !important;
-  color: #0c5460 !important;
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #0b74b5 !important;
 }
 
 .alert-warning {
-  background-color: #fff3cd !important;
-  border-color: #ffeaa7 !important;
-  color: #856404 !important;
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
 }
 
 .alert-danger {
-  background-color: #f8d7da !important;
-  border-color: #f5c6cb !important;
-  color: #721c24 !important;
+  background-color: #fee2e2 !important;
+  border-color: #fecdd3 !important;
+  color: #991b1b !important;
 }
 
 /* CORRECTION: Dropdown menus */
@@ -418,7 +444,7 @@ select.form-control option {
 }
 
 .small-box.bg-success {
-  background-color: var(--ne-primary) !important;
+  background-color: var(--ne-success) !important;
 }
 
 .small-box .small-box-footer {

@@ -12,11 +12,21 @@ def main():
     except ImportError:
         pass  # En prod (Render), les variables sont déjà injectées
 
-    # Utiliser dev par défaut pour le développement local
-    os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE",
-        os.getenv("DJANGO_SETTINGS_MODULE", "netexpress.settings.dev")
-    )
+    # Choix du settings module par défaut:
+    # - `test` => settings de tests (SQLite in-memory)
+    # - sinon => settings de dev
+    is_test_command = len(sys.argv) > 1 and sys.argv[1] == "test"
+    has_explicit_settings_flag = any(arg.startswith("--settings") for arg in sys.argv)
+
+    # Pour les tests, on force les settings de test (SQLite in-memory) sauf si --settings est explicite.
+    if is_test_command and not has_explicit_settings_flag:
+        os.environ["DJANGO_SETTINGS_MODULE"] = "netexpress.settings.test"
+    else:
+        # Utiliser dev par défaut pour le développement local (sauf override explicite via env/flag)
+        os.environ.setdefault(
+            "DJANGO_SETTINGS_MODULE",
+            os.getenv("DJANGO_SETTINGS_MODULE", "netexpress.settings.dev"),
+        )
 
     # Warning utile: en local, on se retrouve souvent en prod par erreur via variable d'environnement.
     # On n'ecrase rien ici, on alerte juste.

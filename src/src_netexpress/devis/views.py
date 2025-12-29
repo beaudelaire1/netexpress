@@ -10,8 +10,8 @@ from django.views.decorators.http import require_http_methods
 from services.models import Service
 from .forms import QuoteRequestForm, QuoteAdminForm
 from .models import QuoteRequest, Quote, QuoteRequestPhoto, QuoteValidation
-from .quote_to_invoice import QuoteToInvoiceService
-from core.services.pdf_generator import render_quote_pdf
+from .services import create_invoice_from_quote
+from core.services.document_generator import DocumentGenerator
 from .email_service import send_quote_email
 from .forms import QuoteValidationCodeForm
 from devis.application.quote_validation import (
@@ -81,8 +81,7 @@ def admin_quote_edit(request, pk):
         if form.is_valid():
             form.save()
             if action == "generate_pdf":
-                pdf_res = render_quote_pdf(quote)
-                quote.pdf.save(pdf_res.filename, ContentFile(pdf_res.content), save=True)
+                DocumentGenerator.generate_quote_pdf(quote, attach=True)
                 messages.success(request, "PDF généré.")
             elif action == "send_email":
                 if not quote.pdf:
@@ -90,7 +89,8 @@ def admin_quote_edit(request, pk):
                 send_quote_email(quote, request=request)
                 messages.success(request, "Email envoyé.")
             elif action == "convert_invoice":
-                invoice = QuoteToInvoiceService.convert(quote)
+                result = create_invoice_from_quote(quote)
+                invoice = result.invoice
                 messages.success(request, f"Converti en facture : {invoice.number}")
                 return redirect(f"/admin/factures/invoice/{invoice.pk}/change/")
             return redirect("devis:admin_quote_edit", pk=quote.pk)
@@ -153,7 +153,7 @@ def quote_validate_code(request, token: str):
 
     if validation.is_expired:
         messages.error(request, "Ce code a expiré. Merci de relancer une validation.")
-        return render(request, "quotes/validate_expired.html", {"quote": quote})
+        return render(request, "devis/validate_expired.html", {"quote": quote})
 
     if request.method == "POST":
         form = QuoteValidationCodeForm(request.POST)
@@ -163,11 +163,11 @@ def quote_validate_code(request, token: str):
             except QuoteValidationExpiredError:
                 ok = False
                 messages.error(request, "Ce code a expiré. Merci de relancer une validation.")
-                return render(request, "quotes/validate_expired.html", {"quote": quote})
+                return render(request, "devis/validate_expired.html", {"quote": quote})
 
             if ok:
                 messages.success(request, "Merci ! Votre devis est validé.")
-                return render(request, "quotes/validate_success.html", {"quote": quote})
+                return render(request, "devis/validate_success.html", {"quote": quote})
 
             messages.error(request, "Code incorrect. Veuillez réessayer.")
     else:
@@ -175,7 +175,7 @@ def quote_validate_code(request, token: str):
 
     return render(
         request,
-        "quotes/validate_code.html",
+        "devis/validate_code.html",
         {"quote": quote, "form": form, "validation": validation},
     )
 

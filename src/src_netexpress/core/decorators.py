@@ -5,43 +5,13 @@ Décorateurs d'accès pour NetExpress - Contrôle par rôles et permissions.
 from functools import wraps
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect
 from django.contrib import messages
 
-
-def get_user_role(user):
-    """
-    Récupérer le rôle d'un utilisateur avec fallback.
-    """
-    if user.is_superuser:
-        return 'admin_technical'
-    
-    try:
-        if hasattr(user, 'profile') and user.profile:
-            return user.profile.role
-    except Exception:
-        pass
-    
-    if user.is_staff:
-        return 'admin_business'
-    elif user.groups.filter(name='Workers').exists():
-        return 'worker'
-    else:
-        return 'client'
-
+from accounts.portal import get_user_role, redirect_to_user_portal
 
 def redirect_to_appropriate_portal(user):
-    """
-    Rediriger un utilisateur vers son portail approprié.
-    """
-    role = get_user_role(user)
-    portal_urls = {
-        'admin_technical': '/gestion/',
-        'admin_business': '/admin-dashboard/',
-        'worker': '/worker/',
-        'client': '/client/',
-    }
-    return redirect(portal_urls.get(role, '/'))
+    """Compat: redirection vers le portail approprié."""
+    return redirect_to_user_portal(user)
 
 
 def technical_admin_required(view_func):
@@ -49,7 +19,7 @@ def technical_admin_required(view_func):
     @wraps(view_func)
     @login_required
     def wrapper(request, *args, **kwargs):
-        if request.user.is_superuser or get_user_role(request.user) == 'admin_technical':
+        if get_user_role(request.user) == 'admin_technical':
             return view_func(request, *args, **kwargs)
         
         messages.error(request, "Accès réservé aux administrateurs techniques.")
@@ -62,7 +32,7 @@ def business_admin_required(view_func):
     @wraps(view_func)
     @login_required
     def wrapper(request, *args, **kwargs):
-        if request.user.is_superuser or get_user_role(request.user) == 'admin_business':
+        if get_user_role(request.user) == 'admin_business':
             return view_func(request, *args, **kwargs)
         
         messages.error(request, "Accès réservé aux administrateurs business.")
@@ -75,7 +45,7 @@ def client_portal_required(view_func):
     @wraps(view_func)
     @login_required
     def wrapper(request, *args, **kwargs):
-        if request.user.is_superuser or get_user_role(request.user) == 'client':
+        if get_user_role(request.user) == 'client':
             return view_func(request, *args, **kwargs)
         return redirect_to_appropriate_portal(request.user)
     return wrapper
@@ -86,7 +56,7 @@ def worker_portal_required(view_func):
     @wraps(view_func)
     @login_required
     def wrapper(request, *args, **kwargs):
-        if request.user.is_superuser or get_user_role(request.user) == 'worker':
+        if get_user_role(request.user) == 'worker':
             return view_func(request, *args, **kwargs)
         return redirect_to_appropriate_portal(request.user)
     return wrapper
@@ -98,7 +68,7 @@ def role_required(*allowed_roles):
         @wraps(view_func)
         @login_required
         def wrapper(request, *args, **kwargs):
-            if request.user.is_superuser or get_user_role(request.user) in allowed_roles:
+            if get_user_role(request.user) in allowed_roles:
                 return view_func(request, *args, **kwargs)
             
             messages.error(request, f"Accès refusé. Rôles autorisés : {', '.join(allowed_roles)}")
@@ -111,9 +81,6 @@ def user_has_permission(user, permission_codename):
     """
     Vérification simplifiée des permissions basée sur les rôles.
     """
-    if user.is_superuser:
-        return True
-    
     role = get_user_role(user)
     
     # Mapping temporaire rôle -> permissions
@@ -164,10 +131,6 @@ def admin_portal_required(view_func):
     def wrapper(request, *args, **kwargs):
         user = request.user
         
-        # Superusers ont accès pour support/tests
-        if user.is_superuser:
-            return view_func(request, *args, **kwargs)
-        
         # Vérifier le rôle admin_business
         role = get_user_role(user)
         if role == 'admin_business':
@@ -177,3 +140,40 @@ def admin_portal_required(view_func):
         return redirect_to_appropriate_portal(user)
     
     return wrapper
+
+
+def portal_access_required(allowed_roles):
+    """
+    Décorateur générique : accès autorisé si le rôle de l'utilisateur appartient à allowed_roles.
+
+    Exemple: @portal_access_required(['client', 'worker'])
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if get_user_role(request.user) in allowed_roles:
+                return view_func(request, *args, **kwargs)
+            return redirect_to_appropriate_portal(request.user)
+        return wrapper
+    return decorator
+
+
+def ajax_portal_access_required(allowed_roles):
+    """
+    Variante AJAX : renvoie 403 au lieu d'une redirection si la requête est AJAX.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if get_user_role(request.user) in allowed_roles:
+                return view_func(request, *args, **kwargs)
+
+            is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+            if is_ajax:
+                from django.http import HttpResponseForbidden
+                return HttpResponseForbidden("Accès refusé.")
+            return redirect_to_appropriate_portal(request.user)
+        return wrapper
+    return decorator

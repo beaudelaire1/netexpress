@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\application\status.py
+# hypothesis_version: 6.148.7
+
+['completed', 'due_date', 'start_date', 'status']

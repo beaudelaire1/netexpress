@@ -196,6 +196,64 @@ def client_invoice_detail(request, pk):
 
 
 @client_portal_required
+def client_invoice_download(request, pk):
+    """Client Portal invoice PDF download."""
+    from django.http import FileResponse, Http404
+    
+    # Get the invoice and check access
+    invoice = get_object_or_404(Invoice, pk=pk)
+    
+    if not ClientDocumentService.can_access_invoice(request.user, invoice):
+        return TemplateResponse(request, "core/access_denied.html", {"target": "invoice"}, status=403)
+    
+    # Generate PDF if not exists
+    if not invoice.pdf:
+        try:
+            invoice.generate_pdf(attach=True)
+        except Exception:
+            raise Http404("Cette facture n'a pas de PDF et sa génération a échoué.")
+    
+    # Track document access
+    ClientDocumentService.track_document_access(request.user, invoice=invoice)
+    
+    response = FileResponse(
+        invoice.pdf.open("rb"),
+        content_type="application/pdf"
+    )
+    response['Content-Disposition'] = f'inline; filename="facture_{invoice.number}.pdf"'
+    return response
+
+
+@client_portal_required
+def client_quote_download(request, pk):
+    """Client Portal quote PDF download."""
+    from django.http import FileResponse, Http404
+    
+    # Get the quote and check access
+    quote = get_object_or_404(Quote, pk=pk)
+    
+    if not ClientDocumentService.can_access_quote(request.user, quote):
+        return TemplateResponse(request, "core/access_denied.html", {"target": "quote"}, status=403)
+    
+    # Generate PDF if not exists
+    if not quote.pdf:
+        try:
+            quote.generate_pdf(attach=True)
+        except Exception:
+            raise Http404("Ce devis n'a pas de PDF et sa génération a échoué.")
+    
+    # Track document access
+    ClientDocumentService.track_document_access(request.user, quote=quote)
+    
+    response = FileResponse(
+        quote.pdf.open("rb"),
+        content_type="application/pdf"
+    )
+    response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
+    return response
+
+
+@client_portal_required
 def client_quote_validate_start(request, pk):
     """Client Portal quote validation initiation."""
     # Get the quote and check access
@@ -331,7 +389,7 @@ def worker_dashboard(request):
 def admin_dashboard(request):
     """Admin Portal dashboard with KPIs and performance metrics."""
     from decimal import Decimal
-    from django.db.models import Sum, Count, Q, Prefetch
+    from django.db.models import Sum, Count, Q
     from django.utils import timezone
     from datetime import datetime, timedelta
     from django.contrib.auth.models import User
@@ -380,10 +438,10 @@ def admin_dashboard(request):
         overdue_tasks = task_stats['overdue']
         task_completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
         
-        # Worker performance - optimized with prefetch
-        workers = User.objects.filter(groups__name='Workers').prefetch_related(
-            Prefetch('task_set', queryset=Task.objects.all(), to_attr='all_tasks')
-        )
+        # Worker performance
+        # NOTE: Task.assigned_to utilise related_name='assigned_tasks' (pas de 'task_set').
+        # On évite donc un prefetch invalide qui casserait le dashboard.
+        workers = User.objects.filter(groups__name='Workers')
         worker_stats = []
         for worker in workers:
             worker_tasks = Task.objects.filter(assigned_to=worker)
@@ -665,13 +723,43 @@ def admin_global_planning(request):
 def admin_create_worker(request):
     """Admin Portal worker creation view."""
     from .forms import WorkerCreationForm
+    from .services.worker_service import WorkerService
+    from django.core.exceptions import ValidationError
     
     if request.method == 'POST':
         form = WorkerCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            messages.success(request, f"Ouvrier {user.get_full_name()} créé avec succès!")
-            return redirect('core:admin_dashboard')
+            try:
+                # Utiliser le service métier pour créer le worker
+                # Note: On ignore password1/password2 du formulaire, le service génère un mot de passe temporaire
+                worker, temporary_password = WorkerService.create_worker(
+                    email=form.cleaned_data['email'],
+                    first_name=form.cleaned_data['first_name'],
+                    last_name=form.cleaned_data['last_name'],
+                    phone=form.cleaned_data.get('phone', ''),
+                    admin_user=request.user
+                )
+                
+                # Envoyer les identifiants par email
+                email_sent = WorkerService.send_worker_credentials(worker, temporary_password, request)
+                
+                if email_sent:
+                    messages.success(
+                        request,
+                        f"Ouvrier {worker.get_full_name()} créé avec succès! "
+                        f"Les identifiants ont été envoyés par email."
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        f"Ouvrier {worker.get_full_name()} créé avec succès, "
+                        f"mais l'email d'identifiants n'a pas pu être envoyé. "
+                        f"Mot de passe temporaire : {temporary_password}"
+                    )
+                
+                return redirect('core:admin_worker_detail', pk=worker.pk)
+            except ValidationError as e:
+                form.add_error(None, str(e))
     else:
         form = WorkerCreationForm()
     
@@ -682,13 +770,28 @@ def admin_create_worker(request):
 def admin_create_client(request):
     """Admin Portal client creation view."""
     from .forms import ClientCreationForm
+    from .services.client_service import ClientService
+    from django.core.exceptions import ValidationError
     
     if request.method == 'POST':
         form = ClientCreationForm(request.POST)
         if form.is_valid():
-            client = form.save()
-            messages.success(request, f"Client {client.full_name} créé avec succès!")
-            return redirect('core:admin_dashboard')
+            try:
+                # Utiliser le service métier pour créer le client
+                client = ClientService.create_client(
+                    full_name=form.cleaned_data['full_name'],
+                    email=form.cleaned_data['email'],
+                    phone=form.cleaned_data['phone'],
+                    address_line=form.cleaned_data.get('address_line', ''),
+                    city=form.cleaned_data.get('city', ''),
+                    zip_code=form.cleaned_data.get('zip_code', ''),
+                    company=form.cleaned_data.get('company', ''),
+                    link_to_user=False  # Option pour lier à un User existant (futur)
+                )
+                messages.success(request, f"Client {client.full_name} créé avec succès!")
+                return redirect('core:admin_client_detail', pk=client.pk)
+            except ValidationError as e:
+                form.add_error(None, str(e))
     else:
         form = ClientCreationForm()
     
@@ -697,19 +800,77 @@ def admin_create_client(request):
 
 @admin_portal_required
 def admin_create_quote(request):
-    """Admin Portal quote creation view."""
-    from .forms import QuoteCreationForm
+    """Admin Portal quote creation view with inline items (like Django Admin)."""
+    from .forms import QuoteCreationForm, QuoteItemFormset
+    from services.models import Service
+    
+    # Get services for JavaScript autofill (Service model has no price field)
+    services_data = list(Service.objects.filter(is_active=True).values('id', 'title'))
     
     if request.method == 'POST':
         form = QuoteCreationForm(request.POST)
-        if form.is_valid():
+        formset = QuoteItemFormset(request.POST, prefix='items')
+        
+        if form.is_valid() and formset.is_valid():
             quote = form.save()
+            # Save formset items linked to the quote
+            items = formset.save(commit=False)
+            for item in items:
+                item.quote = quote
+                item.save()
+            # Handle deleted items
+            for obj in formset.deleted_objects:
+                obj.delete()
+            # Recalculate totals
+            quote.compute_totals()
             messages.success(request, f"Devis {quote.number} créé avec succès!")
-            return redirect('core:admin_dashboard')
+            return redirect('core:admin_quote_detail', pk=quote.pk)
     else:
         form = QuoteCreationForm()
+        formset = QuoteItemFormset(prefix='items')
     
-    return render(request, 'core/admin_create_quote.html', {'form': form})
+    import json
+    return render(request, 'core/admin_create_quote.html', {
+        'form': form,
+        'formset': formset,
+        'services_json': json.dumps(services_data, default=str),
+    })
+
+
+@admin_portal_required
+def admin_edit_quote(request, pk):
+    """Admin Portal quote editing view with inline items (like Django Admin)."""
+    from .forms import QuoteCreationForm, QuoteItemFormset
+    from services.models import Service
+    from devis.models import Quote
+    
+    quote = get_object_or_404(Quote, pk=pk)
+    
+    # Get services for JavaScript autofill (Service model has no price field)
+    services_data = list(Service.objects.filter(is_active=True).values('id', 'title'))
+    
+    if request.method == 'POST':
+        form = QuoteCreationForm(request.POST, instance=quote)
+        formset = QuoteItemFormset(request.POST, instance=quote, prefix='items')
+        
+        if form.is_valid() and formset.is_valid():
+            quote = form.save()
+            formset.save()
+            # Recalculate totals
+            quote.compute_totals()
+            messages.success(request, f"Devis {quote.number} mis à jour avec succès!")
+            return redirect('core:admin_quote_detail', pk=quote.pk)
+    else:
+        form = QuoteCreationForm(instance=quote)
+        formset = QuoteItemFormset(instance=quote, prefix='items')
+    
+    import json
+    return render(request, 'core/admin_edit_quote.html', {
+        'form': form,
+        'formset': formset,
+        'quote': quote,
+        'services_json': json.dumps(services_data, default=str),
+    })
 
 
 @admin_portal_required
@@ -740,11 +901,11 @@ def admin_workers_list(request):
     
     # Optimize with prefetch and annotations
     workers = workers.prefetch_related(
-        Prefetch('task_set', queryset=Task.objects.all(), to_attr='all_tasks')
+        Prefetch('assigned_tasks', queryset=Task.objects.all(), to_attr='all_tasks')
     ).annotate(
-        total_tasks=Count('task_set'),
-        completed_tasks=Count('task_set', filter=Q(task_set__status=Task.STATUS_COMPLETED)),
-        overdue_tasks=Count('task_set', filter=Q(task_set__status=Task.STATUS_OVERDUE))
+        total_tasks=Count('assigned_tasks'),
+        completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_COMPLETED)),
+        overdue_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_OVERDUE))
     )
     
     # Add task statistics for each worker
@@ -922,6 +1083,210 @@ def admin_send_quote_email(request, pk):
         form = QuoteEmailForm(quote=quote)
     
     return render(request, 'core/admin_send_quote_email.html', {'form': form, 'quote': quote})
+
+
+@admin_portal_required
+def admin_worker_detail(request, pk):
+    """Admin Portal worker detail view."""
+    from django.contrib.auth.models import User
+    from accounts.models import Profile
+    from .services.worker_service import WorkerService
+    
+    worker = get_object_or_404(
+        User.objects.select_related('profile'),
+        pk=pk,
+        profile__role=Profile.ROLE_WORKER
+    )
+    
+    # Récupérer les statistiques du worker
+    stats = WorkerService.get_worker_statistics(worker)
+    
+    # Tâches assignées
+    from tasks.models import Task
+    tasks = Task.objects.filter(assigned_to=worker).select_related().order_by('-due_date', '-created_at')
+    
+    # Tâches par statut
+    tasks_by_status = {
+        'upcoming': tasks.filter(status=Task.STATUS_UPCOMING),
+        'in_progress': tasks.filter(status=Task.STATUS_IN_PROGRESS),
+        'completed': tasks.filter(status=Task.STATUS_COMPLETED)[:10],  # Dernières 10
+        'overdue': tasks.filter(status=Task.STATUS_OVERDUE),
+    }
+    
+    return render(request, 'core/admin_worker_detail.html', {
+        'worker': worker,
+        'stats': stats,
+        'tasks_by_status': tasks_by_status,
+    })
+
+
+@admin_portal_required
+def admin_client_detail(request, pk):
+    """Admin Portal client detail view."""
+    from .services.client_service import ClientService
+    
+    client = get_object_or_404(Client, pk=pk)
+    
+    # Récupérer les statistiques
+    stats = ClientService.get_client_statistics(client)
+    
+    # Historique
+    history = ClientService.get_client_history(client, limit=50)
+    
+    # Devis associés
+    quotes = Quote.objects.filter(client=client).select_related('service').order_by('-issue_date')
+    
+    # Factures associées (via quote)
+    invoices = Invoice.objects.filter(quote__client=client).select_related('quote').order_by('-issue_date')
+    
+    # Vérifier si un User existe avec cet email
+    from django.contrib.auth.models import User
+    user_account = User.objects.filter(email=client.email).first()
+    
+    return render(request, 'core/admin_client_detail.html', {
+        'client': client,
+        'stats': stats,
+        'history': history,
+        'quotes': quotes,
+        'invoices': invoices,
+        'user_account': user_account,
+    })
+
+
+@admin_portal_required
+def admin_quote_detail(request, pk):
+    """Admin Portal quote detail view."""
+    quote = get_object_or_404(
+        Quote.objects.select_related('client', 'service', 'quote_request'),
+        pk=pk
+    )
+    
+    # Lignes du devis
+    quote_items = quote.quote_items.all().select_related('service')
+    
+    # Facture associée (si convertie)
+    invoice = quote.invoices.first() if quote.invoices.exists() else None
+    
+    return render(request, 'core/admin_quote_detail.html', {
+        'quote': quote,
+        'quote_items': quote_items,
+        'invoice': invoice,
+    })
+
+
+@admin_portal_required
+def admin_invoice_detail(request, pk):
+    """Admin Portal invoice detail view."""
+    invoice = get_object_or_404(
+        Invoice.objects.select_related('quote', 'quote__client'),
+        pk=pk
+    )
+    
+    # Lignes de la facture
+    invoice_items = invoice.invoice_items.all()
+    
+    return render(request, 'core/admin_invoice_detail.html', {
+        'invoice': invoice,
+        'invoice_items': invoice_items,
+    })
+
+
+@admin_portal_required
+def admin_task_detail(request, pk):
+    """Admin Portal task detail view."""
+    from tasks.models import Task
+    
+    task = get_object_or_404(
+        Task.objects.select_related('assigned_to', 'completed_by'),
+        pk=pk
+    )
+    
+    return render(request, 'core/admin_task_detail.html', {
+        'task': task,
+    })
+
+
+@admin_portal_required
+def admin_tasks_list(request):
+    """Admin Portal tasks list view."""
+    from tasks.models import Task
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    tasks = Task.objects.select_related('assigned_to').order_by('-due_date', '-created_at')
+    
+    # Filtres
+    status_filter = request.GET.get('status')
+    worker_filter = request.GET.get('worker')
+    search_query = request.GET.get('search')
+    
+    if status_filter:
+        tasks = tasks.filter(status=status_filter)
+    
+    if worker_filter:
+        tasks = tasks.filter(assigned_to_id=worker_filter)
+    
+    if search_query:
+        tasks = tasks.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(location__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(tasks, 25)  # 25 tasks per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Liste des workers pour le filtre
+    from django.contrib.auth.models import User
+    from accounts.models import Profile
+    workers = User.objects.filter(profile__role=Profile.ROLE_WORKER, is_active=True).order_by('first_name', 'last_name')
+    
+    return render(request, 'core/admin_tasks_list.html', {
+        'tasks': page_obj,
+        'page_obj': page_obj,
+        'workers': workers,
+        'status_filter': status_filter,
+        'worker_filter': worker_filter,
+        'search_query': search_query,
+    })
+
+
+@admin_portal_required
+def admin_convert_quote_to_invoice(request, pk):
+    """Admin Portal convert quote to invoice view."""
+    from devis.services import create_invoice_from_quote, QuoteAlreadyInvoicedError, QuoteStatusError
+    from django.http import Http404
+    
+    quote = get_object_or_404(Quote, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            result = create_invoice_from_quote(quote)
+            messages.success(request, f"Facture {result.invoice.number} créée avec succès depuis le devis {quote.number}!")
+            return redirect('core:admin_invoice_detail', pk=result.invoice.pk)
+        except QuoteAlreadyInvoicedError as e:
+            messages.error(request, f"Ce devis a déjà été facturé.")
+            return redirect('core:admin_quote_detail', pk=pk)
+        except QuoteStatusError as e:
+            messages.error(request, f"Ce devis ne peut pas être converti : {str(e)}")
+            return redirect('core:admin_quote_detail', pk=pk)
+    
+    # GET: Afficher confirmation
+    # Vérifier si déjà facturé
+    if quote.invoices.exists():
+        messages.warning(request, "Ce devis a déjà été facturé.")
+        return redirect('core:admin_quote_detail', pk=pk)
+    
+    # Vérifier statut
+    if quote.status != Quote.QuoteStatus.ACCEPTED:
+        messages.error(request, f"Seuls les devis acceptés peuvent être convertis en facture. Statut actuel : {quote.get_status_display()}")
+        return redirect('core:admin_quote_detail', pk=pk)
+    
+    return render(request, 'core/admin_convert_quote_to_invoice.html', {
+        'quote': quote,
+    })
 
 
 # Notification HTMX Views

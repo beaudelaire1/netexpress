@@ -92,11 +92,11 @@ LOGGING = {
 }
 
 # ============================================================
-# 🔥 DEBUG - AFFICHAGE FINAL DE LA CONFIG
+# DEBUG - AFFICHAGE FINAL DE LA CONFIG
 # ============================================================
 
 print("=" * 60)
-print("🛠️  MODE DÉVELOPPEMENT LOCAL ACTIVÉ")
+print("[LOCAL] MODE DEVELOPPEMENT LOCAL ACTIVE")
 print("=" * 60)
 print(f"DEBUG: {DEBUG}")
 print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")

@@ -8,18 +8,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // NetExpress brand colors (green theme)
+        // NetExpress brand colors (green theme #0e6b4c)
         'ne-primary': {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
+          50: '#e6f5f0',
+          100: '#cceae1',
+          200: '#99d5c3',
+          300: '#66c0a5',
+          400: '#33ab87',
+          500: '#0e6b4c',
+          600: '#0c5a40',
+          700: '#0a4934',
+          800: '#083828',
+          900: '#06271c',
         },
         'ne-secondary': {
           50: '#f8fafc',

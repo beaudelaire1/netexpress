@@ -64,7 +64,7 @@
     
     {% if not completed and task.status != 'completed' %}
     <button onclick="openCompletionModal({{ task.pk }}, '{{ task.title|escapejs }}')"
-            class="complete-btn bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            class="complete-btn bg-ne-primary-600 hover:bg-ne-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
       <i class="fas fa-check mr-2"></i>
       <span class="hidden sm:inline">Marquer terminé</span>
       <span class="sm:hidden">Terminé</span>

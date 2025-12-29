@@ -31,16 +31,16 @@
         extend: {
           colors: {
             'ne-primary': {
-              50: '#f0fdf4',
-              100: '#dcfce7',
-              200: '#bbf7d0',
-              300: '#86efac',
-              400: '#4ade80',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-              800: '#166534',
-              900: '#14532d',
+              50: '#e6f5f0',
+              100: '#cceae1',
+              200: '#99d5c3',
+              300: '#66c0a5',
+              400: '#33ab87',
+              500: '#0e6b4c',
+              600: '#0c5a40',
+              700: '#0a4934',
+              800: '#083828',
+              900: '#06271c',
             },
             'ne-secondary': {
               50: '#f8fafc',
@@ -62,13 +62,17 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="{% static 'css/style_v2.css' %}">
+  <style>
+    /* Hide elements with x-cloak until Alpine.js is loaded */
+    [x-cloak] { display: none !important; }
+  </style>
   {% block extra_css %}{% endblock %}
 
   <!-- HTMX -->
-  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <script src="{% static 'vendor/js/htmx.min.js' %}" defer></script>
   
   <!-- Alpine.js for enhanced interactivity -->
-  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="{% static 'vendor/js/alpine.min.js' %}"></script>
 
   <!-- Schema.org LocalBusiness -->
   <script type="application/ld+json">
@@ -92,8 +96,13 @@
 </head>
 <body class="h-full bg-gray-50" x-data="{ mobileMenuOpen: false, notifications: [] }">
   
+  <!-- Skip Link pour accessibilité -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-ne-primary-600 focus:text-white focus:rounded-md">
+    Aller au contenu principal
+  </a>
+  
   <!-- Navigation -->
-  <nav class="portal-nav">
+  <nav class="portal-nav" role="navigation" aria-label="Navigation principale">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex items-center">
@@ -106,8 +115,9 @@
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-4">
+          {% block nav_items %}
           {% if user.is_authenticated %}
-            <!-- Portal-specific navigation -->
+            <!-- Default portal navigation (can be overridden by child templates) -->
             {% if user.is_staff %}
               <a href="/admin-dashboard/" class="portal-nav-item">Dashboard</a>
               <a href="/admin-dashboard/planning/" class="portal-nav-item">Planning</a>
@@ -129,6 +139,7 @@
             <a href="{% url 'contact:contact' %}" class="portal-nav-item">Contact</a>
             <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Devis Express</a>
           {% endif %}
+          {% endblock %}
           
           <!-- User Menu -->
           {% if user.is_authenticated %}
@@ -142,7 +153,9 @@
                 </span>
               </button>
               
-              <div x-show="notificationOpen" @click.away="notificationOpen = false" 
+              <div x-show="notificationOpen" 
+                   x-cloak
+                   @click.outside="notificationOpen = false" 
                    x-transition:enter="transition ease-out duration-100"
                    x-transition:enter-start="transform opacity-0 scale-95"
                    x-transition:enter-end="transform opacity-100 scale-100"
@@ -170,7 +183,9 @@
                 <i class="fas fa-chevron-down text-sm"></i>
               </button>
               
-              <div x-show="userMenuOpen" @click.away="userMenuOpen = false" 
+              <div x-show="userMenuOpen" 
+                   x-cloak
+                   @click.outside="userMenuOpen = false" 
                    x-transition:enter="transition ease-out duration-100"
                    x-transition:enter-start="transform opacity-0 scale-95"
                    x-transition:enter-end="transform opacity-100 scale-100"
@@ -196,18 +211,23 @@
 
         <!-- Mobile menu button -->
         <div class="md:hidden flex items-center">
-          <button @click="mobileMenuOpen = !mobileMenuOpen" class="mobile-menu-button">
-            <i class="fas fa-bars text-xl"></i>
+          <button @click="mobileMenuOpen = !mobileMenuOpen" 
+                  class="mobile-menu-button"
+                  aria-expanded="mobileMenuOpen"
+                  aria-controls="mobile-menu"
+                  aria-label="Ouvrir le menu de navigation">
+            <i class="fas fa-bars text-xl" aria-hidden="true"></i>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Mobile Navigation -->
-    <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" class="mobile-menu">
+    <div id="mobile-menu" x-show="mobileMenuOpen" x-cloak @click.outside="mobileMenuOpen = false" class="mobile-menu" role="menu">
       <div class="px-2 pt-2 pb-3 space-y-1">
+        {% block mobile_nav_items %}
         {% if user.is_authenticated %}
-          <!-- Portal-specific mobile navigation -->
+          <!-- Default portal-specific mobile navigation -->
           {% if user.is_staff %}
             <a href="/admin-dashboard/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Dashboard</a>
             <a href="/admin-dashboard/planning/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Planning</a>
@@ -229,6 +249,7 @@
           <a href="{% url 'contact:contact' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Contact</a>
           <a href="{% url 'devis:request_quote' %}" class="block px-3 py-2 bg-white text-ne-primary-600 rounded-md font-medium">Devis Express</a>
         {% endif %}
+        {% endblock %}
         
         {% if user.is_authenticated %}
           <div class="border-t border-ne-primary-500 pt-2">
@@ -287,12 +308,12 @@
   {% endif %}
 
   <!-- Main Content -->
-  <main class="flex-1">
+  <main id="main-content" class="flex-1" role="main">
     {% block content %}{% endblock %}
   </main>
 
   <!-- Footer -->
-  <footer class="bg-ne-secondary-800 text-white mt-auto">
+  <footer class="bg-ne-secondary-800 text-white mt-auto" role="contentinfo">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
@@ -330,8 +351,8 @@
     </div>
   </footer>
 
-  <!-- HTMX Loading Indicator -->
-  <div id="htmx-indicator" class="htmx-indicator fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+  <!-- HTMX Loading Indicator (hidden by default, shown only during HTMX requests) -->
+  <div id="htmx-indicator" class="htmx-indicator fixed top-4 left-1/2 -translate-x-1/2 z-50" style="display: none;">
     <div class="bg-ne-primary-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
       <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
       <span>Chargement...</span>

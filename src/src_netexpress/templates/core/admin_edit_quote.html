@@ -1,0 +1,469 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Modifier Devis {{ quote.number }} — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
+    <i class="fas fa-file-invoice mr-2"></i>Devis
+  </a>
+  <a href="{% url 'core:admin_clients_list' %}" class="portal-nav-item">
+    <i class="fas fa-users mr-2"></i>Clients
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">
+            <i class="fas fa-edit text-ne-primary-600 mr-3"></i>
+            Modifier le Devis {{ quote.number }}
+          </h1>
+          <p class="text-gray-600 mt-1">
+            Client: {{ quote.client.full_name }} — 
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+              {% if quote.status == 'draft' %}bg-gray-100 text-gray-800
+              {% elif quote.status == 'sent' %}bg-blue-100 text-blue-800
+              {% elif quote.status == 'accepted' %}bg-green-100 text-green-800
+              {% elif quote.status == 'rejected' %}bg-red-100 text-red-800
+              {% elif quote.status == 'invoiced' %}bg-purple-100 text-purple-800
+              {% endif %}">
+              {{ quote.get_status_display }}
+            </span>
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a href="{% url 'core:admin_quote_detail' quote.pk %}" class="btn btn-secondary">
+            <i class="fas fa-eye mr-2"></i>Voir le devis
+          </a>
+          <a href="{% url 'core:admin_quotes_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i>Retour aux devis
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <form method="post" id="quote-form">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column - Quote Header -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- Client Selection -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-user text-ne-primary-600 mr-2"></i>
+              Client
+            </h3>
+            
+            <div class="space-y-4">
+              <div>
+                <label for="{{ form.client.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Client *
+                </label>
+                {{ form.client }}
+                {% if form.client.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.client.errors.0 }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Quote Status & Dates -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-info-circle text-ne-primary-600 mr-2"></i>
+              Informations
+            </h3>
+            
+            <div class="space-y-4">
+              <div>
+                <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Statut
+                </label>
+                {{ form.status }}
+              </div>
+              
+              <div>
+                <label for="{{ form.issue_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Date d'émission
+                </label>
+                {{ form.issue_date }}
+              </div>
+              
+              <div>
+                <label for="{{ form.valid_until.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Valide jusqu'au
+                </label>
+                {{ form.valid_until }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-sticky-note text-ne-primary-600 mr-2"></i>
+              Notes
+            </h3>
+            
+            <div class="space-y-4">
+              <div>
+                <label for="{{ form.message.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Message client
+                </label>
+                {{ form.message }}
+              </div>
+              
+              <div>
+                <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Notes internes
+                </label>
+                {{ form.notes }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Totals -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-calculator text-ne-primary-600 mr-2"></i>
+              Totaux actuels
+            </h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Total HT:</span>
+                <span class="font-medium">{{ quote.total_ht|floatformat:2 }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">TVA:</span>
+                <span class="font-medium">{{ quote.tva|floatformat:2 }} €</span>
+              </div>
+              <div class="flex justify-between text-lg font-bold border-t pt-2">
+                <span>Total TTC:</span>
+                <span class="text-ne-primary-600">{{ quote.total_ttc|floatformat:2 }} €</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Quote Items -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-list text-ne-primary-600 mr-2"></i>
+                Lignes du devis
+              </h3>
+              <button type="button" id="add-item-btn" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-ne-primary-600 hover:bg-ne-primary-700">
+                <i class="fas fa-plus mr-1"></i>Ajouter une ligne
+              </button>
+            </div>
+            
+            <!-- Formset Management Fields -->
+            {{ formset.management_form }}
+            
+            <!-- Items Table -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full" id="items-table">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-40">Service</th>
+                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description *</th>
+                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase w-24">Qté</th>
+                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase w-28">Prix HT</th>
+                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase w-24">TVA %</th>
+                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase w-28">Total HT</th>
+                    <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16"></th>
+                  </tr>
+                </thead>
+                <tbody id="items-body" class="divide-y divide-gray-200">
+                  {% for item_form in formset %}
+                    <tr class="item-row" data-index="{{ forloop.counter0 }}">
+                      <td class="px-3 py-2">
+                        {{ item_form.id }}
+                        {{ item_form.service }}
+                      </td>
+                      <td class="px-3 py-2">
+                        {{ item_form.description }}
+                        {% if item_form.description.errors %}
+                          <p class="text-xs text-red-600">{{ item_form.description.errors.0 }}</p>
+                        {% endif %}
+                      </td>
+                      <td class="px-3 py-2">{{ item_form.quantity }}</td>
+                      <td class="px-3 py-2">{{ item_form.unit_price }}</td>
+                      <td class="px-3 py-2">{{ item_form.tax_rate }}</td>
+                      <td class="px-3 py-2 text-right">
+                        <span class="line-total font-medium text-gray-900">0.00 €</span>
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <div class="flex items-center space-x-1">
+                          {{ item_form.DELETE }}
+                          <button type="button" class="delete-row-btn text-red-500 hover:text-red-700 p-1" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Totals -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <div class="flex justify-end">
+                <div class="w-64 space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Total HT:</span>
+                    <span id="total-ht" class="font-medium text-gray-900">0.00 €</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">TVA:</span>
+                    <span id="total-tva" class="font-medium text-gray-900">0.00 €</span>
+                  </div>
+                  <div class="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
+                    <span class="text-gray-900">Total TTC:</span>
+                    <span id="total-ttc" class="text-ne-primary-600">0.00 €</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Submit Buttons -->
+          <div class="mt-6 flex justify-end space-x-3">
+            <a href="{% url 'core:admin_quote_detail' quote.pk %}" class="btn btn-secondary">
+              <i class="fas fa-times mr-2"></i>Annuler
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Empty Row Template -->
+<template id="empty-row-template">
+  <tr class="item-row" data-index="__prefix__">
+    <td class="px-3 py-2">
+      <input type="hidden" name="items-__prefix__-id" id="id_items-__prefix__-id">
+      <select name="items-__prefix__-service" id="id_items-__prefix__-service" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 service-select">
+        <option value="">-- Libre --</option>
+      </select>
+    </td>
+    <td class="px-3 py-2">
+      <input type="text" name="items-__prefix__-description" id="id_items-__prefix__-description" placeholder="Description de la ligne..." class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500">
+    </td>
+    <td class="px-3 py-2">
+      <input type="number" name="items-__prefix__-quantity" id="id_items-__prefix__-quantity" value="1.00" step="0.01" min="0.01" class="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input">
+    </td>
+    <td class="px-3 py-2">
+      <input type="number" name="items-__prefix__-unit_price" id="id_items-__prefix__-unit_price" placeholder="0.00" step="0.01" min="0" class="w-24 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right price-input">
+    </td>
+    <td class="px-3 py-2">
+      <input type="number" name="items-__prefix__-tax_rate" id="id_items-__prefix__-tax_rate" value="20.00" step="0.01" class="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input">
+    </td>
+    <td class="px-3 py-2 text-right">
+      <span class="line-total font-medium text-gray-900">0.00 €</span>
+    </td>
+    <td class="px-3 py-2 text-center">
+      <div class="flex items-center space-x-1">
+        <input type="checkbox" name="items-__prefix__-DELETE" id="id_items-__prefix__-DELETE" class="hidden">
+        <button type="button" class="delete-row-btn text-red-500 hover:text-red-700 p-1" title="Supprimer">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </td>
+  </tr>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Services data for autofill (Service model has no price - user enters manually)
+    const servicesData = {{ services_json|safe }};
+    const servicesMap = {};
+    servicesData.forEach(s => {
+        servicesMap[s.id] = { title: s.title };
+    });
+    
+    // Update total forms count
+    function updateTotalForms(count) {
+        document.getElementById('id_items-TOTAL_FORMS').value = count;
+    }
+    
+    // Calculate line total
+    function calculateLineTotal(row) {
+        const qty = parseFloat(row.querySelector('.qty-input')?.value) || 0;
+        const price = parseFloat(row.querySelector('.price-input')?.value) || 0;
+        const total = qty * price;
+        row.querySelector('.line-total').textContent = total.toFixed(2) + ' €';
+        return total;
+    }
+    
+    // Calculate all totals
+    function calculateTotals() {
+        let totalHT = 0;
+        let totalTVA = 0;
+        
+        document.querySelectorAll('#items-body .item-row').forEach(row => {
+            const deleteCheckbox = row.querySelector('input[type="checkbox"][name*="DELETE"]');
+            if (deleteCheckbox && deleteCheckbox.checked) return;
+            
+            const qty = parseFloat(row.querySelector('.qty-input')?.value) || 0;
+            const price = parseFloat(row.querySelector('.price-input')?.value) || 0;
+            const tva = parseFloat(row.querySelector('.tva-input')?.value) || 0;
+            
+            const lineHT = qty * price;
+            const lineTVA = lineHT * (tva / 100);
+            
+            totalHT += lineHT;
+            totalTVA += lineTVA;
+            
+            row.querySelector('.line-total').textContent = lineHT.toFixed(2) + ' €';
+        });
+        
+        document.getElementById('total-ht').textContent = totalHT.toFixed(2) + ' €';
+        document.getElementById('total-tva').textContent = totalTVA.toFixed(2) + ' €';
+        document.getElementById('total-ttc').textContent = (totalHT + totalTVA).toFixed(2) + ' €';
+    }
+    
+    // Add new row
+    document.getElementById('add-item-btn').addEventListener('click', function() {
+        const tbody = document.getElementById('items-body');
+        const totalForms = parseInt(document.getElementById('id_items-TOTAL_FORMS').value);
+        
+        // Create new row from template or copy last row
+        const template = document.getElementById('empty-row-template');
+        let newRow;
+        
+        if (template) {
+            newRow = template.content.cloneNode(true).querySelector('tr');
+            newRow.innerHTML = newRow.innerHTML.replace(/__prefix__/g, totalForms);
+            newRow.setAttribute('data-index', totalForms);
+        } else {
+            // Fallback: clone last row
+            const lastRow = tbody.querySelector('.item-row:last-child');
+            if (lastRow) {
+                newRow = lastRow.cloneNode(true);
+                newRow.setAttribute('data-index', totalForms);
+                // Update names and ids
+                newRow.querySelectorAll('input, select').forEach(el => {
+                    if (el.name) {
+                        el.name = el.name.replace(/items-\d+-/, `items-${totalForms}-`);
+                    }
+                    if (el.id) {
+                        el.id = el.id.replace(/items-\d+-/, `items-${totalForms}-`);
+                    }
+                    // Clear values
+                    if (el.type === 'text' || el.type === 'number') {
+                        if (el.classList.contains('qty-input')) {
+                            el.value = '1.00';
+                        } else if (el.classList.contains('tva-input')) {
+                            el.value = '20.00';
+                        } else {
+                            el.value = '';
+                        }
+                    }
+                    if (el.type === 'checkbox') {
+                        el.checked = false;
+                    }
+                    if (el.tagName === 'SELECT') {
+                        el.selectedIndex = 0;
+                    }
+                });
+                newRow.querySelector('.line-total').textContent = '0.00 €';
+            }
+        }
+        
+        // Copy service options from existing select
+        const existingSelect = tbody.querySelector('.service-select');
+        const newSelect = newRow.querySelector('.service-select');
+        if (existingSelect && newSelect && newSelect.options.length <= 1) {
+            newSelect.innerHTML = existingSelect.innerHTML;
+            newSelect.selectedIndex = 0;
+        }
+        
+        tbody.appendChild(newRow);
+        updateTotalForms(totalForms + 1);
+        
+        // Add event listeners to new row
+        attachRowListeners(newRow);
+        
+        // Focus on description
+        newRow.querySelector('input[name*="description"]')?.focus();
+    });
+    
+    // Attach listeners to a row
+    function attachRowListeners(row) {
+        // Service change -> autofill description and price
+        const serviceSelect = row.querySelector('.service-select');
+        if (serviceSelect) {
+            serviceSelect.addEventListener('change', function() {
+                const serviceId = parseInt(this.value);
+                if (serviceId && servicesMap[serviceId]) {
+                    const descInput = row.querySelector('input[name*="description"]');
+                    // Auto-fill description from service title
+                    if (descInput && !descInput.value) {
+                        descInput.value = servicesMap[serviceId].title;
+                    }
+                    calculateTotals();
+                }
+            });
+        }
+        
+        // Calculate on input change
+        row.querySelectorAll('.qty-input, .price-input, .tva-input').forEach(input => {
+            input.addEventListener('input', calculateTotals);
+        });
+        
+        // Delete row
+        const deleteBtn = row.querySelector('.delete-row-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const deleteCheckbox = row.querySelector('input[type="checkbox"][name*="DELETE"]');
+                if (deleteCheckbox) {
+                    // If it's an existing item, mark for deletion
+                    if (row.querySelector('input[type="hidden"][name*="-id"]')?.value) {
+                        deleteCheckbox.checked = true;
+                        row.style.opacity = '0.3';
+                        row.style.pointerEvents = 'none';
+                    } else {
+                        // If it's a new item, just remove the row
+                        row.remove();
+                    }
+                } else {
+                    row.remove();
+                }
+                calculateTotals();
+            });
+        }
+    }
+    
+    // Attach listeners to existing rows
+    document.querySelectorAll('#items-body .item-row').forEach(attachRowListeners);
+    
+    // Initial calculation
+    calculateTotals();
+    
+    // Hide DELETE checkboxes (use button instead)
+    document.querySelectorAll('input[type="checkbox"][name*="DELETE"]').forEach(cb => {
+        cb.style.display = 'none';
+    });
+});
+</script>
+{% endblock %}
+
