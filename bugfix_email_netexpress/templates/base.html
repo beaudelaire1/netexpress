@@ -1,4 +1,5 @@
-{% load static %}
+{% load static legacy_filters %}
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -41,29 +42,15 @@
       "streetAddress": "753, Chemin de la Désirée",
       "postalCode": "97351",
       "addressLocality": "Matoury",
-      "addressCountry": "FR"
-    }
+      "addressCountry": "GF"
+    },
+    "description": "Services de nettoyage premium, entretien d'espaces verts et rénovation en Guyane.",
+    "priceRange": "€€"
   }
   </script>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Nettoyage Express",
-      "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
-      "telephone": "05 94 30 23 68",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "753, Chemin de la Désirée",
-        "postalCode": "97351",
-        "addressLocality": "Matoury",
-        "addressCountry": "GF"
-      }
-    }
-  </script>
   <!--
     Barre de navigation principale.
     Les liens sont identiques sur toutes les pages pour respecter le
@@ -80,26 +67,26 @@
       <!-- Bouton burger pour l'affichage mobile -->
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="primary-navigation">&#9776;</button>
       <nav id="primary-navigation" class="nav" hidden>
-        <a class="nav-link" href="{% url 'core:home' %}">Accueil</a>
-        <a class="nav-link" href="{% url 'services:list' %}">Services</a>
-        <a class="nav-link" href="{% url 'core:excellence' %}">L’Excellence</a>
-        <a class="nav-link" href="{% url 'core:realisations' %}">Réalisations</a>
-        <a class="nav-link" href="{% url 'contact:contact' %}">Contact</a>
-        <a class="nav-link cta" href="{% url 'devis:request_quote' %}">Devis Express</a>
+        <a class="nav-link {% active_nav 'core:home' %}" href="{% url 'core:home' %}">Accueil</a>
+        <a class="nav-link {% active_nav 'services:list' %}" href="{% url 'services:list' %}">Services</a>
+        <a class="nav-link {% active_nav 'core:excellence' %}" href="{% url 'core:excellence' %}">L'Excellence</a>
+        <a class="nav-link {% active_nav 'core:realisations' %}" href="{% url 'core:realisations' %}">Réalisations</a>
+        <a class="nav-link {% active_nav 'contact:contact' %}" href="{% url 'contact:contact' %}">Contact</a>
+        <a class="nav-link cta {% active_nav 'devis:request_quote' %}" href="{% url 'devis:request_quote' %}">Devis Express</a>
         {% if user.is_authenticated %}
           {% if user.is_staff %}
-            <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+            <a class="nav-link {% active_nav 'core:dashboard' %}" href="{% url 'core:dashboard' %}">Dashboard</a>
           {% else %}
             {% if user.profile.role == 'worker' %}
-              <a class="nav-link" href="{% url 'core:worker_dashboard' %}">Mon Dashboard</a>
+              <a class="nav-link {% active_nav 'core:worker_dashboard' %}" href="{% url 'core:worker_dashboard' %}">Mon Dashboard</a>
             {% else %}
-              <a class="nav-link" href="{% url 'core:client_dashboard' %}">Mon Dashboard</a>
+              <a class="nav-link {% active_nav 'core:client_dashboard' %}" href="{% url 'core:client_dashboard' %}">Mon Dashboard</a>
             {% endif %}
           {% endif %}
-          <a class="nav-link" href="{% url 'accounts:profile' %}">Profil</a>
+          <a class="nav-link {% active_nav 'accounts:profile' %}" href="{% url 'accounts:profile' %}">Profil</a>
           <a class="nav-link" href="{% url 'logout' %}">Déconnexion</a>
         {% else %}
-          <a class="nav-link" href="{% url 'accounts:signup' %}">Créer un compte</a>
+          <a class="nav-link {% active_nav 'accounts:signup' %}" href="{% url 'accounts:signup' %}">Créer un compte</a>
           <a class="nav-link" href="{% url 'login' %}">Connexion</a>
         {% endif %}
       </nav>
@@ -119,17 +106,8 @@
   </main>
 
   <footer class="site-footer">
-    <!--
-      The copyright notice is wrapped in its own paragraph.  A missing
-      closing </p> tag caused invalid HTML and could break the
-      rendering of the footer.  Ensure that every opened tag is
-      properly closed to meet the zero syntax error requirement.
-    -->
-    <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
+    <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l'entretien de la maison et du bureau en Guyane.</p>
   </footer>
-
-
-
 
   {% block scripts %}{% endblock %}
 </body>

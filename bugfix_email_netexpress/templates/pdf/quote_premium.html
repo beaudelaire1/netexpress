@@ -208,8 +208,11 @@
 
     <!-- LOGO -->
     <div class="logo">
-        <img src="static/img/logo.svg" alt="Logo">
-        <!-- ou {{ logo_url }} si injecté depuis le service -->
+        {% if logo_url %}
+            <img src="{{ logo_url }}" alt="Logo Nettoyage Express">
+        {% else %}
+            <img src="file://{{ branding.logo_path }}" alt="Logo Nettoyage Express">
+        {% endif %}
     </div>
 
     <!-- FACTURE CENTRÉE -->

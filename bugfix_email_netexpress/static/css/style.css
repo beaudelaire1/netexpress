@@ -1,89 +1,21 @@
-:root {
-    /* Couleurs */
-    --bg-page: #f9fafb;
-    /* VOTRE DEMANDE */
-    --primary-green: #104130;
-    /* Vert foncé premium */
-    --accent-green: #2d8a5e;
-    /* Vert plus vif pour les actions */
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --white: #ffffff;
+/*
+  style.css - Styles spécifiques aux pages publiques (accueil, services, etc.)
+  
+  NOTE: Les variables CSS principales sont définies dans base.css.
+  Ce fichier utilise les variables de base.css pour maintenir la cohérence.
+*/
 
-    /* Variables de design */
-    --radius: 12px;
-    --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
-    --shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.12);
-    --font-head: 'Playfair Display', serif;
-    --font-body: 'Inter', sans-serif;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background-color: var(--bg-page);
-    color: var(--text-main);
-    font-family: var(--font-body);
-    line-height: 1.6;
-}
-
-/* --- Navbar --- */
-.navbar {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 1rem 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.logo {
-    font-family: var(--font-head);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--primary-green);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.logo span {
-    font-weight: 400;
-}
-
-.nav-links {
-    list-style: none;
-    display: flex;
-    gap: 30px;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--text-main);
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: color 0.2s;
-}
-
-.nav-links a:hover,
-.nav-links a.active {
-    color: var(--accent-green);
-}
+/*
+  Les styles de reset et body sont dans base.css.
+  Les styles .navbar et .nav-links ont été supprimés car le template
+  utilise .site-header et .nav (définis dans base.css).
+*/
 
 .btn-cta {
-    background: var(--primary-green);
+    background: var(--primary-green, #104130);
     color: white;
     padding: 10px 24px;
     border-radius: 50px;
-    /* Plus rond = plus moderne */
     text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
@@ -92,12 +24,13 @@ body {
 
 .btn-cta:hover {
     transform: translateY(-2px);
+    background: var(--accent-green, #2d8a5e);
 }
 
 /* --- Hero --- */
 .hero {
     height: 75vh;
-    background: url('/static/img/hero_bg.png') center/cover;
+    background: linear-gradient(rgba(16, 65, 48, 0.7), rgba(16, 65, 48, 0.85)), url('/static/img/hero_bg.png') center/cover;
     position: relative;
     display: flex;
     align-items: center;
@@ -172,14 +105,14 @@ body {
 }
 
 .section-head h2 {
-    font-family: var(--font-head);
+    font-family: var(--font-head, 'Playfair Display', serif);
     font-size: 2.5rem;
-    color: var(--primary-green);
+    color: var(--primary-green, #104130);
     margin-bottom: 10px;
 }
 
 .section-head p {
-    color: var(--text-muted);
+    color: var(--muted, #6b7280);
 }
 
 .tabs-header {
@@ -191,24 +124,24 @@ body {
 
 .tab-btn {
     background: transparent;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color, #e5e7eb);
     padding: 12px 28px;
     border-radius: 50px;
-    color: var(--text-muted);
+    color: var(--muted, #6b7280);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s;
-    font-family: var(--font-body);
+    font-family: var(--font-body, 'Inter', sans-serif);
 }
 
 .tab-btn:hover {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
+    border-color: var(--accent-green, #2d8a5e);
+    color: var(--accent-green, #2d8a5e);
 }
 
 .tab-btn.active {
-    background: var(--primary-green);
-    border-color: var(--primary-green);
+    background: var(--primary-green, #104130);
+    border-color: var(--primary-green, #104130);
     color: white;
     box-shadow: 0 4px 12px rgba(16, 65, 48, 0.2);
 }
@@ -750,4 +683,166 @@ footer {
 @keyframes borderFlow{
   0%{ background-position: 0% 50%; }
   100%{ background-position: 100% 50%; }
+}
+
+/* =============================================================================
+   SERVICES PAGE STYLES
+   ============================================================================= */
+
+.services-section {
+  padding: 60px 5%;
+  background: var(--surface, #f9fafb);
+}
+
+.services-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.services-title {
+  font-family: var(--font-head, 'Playfair Display', serif);
+  font-size: 2rem;
+  color: var(--primary-green, #104130);
+  margin: 0;
+}
+
+.services-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--card, #ffffff);
+  color: var(--muted, #6b7280);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+  border-color: var(--accent-green, #2d8a5e);
+  color: var(--accent-green, #2d8a5e);
+}
+
+.filter-pill.is-active {
+  background: var(--primary-green, #104130);
+  border-color: var(--primary-green, #104130);
+  color: white;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+}
+
+.service-card {
+  background: var(--card, #ffffff);
+  border-radius: var(--radius, 16px);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft, 0 10px 30px -5px rgba(0, 0, 0, 0.08));
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover, 0 20px 40px -5px rgba(0, 0, 0, 0.12));
+}
+
+.service-media {
+  height: 200px;
+  overflow: hidden;
+}
+
+.service-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.service-card:hover .service-media img {
+  transform: scale(1.05);
+}
+
+.service-body {
+  padding: 24px;
+}
+
+.service-body h3 {
+  font-family: var(--font-head, 'Playfair Display', serif);
+  font-size: 1.4rem;
+  color: var(--primary-green, #104130);
+  margin: 0 0 12px 0;
+}
+
+.service-body p.muted {
+  color: var(--muted, #6b7280);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.service-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.service-actions .btn {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--primary-green, #104130);
+  color: var(--primary-green, #104130);
+}
+
+.btn-ghost:hover {
+  background: var(--primary-green, #104130);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .services-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .service-actions {
+    flex-direction: column;
+  }
+  
+  .service-actions .btn {
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   TAB CONTENT VISIBILITY
+   ============================================================================= */
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
 }
