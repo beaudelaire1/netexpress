@@ -12,8 +12,92 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .portal import get_portal_home_url, get_user_role
+from .models import Profile
 
 logger = logging.getLogger(__name__)
+
+
+class PermissionSyncMiddleware:
+    """
+    Middleware qui synchronise automatiquement les permissions des utilisateurs.
+    
+    Ce middleware s'assure que:
+    1. Chaque utilisateur a un profil
+    2. Les permissions correspondent au rôle du profil
+    3. is_staff est correctement configuré pour les admins
+    
+    Il utilise un flag en session pour éviter de vérifier à chaque requête.
+    """
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        if request.user.is_authenticated and not isinstance(request.user, AnonymousUser):
+            self._ensure_permissions_synced(request)
+        
+        return self.get_response(request)
+    
+    def _ensure_permissions_synced(self, request):
+        """S'assure que les permissions de l'utilisateur sont synchronisées."""
+        user = request.user
+        
+        # Vérifier si on a déjà synchronisé dans cette session
+        sync_key = f'permissions_synced_{user.pk}'
+        if request.session.get(sync_key):
+            return
+        
+        try:
+            # S'assurer que le profil existe
+            profile, created = Profile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'role': self._determine_initial_role(user)
+                }
+            )
+            
+            if created:
+                logger.info(f"[MIDDLEWARE] Created profile for {user.username} with role={profile.role}")
+            
+            # Vérifier si les permissions sont correctes
+            needs_sync = self._check_needs_sync(user, profile)
+            
+            if needs_sync:
+                from .signals import setup_user_permissions
+                setup_user_permissions(user, profile.role)
+                logger.info(f"[MIDDLEWARE] Synced permissions for {user.username}")
+            
+            # Marquer comme synchronisé pour cette session
+            request.session[sync_key] = True
+            
+        except Exception as e:
+            logger.warning(f"[MIDDLEWARE] Error syncing permissions for {user.username}: {e}")
+    
+    def _determine_initial_role(self, user):
+        """Détermine le rôle initial pour un nouvel utilisateur."""
+        if user.is_superuser:
+            return Profile.ROLE_ADMIN_TECHNICAL
+        elif user.is_staff:
+            return Profile.ROLE_ADMIN_BUSINESS
+        return Profile.ROLE_CLIENT
+    
+    def _check_needs_sync(self, user, profile):
+        """Vérifie si les permissions doivent être synchronisées."""
+        role = profile.role
+        
+        # Admin technique doit être superuser et staff
+        if role == Profile.ROLE_ADMIN_TECHNICAL:
+            return not user.is_superuser or not user.is_staff
+        
+        # Admin business doit être staff mais pas superuser
+        if role == Profile.ROLE_ADMIN_BUSINESS:
+            return not user.is_staff
+        
+        # Worker et client ne doivent pas être staff
+        if role in [Profile.ROLE_WORKER, Profile.ROLE_CLIENT]:
+            return user.is_staff or user.is_superuser
+        
+        return False
 
 
 class RoleBasedAccessMiddleware:

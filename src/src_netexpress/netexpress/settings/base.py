@@ -233,6 +233,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.middleware.PermissionSyncMiddleware',  # Auto-sync permissions (must be after auth)
     'core.middleware.session_tracking.PortalSessionTrackingMiddleware',  # Analytics sessions portail
     'django.contrib.messages.middleware.MessageMiddleware',  # Doit être avant RoleBasedAccessMiddleware
     'accounts.middleware.RoleBasedAccessMiddleware',  # Add role-based access control
