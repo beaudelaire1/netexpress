@@ -146,17 +146,28 @@ LOGGING = {
 # ============================================================
 
 # Configuration Brevo (ex-Sendinblue) - Backend principal en production
-# La clé API par défaut est définie ici, mais peut être surchargée par une variable d'environnement
 BREVO_API_KEY = (os.getenv('BREVO_API_KEY') or '').strip()
 
 # Utiliser le backend Brevo si la clé API est configurée
-if BREVO_API_KEY and BREVO_API_KEY.strip():
+if BREVO_API_KEY and BREVO_API_KEY.startswith('xkeysib-'):
     EMAIL_BACKEND = 'core.backends.brevo_backend.BrevoEmailBackend'
+    BREVO_CONSOLE_FALLBACK = False  # Pas de fallback en prod
     print("[OK] Email backend: Brevo (API) - Production")
+elif BREVO_API_KEY:
+    # Clé configurée mais format invalide
+    EMAIL_BACKEND = 'core.backends.brevo_backend.BrevoEmailBackend'
+    BREVO_CONSOLE_FALLBACK = False
+    print(f"[WARN] BREVO_API_KEY configuree mais format suspect (ne commence pas par 'xkeysib-')")
+    print("[WARN] Les cles API Brevo valides commencent par 'xkeysib-'")
 else:
-    # En prod, on force Brevo API (pas de fallback SMTP)
-    from django.core.exceptions import ImproperlyConfigured
-    raise ImproperlyConfigured("BREVO_API_KEY manquante en production: l'envoi email est configure en mode API uniquement.")
+    # Pas de clé - utiliser console backend pour ne pas bloquer l'app
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("[WARN] ============================================")
+    print("[WARN] BREVO_API_KEY non configuree!")
+    print("[WARN] Les emails seront affiches dans la console.")
+    print("[WARN] Pour activer les emails, configurez BREVO_API_KEY")
+    print("[WARN] dans le Dashboard Render > Environment Variables")
+    print("[WARN] ============================================")
 
 # Configuration de l'expéditeur
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
