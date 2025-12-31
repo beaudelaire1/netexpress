@@ -1,0 +1,161 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Modifier {{ task.title }} — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
+    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
+  </a>
+  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Modifier la Tâche</h1>
+          <p class="text-gray-600">{{ task.title }}</p>
+        </div>
+        <a href="{% url 'core:admin_task_detail' task.pk %}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left mr-2"></i>Retour aux détails
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Task Information -->
+        <div class="border-b border-gray-200 pb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Informations de la tâche</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Titre de la tâche *
+              </label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+              {% endif %}
+            </div>
+            
+            <div>
+              <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+              {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Lieu d'intervention
+                </label>
+                {{ form.location }}
+                {% if form.location.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.location.errors.0 }}</p>
+                {% endif %}
+              </div>
+              
+              <div>
+                <label for="{{ form.team.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Équipe responsable
+                </label>
+                {{ form.team }}
+                {% if form.team.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.team.errors.0 }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Assignment and Scheduling -->
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Assignation et planning</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-users mr-2 text-gray-400"></i>Ouvriers assignés
+              </label>
+              {{ form.assigned_to }}
+              {% if form.assigned_to.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.assigned_to.errors.0 }}</p>
+              {% endif %}
+              <p class="mt-1 text-sm text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i>Maintenez <kbd class="px-1 bg-gray-200 rounded text-xs">Ctrl</kbd> pour sélectionner plusieurs ouvriers
+              </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Date de début *
+                </label>
+                {{ form.start_date }}
+                {% if form.start_date.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.0 }}</p>
+                {% endif %}
+              </div>
+              
+              <div>
+                <label for="{{ form.due_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Date d'échéance *
+                </label>
+                {{ form.due_date }}
+                {% if form.due_date.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.due_date.errors.0 }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Current Status Info -->
+        <div class="bg-gray-50 rounded-lg p-4">
+          <h4 class="text-sm font-medium text-gray-700 mb-2">Statut actuel</h4>
+          <span class="px-3 py-1 rounded-full text-sm font-medium
+            {% if task.status == 'completed' %}bg-green-100 text-green-700
+            {% elif task.status == 'in_progress' %}bg-blue-100 text-blue-700
+            {% elif task.status == 'upcoming' %}bg-yellow-100 text-yellow-700
+            {% elif task.status == 'overdue' %}bg-red-100 text-red-700
+            {% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ task.get_status_display }}
+          </span>
+          <p class="mt-2 text-xs text-gray-500">
+            <i class="fas fa-info-circle mr-1"></i>Le statut est calculé automatiquement en fonction des dates.
+          </p>
+        </div>
+        
+        <!-- Submit Buttons -->
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+          <a href="{% url 'core:admin_task_detail' task.pk %}" class="btn btn-secondary">
+            Annuler
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
