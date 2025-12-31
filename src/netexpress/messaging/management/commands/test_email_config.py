@@ -10,7 +10,7 @@ Usage:
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
-from messaging.models import EmailMessage
+from ...models import EmailMessage
 
 
 class Command(BaseCommand):

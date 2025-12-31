@@ -75,7 +75,7 @@ class EmailNotificationService:
             Optional list of attachments.  Each tuple must contain the
             filename and the binary content of the file.
         """
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com")
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@netexpress.local")
 
         try:
             # Create Django EmailMessage
