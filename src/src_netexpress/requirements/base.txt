@@ -24,3 +24,6 @@ django-ckeditor>=6.7.0
 # Task queue for background processing (notifications, emails)
 celery>=5.3.0
 redis>=5.0.0
+
+# Brevo (ex-Sendinblue) API SDK for email campaigns
+sib-api-v3-sdk>=7.6.0
