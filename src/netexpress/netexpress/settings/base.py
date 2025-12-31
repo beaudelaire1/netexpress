@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import warnings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -32,6 +33,13 @@ INSTALLED_APPS = [
 try:
     import jazzmin  # type: ignore
     INSTALLED_APPS.insert(0, "jazzmin")
+except Exception:
+    pass
+
+# Activer Anymail si disponible (pour Brevo et autres services d'email)
+try:
+    import anymail  # type: ignore
+    INSTALLED_APPS.append("anymail")
 except Exception:
     pass
 
@@ -102,21 +110,43 @@ INVOICE_BRANDING = {
 }
 
 # ---------------------------------------------------------------------------
-# Configuration e-mail (Gmail)
+# Configuration e-mail
 # ---------------------------------------------------------------------------
-# SMTP du domaine
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"   # confirme exactement l’hôte chez ton registrar/hébergeur
-EMAIL_PORT = 465                        # STARTTLS
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = "vilmebeaudelaire5@gmail.com"
-EMAIL_HOST_PASSWORD = "ymgx trrs tpqw kkwk" #os.getenv("EMAIL_HOST_PASSWORD")  # <-- ne pas hardcoder
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Choix du backend email basé sur la variable d'environnement
+# Supporte SMTP (Gmail, Zoho, etc.) ou Brevo API via django-anymail
+EMAIL_BACKEND_TYPE = os.getenv("EMAIL_BACKEND_TYPE", "smtp").lower()
+
+if EMAIL_BACKEND_TYPE == "brevo":
+    # Configuration Brevo (ancien Sendinblue) via django-anymail
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {
+        "BREVO_API_KEY": os.getenv("BREVO_API_KEY", ""),
+    }
+    if not ANYMAIL["BREVO_API_KEY"]:
+        warnings.warn(
+            "BREVO_API_KEY n'est pas définie. "
+            "L'envoi d'emails via Brevo échouera. "
+            "Définissez la variable d'environnement BREVO_API_KEY."
+        )
+else:
+    # Configuration SMTP standard (Gmail par défaut)
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").lower() == "true"
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True").lower() == "true"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    if not EMAIL_HOST_PASSWORD:
+        warnings.warn(
+            "EMAIL_HOST_PASSWORD n'est pas définie. "
+            "L'envoi d'emails via SMTP échouera. "
+            "Définissez la variable d'environnement EMAIL_HOST_PASSWORD."
+        )
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", os.getenv("EMAIL_HOST_USER", "noreply@example.com"))
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
-DEBUG = True
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "nettoyage-express.onrender.com", "*"]
 
+# These settings are overridden in dev.py and prod.py
 # --
