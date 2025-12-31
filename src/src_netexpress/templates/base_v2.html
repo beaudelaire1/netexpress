@@ -158,31 +158,24 @@
           <!-- User Menu -->
           {% if user.is_authenticated %}
             <!-- Notification Bell -->
-            <div class="relative" x-data="{ notificationOpen: false }">
-              <button @click="notificationOpen = !notificationOpen" 
-                      class="relative text-white hover:text-gray-200 p-2">
+            <div class="relative" id="notification-menu-container">
+              <button id="notification-menu-button"
+                      onclick="document.getElementById('notification-dropdown').classList.toggle('hidden')"
+                      class="relative text-white hover:text-gray-200 p-2 cursor-pointer">
                 <i class="fas fa-bell text-xl"></i>
                 <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   0
                 </span>
               </button>
               
-              <div x-show="notificationOpen" 
-                   x-cloak
-                   @click.outside="notificationOpen = false" 
-                   x-transition:enter="transition ease-out duration-100"
-                   x-transition:enter-start="transform opacity-0 scale-95"
-                   x-transition:enter-end="transform opacity-100 scale-100"
-                   x-transition:leave="transition ease-in duration-75"
-                   x-transition:leave-start="transform opacity-100 scale-100"
-                   x-transition:leave-end="transform opacity-0 scale-95"
-                   class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50">
+              <div id="notification-dropdown"
+                   class="hidden absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50">
                 
                 <div class="px-4 py-2 border-b border-gray-100">
                   <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                 </div>
                 
-                <div class="max-h-64 overflow-y-auto">
+                <div class="max-h-64 overflow-y-auto" id="notification-list">
                   <div class="px-4 py-3 text-sm text-gray-500 text-center">
                     Aucune notification
                   </div>
@@ -190,23 +183,17 @@
               </div>
             </div>
             
-            <div class="relative" x-data="{ userMenuOpen: false }">
-              <button @click="userMenuOpen = !userMenuOpen" class="flex items-center space-x-2 text-white hover:text-gray-200">
+            <div class="relative" id="user-menu-container">
+              <button id="user-menu-button" 
+                      onclick="document.getElementById('user-menu-dropdown').classList.toggle('hidden')"
+                      class="flex items-center space-x-2 text-white hover:text-gray-200 cursor-pointer">
                 <i class="fas fa-user-circle text-xl"></i>
                 <span>{{ user.get_full_name|default:user.username }}</span>
                 <i class="fas fa-chevron-down text-sm"></i>
               </button>
               
-              <div x-show="userMenuOpen" 
-                   x-cloak
-                   @click.outside="userMenuOpen = false" 
-                   x-transition:enter="transition ease-out duration-100"
-                   x-transition:enter-start="transform opacity-0 scale-95"
-                   x-transition:enter-end="transform opacity-100 scale-100"
-                   x-transition:leave="transition ease-in duration-75"
-                   x-transition:leave-start="transform opacity-100 scale-100"
-                   x-transition:leave-end="transform opacity-0 scale-95"
-                   class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+              <div id="user-menu-dropdown"
+                   class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                 
                 <a href="/accounts/profile/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                   <i class="fas fa-user mr-2"></i>Mon Profil
@@ -388,6 +375,26 @@
         // Configure HTMX
         htmx.config.globalViewTransitions = true;
         htmx.config.useTemplateFragments = true;
+      }
+    });
+  </script>
+
+  <!-- User menu dropdown handler -->
+  <script>
+    document.addEventListener('click', function(event) {
+      const userMenuContainer = document.getElementById('user-menu-container');
+      const userMenuDropdown = document.getElementById('user-menu-dropdown');
+      const notifMenuContainer = document.getElementById('notification-menu-container');
+      const notifMenuDropdown = document.getElementById('notification-dropdown');
+      
+      // Close user menu when clicking outside
+      if (userMenuContainer && userMenuDropdown && !userMenuContainer.contains(event.target)) {
+        userMenuDropdown.classList.add('hidden');
+      }
+      
+      // Close notification menu when clicking outside
+      if (notifMenuContainer && notifMenuDropdown && !notifMenuContainer.contains(event.target)) {
+        notifMenuDropdown.classList.add('hidden');
       }
     });
   </script>
