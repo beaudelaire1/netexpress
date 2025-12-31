@@ -344,14 +344,16 @@
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      {% if task.assigned_to %}
-                        <div class="flex items-center">
-                          <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                            <i class="fas fa-user text-gray-600 text-sm"></i>
+                      {% if task.assigned_to.exists %}
+                        <div class="flex items-center flex-wrap gap-1">
+                          {% for worker in task.assigned_to.all %}
+                          <div class="flex items-center bg-gray-100 rounded-full px-2 py-1">
+                            <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center mr-1">
+                              <i class="fas fa-user text-gray-400 text-xs"></i>
+                            </div>
+                            <span class="text-xs text-gray-900">{{ worker.get_full_name|default:worker.username }}</span>
                           </div>
-                          <div class="text-sm text-gray-900">
-                            {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
-                          </div>
+                          {% endfor %}
                         </div>
                       {% else %}
                         <span class="text-sm text-gray-400 italic">Non assignée</span>

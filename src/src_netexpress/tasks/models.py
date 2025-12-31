@@ -99,15 +99,13 @@ class Task(models.Model):
         default=STATUS_UPCOMING,
     )
     
-    # Worker assignment fields
-    assigned_to = models.ForeignKey(
+    # Worker assignment fields - Multiple workers can be assigned
+    assigned_to = models.ManyToManyField(
         User,
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name='assigned_tasks',
         limit_choices_to={'groups__name': 'Workers'},
-        help_text="Worker assigned to this task"
+        help_text="Workers assigned to this task"
     )
     completion_notes = models.TextField(
         blank=True,

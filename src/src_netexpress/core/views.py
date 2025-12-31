@@ -459,7 +459,7 @@ def admin_dashboard(request):
         # Recent activity - optimized with select_related
         recent_quotes = Quote.objects.select_related('client', 'service').order_by('-created_at')[:5]
         recent_invoices = Invoice.objects.select_related('quote', 'quote__client').order_by('-created_at')[:5]
-        recent_tasks = Task.objects.select_related('assigned_to').order_by('-created_at')[:5]
+        recent_tasks = Task.objects.prefetch_related('assigned_to').order_by('-created_at')[:5]
         
         # Status distributions - optimized with single aggregation
         quote_status_counts = dict(
@@ -560,7 +560,7 @@ def admin_dashboard(request):
         ).select_related('quote', 'quote__client').order_by('-created_at')
         recent_tasks_qs = Task.objects.filter(
             pk__in=cached_data['recent_tasks_ids']
-        ).select_related('assigned_to').order_by('-created_at')
+        ).prefetch_related('assigned_to').order_by('-created_at')
         
         # Restore worker stats with user objects
         worker_stats_list = []
@@ -682,12 +682,14 @@ def admin_global_planning(request):
             'workload_percentage': min(100, (worker_tasks.count() * 10))  # Simple workload calculation
         })
     
-    # Get unassigned tasks
-    unassigned_tasks = all_tasks.filter(assigned_to__isnull=True)
+    # Get unassigned tasks (ManyToMany requires annotation)
+    from django.db.models import Count as CountAnnotate
+    all_tasks_annotated = all_tasks.annotate(worker_count=CountAnnotate('assigned_to'))
+    unassigned_tasks = all_tasks_annotated.filter(worker_count=0)
     
     # Summary statistics
     total_tasks_in_period = all_tasks.count()
-    assigned_tasks = all_tasks.filter(assigned_to__isnull=False).count()
+    assigned_tasks_count = all_tasks_annotated.filter(worker_count__gt=0).count()
     unassigned_count = unassigned_tasks.count()
     
     # Task distribution by status
@@ -709,7 +711,7 @@ def admin_global_planning(request):
             'end_date': end_date,
             'total_workers': workers.count(),
             'total_tasks_in_period': total_tasks_in_period,
-            'assigned_tasks': assigned_tasks,
+            'assigned_tasks': assigned_tasks_count,
             'unassigned_count': unassigned_count,
             'status_distribution': status_distribution,
             'all_tasks': all_tasks,  # For comprehensive view
@@ -1197,7 +1199,7 @@ def admin_task_detail(request, pk):
     from tasks.models import Task
     
     task = get_object_or_404(
-        Task.objects.select_related('assigned_to', 'completed_by'),
+        Task.objects.prefetch_related('assigned_to').select_related('completed_by'),
         pk=pk
     )
     
@@ -1213,7 +1215,7 @@ def admin_tasks_list(request):
     from django.core.paginator import Paginator
     from django.db.models import Q
     
-    tasks = Task.objects.select_related('assigned_to').order_by('-due_date', '-created_at')
+    tasks = Task.objects.prefetch_related('assigned_to').order_by('-due_date', '-created_at')
     
     # Filtres
     status_filter = request.GET.get('status')
@@ -1328,12 +1330,12 @@ def mark_notification_read(request, notification_id):
     except UINotification.DoesNotExist:
         pass
     
-    # Return updated notification count
-    count = UINotification.get_unread_count(request.user)
+    # Return updated notification list for HTMX swap
+    notifications = UINotification.get_recent_notifications(request.user, limit=10)
     return render(
         request,
-        "core/partials/notification_count.html",
-        {"count": count}
+        "core/partials/notification_list.html",
+        {"notifications": notifications}
     )
 
 

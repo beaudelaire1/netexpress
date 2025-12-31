@@ -106,7 +106,7 @@ def worker_task_events(request):
     events = []
     
     # Filter tasks by assigned worker
-    user_tasks = Task.objects.filter(assigned_to=request.user).select_related('assigned_to').order_by("due_date", "start_date", "pk")
+    user_tasks = Task.objects.filter(assigned_to=request.user).prefetch_related('assigned_to').order_by("due_date", "start_date", "pk")
     
     for task in user_tasks:
         # Update task status dynamically via application service (best-effort persist)

@@ -94,13 +94,15 @@
           <div class="space-y-4">
             <div>
               <label for="{{ form.assigned_to.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                Assigner à un ouvrier
+                <i class="fas fa-users mr-2 text-gray-400"></i>Ouvriers assignés
               </label>
               {{ form.assigned_to }}
               {% if form.assigned_to.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.assigned_to.errors.0 }}</p>
               {% endif %}
-              <p class="mt-1 text-sm text-gray-500">Laissez vide pour assigner plus tard</p>
+              <p class="mt-1 text-sm text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i>Maintenez <kbd class="px-1 bg-gray-200 rounded text-xs">Ctrl</kbd> pour sélectionner plusieurs ouvriers
+              </p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

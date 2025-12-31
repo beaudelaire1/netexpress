@@ -240,8 +240,9 @@ class TaskCreationForm(forms.ModelForm):
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
                 'placeholder': 'Équipe responsable'
             }),
-            'assigned_to': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+            'assigned_to': forms.SelectMultiple(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'size': '5'
             }),
             'start_date': forms.DateInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
@@ -255,9 +256,11 @@ class TaskCreationForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Limit assigned_to to workers only
+        # Limit assigned_to to workers only (multiple selection)
         self.fields['assigned_to'].queryset = User.objects.filter(groups__name='Workers').order_by('first_name', 'last_name')
-        self.fields['assigned_to'].empty_label = "Sélectionner un ouvrier..."
+        self.fields['assigned_to'].label = "Ouvriers assignés"
+        self.fields['assigned_to'].help_text = "Maintenez Ctrl pour sélectionner plusieurs ouvriers"
+        self.fields['assigned_to'].required = False
 
 
 class QuoteEmailForm(forms.Form):

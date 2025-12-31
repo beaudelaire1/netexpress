@@ -400,16 +400,20 @@
 }
 
 /* Notifications */
+/* Notifications inline (messages Django) */
 .notification {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  max-width: 24rem;
+  position: relative;
   background-color: white;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  animation: slideInDown 0.3s ease-out;
+}
+
+/* Notifications fixed (créées par JavaScript) */
+#notification-container .notification {
+  position: relative;
+  max-width: 24rem;
   animation: slideInRight 0.3s ease-out;
 }
 
@@ -420,6 +424,17 @@
   }
   to {
     transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
     opacity: 1;
   }
 }

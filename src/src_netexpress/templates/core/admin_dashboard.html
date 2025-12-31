@@ -479,8 +479,8 @@
                     <div>
                       <p class="text-sm font-semibold text-gray-900">{{ task.title|truncatechars:25 }}</p>
                       <p class="text-xs text-gray-600">
-                        {% if task.assigned_to %}
-                          {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}
+                        {% if task.assigned_to.exists %}
+                          {% for worker in task.assigned_to.all %}{{ worker.get_full_name|default:worker.username }}{% if not forloop.last %}, {% endif %}{% endfor %}
                         {% else %}
                           Non assignée
                         {% endif %}
