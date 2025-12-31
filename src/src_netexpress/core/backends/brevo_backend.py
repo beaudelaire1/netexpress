@@ -171,11 +171,34 @@ class BrevoEmailBackend(BaseEmailBackend):
             
             # Pour les erreurs d'authentification (401), suggérer de vérifier la clé API
             if e.status == 401:
-                key_fp = _key_fingerprint(str(getattr(settings, 'BREVO_API_KEY', '') or '').strip())
-                logger.error(
-                    "[ERROR] 401 Unauthorized - Key not found. "
-                    f"Verifie BREVO_API_KEY (fingerprint={key_fp}) et le settings module utilise."
-                )
+                key_value = str(getattr(settings, 'BREVO_API_KEY', '') or '').strip()
+                key_fp = _key_fingerprint(key_value)
+                
+                # Détecter les clés manifestement invalides
+                if not key_value or key_value in ('test', 'your-brevo-api-key-here', ''):
+                    logger.error(
+                        "[ERROR] 401 Unauthorized - Cle API Brevo non configuree ou invalide. "
+                        "La valeur actuelle n'est pas une vraie cle API. "
+                        "SOLUTION: Generez une NOUVELLE cle API sur https://app.brevo.com "
+                        "(Parametres > SMTP & API > Cles API) et configurez-la dans les variables "
+                        "d'environnement de Render (PAS dans les fichiers .env du depot Git)."
+                    )
+                elif not key_value.startswith('xkeysib-'):
+                    logger.error(
+                        f"[ERROR] 401 Unauthorized - La cle API (fingerprint={key_fp}) ne semble pas valide. "
+                        "Les cles API Brevo commencent par 'xkeysib-'. "
+                        "SOLUTION: Verifiez que vous utilisez bien une CLE API (pas une cle SMTP). "
+                        "Generez une nouvelle cle sur https://app.brevo.com (Parametres > SMTP & API > Cles API)."
+                    )
+                else:
+                    logger.error(
+                        f"[ERROR] 401 Unauthorized - La cle API (fingerprint={key_fp}) a ete REVOQUEE par Brevo. "
+                        "Cela arrive quand une cle est exposee publiquement (ex: commitee sur GitHub). "
+                        "SOLUTION: Generez une NOUVELLE cle API sur https://app.brevo.com "
+                        "et configurez-la UNIQUEMENT dans les variables d'environnement de Render "
+                        "(Dashboard Render > Environment > Environment Variables)."
+                    )
+                
                 # En développement, activer le fallback permanent
                 if self.is_development and self.allow_console_fallback:
                     logger.info("[FALLBACK] Activation du fallback permanent en developpement")
