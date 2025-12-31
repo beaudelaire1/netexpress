@@ -75,18 +75,33 @@ class ClientAccountCreationService:
         user.set_unusable_password()
         user.save()
         
-        # Update profile with client-specific information
-        # Profile is created automatically by signal, so we just need to update it
-        profile = user.profile
-        profile.role = Profile.ROLE_CLIENT
-        profile.phone = getattr(client, 'phone', '')
-        profile.notification_preferences = {
-            'email_notifications': True,
-            'quote_updates': True,
-            'invoice_updates': True,
-            'task_updates': False
-        }
-        profile.save()
+        # Create or update profile with client-specific information
+        # Note: On utilise get_or_create pour être sûr que le profil existe
+        profile, created = Profile.objects.get_or_create(
+            user=user,
+            defaults={
+                'role': Profile.ROLE_CLIENT,
+                'phone': getattr(client, 'phone', ''),
+                'notification_preferences': {
+                    'email_notifications': True,
+                    'quote_updates': True,
+                    'invoice_updates': True,
+                    'task_updates': False
+                }
+            }
+        )
+        
+        # Si le profil existait déjà, on le met à jour
+        if not created:
+            profile.role = Profile.ROLE_CLIENT
+            profile.phone = getattr(client, 'phone', '')
+            profile.notification_preferences = {
+                'email_notifications': True,
+                'quote_updates': True,
+                'invoice_updates': True,
+                'task_updates': False
+            }
+            profile.save()
         
         # Add to Clients group
         clients_group, _ = Group.objects.get_or_create(name='Clients')

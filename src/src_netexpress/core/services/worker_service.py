@@ -70,18 +70,34 @@ class WorkerService:
             is_active=True
         )
         
-        # Mise à jour du Profile (créé automatiquement par signal)
-        profile = user.profile
-        profile.role = Profile.ROLE_WORKER
-        if phone:
-            profile.phone = phone
-        profile.notification_preferences = {
-            'email_notifications': True,
-            'task_updates': True,
-            'quote_updates': False,
-            'invoice_updates': False,
-        }
-        profile.save()
+        # Création ou mise à jour du Profile
+        # Note: On utilise get_or_create pour être sûr que le profil existe
+        profile, created = Profile.objects.get_or_create(
+            user=user,
+            defaults={
+                'role': Profile.ROLE_WORKER,
+                'phone': phone or '',
+                'notification_preferences': {
+                    'email_notifications': True,
+                    'task_updates': True,
+                    'quote_updates': False,
+                    'invoice_updates': False,
+                }
+            }
+        )
+        
+        # Si le profil existait déjà, on le met à jour
+        if not created:
+            profile.role = Profile.ROLE_WORKER
+            if phone:
+                profile.phone = phone
+            profile.notification_preferences = {
+                'email_notifications': True,
+                'task_updates': True,
+                'quote_updates': False,
+                'invoice_updates': False,
+            }
+            profile.save()
         
         # Ajout au groupe Workers
         workers_group, _ = Group.objects.get_or_create(name='Workers')
