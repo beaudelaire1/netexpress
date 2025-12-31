@@ -12,3 +12,6 @@ psycopg2-binary>=2.9
 # ReportLab nécessitent une installation manuelle et sont donc commentés.
 django-jazzmin>=2.6
 reportlab>=4.0
+
+# Support pour Brevo (ancien Sendinblue) via Anymail
+django-anymail[brevo]>=11.0
