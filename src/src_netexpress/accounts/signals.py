@@ -129,10 +129,15 @@ def setup_user_permissions(user, role):
     
     # Admin technique : toutes les permissions via is_superuser
     if config.get('grant_all'):
+        needs_update = []
         if not user.is_superuser:
             user.is_superuser = True
+            needs_update.append('is_superuser')
+        if not user.is_staff:
             user.is_staff = True
-            user.save(update_fields=['is_superuser', 'is_staff'])
+            needs_update.append('is_staff')
+        if needs_update:
+            user.save(update_fields=needs_update)
         return
     
     # Si l'utilisateur est superuser, pas besoin d'ajouter des permissions
