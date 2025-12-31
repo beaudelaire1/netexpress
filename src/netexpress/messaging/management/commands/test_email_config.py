@@ -29,7 +29,7 @@ class Command(BaseCommand):
         # Afficher la configuration actuelle
         self.stdout.write(self.style.WARNING('\n=== Configuration Email ==='))
         
-        backend_type = getattr(settings, '_email_backend_type', 'smtp')
+        backend_type = getattr(settings, 'EMAIL_BACKEND_TYPE', 'smtp')
         email_backend = getattr(settings, 'EMAIL_BACKEND', 'Non défini')
         
         self.stdout.write(f"Type de backend : {backend_type}")

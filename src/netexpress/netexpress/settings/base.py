@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import warnings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -109,20 +110,19 @@ INVOICE_BRANDING = {
 }
 
 # ---------------------------------------------------------------------------
-# Configuration e-mail (Gmail)
+# Configuration e-mail
 # ---------------------------------------------------------------------------
 # Choix du backend email basé sur la variable d'environnement
 # Supporte SMTP (Gmail, Zoho, etc.) ou Brevo API via django-anymail
-_email_backend_type = os.getenv("EMAIL_BACKEND_TYPE", "smtp").lower()
+EMAIL_BACKEND_TYPE = os.getenv("EMAIL_BACKEND_TYPE", "smtp").lower()
 
-if _email_backend_type == "brevo":
+if EMAIL_BACKEND_TYPE == "brevo":
     # Configuration Brevo (ancien Sendinblue) via django-anymail
     EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
     ANYMAIL = {
         "BREVO_API_KEY": os.getenv("BREVO_API_KEY", ""),
     }
     if not ANYMAIL["BREVO_API_KEY"]:
-        import warnings
         warnings.warn(
             "BREVO_API_KEY n'est pas définie. "
             "L'envoi d'emails via Brevo échouera. "
@@ -135,10 +135,9 @@ else:
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
     EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").lower() == "true"
     EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True").lower() == "true"
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "vilmebeaudelaire5@gmail.com")
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
     if not EMAIL_HOST_PASSWORD:
-        import warnings
         warnings.warn(
             "EMAIL_HOST_PASSWORD n'est pas définie. "
             "L'envoi d'emails via SMTP échouera. "
@@ -149,8 +148,5 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", os.getenv("EMAIL_HOST_USER"
 
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-change-me-reworked")
-DEBUG = True
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "nettoyage-express.onrender.com", "*"]
-
+# These settings are overridden in dev.py and prod.py
 # --
