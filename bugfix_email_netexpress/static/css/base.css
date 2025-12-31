@@ -3,23 +3,32 @@
    ========================================================================== */
 
 :root {
-  /* --- Palette --- */
-  --brand: #0f6d4e;
+  /* --- Palette unifiée (vert premium NetExpress) --- */
+  --primary-green: #104130;
+  --accent-green: #2d8a5e;
+  --brand: #104130;           /* Alias pour compatibilité */
   --brand-700: #0c5b41;
   --brand-900: #0a3c28;
-  --ink: #101418;
-  --muted: #5c6b64;
-  --surface: #f5f7f5;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --surface: #f9fafb;
   --card: #ffffff;
-  --ring: rgba(15, 109, 78, .25);
+  --ring: rgba(16, 65, 48, .25);
+  --border-color: #e5e7eb;
+
+  /* --- Typographie --- */
+  --font-head: 'Playfair Display', serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* --- Dimensions --- */
   --radius: 16px;
-  --container-width: 1200px; /* Largeur max du site */
+  --container-width: 1200px;
 
   /* --- Ombres --- */
   --shadow-1: 0 10px 25px rgba(16, 20, 24, .06);
   --shadow-2: 0 20px 50px rgba(16, 20, 24, .10);
+  --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.12);
 }
 
 /* 1. RESET & IMAGES (Le fix pour vos images "ouffs") */
@@ -117,7 +126,7 @@ img {
   inset: 0;
   padding: 2px;
   border-radius: var(--radius);
-  background: linear-gradient(45deg, var(--brand), #ffffff, var(--brand-700), #ffffff, var(--brand));
+  background: linear-gradient(45deg, var(--primary-green, #104130), #ffffff, var(--accent-green, #2d8a5e), #ffffff, var(--primary-green, #104130));
   background-size: 400% 400%;
   animation: border-shine 10s ease infinite;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -126,6 +135,33 @@ img {
   z-index: -1;
 }
 @keyframes border-shine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Alias pour compatibilité avec les templates utilisant border-gradient-anim */
+.border-gradient-anim {
+  position: relative;
+  overflow: hidden;
+}
+.border-gradient-anim::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(var(--radius) + 2px);
+  background: linear-gradient(90deg, 
+    var(--primary-green, #104130), 
+    var(--accent-green, #2d8a5e), 
+    #ffffff, 
+    var(--accent-green, #2d8a5e), 
+    var(--primary-green, #104130)
+  );
+  background-size: 300% 100%;
+  animation: gradient-flow 5s ease infinite;
+  z-index: -1;
+}
+@keyframes gradient-flow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
@@ -154,14 +190,41 @@ img {
   font-size: 1.2rem;
 }
 
-/* Menu Mobile */
+/* Menu Mobile avec fallback CSS (fonctionne sans JavaScript) */
 .nav-toggle { display: none; background: none; border: 0; color: #fff; font-size: 1.8rem; cursor: pointer; }
+
+/* Fallback: si JavaScript ne fonctionne pas, le menu reste visible sur desktop */
+@media(min-width: 801px) {
+  #primary-navigation { display: flex !important; }
+  #primary-navigation[hidden] { display: flex !important; }
+}
+
 @media(max-width: 800px) {
   .nav-toggle { display: block; }
-  .nav { display: none; width: 100%; flex-direction: column; background: rgba(0,0,0,0.1); padding: 10px; margin-top: 10px; border-radius: 8px; }
-  .nav.open { display: flex; }
+  
+  /* Par défaut, afficher le menu si JS échoue (accessibilité) */
+  #primary-navigation {
+    width: 100%;
+    flex-direction: column;
+    background: rgba(0,0,0,0.1);
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+  
+  /* JavaScript masque le menu avec hidden, mais on respecte cet état */
+  #primary-navigation[hidden] { display: none; }
+  #primary-navigation:not([hidden]) { display: flex; }
+  
   .header-row { flex-wrap: wrap; }
   .nav-link { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 0; }
+}
+
+/* Classe active pour la navigation */
+.nav-link.is-active,
+.nav-link[aria-current="page"] {
+  background: rgba(255,255,255,.2);
+  font-weight: 700;
 }
 
 /* 4. FORMULAIRES (Le fix pour qu'ils ne soient pas étirés) */
