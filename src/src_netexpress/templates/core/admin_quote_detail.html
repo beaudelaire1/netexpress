@@ -34,11 +34,9 @@
           <a href="{% url 'core:admin_edit_quote' quote.pk %}" class="btn btn-primary">
             <i class="fas fa-edit mr-2"></i>Modifier
           </a>
-          {% if quote.pdf %}
-            <a href="{{ quote.pdf.url }}" target="_blank" class="btn btn-secondary">
-              <i class="fas fa-download mr-2"></i>Télécharger PDF
-            </a>
-          {% endif %}
+          <a href="{% url 'devis:download' quote.pk %}" target="_blank" class="btn btn-secondary">
+            <i class="fas fa-download mr-2"></i>Télécharger PDF
+          </a>
           {% if quote.status != 'invoiced' %}
             <a href="{% url 'core:admin_send_quote_email' quote.pk %}" class="btn btn-secondary">
               <i class="fas fa-envelope mr-2"></i>Envoyer par email
@@ -239,20 +237,10 @@
               <i class="fas fa-edit mr-2 text-ne-primary-600"></i>
               Modifier le devis
             </a>
-            {% if not quote.pdf %}
-              <form method="post" action="{% url 'core:admin_send_quote_email' quote.pk %}" class="inline">
-                {% csrf_token %}
-                <button type="submit" name="generate_pdf_only" value="1" class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                  <i class="fas fa-file-pdf mr-2 text-red-500"></i>
-                  Générer le PDF
-                </button>
-              </form>
-            {% else %}
-              <a href="{{ quote.pdf.url }}" target="_blank" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                <i class="fas fa-file-pdf mr-2 text-red-500"></i>
-                Voir le PDF
-              </a>
-            {% endif %}
+            <a href="{% url 'devis:download' quote.pk %}" target="_blank" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+              <i class="fas fa-file-pdf mr-2 text-red-500"></i>
+              Voir le PDF
+            </a>
             <a href="{% url 'core:admin_send_quote_email' quote.pk %}" class="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
               <i class="fas fa-envelope mr-2 text-blue-500"></i>
               Envoyer par email
