@@ -1,0 +1,44 @@
+ #Configuration Render.com pour NetExpress
+# ===========================================
+# Les variables marquées "sync: false" doivent être configurées
+# DIRECTEMENT dans le Dashboard Render (Environment > Environment Variables)
+# pour éviter d'exposer les secrets dans le dépôt Git.
+
+services:
+  - type: web
+    name: netexpress
+    env: docker
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    
+    envVars:
+      # === SECRETS (à configurer dans le Dashboard Render) ===
+      # Ces variables ne doivent JAMAIS être dans les fichiers Git
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+        # ⚠️ IMPORTANT: Générez une NOUVELLE clé API dans Brevo
+        # après avoir supprimé les anciennes du dépôt Git
+      
+      # === CONFIGURATION PUBLIQUE ===
+      - key: DJANGO_SETTINGS_MODULE
+        value: netexpress.settings.prod
+      - key: ALLOWED_HOSTS
+        value: www.nettoyageexpresse.fr,nettoyageexpresse.fr,netexpress.onrender.com,.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://www.nettoyageexpresse.fr,https://nettoyageexpresse.fr,https://netexpress.onrender.com
+      
+      # === EMAIL (Brevo API) ===
+      - key: EMAIL_BACKEND
+        value: core.backends.brevo_backend.BrevoEmailBackend
+      - key: DEFAULT_FROM_EMAIL
+        value: contact@nettoyageexpresse.fr
+      - key: DEFAULT_FROM_NAME
+        value: Nettoyage Express
+      - key: CONTACT_RECEIVER_EMAIL
+        value: noreply@nettoyageexpresse.fr
+      - key: TASK_NOTIFICATION_EMAIL
+        value: noreply@nettoyageexpresse.fr
