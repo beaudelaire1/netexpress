@@ -24,9 +24,13 @@ def get_user_role(user) -> str:
 
     Convention NetExpress (ORDRE DE PRIORITÉ):
     1. Superuser => admin_technical (sauf si profile.role = admin_business)
-    2. profile.role (SOURCE DE VÉRITÉ pour les non-superusers)
+    2. profile.role (SOURCE DE VÉRITÉ si explicitement défini à un rôle non-client)
     3. Fallback legacy : is_staff => admin_business ; groupe Workers => worker
     4. Par défaut : client
+    
+    Note: Le rôle 'client' dans le profil est traité comme "non configuré" si
+    l'utilisateur a is_staff=True, pour permettre la compatibilité avec les
+    utilisateurs existants qui n'ont pas été migrés.
     """
     # Récupérer le profile.role s'il existe
     profile_role = None
@@ -45,13 +49,14 @@ def get_user_role(user) -> str:
         # Par défaut, superuser = admin_technical
         return ROLE_ADMIN_TECHNICAL
     
-    # PRIORITÉ 2: profile.role EST LA SOURCE DE VÉRITÉ
-    # Si le rôle est explicitement défini dans le profil, l'utiliser
-    if profile_role and profile_role in [ROLE_ADMIN_BUSINESS, ROLE_ADMIN_TECHNICAL, ROLE_WORKER, ROLE_CLIENT]:
+    # PRIORITÉ 2: profile.role EST LA SOURCE DE VÉRITÉ pour les rôles admin/worker
+    # Note: On traite 'client' séparément car c'est le défaut et on veut
+    # permettre le fallback is_staff pour la compatibilité legacy
+    if profile_role in [ROLE_ADMIN_BUSINESS, ROLE_ADMIN_TECHNICAL, ROLE_WORKER]:
         return profile_role
     
-    # PRIORITÉ 3: Fallback legacy (pour utilisateurs sans profil configuré)
-    # is_staff sans rôle explicite => admin_business
+    # PRIORITÉ 3: Fallback legacy (pour utilisateurs avec profil client par défaut)
+    # is_staff => admin_business (même si profile.role == 'client')
     if getattr(user, "is_staff", False):
         return ROLE_ADMIN_BUSINESS
     
@@ -61,21 +66,20 @@ def get_user_role(user) -> str:
             return ROLE_WORKER
     except Exception:
         pass
+    
+    # PRIORITÉ 4: Utiliser le profile.role s'il est défini à 'client', sinon défaut
+    if profile_role == ROLE_CLIENT:
+        return ROLE_CLIENT
 
-    # PRIORITÉ 4: Par défaut client
+    # PRIORITÉ 5: Par défaut client
     return ROLE_CLIENT
 
 
 def get_portal_home_url(user) -> str:
     """URL racine du portail correspondant au rôle utilisateur.
     
-    Les superusers sont redirigés vers /admin-dashboard/ (interface métier complète)
-    car ils ont accès aux deux interfaces (/gestion/ et /admin-dashboard/).
+    Utilise get_user_role() comme source de vérité pour déterminer le portail.
     """
-    # Superusers -> interface business complète par défaut
-    if getattr(user, "is_superuser", False):
-        return "/admin-dashboard/"
-    
     role = get_user_role(user)
     return {
         ROLE_ADMIN_TECHNICAL: "/gestion/",
@@ -100,14 +104,18 @@ def get_portal_area_from_url(path: str) -> str | None:
     Déterminer la "zone portail" (pour contrôle d'accès / routing).
 
     Retourne: 'client' | 'worker' | 'admin_dashboard' | 'gestion' | None
+    
+    Note: Accepte les URLs avec ou sans trailing slash pour éviter les problèmes
+    de redirection en boucle sur les serveurs de production (Render, nginx, etc.)
     """
-    if path.startswith("/client/"):
+    # Vérifier avec ou sans trailing slash pour éviter les boucles de redirection
+    if path.startswith("/client/") or path == "/client":
         return "client"
-    if path.startswith("/worker/"):
+    if path.startswith("/worker/") or path == "/worker":
         return "worker"
-    if path.startswith("/admin-dashboard/"):
+    if path.startswith("/admin-dashboard/") or path == "/admin-dashboard":
         return "admin_dashboard"
-    if path.startswith("/gestion/"):
+    if path.startswith("/gestion/") or path == "/gestion":
         return "gestion"
     return None
 

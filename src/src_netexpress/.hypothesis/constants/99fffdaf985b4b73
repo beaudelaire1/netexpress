@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/manage.py
+# hypothesis_version: 6.148.8
+
+['--settings', '__main__', 'check_brevo', 'runserver', 'shell', 'test']

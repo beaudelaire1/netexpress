@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/factures/views.py
+# hypothesis_version: 6.148.8
+
+['-issue_date', '-number', 'Content-Disposition', 'application/pdf', 'factures:archive', 'invoices', 'rb']

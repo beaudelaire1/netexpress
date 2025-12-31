@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/accounts/forms.py
+# hypothesis_version: 6.148.8
+
+['class', 'email', 'form-control', 'password1', 'password2', 'phone', 'role', 'username']

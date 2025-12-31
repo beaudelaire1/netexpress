@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/core/urls_client.py
+# hypothesis_version: 6.148.8
+
+['client_portal', 'dashboard', 'invoice_detail', 'invoices', 'invoices/', 'invoices/<int:pk>/', 'notification_count', 'notification_list', 'notifications/count/', 'notifications/list/', 'quote_detail', 'quote_validate_code', 'quote_validate_start', 'quotes', 'quotes/', 'quotes/<int:pk>/']

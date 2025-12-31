@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/accounts/services.py
+# hypothesis_version: 6.148.8
+
+[140, 10000, '@', 'Clients', 'Quote is required', '[^a-zA-Z0-9_-]', '^[^a-zA-Z0-9]+', '_', 'client', 'email', 'email_notifications', 'full_name', 'invoice_updates', 'phone', 'quote_updates', 'task_updates', 'user']

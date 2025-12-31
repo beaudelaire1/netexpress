@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/core/urls.py
+# hypothesis_version: 6.148.8
+
+['a-propos/', 'about', 'admin-dashboard/', 'admin_analytics', 'admin_client_detail', 'admin_clients_list', 'admin_create_client', 'admin_create_invoice', 'admin_create_quote', 'admin_create_task', 'admin_create_worker', 'admin_dashboard', 'admin_edit_quote', 'admin_export_report', 'admin_invoice_detail', 'admin_invoices_list', 'admin_quote_detail', 'admin_quotes_list', 'admin_reports', 'admin_task_detail', 'admin_tasks_list', 'admin_worker_detail', 'admin_workers_list', 'campaign_detail', 'campaigns_list', 'client/', 'client/invoices/', 'client/quotes/', 'client_invoices', 'client_quote_detail', 'client_quotes', 'core', 'create_campaign', 'delete_campaign', 'excellence', 'excellence/', 'health', 'health/', 'home', 'notification_count', 'notification_list', 'notifications/count/', 'notifications/list/', 'realisations', 'realisations/', 'send_campaign']

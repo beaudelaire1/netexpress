@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/accounts/portal.py
+# hypothesis_version: 6.148.8
+
+['/', '/admin-dashboard', '/admin-dashboard/', '/client', '/client/', '/gestion', '/gestion/', '/worker', '/worker/', 'Workers', 'admin_business', 'admin_dashboard', 'admin_technical', 'client', 'gestion', 'is_staff', 'is_superuser', 'profile', 'role', 'worker']

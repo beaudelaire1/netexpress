@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/core/services/dashboard_service.py
+# hypothesis_version: 6.148.8
+
+[100, '%Y-%m', '%b %Y', '-completed_tasks', '-created_at', '-issue_date', '0.00', 'assigned_tasks', 'assigned_to', 'client', 'completed_tasks', 'completion_rate', 'conversion_rate', 'due_date', 'month', 'month_label', 'monthly_revenue', 'overdue_amount', 'overdue_tasks', 'pending_revenue', 'quote', 'quote__client', 'quote_status_counts', 'revenue', 'service', 'start_date', 'task_status_counts', 'total', 'total_revenue', 'total_tasks', 'total_ttc', 'worker']

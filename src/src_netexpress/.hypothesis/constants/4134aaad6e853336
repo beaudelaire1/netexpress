@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/tasks/migrations/0002_alter_task_status.py
+# hypothesis_version: 6.148.8
+
+['0001_initial', 'En cours', 'En retard', 'Presque en retard', 'Terminé', 'almost_overdue', 'completed', 'in_progress', 'overdue', 'status', 'task', 'tasks', 'upcoming', 'À venir']
