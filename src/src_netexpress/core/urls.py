@@ -76,6 +76,7 @@ urlpatterns = [
     # Tasks
     path("admin-dashboard/tasks/", views.admin_tasks_list, name="admin_tasks_list"),
     path("admin-dashboard/tasks/<int:pk>/", views.admin_task_detail, name="admin_task_detail"),
+    path("admin-dashboard/tasks/<int:pk>/edit/", views.admin_edit_task, name="admin_edit_task"),
     path("admin-dashboard/tasks/create/", views.admin_create_task, name="admin_create_task"),
     
     # Analytics & Reporting

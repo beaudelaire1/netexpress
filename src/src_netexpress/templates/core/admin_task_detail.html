@@ -99,6 +99,10 @@
           </h2>
           
           <div class="space-y-3">
+            <a href="{% url 'core:admin_edit_task' task.pk %}" 
+               class="w-full btn btn-primary flex items-center justify-center">
+              <i class="fas fa-edit mr-2"></i>Modifier la tâche
+            </a>
             <a href="{% url 'core:admin_global_planning' %}" 
                class="w-full btn btn-secondary flex items-center justify-center">
               <i class="fas fa-calendar mr-2"></i>Voir dans le planning

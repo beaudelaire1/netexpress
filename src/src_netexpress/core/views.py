@@ -893,6 +893,26 @@ def admin_create_task(request):
 
 
 @admin_portal_required
+def admin_edit_task(request, pk):
+    """Admin Portal task edit view."""
+    from .forms import TaskCreationForm
+    from tasks.models import Task
+    
+    task = get_object_or_404(Task, pk=pk)
+    
+    if request.method == 'POST':
+        form = TaskCreationForm(request.POST, instance=task)
+        if form.is_valid():
+            task = form.save()
+            messages.success(request, f"Tâche '{task.title}' mise à jour avec succès!")
+            return redirect('core:admin_task_detail', pk=task.pk)
+    else:
+        form = TaskCreationForm(instance=task)
+    
+    return render(request, 'core/admin_edit_task.html', {'form': form, 'task': task})
+
+
+@admin_portal_required
 def admin_workers_list(request):
     """Admin Portal workers management view with optimized queries."""
     from django.contrib.auth.models import User

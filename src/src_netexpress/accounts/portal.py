@@ -123,11 +123,18 @@ def user_can_access_portal_area(user, portal_area: str) -> bool:
 
     NB: la règle "lecture seule /gestion/ pour admin_business" est gérée au middleware
     (car dépend de la méthode HTTP). Ici on répond uniquement sur l'accès global.
+    
+    Règles d'accès:
+    - admin_technical (superuser inclus): /gestion/ ET /admin-dashboard/
+    - admin_business: /admin-dashboard/ ET /gestion/ (lecture seule gérée par middleware)
+    - worker: /worker/ uniquement
+    - client: /client/ uniquement
     """
     role = get_user_role(user)
 
-    if role == ROLE_ADMIN_TECHNICAL:
-        return portal_area == "gestion"
+    # Les admin techniques et superusers ont accès à /gestion/ ET /admin-dashboard/
+    if role == ROLE_ADMIN_TECHNICAL or getattr(user, 'is_superuser', False):
+        return portal_area in {"gestion", "admin_dashboard"}
 
     if role == ROLE_ADMIN_BUSINESS:
         return portal_area in {"admin_dashboard", "gestion"}
