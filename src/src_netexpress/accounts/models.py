@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 class Profile(models.Model):
@@ -14,6 +12,10 @@ class Profile(models.Model):
       - worker : accès au dashboard ouvrier (/worker/)
       - admin_business : accès au dashboard admin business (/admin-dashboard/) + lecture /gestion/
       - admin_technical : accès à l'interface technique Django Admin (/gestion/)
+    
+    IMPORTANT: Le rôle définit les permissions et l'accès aux portails.
+    Les signaux dans accounts/signals.py gèrent la création automatique du profil
+    et la synchronisation des permissions.
     """
 
     ROLE_CLIENT = "client"
@@ -46,9 +48,12 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} ({self.role})"
+    
+    def save(self, *args, **kwargs):
+        """Override save to trigger permission sync after role change."""
+        super().save(*args, **kwargs)
+        # Note: La synchronisation des permissions est gérée par le signal post_save
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_profile_for_user(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
+# Note: Le signal de création de profil est maintenant dans accounts/signals.py
+# pour une gestion centralisée des permissions
