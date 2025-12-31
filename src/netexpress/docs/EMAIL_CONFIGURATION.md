@@ -82,13 +82,30 @@ Pour configurer les variables d'environnement sur Render :
 
 ## Test de Configuration
 
-Pour tester votre configuration email :
+Pour tester votre configuration email, vous avez deux options :
+
+### Option 1 : Commande personnalisée (Recommandée)
+
+Utilisez la commande de test personnalisée qui affiche des informations détaillées :
 
 ```bash
 # Activez votre environnement virtuel
 source venv/bin/activate  # ou .venv\Scripts\activate sur Windows
 
-# Utilisez la commande Django sendtestemail
+# Testez avec votre email
+python manage.py test_email_config votre@email.com
+```
+
+Cette commande affiche :
+- La configuration email actuelle (SMTP ou Brevo)
+- Le statut de chaque paramètre (✓ ou ✗)
+- Des suggestions si l'envoi échoue
+
+### Option 2 : Commande Django standard
+
+Vous pouvez aussi utiliser la commande Django intégrée :
+
+```bash
 python manage.py sendtestemail votre@email.com
 ```
 
