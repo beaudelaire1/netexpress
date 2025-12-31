@@ -1,8 +1,6 @@
 """
 Middleware d'accès NetExpress - Gestion des rôles, sessions et audit.
 """
-
-from .portal import get_user_role, get_portal_home_url
 import logging
 import re
 

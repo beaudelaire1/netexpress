@@ -4,6 +4,7 @@ Signaux pour la gestion automatique des permissions selon les rôles NetExpress.
 Ce module gère l'attribution automatique des permissions Django
 en fonction du rôle défini dans le profil utilisateur.
 """
+import logging
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
@@ -11,6 +12,15 @@ from django.dispatch import receiver
 
 from .models import Profile
 
+logger = logging.getLogger(__name__)
+
+# Mapping rôle -> groupe Django
+ROLE_GROUP_MAPPING = {
+    Profile.ROLE_ADMIN_BUSINESS: 'AdminBusiness',
+    Profile.ROLE_WORKER: 'Workers',
+    Profile.ROLE_CLIENT: 'Clients',
+    # admin_technical n'a pas de groupe (superuser direct)
+}
 
 # Définition des permissions par rôle
 ROLE_PERMISSIONS = {
@@ -51,6 +61,7 @@ ROLE_PERMISSIONS = {
             ('accounts', 'profile', ['view']),
         ],
         'is_staff': False,
+        'group': 'Workers',
     },
     Profile.ROLE_CLIENT: {
         'models': [
@@ -61,6 +72,7 @@ ROLE_PERMISSIONS = {
             ('accounts', 'profile', ['view']),
         ],
         'is_staff': False,
+        'group': 'Clients',
     },
 }
 
@@ -80,9 +92,34 @@ def get_or_create_permission(app_label, model_name, action):
         return None
 
 
+def sync_user_groups(user, role):
+    """Synchronise les groupes Django avec le rôle du profil."""
+    # Récupérer le groupe correspondant au rôle
+    target_group_name = ROLE_GROUP_MAPPING.get(role)
+    
+    # Retirer l'utilisateur de tous les groupes de rôle
+    all_role_groups = list(ROLE_GROUP_MAPPING.values())
+    for group_name in all_role_groups:
+        try:
+            group = Group.objects.get(name=group_name)
+            user.groups.remove(group)
+        except Group.DoesNotExist:
+            pass
+    
+    # Ajouter au bon groupe si défini
+    if target_group_name:
+        group, created = Group.objects.get_or_create(name=target_group_name)
+        user.groups.add(group)
+        if created:
+            logger.info(f"Groupe '{target_group_name}' créé pour le rôle '{role}'")
+
+
 def setup_user_permissions(user, role):
-    """Configure les permissions d'un utilisateur selon son rôle."""
+    """Configure les permissions et groupes d'un utilisateur selon son rôle."""
     config = ROLE_PERMISSIONS.get(role, {})
+    
+    # Synchroniser les groupes Django
+    sync_user_groups(user, role)
     
     # Gérer is_staff
     if 'is_staff' in config:

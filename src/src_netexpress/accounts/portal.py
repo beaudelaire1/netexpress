@@ -22,10 +22,11 @@ def get_user_role(user) -> str:
     """
     Déterminer le rôle applicatif d'un utilisateur.
 
-    Convention NetExpress:
-    - superuser => admin_technical (sauf si profile.role = admin_business explicitement)
-    - profile.role (si présent et != 'client') => utiliser ce rôle
-    - fallback : is_staff => admin_business ; groupe Workers => worker ; sinon client
+    Convention NetExpress (ORDRE DE PRIORITÉ):
+    1. Superuser => admin_technical (sauf si profile.role = admin_business)
+    2. profile.role (SOURCE DE VÉRITÉ pour les non-superusers)
+    3. Fallback legacy : is_staff => admin_business ; groupe Workers => worker
+    4. Par défaut : client
     """
     # Récupérer le profile.role s'il existe
     profile_role = None
@@ -44,23 +45,24 @@ def get_user_role(user) -> str:
         # Par défaut, superuser = admin_technical
         return ROLE_ADMIN_TECHNICAL
     
-    # PRIORITÉ 2: Si le profile.role est défini à un rôle non-client
-    # (admin_business, admin_technical, worker)
-    if profile_role and profile_role in [ROLE_ADMIN_BUSINESS, ROLE_ADMIN_TECHNICAL, ROLE_WORKER]:
+    # PRIORITÉ 2: profile.role EST LA SOURCE DE VÉRITÉ
+    # Si le rôle est explicitement défini dans le profil, l'utiliser
+    if profile_role and profile_role in [ROLE_ADMIN_BUSINESS, ROLE_ADMIN_TECHNICAL, ROLE_WORKER, ROLE_CLIENT]:
         return profile_role
     
-    # PRIORITÉ 3: Fallback sur is_staff (staff = admin_business par défaut)
+    # PRIORITÉ 3: Fallback legacy (pour utilisateurs sans profil configuré)
+    # is_staff sans rôle explicite => admin_business
     if getattr(user, "is_staff", False):
         return ROLE_ADMIN_BUSINESS
     
-    # PRIORITÉ 4: Fallback sur groupes Workers
+    # Groupe Workers => worker (compatibilité legacy)
     try:
         if user.groups.filter(name="Workers").exists():
             return ROLE_WORKER
     except Exception:
         pass
 
-    # PRIORITÉ 5: Par défaut client (ou profile.role = 'client')
+    # PRIORITÉ 4: Par défaut client
     return ROLE_CLIENT
 
 

@@ -117,18 +117,32 @@
         <div class="hidden md:flex items-center space-x-4">
           {% block nav_items %}
           {% if user.is_authenticated %}
-            <!-- Default portal navigation (can be overridden by child templates) -->
-            {% if user.is_staff %}
-              <a href="/admin-dashboard/" class="portal-nav-item">Dashboard</a>
-              <a href="/admin-dashboard/planning/" class="portal-nav-item">Planning</a>
-              <a href="/gestion/" class="portal-nav-item">Gestion</a>
-            {% elif user.groups.all.0.name == 'Workers' %}
-              <a href="/worker/" class="portal-nav-item">Mes Tâches</a>
-              <a href="/worker/schedule/" class="portal-nav-item">Planning</a>
+            <!-- Default portal navigation based on profile.role -->
+            {% if user.is_superuser or user.profile.role == 'admin_technical' %}
+              <a href="/admin-dashboard/" class="portal-nav-item"><i class="fas fa-chart-line mr-1"></i> Dashboard</a>
+              <a href="/admin-dashboard/planning/" class="portal-nav-item"><i class="fas fa-calendar-alt mr-1"></i> Planning Global</a>
+              <a href="/admin-dashboard/workers/" class="portal-nav-item"><i class="fas fa-users mr-1"></i> Ouvriers</a>
+              <a href="/admin-dashboard/quotes/" class="portal-nav-item"><i class="fas fa-file-alt mr-1"></i> Devis</a>
+              <a href="/admin-dashboard/invoices/" class="portal-nav-item"><i class="fas fa-file-invoice mr-1"></i> Factures</a>
+              <a href="/admin-dashboard/campaigns/" class="portal-nav-item"><i class="fas fa-bullhorn mr-1"></i> Campagnes</a>
+              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
+            {% elif user.profile.role == 'admin_business' %}
+              <a href="/admin-dashboard/" class="portal-nav-item"><i class="fas fa-chart-line mr-1"></i> Dashboard</a>
+              <a href="/admin-dashboard/planning/" class="portal-nav-item"><i class="fas fa-calendar-alt mr-1"></i> Planning Global</a>
+              <a href="/admin-dashboard/workers/" class="portal-nav-item"><i class="fas fa-users mr-1"></i> Ouvriers</a>
+              <a href="/admin-dashboard/quotes/" class="portal-nav-item"><i class="fas fa-file-alt mr-1"></i> Devis</a>
+              <a href="/admin-dashboard/invoices/" class="portal-nav-item"><i class="fas fa-file-invoice mr-1"></i> Factures</a>
+              <a href="/admin-dashboard/campaigns/" class="portal-nav-item"><i class="fas fa-bullhorn mr-1"></i> Campagnes</a>
+              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
+            {% elif user.profile.role == 'worker' %}
+              <a href="/worker/" class="portal-nav-item"><i class="fas fa-tasks mr-1"></i> Mes Tâches</a>
+              <a href="/worker/schedule/" class="portal-nav-item"><i class="fas fa-calendar mr-1"></i> Planning</a>
+              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% else %}
-              <a href="/client/" class="portal-nav-item">Dashboard</a>
-              <a href="/client/quotes/" class="portal-nav-item">Devis</a>
-              <a href="/client/invoices/" class="portal-nav-item">Factures</a>
+              <a href="/client/" class="portal-nav-item"><i class="fas fa-home mr-1"></i> Dashboard</a>
+              <a href="/client/quotes/" class="portal-nav-item"><i class="fas fa-file-alt mr-1"></i> Devis</a>
+              <a href="/client/invoices/" class="portal-nav-item"><i class="fas fa-file-invoice mr-1"></i> Factures</a>
+              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% endif %}
           {% else %}
             <!-- Public navigation -->
@@ -227,18 +241,20 @@
       <div class="px-2 pt-2 pb-3 space-y-1">
         {% block mobile_nav_items %}
         {% if user.is_authenticated %}
-          <!-- Default portal-specific mobile navigation -->
-          {% if user.is_staff %}
-            <a href="/admin-dashboard/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Dashboard</a>
-            <a href="/admin-dashboard/planning/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Planning</a>
-            <a href="/gestion/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Gestion</a>
-          {% elif user.groups.all.0.name == 'Workers' %}
-            <a href="/worker/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Mes Tâches</a>
-            <a href="/worker/schedule/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Planning</a>
+          <!-- Mobile navigation based on profile.role -->
+          {% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' %}
+            <a href="/admin-dashboard/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-chart-line mr-2"></i>Dashboard</a>
+            <a href="/admin-dashboard/planning/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-calendar-alt mr-2"></i>Planning</a>
+            <a href="/admin-dashboard/workers/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-users mr-2"></i>Ouvriers</a>
+            <a href="/admin-dashboard/quotes/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-file-alt mr-2"></i>Devis</a>
+            <a href="/admin-dashboard/invoices/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-file-invoice mr-2"></i>Factures</a>
+          {% elif user.profile.role == 'worker' %}
+            <a href="/worker/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-tasks mr-2"></i>Mes Tâches</a>
+            <a href="/worker/schedule/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-calendar mr-2"></i>Planning</a>
           {% else %}
-            <a href="/client/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Dashboard</a>
-            <a href="/client/quotes/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Devis</a>
-            <a href="/client/invoices/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md">Factures</a>
+            <a href="/client/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-home mr-2"></i>Dashboard</a>
+            <a href="/client/quotes/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-file-alt mr-2"></i>Devis</a>
+            <a href="/client/invoices/" class="block px-3 py-2 text-white hover:bg-ne-primary-700 rounded-md"><i class="fas fa-file-invoice mr-2"></i>Factures</a>
           {% endif %}
         {% else %}
           <!-- Public mobile navigation -->
