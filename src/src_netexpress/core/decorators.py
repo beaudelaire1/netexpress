@@ -124,6 +124,7 @@ def admin_portal_required(view_func):
     
     Accès autorisé pour:
     - Users avec profile.role = 'admin_business'
+    - Users avec profile.role = 'admin_technical'
     - Superusers (pour tests/support)
     """
     @wraps(view_func)
@@ -131,9 +132,13 @@ def admin_portal_required(view_func):
     def wrapper(request, *args, **kwargs):
         user = request.user
         
-        # Vérifier le rôle admin_business
+        # Superusers ont toujours accès
+        if user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        
+        # Vérifier le rôle admin_business ou admin_technical
         role = get_user_role(user)
-        if role == 'admin_business':
+        if role in ('admin_business', 'admin_technical'):
             return view_func(request, *args, **kwargs)
         
         # Rediriger vers le portail approprié
