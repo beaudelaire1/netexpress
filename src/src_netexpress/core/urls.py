@@ -70,12 +70,18 @@ urlpatterns = [
     # Invoices
     path("admin-dashboard/invoices/", views.admin_invoices_list, name="admin_invoices_list"),
     path("admin-dashboard/invoices/<int:pk>/", views.admin_invoice_detail, name="admin_invoice_detail"),
+    path("admin-dashboard/invoices/<int:pk>/mark-paid/", views.admin_invoice_mark_paid, name="admin_invoice_mark_paid"),
     path("admin-dashboard/invoices/create/", views.admin_create_invoice, name="admin_create_invoice"),
     
     # Tasks
     path("admin-dashboard/tasks/", views.admin_tasks_list, name="admin_tasks_list"),
     path("admin-dashboard/tasks/<int:pk>/", views.admin_task_detail, name="admin_task_detail"),
     path("admin-dashboard/tasks/create/", views.admin_create_task, name="admin_create_task"),
+    
+    # Analytics & Reporting
+    path("admin-dashboard/analytics/", views.admin_analytics, name="admin_analytics"),
+    path("admin-dashboard/reports/", views.admin_reports, name="admin_reports"),
+    path("admin-dashboard/reports/export/", views.admin_export_report, name="admin_export_report"),
     
     # Notification HTMX endpoints
     path("notifications/count/", views.notification_count, name="notification_count"),

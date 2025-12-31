@@ -1105,20 +1105,19 @@ def admin_worker_detail(request, pk):
     
     # Tâches assignées
     from tasks.models import Task
-    tasks = Task.objects.filter(assigned_to=worker).select_related().order_by('-due_date', '-created_at')
+    tasks = Task.objects.filter(assigned_to=worker).order_by('-due_date', '-created_at')
     
-    # Tâches par statut
-    tasks_by_status = {
-        'upcoming': tasks.filter(status=Task.STATUS_UPCOMING),
-        'in_progress': tasks.filter(status=Task.STATUS_IN_PROGRESS),
-        'completed': tasks.filter(status=Task.STATUS_COMPLETED)[:10],  # Dernières 10
-        'overdue': tasks.filter(status=Task.STATUS_OVERDUE),
-    }
+    # Tâches en cours (upcoming + in_progress)
+    current_tasks = tasks.filter(status__in=[Task.STATUS_UPCOMING, Task.STATUS_IN_PROGRESS])
+    
+    # Tâches terminées (dernières 10)
+    completed_tasks = tasks.filter(status=Task.STATUS_COMPLETED)[:10]
     
     return render(request, 'core/admin_worker_detail.html', {
         'worker': worker,
         'stats': stats,
-        'tasks_by_status': tasks_by_status,
+        'current_tasks': current_tasks,
+        'completed_tasks': completed_tasks,
     })
 
 
@@ -1194,6 +1193,26 @@ def admin_invoice_detail(request, pk):
 
 
 @admin_portal_required
+def admin_invoice_mark_paid(request, pk):
+    """Mark an invoice as paid."""
+    from django.contrib import messages
+    
+    if request.method != 'POST':
+        return redirect('core:admin_invoice_detail', pk=pk)
+    
+    invoice = get_object_or_404(Invoice, pk=pk)
+    
+    if invoice.status not in [Invoice.InvoiceStatus.PAID]:
+        invoice.status = Invoice.InvoiceStatus.PAID
+        invoice.save()
+        messages.success(request, f"La facture {invoice.number} a été marquée comme payée.")
+    else:
+        messages.info(request, f"La facture {invoice.number} est déjà payée.")
+    
+    return redirect('core:admin_invoice_detail', pk=pk)
+
+
+@admin_portal_required
 def admin_task_detail(request, pk):
     """Admin Portal task detail view."""
     from tasks.models import Task
@@ -1220,13 +1239,18 @@ def admin_tasks_list(request):
     # Filtres
     status_filter = request.GET.get('status')
     worker_filter = request.GET.get('worker')
-    search_query = request.GET.get('search')
+    search_query = request.GET.get('q')  # 'q' pour correspondre au template
     
     if status_filter:
         tasks = tasks.filter(status=status_filter)
     
     if worker_filter:
-        tasks = tasks.filter(assigned_to_id=worker_filter)
+        if worker_filter == 'unassigned':
+            # Tâches non assignées (pas d'ouvriers)
+            from django.db.models import Count
+            tasks = tasks.annotate(worker_count=Count('assigned_to')).filter(worker_count=0)
+        else:
+            tasks = tasks.filter(assigned_to__id=worker_filter)
     
     if search_query:
         tasks = tasks.filter(
@@ -1356,3 +1380,183 @@ def mark_all_notifications_read(request):
         "core/partials/notification_list.html",
         {"notifications": notifications}
     )
+
+
+# ============================================================================
+# ANALYTICS & REPORTING VIEWS
+# ============================================================================
+
+@login_required
+def admin_analytics(request):
+    """
+    Tableau de bord analytique avancé avec KPIs détaillés et graphiques.
+    """
+    from accounts.portal import get_user_role
+    from core.services.analytics_service import AnalyticsService
+    
+    role = get_user_role(request.user)
+    if role not in ['admin_technical', 'admin_business']:
+        return redirect('core:access_denied')
+    
+    # Période sélectionnée (défaut: mois)
+    period = request.GET.get('period', 'month')
+    
+    # KPIs avancés avec comparaison
+    kpis = AnalyticsService.get_advanced_kpis(period)
+    
+    # Comparaison mensuelle année courante vs précédente
+    monthly_comparison = AnalyticsService.get_monthly_comparison()
+    
+    # Funnel de conversion devis
+    quote_funnel = AnalyticsService.get_quote_funnel()
+    
+    # Top services
+    top_services = AnalyticsService.get_services_demand()
+    
+    # Top clients
+    top_clients = AnalyticsService.get_revenue_by_client(limit=10)
+    
+    # Performance workers
+    worker_stats = AnalyticsService.get_worker_detailed_stats()
+    
+    # Factures en retard
+    overdue_invoices = AnalyticsService.get_overdue_invoices()[:10]
+    
+    context = {
+        'period': period,
+        'kpis': kpis,
+        'monthly_comparison': monthly_comparison,
+        'quote_funnel': quote_funnel,
+        'top_services': top_services,
+        'top_clients': top_clients,
+        'worker_stats': worker_stats,
+        'overdue_invoices': overdue_invoices,
+    }
+    
+    return render(request, 'core/admin_analytics.html', context)
+
+
+@login_required
+def admin_reports(request):
+    """
+    Page de génération de rapports personnalisés.
+    """
+    from accounts.portal import get_user_role
+    from core.services.analytics_service import ReportingService
+    from datetime import datetime, timedelta
+    
+    role = get_user_role(request.user)
+    if role not in ['admin_technical', 'admin_business']:
+        return redirect('core:access_denied')
+    
+    # Dates par défaut (mois en cours)
+    today = timezone.now().date()
+    default_start = today.replace(day=1)
+    default_end = today
+    
+    report_type = request.GET.get('type', None)
+    start_date = request.GET.get('start_date', default_start.isoformat())
+    end_date = request.GET.get('end_date', default_end.isoformat())
+    
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    except ValueError:
+        start_date = default_start
+        end_date = default_end
+    
+    report_data = None
+    
+    if report_type == 'revenue':
+        report_data = ReportingService.generate_revenue_report(start_date, end_date)
+    elif report_type == 'clients':
+        report_data = ReportingService.generate_client_report(start_date, end_date)
+    elif report_type == 'workers':
+        report_data = ReportingService.generate_worker_report(start_date, end_date)
+    
+    context = {
+        'report_type': report_type,
+        'start_date': start_date,
+        'end_date': end_date,
+        'report_data': report_data,
+    }
+    
+    return render(request, 'core/admin_reports.html', context)
+
+
+@login_required
+def admin_export_report(request):
+    """
+    Export de rapport en CSV.
+    """
+    from accounts.portal import get_user_role
+    from core.services.analytics_service import ReportingService
+    from django.http import HttpResponse
+    from datetime import datetime
+    import csv
+    
+    role = get_user_role(request.user)
+    if role not in ['admin_technical', 'admin_business']:
+        return redirect('core:access_denied')
+    
+    report_type = request.GET.get('type', 'revenue')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        today = timezone.now().date()
+        start_date = today.replace(day=1)
+        end_date = today
+    
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="rapport_{report_type}_{start_date}_{end_date}.csv"'
+    response.write('\ufeff')  # BOM for Excel UTF-8
+    
+    writer = csv.writer(response, delimiter=';')
+    
+    if report_type == 'revenue':
+        report = ReportingService.generate_revenue_report(start_date, end_date)
+        writer.writerow(['Numero', 'Date', 'Client', 'Montant HT', 'TVA', 'Montant TTC', 'Statut'])
+        for inv in report['invoices']:
+            client_name = inv.quote.client.full_name if inv.quote and inv.quote.client else 'N/A'
+            writer.writerow([
+                inv.number,
+                inv.issue_date.strftime('%d/%m/%Y'),
+                client_name,
+                str(inv.total_ht).replace('.', ','),
+                str(inv.tva).replace('.', ','),
+                str(inv.total_ttc).replace('.', ','),
+                inv.get_status_display()
+            ])
+        writer.writerow([])
+        writer.writerow(['TOTAL', '', '', str(report['total_ht']).replace('.', ','), 
+                        str(report['total_tva']).replace('.', ','), str(report['total_ttc']).replace('.', ',')])
+    
+    elif report_type == 'clients':
+        report = ReportingService.generate_client_report(start_date, end_date)
+        writer.writerow(['Client', 'Entreprise', 'Nombre Devis', 'CA Total'])
+        for client in report['clients']:
+            writer.writerow([
+                client.full_name,
+                client.company or '',
+                client.quote_count,
+                str(client.invoice_total or 0).replace('.', ',')
+            ])
+    
+    elif report_type == 'workers':
+        report = ReportingService.generate_worker_report(start_date, end_date)
+        writer.writerow(['Ouvrier', 'Taches Totales', 'Terminees', 'En Retard', 'Taux Completion'])
+        for worker in report['workers']:
+            completion = (worker.completed_tasks / worker.total_tasks * 100) if worker.total_tasks > 0 else 0
+            writer.writerow([
+                worker.get_full_name() or worker.username,
+                worker.total_tasks,
+                worker.completed_tasks,
+                worker.overdue_tasks,
+                f"{completion:.1f}%"
+            ])
+    
+    return response

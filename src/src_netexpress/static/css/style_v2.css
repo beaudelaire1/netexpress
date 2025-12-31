@@ -748,3 +748,158 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   DARK MODE
+   ========================================================================== */
+
+/* Variables mode sombre */
+.dark {
+  --ne-bg-primary: #0f172a;
+  --ne-bg-secondary: #1e293b;
+  --ne-bg-tertiary: #334155;
+  --ne-text-primary: #f8fafc;
+  --ne-text-secondary: #94a3b8;
+  --ne-text-muted: #64748b;
+  --ne-border: #334155;
+}
+
+/* Application du dark mode */
+.dark body,
+.dark {
+  background-color: var(--ne-bg-primary);
+  color: var(--ne-text-primary);
+}
+
+.dark .bg-white {
+  background-color: var(--ne-bg-secondary) !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--ne-bg-tertiary) !important;
+}
+
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--ne-text-primary) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: var(--ne-text-secondary) !important;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: var(--ne-text-muted) !important;
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--ne-border) !important;
+}
+
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--ne-border) !important;
+}
+
+.dark .shadow,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--ne-bg-tertiary) !important;
+}
+
+/* Cards en dark mode */
+.dark .card,
+.dark .rounded-xl.shadow-md,
+.dark .rounded-lg.shadow {
+  background-color: var(--ne-bg-secondary);
+  border-color: var(--ne-border);
+}
+
+/* Tableaux en dark mode */
+.dark thead {
+  background-color: var(--ne-bg-tertiary) !important;
+}
+
+.dark tbody tr:hover {
+  background-color: var(--ne-bg-tertiary) !important;
+}
+
+/* Inputs en dark mode */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--ne-bg-tertiary) !important;
+  border-color: var(--ne-border) !important;
+  color: var(--ne-text-primary) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--ne-text-muted) !important;
+}
+
+/* Boutons en dark mode */
+.dark .btn-secondary {
+  background-color: var(--ne-bg-tertiary) !important;
+  border-color: var(--ne-border) !important;
+  color: var(--ne-text-primary) !important;
+}
+
+.dark .btn-secondary:hover {
+  background-color: var(--ne-border) !important;
+}
+
+/* Badges conservent leurs couleurs */
+.dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.2) !important; }
+.dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.2) !important; }
+.dark .bg-yellow-100 { background-color: rgba(245, 158, 11, 0.2) !important; }
+.dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.2) !important; }
+.dark .bg-purple-100 { background-color: rgba(168, 85, 247, 0.2) !important; }
+.dark .bg-orange-100 { background-color: rgba(249, 115, 22, 0.2) !important; }
+
+/* Portal nav reste inchangée (déjà sombre) */
+
+/* Bouton toggle dark mode */
+.dark-mode-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: transparent;
+  color: currentColor;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dark-mode-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .dark-mode-toggle .fa-moon { display: none; }
+.dark .dark-mode-toggle .fa-sun { display: inline; }
+:not(.dark) .dark-mode-toggle .fa-moon { display: inline; }
+:not(.dark) .dark-mode-toggle .fa-sun { display: none; }
+
+/* Transition fluide pour le changement de thème */
+body,
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+input,
+select,
+textarea {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

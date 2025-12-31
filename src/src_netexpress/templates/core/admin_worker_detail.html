@@ -1,0 +1,225 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}{{ worker.get_full_name|default:worker.username }} — Détail Ouvrier — NetExpress{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center">
+          <a href="{% url 'core:admin_workers_list' %}" class="mr-4 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <div class="w-16 h-16 bg-ne-primary-100 rounded-full flex items-center justify-center mr-4">
+            <span class="text-2xl text-ne-primary-600 font-bold">
+              {{ worker.first_name|slice:":1"|default:worker.username|slice:":1"|upper }}
+            </span>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ worker.get_full_name|default:worker.username }}</h1>
+            <p class="text-gray-600">
+              Ouvrier • 
+              {% if worker.is_active %}
+                <span class="text-green-600">Actif</span>
+              {% else %}
+                <span class="text-red-600">Inactif</span>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        <div class="flex space-x-3 mt-4 md:mt-0">
+          <a href="{% url 'core:admin_create_task' %}?worker={{ worker.pk }}" class="btn btn-primary">
+            <i class="fas fa-tasks mr-2"></i>Assigner une tâche
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Informations et Stats -->
+      <div class="lg:col-span-1">
+        <!-- Coordonnées -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-id-card text-ne-primary-500 mr-2"></i>
+            Coordonnées
+          </h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Email</label>
+              <p class="text-gray-800">
+                <a href="mailto:{{ worker.email }}" class="text-ne-primary-600 hover:underline">
+                  {{ worker.email }}
+                </a>
+              </p>
+            </div>
+            
+            {% if worker.profile.phone %}
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Téléphone</label>
+              <p class="text-gray-800">
+                <a href="tel:{{ worker.profile.phone }}" class="text-ne-primary-600 hover:underline">
+                  {{ worker.profile.phone }}
+                </a>
+              </p>
+            </div>
+            {% endif %}
+            
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Dernière connexion</label>
+              <p class="text-gray-800">
+                {% if worker.last_login %}
+                  {{ worker.last_login|date:"d/m/Y à H:i" }}
+                {% else %}
+                  Jamais connecté
+                {% endif %}
+              </p>
+            </div>
+            
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Inscrit le</label>
+              <p class="text-gray-800">{{ worker.date_joined|date:"d/m/Y" }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+            Performance
+          </h2>
+          
+          <div class="space-y-4">
+            <!-- Taux de complétion -->
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-600">Taux de complétion</span>
+                <span class="font-semibold text-gray-800">{{ stats.completion_rate|floatformat:0 }}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-ne-primary-500 h-3 rounded-full" style="width: {{ stats.completion_rate }}%"></div>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 pt-4">
+              <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <p class="text-2xl font-bold text-gray-800">{{ stats.total_tasks }}</p>
+                <p class="text-xs text-gray-500">Total</p>
+              </div>
+              <div class="bg-green-50 rounded-lg p-3 text-center">
+                <p class="text-2xl font-bold text-green-600">{{ stats.completed_tasks }}</p>
+                <p class="text-xs text-gray-500">Terminées</p>
+              </div>
+              <div class="bg-blue-50 rounded-lg p-3 text-center">
+                <p class="text-2xl font-bold text-blue-600">{{ stats.in_progress_tasks }}</p>
+                <p class="text-xs text-gray-500">En cours</p>
+              </div>
+              <div class="bg-red-50 rounded-lg p-3 text-center">
+                <p class="text-2xl font-bold text-red-600">{{ stats.overdue_tasks }}</p>
+                <p class="text-xs text-gray-500">En retard</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tâches -->
+      <div class="lg:col-span-2">
+        <!-- Tâches en cours -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">
+              <i class="fas fa-tasks text-blue-500 mr-2"></i>
+              Tâches en cours
+            </h2>
+            <a href="{% url 'core:admin_create_task' %}?worker={{ worker.pk }}" class="text-sm text-ne-primary-600 hover:underline">
+              + Nouvelle tâche
+            </a>
+          </div>
+          
+          {% if current_tasks %}
+          <div class="space-y-3">
+            {% for task in current_tasks %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
+                  <p class="text-sm text-gray-500">{{ task.location|default:"Lieu non spécifié" }}</p>
+                </div>
+                <span class="px-2 py-1 rounded-full text-xs font-medium
+                  {% if task.status == 'in_progress' %}bg-blue-100 text-blue-700
+                  {% elif task.status == 'upcoming' %}bg-yellow-100 text-yellow-700
+                  {% else %}bg-gray-100 text-gray-700{% endif %}">
+                  {{ task.get_status_display }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between mt-3 text-sm">
+                <span class="text-gray-500">
+                  <i class="fas fa-calendar mr-1"></i>
+                  {{ task.due_date|date:"d/m/Y" }}
+                </span>
+                <a href="{% url 'core:admin_task_detail' task.pk %}" class="text-ne-primary-600 hover:underline">
+                  Voir détails →
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-gray-500 text-center py-4">Aucune tâche en cours</p>
+          {% endif %}
+        </div>
+
+        <!-- Tâches récentes terminées -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+            Tâches récentes terminées
+          </h2>
+          
+          {% if completed_tasks %}
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tâche</th>
+                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Lieu</th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Échéance</th>
+                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for task in completed_tasks %}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3">
+                    <span class="font-medium text-gray-800">{{ task.title }}</span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-gray-500">{{ task.location|default:"—" }}</td>
+                  <td class="px-4 py-3 text-center text-sm">{{ task.due_date|date:"d/m/Y" }}</td>
+                  <td class="px-4 py-3 text-right">
+                    <a href="{% url 'core:admin_task_detail' task.pk %}" class="text-ne-primary-600 hover:text-ne-primary-800">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-gray-500 text-center py-4">Aucune tâche terminée récemment</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

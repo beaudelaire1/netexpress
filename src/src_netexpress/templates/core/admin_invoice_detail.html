@@ -1,0 +1,193 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Facture {{ invoice.number }} — NetExpress{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center">
+          <a href="{% url 'core:admin_invoices_list' %}" class="mr-4 text-gray-500 hover:text-gray-700">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Facture {{ invoice.number }}</h1>
+            <p class="text-gray-600">
+              {% if invoice.quote and invoice.quote.client %}
+                {{ invoice.quote.client.full_name }}
+              {% else %}
+                Client non défini
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
+          <span class="px-4 py-2 rounded-full text-sm font-medium
+            {% if invoice.status == 'paid' %}bg-green-100 text-green-700
+            {% elif invoice.status == 'partial' %}bg-blue-100 text-blue-700
+            {% elif invoice.status == 'sent' %}bg-yellow-100 text-yellow-700
+            {% elif invoice.status == 'overdue' %}bg-red-100 text-red-700
+            {% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ invoice.get_status_display }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Informations -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-info-circle text-ne-primary-500 mr-2"></i>
+            Informations
+          </h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Client</label>
+              <p class="text-gray-800">
+                {% if invoice.quote and invoice.quote.client %}
+                  <a href="{% url 'core:admin_client_detail' invoice.quote.client.pk %}" class="text-ne-primary-600 hover:underline">
+                    {{ invoice.quote.client.full_name }}
+                  </a>
+                {% else %}
+                  N/A
+                {% endif %}
+              </p>
+            </div>
+            
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Date d'émission</label>
+              <p class="text-gray-800">{{ invoice.issue_date|date:"d/m/Y" }}</p>
+            </div>
+            
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Date d'échéance</label>
+              <p class="text-gray-800 {% if invoice.is_overdue %}text-red-600 font-semibold{% endif %}">
+                {{ invoice.due_date|date:"d/m/Y" }}
+                {% if invoice.is_overdue %}
+                  <span class="text-red-600 text-xs">(en retard)</span>
+                {% endif %}
+              </p>
+            </div>
+            
+            {% if invoice.quote %}
+            <div>
+              <label class="text-xs text-gray-500 uppercase">Devis source</label>
+              <p class="text-gray-800">
+                <a href="{% url 'core:admin_quote_detail' invoice.quote.pk %}" class="text-ne-primary-600 hover:underline">
+                  {{ invoice.quote.number }}
+                </a>
+              </p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+            Actions
+          </h2>
+          
+          <div class="space-y-3">
+            <a href="{% url 'devis:generate_invoice_pdf' invoice.pk %}" 
+               class="w-full btn btn-secondary flex items-center justify-center" target="_blank">
+              <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
+            </a>
+            
+            {% if invoice.status != 'paid' %}
+            <form method="post" action="{% url 'core:admin_invoice_mark_paid' invoice.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="w-full btn btn-primary flex items-center justify-center">
+                <i class="fas fa-check mr-2"></i>Marquer comme payée
+              </button>
+            </form>
+            {% endif %}
+            
+            {% if invoice.status == 'sent' or invoice.status == 'overdue' %}
+            <button class="w-full btn btn-outline flex items-center justify-center text-yellow-600 border-yellow-600 hover:bg-yellow-50">
+              <i class="fas fa-paper-plane mr-2"></i>Envoyer relance
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Détail facture -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-list text-ne-primary-500 mr-2"></i>
+            Lignes de facture
+          </h2>
+          
+          {% if invoice.quote and invoice.quote.items.all %}
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="border-b-2 border-gray-200 bg-gray-50">
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Description</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Qté</th>
+                  <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">Prix Unit.</th>
+                  <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">TVA</th>
+                  <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">Total HT</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for item in invoice.quote.items.all %}
+                <tr>
+                  <td class="px-4 py-3">
+                    <span class="font-medium text-gray-800">
+                      {% if item.service %}{{ item.service.title }}{% else %}{{ item.description }}{% endif %}
+                    </span>
+                    {% if item.description and item.service %}
+                    <p class="text-sm text-gray-500">{{ item.description }}</p>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-3 text-center">{{ item.quantity }}</td>
+                  <td class="px-4 py-3 text-right">{{ item.unit_price }} €</td>
+                  <td class="px-4 py-3 text-right text-gray-500">{{ item.tva_rate }}%</td>
+                  <td class="px-4 py-3 text-right font-medium">{{ item.total_ht }} €</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-gray-500 text-center py-4">Aucune ligne de facture</p>
+          {% endif %}
+          
+          <!-- Totaux -->
+          <div class="border-t-2 border-gray-200 mt-6 pt-6">
+            <div class="flex justify-end">
+              <div class="w-64 space-y-2">
+                <div class="flex justify-between text-gray-600">
+                  <span>Sous-total HT</span>
+                  <span>{{ invoice.total_ht }} €</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                  <span>TVA</span>
+                  <span>{{ invoice.tva }} €</span>
+                </div>
+                <div class="flex justify-between text-xl font-bold text-gray-800 pt-2 border-t border-gray-200">
+                  <span>Total TTC</span>
+                  <span class="text-ne-primary-600">{{ invoice.total_ttc }} €</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

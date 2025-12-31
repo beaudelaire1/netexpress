@@ -125,6 +125,7 @@
               <a href="/admin-dashboard/quotes/" class="portal-nav-item"><i class="fas fa-file-alt mr-1"></i> Devis</a>
               <a href="/admin-dashboard/invoices/" class="portal-nav-item"><i class="fas fa-file-invoice mr-1"></i> Factures</a>
               <a href="/admin-dashboard/campaigns/" class="portal-nav-item"><i class="fas fa-bullhorn mr-1"></i> Campagnes</a>
+              <a href="/admin-dashboard/analytics/" class="portal-nav-item"><i class="fas fa-chart-pie mr-1"></i> Analyses</a>
               <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% elif user.profile.role == 'admin_business' %}
               <a href="/admin-dashboard/" class="portal-nav-item"><i class="fas fa-chart-line mr-1"></i> Dashboard</a>
@@ -133,6 +134,7 @@
               <a href="/admin-dashboard/quotes/" class="portal-nav-item"><i class="fas fa-file-alt mr-1"></i> Devis</a>
               <a href="/admin-dashboard/invoices/" class="portal-nav-item"><i class="fas fa-file-invoice mr-1"></i> Factures</a>
               <a href="/admin-dashboard/campaigns/" class="portal-nav-item"><i class="fas fa-bullhorn mr-1"></i> Campagnes</a>
+              <a href="/admin-dashboard/analytics/" class="portal-nav-item"><i class="fas fa-chart-pie mr-1"></i> Analyses</a>
               <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% elif user.profile.role == 'worker' %}
               <a href="/worker/" class="portal-nav-item"><i class="fas fa-tasks mr-1"></i> Mes Tâches</a>
@@ -157,6 +159,15 @@
           
           <!-- User Menu -->
           {% if user.is_authenticated %}
+            <!-- Dark Mode Toggle -->
+            <button id="dark-mode-toggle" 
+                    onclick="toggleDarkMode()"
+                    class="dark-mode-toggle text-white hover:text-gray-200 p-2 cursor-pointer"
+                    title="Basculer le mode sombre">
+              <i class="fas fa-moon text-lg"></i>
+              <i class="fas fa-sun text-lg"></i>
+            </button>
+            
             <!-- Notification Bell -->
             <div class="relative" id="notification-menu-container">
               <button id="notification-menu-button"
@@ -395,6 +406,36 @@
       // Close notification menu when clicking outside
       if (notifMenuContainer && notifMenuDropdown && !notifMenuContainer.contains(event.target)) {
         notifMenuDropdown.classList.add('hidden');
+      }
+    });
+  </script>
+
+  <!-- Dark Mode Handler -->
+  <script>
+    // Initialiser le dark mode au chargement
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+    
+    // Toggle dark mode
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    
+    // Écouter les changements de préférence système
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        if (e.matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       }
     });
   </script>

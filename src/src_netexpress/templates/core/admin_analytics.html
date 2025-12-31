@@ -1,0 +1,407 @@
+{% extends "base_v2.html" %}
+{% load static %}
+
+{% block title %}Analyses — NetExpress{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800">Tableau de Bord Analytique</h1>
+      <p class="text-gray-600 mt-1">Analyses détaillées et indicateurs de performance</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex items-center space-x-2">
+      <!-- Sélecteur de période -->
+      <form method="get" class="flex items-center space-x-2">
+        <select name="period" onchange="this.form.submit()" 
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ne-primary-500 focus:border-transparent">
+          <option value="week" {% if period == 'week' %}selected{% endif %}>Cette semaine</option>
+          <option value="month" {% if period == 'month' %}selected{% endif %}>Ce mois</option>
+          <option value="quarter" {% if period == 'quarter' %}selected{% endif %}>Ce trimestre</option>
+          <option value="year" {% if period == 'year' %}selected{% endif %}>Cette année</option>
+        </select>
+      </form>
+      <a href="{% url 'core:admin_reports' %}" class="btn btn-secondary">
+        <i class="fas fa-file-export mr-2"></i>Rapports
+      </a>
+    </div>
+  </div>
+
+  <!-- KPIs avec variation -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- CA Période -->
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-ne-primary-500">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-gray-500 uppercase tracking-wide">CA {{ period|title }}</p>
+          <p class="text-3xl font-bold text-gray-800 mt-2">{{ kpis.current_revenue|floatformat:2 }} €</p>
+          <div class="flex items-center mt-2">
+            {% if kpis.revenue_variation >= 0 %}
+              <span class="text-green-600 text-sm font-medium">
+                <i class="fas fa-arrow-up mr-1"></i>+{{ kpis.revenue_variation }}%
+              </span>
+            {% else %}
+              <span class="text-red-600 text-sm font-medium">
+                <i class="fas fa-arrow-down mr-1"></i>{{ kpis.revenue_variation }}%
+              </span>
+            {% endif %}
+            <span class="text-gray-400 text-xs ml-2">vs période précédente</span>
+          </div>
+        </div>
+        <div class="bg-ne-primary-100 p-3 rounded-full">
+          <i class="fas fa-euro-sign text-ne-primary-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nouveaux clients -->
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Nouveaux Clients</p>
+          <p class="text-3xl font-bold text-gray-800 mt-2">{{ kpis.current_clients }}</p>
+          <div class="flex items-center mt-2">
+            {% if kpis.clients_variation >= 0 %}
+              <span class="text-green-600 text-sm font-medium">
+                <i class="fas fa-arrow-up mr-1"></i>+{{ kpis.clients_variation }}
+              </span>
+            {% else %}
+              <span class="text-red-600 text-sm font-medium">
+                <i class="fas fa-arrow-down mr-1"></i>{{ kpis.clients_variation }}
+              </span>
+            {% endif %}
+            <span class="text-gray-400 text-xs ml-2">vs période précédente</span>
+          </div>
+        </div>
+        <div class="bg-blue-100 p-3 rounded-full">
+          <i class="fas fa-user-plus text-blue-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Taux de conversion -->
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Taux Conversion</p>
+          <p class="text-3xl font-bold text-gray-800 mt-2">{{ kpis.conversion_rate }}%</p>
+          <div class="flex items-center mt-2">
+            {% if kpis.conversion_variation >= 0 %}
+              <span class="text-green-600 text-sm font-medium">
+                <i class="fas fa-arrow-up mr-1"></i>+{{ kpis.conversion_variation }} pts
+              </span>
+            {% else %}
+              <span class="text-red-600 text-sm font-medium">
+                <i class="fas fa-arrow-down mr-1"></i>{{ kpis.conversion_variation }} pts
+              </span>
+            {% endif %}
+            <span class="text-gray-400 text-xs ml-2">vs période précédente</span>
+          </div>
+        </div>
+        <div class="bg-purple-100 p-3 rounded-full">
+          <i class="fas fa-percentage text-purple-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panier moyen -->
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Panier Moyen</p>
+          <p class="text-3xl font-bold text-gray-800 mt-2">{{ kpis.avg_invoice|floatformat:2 }} €</p>
+          <p class="text-gray-400 text-xs mt-2">Par facture payée</p>
+        </div>
+        <div class="bg-orange-100 p-3 rounded-full">
+          <i class="fas fa-shopping-cart text-orange-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphiques -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Comparaison mensuelle -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">
+        <i class="fas fa-chart-bar text-ne-primary-500 mr-2"></i>
+        Comparaison Annuelle
+      </h2>
+      <div class="h-72">
+        <canvas id="monthlyComparisonChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Funnel devis -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">
+        <i class="fas fa-filter text-purple-500 mr-2"></i>
+        Funnel Conversion Devis
+      </h2>
+      <div class="space-y-4">
+        <div class="relative">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">Total Devis</span>
+            <span class="font-semibold">{{ quote_funnel.total }}</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-8">
+            <div class="bg-gray-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style="width: 100%">
+              100%
+            </div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">Envoyés</span>
+            <span class="font-semibold">{{ quote_funnel.sent|add:quote_funnel.accepted|add:quote_funnel.rejected|add:quote_funnel.invoiced }}</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-8">
+            <div class="bg-yellow-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style="width: {{ quote_funnel.sent_rate }}%">
+              {{ quote_funnel.sent_rate }}%
+            </div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">Acceptés</span>
+            <span class="font-semibold">{{ quote_funnel.accepted|add:quote_funnel.invoiced }}</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-8">
+            <div class="bg-green-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style="width: {{ quote_funnel.acceptance_rate }}%">
+              {{ quote_funnel.acceptance_rate }}%
+            </div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">Facturés</span>
+            <span class="font-semibold">{{ quote_funnel.invoiced }}</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-8">
+            <div class="bg-blue-500 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style="width: {{ quote_funnel.invoice_rate }}%">
+              {{ quote_funnel.invoice_rate }}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Services et Top Clients -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Top Services -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">
+        <i class="fas fa-star text-yellow-500 mr-2"></i>
+        Services les Plus Demandés
+      </h2>
+      <div class="space-y-3">
+        {% for service in top_services %}
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div class="flex items-center">
+            <span class="w-8 h-8 flex items-center justify-center bg-ne-primary-100 text-ne-primary-600 rounded-full text-sm font-bold mr-3">
+              {{ forloop.counter }}
+            </span>
+            <span class="font-medium text-gray-800">{{ service.service__title }}</span>
+          </div>
+          <div class="text-right">
+            <span class="text-sm font-semibold text-gray-800">{{ service.request_count }} demandes</span>
+            <p class="text-xs text-gray-500">{{ service.total_revenue|floatformat:0 }} € CA</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center py-4">Aucune donnée disponible</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Top Clients -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">
+        <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+        Top Clients par CA
+      </h2>
+      <div class="space-y-3">
+        {% for client in top_clients %}
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div class="flex items-center">
+            <span class="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full text-sm font-bold mr-3">
+              {{ forloop.counter }}
+            </span>
+            <div>
+              <span class="font-medium text-gray-800">{{ client.quote__client__full_name }}</span>
+              {% if client.quote__client__company %}
+              <p class="text-xs text-gray-500">{{ client.quote__client__company }}</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-sm font-semibold text-ne-primary-600">{{ client.total|floatformat:2 }} €</span>
+            <p class="text-xs text-gray-500">{{ client.invoice_count }} factures</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center py-4">Aucune donnée disponible</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Workers -->
+  <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">
+      <i class="fas fa-users text-ne-primary-500 mr-2"></i>
+      Performance des Ouvriers
+    </h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Ouvrier</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Total</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Terminées</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">En cours</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">En retard</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Taux</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for stat in worker_stats %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3">
+              <div class="flex items-center">
+                <div class="w-10 h-10 flex items-center justify-center bg-ne-primary-100 text-ne-primary-600 rounded-full font-semibold mr-3">
+                  {{ stat.worker.first_name|slice:":1"|default:stat.worker.username|slice:":1"|upper }}
+                </div>
+                <span class="font-medium text-gray-800">{{ stat.worker.get_full_name|default:stat.worker.username }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-center font-medium">{{ stat.total_tasks }}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">{{ stat.completed }}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">{{ stat.in_progress }}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2 py-1 {% if stat.overdue > 0 %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %} rounded-full text-sm">{{ stat.overdue }}</span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <div class="flex items-center justify-center">
+                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                  <div class="bg-ne-primary-500 h-2 rounded-full" style="width: {{ stat.completion_rate }}%"></div>
+                </div>
+                <span class="text-sm font-medium text-gray-600">{{ stat.completion_rate }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+              Aucun ouvrier actif
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Factures en retard -->
+  {% if overdue_invoices %}
+  <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">
+      <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+      Factures en Retard ou Impayées
+    </h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Numéro</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Client</th>
+            <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">Montant</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Échéance</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Statut</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for invoice in overdue_invoices %}
+          <tr class="hover:bg-red-50">
+            <td class="px-4 py-3 font-mono text-sm">{{ invoice.number }}</td>
+            <td class="px-4 py-3">{{ invoice.quote.client.full_name|default:"N/A" }}</td>
+            <td class="px-4 py-3 text-right font-semibold text-red-600">{{ invoice.total_ttc }} €</td>
+            <td class="px-4 py-3 text-center text-sm">{{ invoice.due_date|date:"d/m/Y" }}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                {{ invoice.get_status_display }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <a href="{% url 'core:admin_invoice_detail' invoice.pk %}" class="text-ne-primary-600 hover:text-ne-primary-800">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Données pour le graphique de comparaison mensuelle
+  const monthlyData = {{ monthly_comparison|safe }};
+  
+  const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: monthlyData.map(m => m.month_name),
+      datasets: [
+        {
+          label: 'Année courante',
+          data: monthlyData.map(m => m.current_year),
+          backgroundColor: 'rgba(14, 107, 76, 0.8)',
+          borderColor: 'rgba(14, 107, 76, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Année précédente',
+          data: monthlyData.map(m => m.previous_year),
+          backgroundColor: 'rgba(156, 163, 175, 0.5)',
+          borderColor: 'rgba(156, 163, 175, 1)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value.toLocaleString('fr-FR') + ' €';
+            }
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
+
