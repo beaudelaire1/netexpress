@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/contact/migrations/0004_alter_message_zip_code.py
+# hypothesis_version: 6.148.8
+
+['contact', 'message', 'zip_code']

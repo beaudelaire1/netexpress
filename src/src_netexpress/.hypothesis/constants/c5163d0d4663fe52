@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/accounts/middleware.py
+# hypothesis_version: 6.148.8
+
+['/accounts/login/', '/accounts/logout/', '/accounts/signup/', '/admin-dashboard/', '/admin/', '/ckeditor/', '/contact/', '/dashboard/', '/devis/', '/gestion/', '/gestion/logout/', '/health/', '/media/', '/robots.txt', '/services/', '/sitemap.xml', '/static/', 'GET', 'HEAD', 'OPTIONS', '^/$', '^/a-propos/$', '^/admin-dashboard/', '^/client(/|$)', '^/client/', '^/excellence/$', '^/gestion(/|$)', '^/gestion/', '^/realisations/$', '^/worker(/|$)', '^/worker/', 'admin_business', 'admin_dashboard', 'admin_technical', 'business', 'client', 'current_portal', 'gestion', 'last_portal_access', 'profile', 'technical', 'worker']

@@ -116,11 +116,14 @@ class RoleBasedAccessMiddleware:
         self.get_response = get_response
         
         # Patterns d'URLs par portail
+        # Note: Les patterns acceptent maintenant les URLs avec ou sans trailing slash
+        # pour éviter les problèmes de redirection en boucle sur les serveurs de production
+        # (Render, nginx, etc.) où les requêtes peuvent arriver avant APPEND_SLASH
         self.portal_patterns = {
-            'gestion': re.compile(r'^/gestion/'),
-            'admin_dashboard': re.compile(r'^/admin-dashboard/'),
-            'worker': re.compile(r'^/worker/'),
-            'client': re.compile(r'^/client/'),
+            'gestion': re.compile(r'^/gestion(/|$)'),
+            'admin_dashboard': re.compile(r'^/admin-dashboard(/|$)'),
+            'worker': re.compile(r'^/worker(/|$)'),
+            'client': re.compile(r'^/client(/|$)'),
         }
         
         # URLs publiques (accessibles à tous)

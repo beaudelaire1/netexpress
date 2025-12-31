@@ -1,0 +1,4 @@
+# file: /workspace/src/src_netexpress/core/services/document_generator.py
+# hypothesis_version: 6.148.8
+
+[100, 'DEV', 'DOC', 'FAC', 'INVOICE_BRANDING', 'address', 'address_line', 'application/pdf', 'branding', 'city', 'client', 'client_address', 'client_email', 'client_name', 'client_phone', 'client_reference', 'css', 'description', 'email', 'full_name', 'invoice', 'invoice_items', 'name', 'number', 'object', 'pdf', 'pdf.css', 'phone', 'quantity', 'quote', 'quote_items', 'reference', 'rows', 'static', 'total_ht', 'tva', 'tva_rate', 'unit_price', 'zip_code']

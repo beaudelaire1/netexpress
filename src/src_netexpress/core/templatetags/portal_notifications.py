@@ -17,18 +17,18 @@ def notification_count_url(context):
     
     path = request.path
     
-    # Déterminer le namespace selon le chemin
-    if path.startswith('/worker/'):
+    # Déterminer le namespace selon le chemin (accepte avec ou sans trailing slash)
+    if path.startswith('/worker/') or path == '/worker':
         try:
             return reverse('worker:notification_count')
         except NoReverseMatch:
             pass
-    elif path.startswith('/client/'):
+    elif path.startswith('/client/') or path == '/client':
         try:
             return reverse('client_portal:notification_count')
         except NoReverseMatch:
             pass
-    elif path.startswith('/admin-dashboard/'):
+    elif path.startswith('/admin-dashboard/') or path == '/admin-dashboard':
         try:
             # Les notifications admin sont dans core:notification_count
             return reverse('core:notification_count')
@@ -51,18 +51,18 @@ def notification_list_url(context):
     
     path = request.path
     
-    # Déterminer le namespace selon le chemin
-    if path.startswith('/worker/'):
+    # Déterminer le namespace selon le chemin (accepte avec ou sans trailing slash)
+    if path.startswith('/worker/') or path == '/worker':
         try:
             return reverse('worker:notification_list')
         except NoReverseMatch:
             pass
-    elif path.startswith('/client/'):
+    elif path.startswith('/client/') or path == '/client':
         try:
             return reverse('client_portal:notification_list')
         except NoReverseMatch:
             pass
-    elif path.startswith('/admin-dashboard/'):
+    elif path.startswith('/admin-dashboard/') or path == '/admin-dashboard':
         try:
             return reverse('core:notification_list')
         except NoReverseMatch:
