@@ -1052,10 +1052,6 @@ def admin_send_quote_email(request, pk):
         form = QuoteEmailForm(quote=quote, data=request.POST)
         if form.is_valid():
             try:
-                # Ensure PDF exists and is generated
-                if not quote.pdf:
-                    quote.generate_pdf(attach=True)
-                
                 # Get explicit from_email
                 from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
                 
@@ -1068,18 +1064,12 @@ def admin_send_quote_email(request, pk):
                 )
                 email.content_subtype = 'html'
                 
-                # Attach PDF - use the saved file if available, otherwise generate bytes
+                # Generate PDF fresh (don't rely on stored file - ephemeral filesystem on Render)
                 try:
-                    if quote.pdf and hasattr(quote.pdf, 'open'):
-                        with quote.pdf.open('rb') as f:
-                            pdf_bytes = f.read()
-                            email.attach(f'devis_{quote.number}.pdf', pdf_bytes, 'application/pdf')
-                    else:
-                        # Fallback: generate PDF as bytes
-                        pdf_bytes = quote.generate_pdf(attach=False)
-                        email.attach(f'devis_{quote.number}.pdf', pdf_bytes, 'application/pdf')
+                    pdf_bytes = quote.generate_pdf(attach=False)
+                    email.attach(f'devis_{quote.number}.pdf', pdf_bytes, 'application/pdf')
                 except Exception as attach_error:
-                    logger.error(f"Erreur lors de l'attachement du PDF pour le devis {quote.number}: {attach_error}")
+                    logger.error(f"Erreur lors de la génération du PDF pour le devis {quote.number}: {attach_error}")
                     messages.warning(request, f"Le devis a été envoyé mais le PDF n'a pas pu être attaché : {str(attach_error)}")
                 
                 # Send email with proper error handling

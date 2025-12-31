@@ -46,28 +46,25 @@ def quote_success(request):
 
 @staff_member_required
 def download_quote_pdf(request, pk):
-    """Download quote PDF with optimized streaming and caching."""
-    from django.views.decorators.cache import cache_control
+    """Download quote PDF - generates fresh PDF on demand.
+    
+    Note: On Render, filesystem is ephemeral, so we always generate fresh.
+    """
     from django.http import HttpResponse
+    from io import BytesIO
     
     quote = get_object_or_404(Quote, pk=pk)
-    # Ensure PDF exists (generate & attach)
-    if not quote.pdf:
-        quote.generate_pdf(attach=True)
     
     try:
-        # Use streaming for better performance with large files
-        response = FileResponse(
-            quote.pdf.open("rb"),
-            content_type="application/pdf",
-            filename=f"devis_{quote.number}.pdf"
-        )
-        # Add cache headers for better performance
-        response['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+        # Always generate fresh PDF (ephemeral filesystem on Render)
+        pdf_bytes = quote.generate_pdf(attach=False)
+        
+        # Return as response
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
         return response
     except Exception as exc:
-        raise Http404() from exc
+        raise Http404(f"Erreur lors de la génération du PDF: {exc}") from exc
 
 
 @staff_member_required

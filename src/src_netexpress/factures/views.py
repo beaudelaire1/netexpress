@@ -47,21 +47,22 @@ def create_invoice(request, quote_id: int):
 def download_invoice(request, pk: int):
     """
     Téléchargement du PDF de la facture.
+    
+    Note: On Render, filesystem is ephemeral, so we always generate fresh.
     """
+    from django.http import HttpResponse
+    
     invoice = get_object_or_404(Invoice, pk=pk)
-    if not invoice.pdf:
-        # Tenter de générer le PDF s'il manque
-        try:
-            invoice.generate_pdf(attach=True)
-        except Exception:
-            raise Http404("Cette facture n'a pas de PDF et sa génération a échoué.")
-
-    response = FileResponse(
-        invoice.pdf.open("rb"),
-        content_type="application/pdf"
-    )
-    response['Content-Disposition'] = f'inline; filename="facture_{invoice.number}.pdf"'
-    return response
+    
+    try:
+        # Always generate fresh PDF (ephemeral filesystem on Render)
+        pdf_bytes = invoice.generate_pdf(attach=False)
+        
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response['Content-Disposition'] = f'inline; filename="facture_{invoice.number}.pdf"'
+        return response
+    except Exception as exc:
+        raise Http404(f"Erreur lors de la génération du PDF: {exc}") from exc
 
 
 @login_required
