@@ -1,11 +1,11 @@
 """Utility services for the tasks application.
 
-Currently this module exposes :class:`EmailNotificationService` which
-simplifies sending plain text emails with optional attachments using
-either SSL or STARTTLS depending on your configuration.  All
-configuration values are read from :mod:`django.conf.settings`.  To
-enable notifications you should define at least the following
-settings:
+This module exposes :class:`EmailNotificationService` which simplifies
+sending plain text emails with optional attachments using Django's
+configured email backend. This supports both SMTP and API-based backends
+(like Brevo) through Django's EMAIL_BACKEND setting.
+
+Configuration is read from :mod:`django.conf.settings`. For SMTP, define:
 
 ``EMAIL_HOST``
     The SMTP server hostname (e.g. ``smtp.gmail.com``).
@@ -18,38 +18,33 @@ settings:
     The password or app‑specific token for the above account.
 ``EMAIL_USE_SSL``
     A boolean indicating whether to use an implicit SSL connection.
-``TASK_NOTIFICATION_EMAIL``
-    Optional override for the default recipient address used by task
-    notifications.  If not provided ``EMAIL_HOST_USER`` is used as
-    fallback.
 
-You may also define additional settings if you need to customise the
-behaviour further (for example ``DEFAULT_FROM_EMAIL``), however
-``EmailNotificationService`` will gracefully fall back to sensible
-defaults.
+For Brevo API, define:
+
+``EMAIL_BACKEND_TYPE``
+    Set to 'brevo' to use Brevo API backend.
+``BREVO_API_KEY``
+    Your Brevo API key from https://app.brevo.com/settings/keys/api
+
+``DEFAULT_FROM_EMAIL``
+    The default sender address for all emails.
 """
 
 from __future__ import annotations
 
 import logging
-import smtplib
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email import encoders
 
 from django.conf import settings
+from django.core.mail import EmailMessage as DjangoEmailMessage
 
 
 class EmailNotificationService:
-    """Simple SMTP wrapper for sending notification emails.
+    """Email service that uses Django's configured backend.
 
     This service sends plain text messages and supports arbitrary
-    attachments.  Attachments are supplied as an iterable of
-    ``(filename, content_bytes)`` tuples.  The service automatically
-    chooses between SSL and STARTTLS based on the ``EMAIL_USE_SSL``
-    setting.  Authentication is optional: if ``EMAIL_HOST_USER`` or
-    ``EMAIL_HOST_PASSWORD`` are empty then no login attempt is made.
+    attachments. Attachments are supplied as an iterable of
+    ``(filename, content_bytes)`` tuples. The service automatically
+    uses the configured EMAIL_BACKEND (SMTP, Brevo, or others).
     """
 
     logger = logging.getLogger(__name__)
@@ -62,7 +57,10 @@ class EmailNotificationService:
         body: str,
         attachments: list[tuple[str, bytes]] | None = None,
     ) -> None:
-        """Send an email via the configured SMTP server.
+        """Send an email via Django's configured backend.
+
+        This method uses Django's EmailMessage class which automatically
+        uses the configured EMAIL_BACKEND (SMTP, Brevo API, or others).
 
         Parameters
         ----------
@@ -77,43 +75,24 @@ class EmailNotificationService:
             Optional list of attachments.  Each tuple must contain the
             filename and the binary content of the file.
         """
-        host: str = getattr(settings, "EMAIL_HOST", "localhost")
-        port: int = int(getattr(settings, "EMAIL_PORT", 25))
-        username: str = getattr(settings, "EMAIL_HOST_USER", "")
-        password: str = getattr(settings, "EMAIL_HOST_PASSWORD", "")
-        use_ssl: bool = bool(getattr(settings, "EMAIL_USE_SSL", False))
-
-        from_email = username or getattr(settings, "DEFAULT_FROM_EMAIL", "")
-        if not from_email:
-            from_email = "no-reply@example.com"
-
-        msg = MIMEMultipart()
-        msg["Subject"] = subject
-        msg["From"] = from_email
-        msg["To"] = to_email
-        msg.attach(MIMEText(body, "plain", "utf-8"))
-
-        # Attach files if provided
-        for fname, content in (attachments or []):
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(content)
-            encoders.encode_base64(part)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename=\"{fname}\"",
-            )
-            msg.attach(part)
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com")
 
         try:
-            if use_ssl:
-                server = smtplib.SMTP_SSL(host, port)
-            else:
-                server = smtplib.SMTP(host, port)
-                server.starttls()
-            if username and password:
-                server.login(username, password)
-            server.sendmail(from_email, [to_email], msg.as_string())
-            server.quit()
+            # Create Django EmailMessage
+            email = DjangoEmailMessage(
+                subject=subject,
+                body=body,
+                from_email=from_email,
+                to=[to_email],
+            )
+
+            # Attach files if provided
+            for fname, content in (attachments or []):
+                email.attach(fname, content)
+
+            # Send via configured backend (SMTP, Brevo, etc.)
+            email.send(fail_silently=False)
             cls.logger.info(f"E‑mail envoyé avec succès à {to_email}")
         except Exception as exc:
             cls.logger.error(f"Échec de l'envoi de l'e‑mail à {to_email}: {exc}")
+            raise
