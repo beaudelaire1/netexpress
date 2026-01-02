@@ -240,6 +240,17 @@ DEFAULT_FROM_EMAIL = env(
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+# -------------------------------------------------------------
+# Brevo API configuration (recommended for production)
+# -------------------------------------------------------------
+# L'API Brevo est plus fiable que SMTP sur les environnements cloud.
+# Configurez BREVO_API_KEY dans vos variables d'environnement.
+BREVO_API_KEY = env("BREVO_API_KEY", default="")
+
+# Choisir le backend e-mail en fonction de la configuration
+# Si BREVO_API_KEY est défini, utiliser Brevo; sinon fallback sur SMTP/console
+USE_BREVO_API = bool(BREVO_API_KEY)
+
 # Notification routing
 TASK_NOTIFICATION_EMAIL = env(
     "TASK_NOTIFICATION_EMAIL", default=DEFAULT_FROM_EMAIL

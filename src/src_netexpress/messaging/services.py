@@ -60,6 +60,22 @@ def send_contact_notification(contact_message: "contact.models.Message") -> None
         contact_message.body,
     ]
     body = "\n".join(body_lines)
+
+    # Utiliser Brevo si disponible
+    if getattr(settings, "USE_BREVO_API", False):
+        try:
+            from core.services.brevo_email_service import BrevoEmailService
+            service = BrevoEmailService()
+            success = service.send(
+                to_email=recipient,
+                subject=subject,
+                body=body,
+            )
+            if success:
+                return None
+        except Exception:
+            pass  # Fallback vers le service existant
+
     # Envoyer directement via le service SMTP si disponible
     if EmailNotificationService:
         # Ne pas override l'adresse d'expéditeur pour éviter les erreurs "Sender mismatch".
@@ -178,6 +194,23 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
             attachments = [(quote.pdf.name.rsplit("/", 1)[-1], quote.pdf.read())]
     except Exception:
         attachments = None
+
+    # Utiliser Brevo si disponible
+    if getattr(settings, "USE_BREVO_API", False):
+        try:
+            from core.services.brevo_email_service import BrevoEmailService
+            service = BrevoEmailService()
+            success = service.send(
+                to_email=recipient,
+                subject=subject,
+                body=body,
+                html_body=html_body,
+                attachments=attachments,
+            )
+            if success:
+                return None
+        except Exception:
+            pass  # Fallback vers le service existant
 
     # Envoyer directement via le service SMTP si disponible
     if EmailNotificationService:

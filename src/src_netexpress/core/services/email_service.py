@@ -22,6 +22,17 @@ from django.core.mail import get_connection
 from .pdf_service import InvoicePdfService, QuotePdfService
 
 
+def _get_email_backend():
+    """Retourne le service d'envoi d'e-mail approprié."""
+    if getattr(settings, "USE_BREVO_API", False):
+        try:
+            from core.services.brevo_email_service import BrevoEmailService
+            return BrevoEmailService()
+        except Exception:
+            pass
+    return None  # Fallback sur Django EmailMultiAlternatives
+
+
 def _safe_client_name(obj) -> str:
     """Try to extract a human friendly client name from quote/invoice."""
     try:
@@ -131,7 +142,25 @@ class PremiumEmailService:
         html_body = render_to_string("emails/invoice_notification.html", context)
         text_body = strip_tags(html_body)
 
-        # Create the email
+        # Try using Brevo API if configured
+        brevo_service = _get_email_backend()
+        if brevo_service:
+            try:
+                success = brevo_service.send(
+                    to_email=recipients[0],  # Brevo service sends to one recipient
+                    subject=subject,
+                    body=text_body,
+                    html_body=html_body,
+                    from_email=from_email,
+                    attachments=[(pdf_file.filename, pdf_file.content)],
+                )
+                if success:
+                    return
+            except Exception:
+                # Fallback to SMTP if Brevo fails
+                pass
+
+        # Fallback: use Django EmailMultiAlternatives (SMTP)
         email = EmailMultiAlternatives(subject, text_body, from_email, recipients)
         # Attach HTML alternative
         email.attach_alternative(html_body, "text/html")
@@ -173,6 +202,26 @@ class PremiumEmailService:
         text_body = strip_tags(html_body)
 
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or branding.get("email")
+
+        # Try using Brevo API if configured
+        brevo_service = _get_email_backend()
+        if brevo_service:
+            try:
+                success = brevo_service.send(
+                    to_email=to_email,
+                    subject=subject,
+                    body=text_body,
+                    html_body=html_body,
+                    from_email=from_email,
+                    attachments=[(pdf_file.filename, pdf_file.content)],
+                )
+                if success:
+                    return
+            except Exception:
+                # Fallback to SMTP if Brevo fails
+                pass
+
+        # Fallback: use Django EmailMultiAlternatives (SMTP)
         email = EmailMultiAlternatives(subject, text_body, from_email, [to_email])
         email.attach_alternative(html_body, "text/html")
         email.attach(pdf_file.filename, pdf_file.content, pdf_file.mimetype)

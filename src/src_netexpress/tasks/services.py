@@ -65,7 +65,7 @@ class EmailNotificationService:
         html_body: str | None = None,
         from_email_override: str | None = None,
     ) -> None:
-        """Send an email via the configured SMTP server.
+        """Send an email, preferring Brevo API if configured.
 
         Parameters
         ----------
@@ -86,6 +86,26 @@ class EmailNotificationService:
             supplied the message will be sent as a multi-part/alternative
             to allow mail clients to choose the best representation.
         """
+        # Essayer d'abord avec l'API Brevo
+        if getattr(settings, "USE_BREVO_API", False):
+            try:
+                from core.services.brevo_email_service import BrevoEmailService
+                service = BrevoEmailService()
+                success = service.send(
+                    to_email=to_email,
+                    subject=subject,
+                    body=body,
+                    html_body=html_body,
+                    from_email=from_email_override,
+                    attachments=attachments,
+                )
+                if success:
+                    cls.logger.info(f"E-mail envoyé via Brevo à {to_email}")
+                    return
+            except Exception as e:
+                cls.logger.warning(f"Brevo indisponible, fallback SMTP: {e}")
+
+        # Fallback sur SMTP (code existant)
         host: str = getattr(settings, "EMAIL_HOST", "localhost")
         port: int = int(getattr(settings, "EMAIL_PORT", 25))
         username: str = getattr(settings, "EMAIL_HOST_USER", "")
