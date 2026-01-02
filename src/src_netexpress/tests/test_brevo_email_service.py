@@ -24,7 +24,7 @@ class BrevoEmailServiceTest(TestCase):
     @patch('core.services.brevo_email_service.sib_api_v3_sdk')
     def test_service_initialization(self, mock_sib):
         """Test service initialization."""
-        # Mock de la configuration
+        # Mock the configuration
         mock_config = Mock()
         mock_api_client = Mock()
         mock_transac_api = Mock()
@@ -54,7 +54,7 @@ class BrevoEmailServiceTest(TestCase):
     @patch('core.services.brevo_email_service.sib_api_v3_sdk')
     def test_send_email(self, mock_sib):
         """Test sending a simple email."""
-        # Mock de la configuration et de l'API
+        # Mock the configuration and API
         mock_config = Mock()
         mock_api_client = Mock()
         mock_transac_api = Mock()
@@ -87,7 +87,7 @@ class BrevoEmailServiceTest(TestCase):
     @patch('core.services.brevo_email_service.sib_api_v3_sdk')
     def test_send_email_with_attachment(self, mock_sib):
         """Test sending an email with attachment."""
-        # Mock de la configuration et de l'API
+        # Mock the configuration and API
         mock_config = Mock()
         mock_api_client = Mock()
         mock_transac_api = Mock()
@@ -124,7 +124,7 @@ class BrevoEmailServiceTest(TestCase):
     @patch('core.services.brevo_email_service.render_to_string')
     def test_send_with_django_template(self, mock_render, mock_sib):
         """Test sending an email with Django template."""
-        # Mock de la configuration et de l'API
+        # Mock the configuration and API
         mock_config = Mock()
         mock_api_client = Mock()
         mock_transac_api = Mock()
@@ -164,7 +164,7 @@ class BrevoEmailServiceTest(TestCase):
     @patch('core.services.brevo_email_service.sib_api_v3_sdk')
     def test_send_email_api_error(self, mock_sib):
         """Test API error handling."""
-        # Mock de la configuration et de l'API
+        # Mock the configuration and API
         mock_config = Mock()
         mock_api_client = Mock()
         mock_transac_api = Mock()
@@ -197,7 +197,7 @@ class BrevoEmailServiceTest(TestCase):
     @patch('core.services.brevo_email_service.render_to_string')
     def test_send_with_template_rendering_error(self, mock_render, mock_sib):
         """Test template rendering error handling."""
-        # Mock de la configuration et de l'API
+        # Mock the configuration and API
         mock_config = Mock()
         mock_api_client = Mock()
         mock_transac_api = Mock()

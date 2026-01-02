@@ -6,6 +6,7 @@ across the NetExpress v2 platform, supporting both email notifications
 and in-app UI notifications for various system events.
 """
 
+import os
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -67,7 +68,6 @@ class NotificationService:
                         attachments = None
                         if attachment_path:
                             try:
-                                import os
                                 with open(attachment_path, 'rb') as f:
                                     filename = os.path.basename(attachment_path)
                                     attachments = [(filename, f.read())]

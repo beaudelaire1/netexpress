@@ -7,6 +7,7 @@ comme une demande de contact.  Il s'appuie sur le modèle
 ``EmailNotificationService`` pour effectuer l'envoi.
 """
 
+import os
 from django.conf import settings
 from django.core.files.base import ContentFile
 
@@ -36,7 +37,7 @@ def _prepare_pdf_attachment(pdf_field):
         return None
     
     try:
-        filename = pdf_field.name.rsplit("/", 1)[-1]
+        filename = os.path.basename(pdf_field.name)
         content = pdf_field.read()
         return [(filename, content)]
     except Exception:
