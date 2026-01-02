@@ -7,6 +7,7 @@ comme une demande de contact.  Il s'appuie sur le modèle
 ``EmailNotificationService`` pour effectuer l'envoi.
 """
 
+import os
 from django.conf import settings
 from django.core.files.base import ContentFile
 
@@ -17,6 +18,30 @@ try:
     from tasks.services import EmailNotificationService  # type: ignore
 except Exception:
     EmailNotificationService = None  # type: ignore
+
+
+def _prepare_pdf_attachment(pdf_field):
+    """Helper function to prepare PDF attachment from a file field.
+    
+    Parameters
+    ----------
+    pdf_field : FileField or None
+        Django FileField containing the PDF
+    
+    Returns
+    -------
+    list of tuple or None
+        List with single tuple (filename, content) or None if unavailable
+    """
+    if not pdf_field:
+        return None
+    
+    try:
+        filename = os.path.basename(pdf_field.name)
+        content = pdf_field.read()
+        return [(filename, content)]
+    except Exception:
+        return None
 
 
 def send_contact_notification(contact_message: "contact.models.Message") -> None:
@@ -50,7 +75,38 @@ def send_contact_notification(contact_message: "contact.models.Message") -> None
     recipient = dest or ""
     subject = f"Nouveau message de contact – {contact_message.get_topic_display()}"
 
-    # HTML ONLY (exigence projet)
+    # Build context for Django template
+    context = {
+        "msg": contact_message,
+        "branding": getattr(settings, "INVOICE_BRANDING", {}) or {},
+    }
+
+    # Try to use Brevo with Django template if configured
+    if getattr(settings, "EMAIL_BACKEND", "").endswith("BrevoEmailBackend"):
+        try:
+            from core.services.brevo_email_service import BrevoEmailService
+            
+            brevo = BrevoEmailService()
+            if brevo.api_instance:
+                sent = brevo.send_with_django_template(
+                    to_email=recipient,
+                    subject=subject,
+                    template_name="emails/new_contact_admin.html",
+                    context=context,
+                )
+                
+                if sent:
+                    EmailMessage.objects.create(
+                        recipient=recipient,
+                        subject=subject,
+                        body=contact_message.body or "Nouveau message de contact"
+                    )
+                    return None
+        except Exception:
+            # Fall through to existing implementation
+            pass
+
+    # Fallback: HTML ONLY (exigence projet)
     rows = [
         {"label": "Nom", "value": contact_message.full_name},
         {"label": "Email", "value": contact_message.email},
@@ -113,6 +169,40 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     # Construire le sujet et le corps
     subject = f"Nouvelle demande de devis — {quote.number}"
     client = quote.client
+    
+    # Build context for Django template
+    context = {
+        "quote": quote,
+        "client": client,
+        "branding": getattr(settings, "INVOICE_BRANDING", {}) or {},
+    }
+    
+    # Préparer la pièce jointe PDF si disponible (before trying Brevo)
+    attachments_list = _prepare_pdf_attachment(quote.pdf)
+    
+    # Try to use Brevo with Django template if configured
+    if getattr(settings, "EMAIL_BACKEND", "").endswith("BrevoEmailBackend"):
+        try:
+            from core.services.brevo_email_service import BrevoEmailService
+            
+            brevo = BrevoEmailService()
+            if brevo.api_instance:
+                sent = brevo.send_with_django_template(
+                    to_email=recipient,
+                    subject=subject,
+                    template_name="emails/new_quote.html",
+                    context=context,
+                    attachments=attachments_list,
+                )
+                
+                if sent:
+                    body = f"Devis {quote.number} — {client.full_name}"
+                    EmailMessage.objects.create(recipient=recipient, subject=subject, body=body)
+                    return None
+        except Exception:
+            # Fall through to existing implementation
+            pass
+    
     service_title = quote.service.title if quote.service else "—"
     body_lines = [
         f"Nom : {client.full_name}",
@@ -124,7 +214,6 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     if quote.message:
         body_lines.extend(["", "Message :", quote.message])
     body = "\n".join(body_lines)
-
     # Construire une version HTML plus lisible pour le devis
     html_body = None
     try:
@@ -174,13 +263,8 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     except Exception:
         html_body = None
 
-    # Préparer la pièce jointe PDF si disponible
-    attachments = None
-    try:
-        if quote.pdf:
-            attachments = [(quote.pdf.name.rsplit("/", 1)[-1], quote.pdf.read())]
-    except Exception:
-        attachments = None
+    # Préparer la pièce jointe PDF si disponible (for fallback)
+    attachments = _prepare_pdf_attachment(quote.pdf)
 
     # Envoyer directement via le service SMTP premium si disponible
     if EmailNotificationService:

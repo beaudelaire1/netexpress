@@ -6,6 +6,7 @@ across the NetExpress v2 platform, supporting both email notifications
 and in-app UI notifications for various system events.
 """
 
+import os
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -50,8 +51,51 @@ class NotificationService:
     ) -> bool:
         """Send an email notification using a template."""
         try:
-            # Render email content
-            html_content = render_to_string(f'emails/{template_name}.html', context)
+            # Normalize template name (add emails/ prefix if not present)
+            if not template_name.startswith('emails/'):
+                full_template_name = f'emails/{template_name}.html'
+            else:
+                full_template_name = template_name if template_name.endswith('.html') else f'{template_name}.html'
+            
+            # Try to use Brevo with Django template if configured
+            if getattr(settings, "EMAIL_BACKEND", "").endswith("BrevoEmailBackend"):
+                try:
+                    from core.services.brevo_email_service import BrevoEmailService
+                    
+                    brevo = BrevoEmailService()
+                    if brevo.api_instance:
+                        # Prepare attachments
+                        attachments = None
+                        if attachment_path:
+                            try:
+                                with open(attachment_path, 'rb') as f:
+                                    filename = os.path.basename(attachment_path)
+                                    attachments = [(filename, f.read())]
+                            except Exception:
+                                pass
+                        
+                        # Send to each recipient
+                        all_sent = True
+                        for to_email in to_emails:
+                            sent = brevo.send_with_django_template(
+                                to_email=to_email,
+                                subject=subject,
+                                template_name=full_template_name,
+                                context=context,
+                                attachments=attachments,
+                            )
+                            if not sent:
+                                all_sent = False
+                        
+                        if all_sent:
+                            return True
+                        # If any failed, fall through to Django email
+                except Exception:
+                    # Fall through to Django email
+                    pass
+            
+            # Fallback: Render email content
+            html_content = render_to_string(full_template_name, context)
             text_content = strip_tags(html_content)
             
             # Create email
