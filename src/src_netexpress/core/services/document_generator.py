@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, List
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
+from django.contrib.staticfiles import finders
 
 try:
     from weasyprint import HTML, CSS
@@ -120,8 +121,19 @@ class DocumentGenerator:
         base_dir = Path(settings.BASE_DIR)
         
         stylesheets = []
-        css_path = base_dir / "static" / "css" / "pdf.css"
-        if css_path.exists() and CSS is not None:
+        # Use staticfiles.finders for portable CSS resolution (works in dev and production)
+        css_path = finders.find("css/pdf.css")
+        if css_path is None:
+            # Fallback to STATIC_ROOT for production after collectstatic
+            static_root = getattr(settings, 'STATIC_ROOT', None)
+            if static_root:
+                css_path = Path(static_root) / "css" / "pdf.css"
+                if css_path.exists():
+                    css_path = str(css_path)
+                else:
+                    css_path = None
+        
+        if css_path and CSS is not None:
             stylesheets.append(CSS(filename=str(css_path)))
 
         pdf_bytes = HTML(string=html_string, base_url=str(base_dir)).write_pdf(stylesheets=stylesheets)
