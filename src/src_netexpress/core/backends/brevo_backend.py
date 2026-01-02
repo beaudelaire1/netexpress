@@ -222,7 +222,7 @@ class BrevoEmailBackend(BaseEmailBackend):
         # Convertir le texte brut en HTML simple
         if message.body:
             logger.info("[BREVO] Converting plain text body to simple HTML")
-            return f"<html><body>{message.body.replace(chr(10), '<br>')}</body></html>"
+            return f"<html><body>{message.body.replace('\n', '<br>')}</body></html>"
             
         logger.warning("[BREVO] No content found for HTML")
         return None

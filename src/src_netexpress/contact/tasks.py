@@ -60,13 +60,6 @@ def send_contact_notification(message_id: int) -> None:
         # Utiliser l'email de test comme fallback
         recipients.append("vilmebeaudelaire5@gmail.com")
 
-    email = EmailMessage(
-        subject=f"[Contact] Nouveau message — {msg.full_name}",
-        body=html,
-        to=recipients,
-        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "vilmebeaudelaire5@gmail.com"),
-    )
-    
     # Use EmailMultiAlternatives for HTML emails to work with Brevo backend
     from django.core.mail import EmailMultiAlternatives
     from django.utils.html import strip_tags
