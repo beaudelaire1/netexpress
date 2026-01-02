@@ -101,7 +101,7 @@ def download_invoice(request, pk: int):
             invoice.pdf.open("rb")
             invoice.pdf.close()
             pdf_exists = True
-        except (FileNotFoundError, OSError, IOError):
+        except OSError:
             # Le fichier n'existe pas (système éphémère) ou n'est pas accessible
             pdf_exists = False
     

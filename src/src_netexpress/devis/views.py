@@ -171,7 +171,7 @@ def download_quote(request: HttpRequest, pk: int) -> HttpResponse:
             quote.pdf.open("rb")
             quote.pdf.close()
             pdf_exists = True
-        except (FileNotFoundError, OSError, IOError):
+        except OSError:
             # Le fichier n'existe pas (système éphémère) ou n'est pas accessible
             pdf_exists = False
     
