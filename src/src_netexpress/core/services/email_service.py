@@ -31,13 +31,15 @@ class EmailService:
         context = {
             'invoice': invoice,
             'client': client,
-            'company_name': 'NetExpress',
+            'client_name': client.full_name if hasattr(client, 'full_name') else str(client),
+            'company_name': getattr(settings, 'INVOICE_BRANDING', {}).get('name', 'NetExpress'),
+            'branding': getattr(settings, 'INVOICE_BRANDING', {}),
         }
         
         html_content = render_to_string('emails/invoice_notification.html', context)
         text_content = strip_tags(html_content)
         
-        subject = f'Facture {invoice.number} - NetExpress'
+        subject = f'Facture {invoice.number} - {context["company_name"]}'
         
         # Create email
         email = EmailMultiAlternatives(

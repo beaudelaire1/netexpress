@@ -397,24 +397,36 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # 📧 CONFIGURATION EMAIL (optionnel)
 # ============================================================
 
-EMAIL_BACKEND = os.getenv(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend'
+# Determine the default EMAIL_BACKEND based on DEBUG and BREVO_API_KEY availability
+# In production (DEBUG=False) with BREVO_API_KEY, use Brevo backend
+# Otherwise, use console backend for development
+_brevo_api_key = os.getenv("BREVO_API_KEY", "")
+_has_brevo_key = bool(_brevo_api_key and _brevo_api_key.strip() and 'your-brevo-api-key-here' not in _brevo_api_key)
+
+# Default backend: use Brevo if we have a valid key, otherwise console
+_default_backend = (
+    'core.backends.brevo_backend.BrevoEmailBackend' if _has_brevo_key 
+    else 'django.core.mail.backends.console.EmailBackend'
 )
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', _default_backend)
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+DEFAULT_FROM_NAME = os.getenv('DEFAULT_FROM_NAME', 'Nettoyage Express')
 
 # ============================================================
 # 📧 BREVO API CONFIGURATION
 # ============================================================
 
 # Brevo API configuration for transactional emails
-BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
-USE_BREVO_API = bool(BREVO_API_KEY)
+BREVO_API_KEY = _brevo_api_key
+USE_BREVO_API = _has_brevo_key
+# Allow console fallback in development when Brevo fails
+BREVO_CONSOLE_FALLBACK = DEBUG
 
 # ============================================================
 # 🏢 BRANDING FACTURES/DEVIS

@@ -204,16 +204,25 @@ class BrevoEmailBackend(BaseEmailBackend):
         """
         # Si le message a des alternatives (HTML), les utiliser
         if hasattr(message, 'alternatives') and message.alternatives:
+            logger.debug(f"[BREVO] Message has {len(message.alternatives)} alternatives")
             for content, mimetype in message.alternatives:
+                logger.debug(f"[BREVO] Alternative mimetype: {mimetype}")
                 if mimetype == 'text/html':
+                    logger.info(f"[BREVO] Using HTML alternative ({len(content)} chars)")
                     return content
         
+        # Log si pas d'alternatives trouvées
+        logger.warning("[BREVO] No HTML alternative found in message, checking body")
+        
         # Sinon, utiliser le body comme HTML si il contient des balises
-        if message.body and ('<' in message.body and '>' in message.body):
+        if message.body and ('<html' in message.body.lower() or '<!doctype' in message.body.lower()):
+            logger.info("[BREVO] Using body as HTML content")
             return message.body
             
         # Convertir le texte brut en HTML simple
         if message.body:
-            return message.body.replace('\n', '<br>')
+            logger.info("[BREVO] Converting plain text body to simple HTML")
+            return f"<html><body>{message.body.replace('\n', '<br>')}</body></html>"
             
+        logger.warning("[BREVO] No content found for HTML")
         return None
