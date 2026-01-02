@@ -23,7 +23,12 @@ from .pdf_service import InvoicePdfService, QuotePdfService
 
 
 def _get_email_backend():
-    """Retourne le service d'envoi d'e-mail approprié."""
+    """Retourne le service d'envoi d'e-mail approprié.
+    
+    Import is done inside the function to allow graceful degradation
+    if Brevo SDK is not installed or not configured. This pattern
+    ensures the code works even without the optional Brevo dependency.
+    """
     if getattr(settings, "USE_BREVO_API", False):
         try:
             from core.services.brevo_email_service import BrevoEmailService
@@ -146,6 +151,7 @@ class PremiumEmailService:
         brevo_service = _get_email_backend()
         if brevo_service:
             try:
+                # recipients[0] is safe here because we validated recipients is not empty above
                 success = brevo_service.send(
                     to_email=recipients[0],  # Brevo service sends to one recipient
                     subject=subject,
