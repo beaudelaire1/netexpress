@@ -69,8 +69,14 @@ def send_quote_email(quote, request=None, *, to_email: Optional[str] = None) -> 
     )
 
     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or 'no-reply@example.com'
-    email = EmailMessage(subject=subject, body=html_body, from_email=from_email, to=[recipient])
-    email.content_subtype = 'html'
+    
+    # Use EmailMultiAlternatives for HTML emails to work with Brevo backend
+    from django.core.mail import EmailMultiAlternatives
+    from django.utils.html import strip_tags
+    
+    text_body = strip_tags(html_body)
+    email = EmailMultiAlternatives(subject=subject, body=text_body, from_email=from_email, to=[recipient])
+    email.attach_alternative(html_body, "text/html")
 
     # Attach PDF - generate fresh for ephemeral filesystem
     try:
@@ -124,7 +130,11 @@ def send_quote_validation_code(quote, validation, request=None, *, to_email: Opt
         },
     )
 
-    # HTML ONLY
-    email = EmailMessage(subject=subject, body=html, from_email=from_email, to=[recipient])
-    email.content_subtype = 'html'
+    # Use EmailMultiAlternatives for HTML emails to work with Brevo backend
+    from django.core.mail import EmailMultiAlternatives
+    from django.utils.html import strip_tags
+    
+    text_body = strip_tags(html)
+    email = EmailMultiAlternatives(subject=subject, body=text_body, from_email=from_email, to=[recipient])
+    email.attach_alternative(html, "text/html")
     email.send(fail_silently=False)

@@ -66,7 +66,19 @@ def send_contact_notification(message_id: int) -> None:
         to=recipients,
         from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "vilmebeaudelaire5@gmail.com"),
     )
-    email.content_subtype = "html"
+    
+    # Use EmailMultiAlternatives for HTML emails to work with Brevo backend
+    from django.core.mail import EmailMultiAlternatives
+    from django.utils.html import strip_tags
+    
+    text_body = strip_tags(html)
+    email = EmailMultiAlternatives(
+        subject=f"[Contact] Nouveau message — {msg.full_name}",
+        body=text_body,
+        to=recipients,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "vilmebeaudelaire5@gmail.com"),
+    )
+    email.attach_alternative(html, "text/html")
     email.send(fail_silently=False)
 
 
