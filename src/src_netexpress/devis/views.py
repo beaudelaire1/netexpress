@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import logging
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.files.base import ContentFile
-from django.http import FileResponse, Http404, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -20,6 +22,8 @@ from devis.application.quote_validation import (
     confirm_quote_validation_code,
     start_quote_validation,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET", "POST"])
@@ -50,9 +54,6 @@ def download_quote_pdf(request, pk):
     
     Note: On Render, filesystem is ephemeral, so we always generate fresh.
     """
-    from django.http import HttpResponse
-    from io import BytesIO
-    
     quote = get_object_or_404(Quote, pk=pk)
     
     try:
@@ -64,7 +65,8 @@ def download_quote_pdf(request, pk):
         response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
         return response
     except Exception as exc:
-        raise Http404(f"Erreur lors de la génération du PDF: {exc}") from exc
+        logger.error(f"Erreur lors de la génération du PDF pour le devis {pk}: {exc}", exc_info=True)
+        raise Http404("Impossible de générer le PDF du devis")
 
 
 @staff_member_required
@@ -186,8 +188,6 @@ def quote_public_pdf(request, token: str):
     - v2+: le lien public pointe vers Quote.public_token (stable)
     Pour compatibilité, on accepte encore un token de QuoteValidation si nécessaire.
     """
-    from django.http import HttpResponse
-    
     quote = None
     # 1) Token public stable du devis
     try:
@@ -211,4 +211,5 @@ def quote_public_pdf(request, token: str):
         response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
         return response
     except Exception as exc:
-        raise Http404(f"Erreur lors de la génération du PDF: {exc}") from exc
+        logger.error(f"Erreur lors de la génération du PDF public pour le token {token}: {exc}", exc_info=True)
+        raise Http404("Impossible de générer le PDF du devis")

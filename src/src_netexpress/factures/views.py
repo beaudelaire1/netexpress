@@ -3,8 +3,10 @@ Vues pour la gestion des factures.
 Rationalisation : retrait de la couche expérimentale hexcore pour revenir à une approche Django pure.
 """
 
+import logging
+
 from django.contrib import messages
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -12,6 +14,8 @@ from core.decorators import business_admin_required
 
 from devis.models import Quote
 from .models import Invoice
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -50,8 +54,6 @@ def download_invoice(request, pk: int):
     
     Note: On Render, filesystem is ephemeral, so we always generate fresh.
     """
-    from django.http import HttpResponse
-    
     invoice = get_object_or_404(Invoice, pk=pk)
     
     try:
@@ -62,7 +64,8 @@ def download_invoice(request, pk: int):
         response['Content-Disposition'] = f'inline; filename="facture_{invoice.number}.pdf"'
         return response
     except Exception as exc:
-        raise Http404(f"Erreur lors de la génération du PDF: {exc}") from exc
+        logger.error(f"Erreur lors de la génération du PDF pour la facture {pk}: {exc}", exc_info=True)
+        raise Http404("Impossible de générer le PDF de la facture")
 
 
 @login_required
