@@ -190,7 +190,7 @@ class EmailService:
             subject=subject,
             body=text_content,
             from_email=self.from_email,
-            to=recipients
+            to=[client.email]
         )
         email.attach_alternative(html_content, "text/html")
         

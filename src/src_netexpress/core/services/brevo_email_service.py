@@ -117,7 +117,7 @@ class BrevoEmailService:
                     error_body = json.loads(e.body)
                     if 'message' in error_body:
                         logger.error(f"Brevo error message: {error_body['message']}")
-                except:
+                except Exception:
                     pass
             return False
         except Exception as e:
