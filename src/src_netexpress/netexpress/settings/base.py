@@ -409,6 +409,14 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
 
 # ============================================================
+# 📧 BREVO API CONFIGURATION
+# ============================================================
+
+# Brevo API configuration for transactional emails
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+USE_BREVO_API = bool(BREVO_API_KEY)
+
+# ============================================================
 # 🏢 BRANDING FACTURES/DEVIS
 # ============================================================
 

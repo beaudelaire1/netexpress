@@ -200,6 +200,12 @@ class EmailService:
                 email.attach_file(quote.pdf.path)
             except Exception as e:
                 logger.warning(f"Could not attach quote PDF: {e}")
+        # Attach PDF - generate fresh for ephemeral filesystem
+        try:
+            pdf_bytes = invoice.generate_pdf(attach=False)
+            email.attach(f"facture_{invoice.number}.pdf", pdf_bytes, 'application/pdf')
+        except Exception:
+            pass  # Continue without attachment if generation fails
         
         try:
             email.send()
