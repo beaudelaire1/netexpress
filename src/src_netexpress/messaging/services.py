@@ -19,6 +19,30 @@ except Exception:
     EmailNotificationService = None  # type: ignore
 
 
+def _prepare_pdf_attachment(pdf_field):
+    """Helper function to prepare PDF attachment from a file field.
+    
+    Parameters
+    ----------
+    pdf_field : FileField or None
+        Django FileField containing the PDF
+    
+    Returns
+    -------
+    list of tuple or None
+        List with single tuple (filename, content) or None if unavailable
+    """
+    if not pdf_field:
+        return None
+    
+    try:
+        filename = pdf_field.name.rsplit("/", 1)[-1]
+        content = pdf_field.read()
+        return [(filename, content)]
+    except Exception:
+        return None
+
+
 def send_contact_notification(contact_message: "contact.models.Message") -> None:
     """Envoyer une notification pour un message de contact.
 
@@ -153,12 +177,7 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     }
     
     # Préparer la pièce jointe PDF si disponible (before trying Brevo)
-    attachments_list = None
-    try:
-        if quote.pdf:
-            attachments_list = [(quote.pdf.name.rsplit("/", 1)[-1], quote.pdf.read())]
-    except Exception:
-        attachments_list = None
+    attachments_list = _prepare_pdf_attachment(quote.pdf)
     
     # Try to use Brevo with Django template if configured
     if getattr(settings, "EMAIL_BACKEND", "").endswith("BrevoEmailBackend"):
@@ -194,7 +213,6 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     if quote.message:
         body_lines.extend(["", "Message :", quote.message])
     body = "\n".join(body_lines)
-
     # Construire une version HTML plus lisible pour le devis
     html_body = None
     try:
@@ -244,13 +262,8 @@ def send_quote_notification(quote: "devis.models.Quote") -> EmailMessage:
     except Exception:
         html_body = None
 
-    # Préparer la pièce jointe PDF si disponible
-    attachments = None
-    try:
-        if quote.pdf:
-            attachments = [(quote.pdf.name.rsplit("/", 1)[-1], quote.pdf.read())]
-    except Exception:
-        attachments = None
+    # Préparer la pièce jointe PDF si disponible (for fallback)
+    attachments = _prepare_pdf_attachment(quote.pdf)
 
     # Envoyer directement via le service SMTP premium si disponible
     if EmailNotificationService:

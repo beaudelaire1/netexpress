@@ -67,8 +67,9 @@ class NotificationService:
                         attachments = None
                         if attachment_path:
                             try:
+                                import os
                                 with open(attachment_path, 'rb') as f:
-                                    filename = attachment_path.split('/')[-1]
+                                    filename = os.path.basename(attachment_path)
                                     attachments = [(filename, f.read())]
                             except Exception:
                                 pass

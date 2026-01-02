@@ -45,7 +45,18 @@ class EmailService:
         return recipients
     
     def send_invoice_notification(self, invoice):
-        """Send invoice notification email to client using Django template."""
+        """Send invoice notification email to client using Django template.
+        
+        Parameters
+        ----------
+        invoice : Invoice
+            The invoice instance to send notification for
+        
+        Returns
+        -------
+        bool
+            True if email sent successfully, False otherwise
+        """
         # Get recipients
         recipients = self._get_invoice_recipients(invoice)
         if not recipients:
@@ -179,7 +190,7 @@ class EmailService:
             subject=subject,
             body=text_content,
             from_email=self.from_email,
-            to=[client.email]
+            to=recipients
         )
         email.attach_alternative(html_content, "text/html")
         

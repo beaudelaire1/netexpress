@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 import logging
 
 from django.conf import settings
@@ -33,7 +33,7 @@ class EmailNotificationService:
         subject: str,
         template_name: str,
         context: dict,
-        attachments: Optional[List[tuple[str, bytes]]] = None,
+        attachments: Optional[List[Tuple[str, bytes]]] = None,
     ) -> None:
         """Send an email using a Django template, preferring Brevo API.
         
