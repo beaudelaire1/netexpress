@@ -76,7 +76,7 @@ class WeasyPrintGenerator:
         try:
             from django.contrib.staticfiles import finders
             css_path = finders.find("css/pdf.css")
-        except Exception:
+        except (ImportError, AttributeError):
             pass
         # Fallback to STATIC_ROOT if finders don't work
         if not css_path:

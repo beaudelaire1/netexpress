@@ -60,7 +60,7 @@ def render_quote_pdf(quote, *, extra_context: Optional[Dict[str, Any]] = None) -
     try:
         from django.contrib.staticfiles import finders
         css_path = finders.find("css/pdf.css")
-    except Exception:
+    except (ImportError, AttributeError):
         pass
     # Fallback to STATIC_ROOT if finders don't work
     if not css_path:
@@ -105,7 +105,7 @@ def render_invoice_pdf(invoice, *, extra_context: Optional[Dict[str, Any]] = Non
     try:
         from django.contrib.staticfiles import finders
         css_path = finders.find("css/pdf.css")
-    except Exception:
+    except (ImportError, AttributeError):
         pass
     # Fallback to STATIC_ROOT if finders don't work
     if not css_path:

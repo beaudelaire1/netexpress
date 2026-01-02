@@ -8,7 +8,7 @@ Compatibles avec factures/urls.py :
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -101,7 +101,7 @@ def download_invoice(request, pk: int):
             invoice.pdf.open("rb")
             invoice.pdf.close()
             pdf_exists = True
-        except Exception:
+        except (FileNotFoundError, OSError, IOError):
             # Le fichier n'existe pas (système éphémère) ou n'est pas accessible
             pdf_exists = False
     
@@ -110,7 +110,6 @@ def download_invoice(request, pk: int):
         try:
             # Régénérer le PDF sans l'attacher (pour éviter d'écrire sur le système éphémère)
             pdf_bytes = invoice.generate_pdf(attach=False)
-            from django.http import HttpResponse
             # Construire le nom du fichier
             filename = f"{invoice.number or 'facture'}.pdf"
             response = HttpResponse(pdf_bytes, content_type="application/pdf")

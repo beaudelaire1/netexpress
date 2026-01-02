@@ -171,7 +171,7 @@ def download_quote(request: HttpRequest, pk: int) -> HttpResponse:
             quote.pdf.open("rb")
             quote.pdf.close()
             pdf_exists = True
-        except Exception:
+        except (FileNotFoundError, OSError, IOError):
             # Le fichier n'existe pas (système éphémère) ou n'est pas accessible
             pdf_exists = False
     
@@ -180,7 +180,6 @@ def download_quote(request: HttpRequest, pk: int) -> HttpResponse:
         try:
             # Régénérer le PDF sans l'attacher (pour éviter d'écrire sur le système éphémère)
             pdf_bytes = quote.generate_pdf(attach=False)
-            from django.http import HttpResponse
             # Construire le nom du fichier
             filename = f"{quote.number or 'devis'}.pdf"
             response = HttpResponse(pdf_bytes, content_type="application/pdf")
