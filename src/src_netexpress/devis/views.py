@@ -156,8 +156,36 @@ def service_info(request: HttpRequest, pk: int) -> JsonResponse:
 
 @staff_member_required
 def download_quote(request: HttpRequest, pk: int) -> HttpResponse:
-    """Servir le fichier PDF associé à un devis pour le staff."""
+    """
+    Servir le fichier PDF associé à un devis pour le staff.
+    Si le fichier PDF n'existe pas ou n'est pas accessible (système éphémère),
+    le régénère à la volée.
+    """
     quote = get_object_or_404(Quote, pk=pk)
-    if not quote.pdf:
-        raise Http404("Ce devis n'a pas encore été généré.")
+    
+    # Vérifier si le PDF existe et est accessible
+    pdf_exists = False
+    if quote.pdf:
+        try:
+            # Tenter d'ouvrir le fichier pour vérifier qu'il existe réellement
+            quote.pdf.open("rb")
+            quote.pdf.close()
+            pdf_exists = True
+        except OSError:
+            # Le fichier n'existe pas (système éphémère) ou n'est pas accessible
+            pdf_exists = False
+    
+    # Si le PDF n'existe pas, le régénérer à la volée
+    if not pdf_exists:
+        try:
+            # Régénérer le PDF sans l'attacher (pour éviter d'écrire sur le système éphémère)
+            pdf_bytes = quote.generate_pdf(attach=False)
+            # Construire le nom du fichier
+            filename = f"{quote.number or 'devis'}.pdf"
+            response = HttpResponse(pdf_bytes, content_type="application/pdf")
+            response["Content-Disposition"] = f'inline; filename="{filename}"'
+            return response
+        except Exception as e:
+            raise Http404(f"Impossible de générer le PDF du devis : {str(e)}")
+    
     return FileResponse(quote.pdf.open("rb"), filename=quote.pdf.name, as_attachment=False)

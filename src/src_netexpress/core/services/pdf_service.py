@@ -155,8 +155,27 @@ class InvoicePdfService:
         # extra styling.  If you wish to embed a separate CSS file,
         # ensure its path is resolved relative to BASE_DIR/static/css.
         stylesheets = []
-        css_path = base_dir / "static" / "css" / "pdf.css"
-        if css_path.exists() and CSS is not None:
+        # Try to locate the CSS file using staticfiles finders (production-ready)
+        css_path = None
+        try:
+            from django.contrib.staticfiles import finders
+            css_path = finders.find("css/pdf.css")
+        except (ImportError, AttributeError):
+            pass
+        # Fallback to STATIC_ROOT if finders don't work
+        if not css_path:
+            static_root = getattr(settings, "STATIC_ROOT", None)
+            if static_root:
+                candidate = Path(static_root) / "css" / "pdf.css"
+                if candidate.exists():
+                    css_path = str(candidate)
+        # Final fallback to BASE_DIR/static for development
+        if not css_path:
+            candidate = base_dir / "static" / "css" / "pdf.css"
+            if candidate.exists():
+                css_path = str(candidate)
+        
+        if css_path and CSS is not None:
             stylesheets.append(CSS(filename=str(css_path)))
         pdf_bytes = HTML(string=html_string, base_url=base_url).write_pdf(stylesheets=stylesheets)
         number = getattr(invoice, "number", None) or f"FAC-{getattr(invoice, 'pk', 'X')}"

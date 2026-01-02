@@ -91,6 +91,7 @@ class EmailNotificationService:
         username: str = getattr(settings, "EMAIL_HOST_USER", "")
         password: str = getattr(settings, "EMAIL_HOST_PASSWORD", "")
         use_ssl: bool = bool(getattr(settings, "EMAIL_USE_SSL", False))
+        use_tls: bool = bool(getattr(settings, "EMAIL_USE_TLS", False))
 
         # Déterminer l'adresse de l'expéditeur.
         # Si un override explicite est fourni, l'utiliser en priorité.
@@ -137,7 +138,8 @@ class EmailNotificationService:
                 server = smtplib.SMTP_SSL(host, port)
             else:
                 server = smtplib.SMTP(host, port)
-                server.starttls()
+                if use_tls:
+                    server.starttls()
             if username and password:
                 server.login(username, password)
             server.sendmail(from_email, [to_email], msg.as_string())
