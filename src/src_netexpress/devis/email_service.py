@@ -29,10 +29,6 @@ def send_quote_email(quote, request=None, *, to_email: Optional[str] = None) -> 
     except Exception:
         pass
 
-    # Ensure PDF exists
-    if not getattr(quote, 'pdf', None):
-        quote.generate_pdf(attach=True)
-
     # Ensure we have a stable public token for links (backfill if legacy data)
     if not getattr(quote, 'public_token', None):
         try:
@@ -76,12 +72,11 @@ def send_quote_email(quote, request=None, *, to_email: Optional[str] = None) -> 
     email = EmailMessage(subject=subject, body=html_body, from_email=from_email, to=[recipient])
     email.content_subtype = 'html'
 
-    # Attach PDF
+    # Attach PDF - generate fresh for ephemeral filesystem
     try:
-        if quote.pdf and hasattr(quote.pdf, 'open'):
-            with quote.pdf.open('rb') as f:
-                pdf_bytes = f.read()
-                email.attach(f"{quote.number}.pdf", pdf_bytes, 'application/pdf')
+        # Always generate fresh PDF (don't rely on saved file in ephemeral filesystem)
+        pdf_bytes = quote.generate_pdf(attach=False)
+        email.attach(f"{quote.number}.pdf", pdf_bytes, 'application/pdf')
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)

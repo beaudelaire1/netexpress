@@ -48,12 +48,12 @@ class EmailService:
         )
         email.attach_alternative(html_content, "text/html")
         
-        # Attach PDF if available
-        if invoice.pdf:
-            try:
-                email.attach_file(invoice.pdf.path)
-            except Exception:
-                pass  # Continue without attachment if file not found
+        # Attach PDF - generate fresh for ephemeral filesystem
+        try:
+            pdf_bytes = invoice.generate_pdf(attach=False)
+            email.attach(f"facture_{invoice.number}.pdf", pdf_bytes, 'application/pdf')
+        except Exception:
+            pass  # Continue without attachment if generation fails
         
         try:
             email.send()

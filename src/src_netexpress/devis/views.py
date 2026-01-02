@@ -186,6 +186,8 @@ def quote_public_pdf(request, token: str):
     - v2+: le lien public pointe vers Quote.public_token (stable)
     Pour compatibilité, on accepte encore un token de QuoteValidation si nécessaire.
     """
+    from django.http import HttpResponse
+    
     quote = None
     # 1) Token public stable du devis
     try:
@@ -200,17 +202,13 @@ def quote_public_pdf(request, token: str):
             raise Http404()
         quote = validation.quote
 
-    if not quote.pdf:
-        quote.generate_pdf(attach=True)
     try:
-        # Use streaming for better performance
-        response = FileResponse(
-            quote.pdf.open("rb"),
-            content_type="application/pdf",
-            filename=f"devis_{quote.number}.pdf"
-        )
+        # Always generate fresh PDF (ephemeral filesystem on Render)
+        pdf_bytes = quote.generate_pdf(attach=False)
+        
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
         response['Content-Disposition'] = f'inline; filename="devis_{quote.number}.pdf"'
         return response
     except Exception as exc:
-        raise Http404() from exc
+        raise Http404(f"Erreur lors de la génération du PDF: {exc}") from exc
