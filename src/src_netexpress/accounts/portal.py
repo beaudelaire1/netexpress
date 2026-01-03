@@ -69,8 +69,8 @@ def get_user_role(user) -> str:
 def get_portal_home_url(user) -> str:
     """URL racine du portail correspondant au rôle utilisateur.
     
-    Les superusers sont redirigés vers /admin-dashboard/ (interface métier complète)
-    car ils ont accès aux deux interfaces (/gestion/ et /admin-dashboard/).
+    Tous les admins (business et technical) sont redirigés vers /admin-dashboard/
+    car c'est l'interface métier principale.
     """
     # Superusers -> interface business complète par défaut
     if getattr(user, "is_superuser", False):
@@ -78,7 +78,7 @@ def get_portal_home_url(user) -> str:
     
     role = get_user_role(user)
     return {
-        ROLE_ADMIN_TECHNICAL: "/gestion/",
+        ROLE_ADMIN_TECHNICAL: "/admin-dashboard/",  # Changé de /gestion/ vers /admin-dashboard/
         ROLE_ADMIN_BUSINESS: "/admin-dashboard/",
         ROLE_WORKER: "/worker/",
         ROLE_CLIENT: "/client/",

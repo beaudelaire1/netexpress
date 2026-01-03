@@ -7,9 +7,36 @@ from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.conf import settings
 
 from .models import EmailMessage, Message, MessageThread
-from .forms import MessageComposeForm, InternalMessageForm, MessageReplyForm
+from .forms import MessageComposeForm, InternalMessageForm, MessageReplyForm, EMAIL_TEMPLATE_CHOICES
+
+
+# Mapping des types de templates vers les sujets et templates
+TEMPLATE_CONFIG = {
+    'notification_generic': {
+        'subject': 'Notification — Nettoyage Express',
+        'template': 'emails/notification_generic.html',
+    },
+    'task_assignment': {
+        'subject': 'Nouvelle tâche assignée — Nettoyage Express',
+        'template': 'emails/task_assignment.html',
+    },
+    'task_completion': {
+        'subject': 'Tâche terminée — Nettoyage Express',
+        'template': 'emails/task_completion.html',
+    },
+    'account_invitation': {
+        'subject': 'Invitation à rejoindre Nettoyage Express',
+        'template': 'emails/account_invitation.html',
+    },
+    'message_notification': {
+        'subject': 'Nouveau message — Nettoyage Express',
+        'template': 'emails/message_notification.html',
+    },
+}
 
 
 class MessageListView(LoginRequiredMixin, ListView):
@@ -28,9 +55,9 @@ class MessageDetailView(LoginRequiredMixin, DetailView):
 
 
 def compose(request):
-    """Compose & send a premium HTML email (no plaintext).
+    """Compose & send a premium HTML email using predefined templates.
 
-    L'éditeur WYSIWYG est géré via TinyMCE côté template.
+    Aucun texte libre n'est permis - le contenu est généré via les templates stylisés.
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return redirect("admin:login")
@@ -38,22 +65,41 @@ def compose(request):
     if request.method == "POST":
         form = MessageComposeForm(request.POST, request.FILES)
         if form.is_valid():
+            template_type = form.cleaned_data["template_type"]
+            config = TEMPLATE_CONFIG.get(template_type, TEMPLATE_CONFIG['notification_generic'])
+            
+            # Préparer le contexte pour le template
+            branding = getattr(settings, 'INVOICE_BRANDING', {}) or {}
+            context = {
+                'branding': branding,
+                'brand': branding.get('name', 'Nettoyage Express'),
+                'recipient_name': form.cleaned_data.get('recipient_name') or 'Client',
+                'headline': config['subject'].split('—')[0].strip(),
+                'reference': form.cleaned_data.get('reference') or '',
+            }
+            
+            # Générer le HTML avec le template stylisé
+            html_body = render_to_string(config['template'], context)
+            
             msg = EmailMessage.objects.create(
                 recipient=form.cleaned_data["recipient"],
-                subject=form.cleaned_data["subject"],
-                body=form.cleaned_data["body"],
+                subject=config['subject'],
+                body=html_body,
                 attachment=form.cleaned_data.get("attachment"),
             )
             try:
                 msg.send()
-                messages.success(request, "Message envoyé.")
+                messages.success(request, "Message envoyé avec le template professionnel.")
             except Exception:
                 messages.error(request, "Erreur lors de l'envoi du message.")
             return redirect("messaging:list")
     else:
         form = MessageComposeForm()
 
-    return render(request, "messaging/compose.html", {"form": form})
+    return render(request, "messaging/compose.html", {
+        "form": form,
+        "template_choices": EMAIL_TEMPLATE_CHOICES,
+    })
 
 
 # Internal Messaging System Views

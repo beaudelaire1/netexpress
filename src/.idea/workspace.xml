@@ -2,82 +2,250 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1a77a700-50ad-4497-8d46-686da53ab26e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/accounts/middleware.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/accounts/middleware.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/compatibility.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/decorators.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/decorators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/management/commands/setup_backward_compatibility.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/middleware/session_tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/middleware/session_tracking.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/pdf.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/portal_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/portal_routing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/services/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/services/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/services/pdf_generator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/services/pdf_service.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/templatetags/portal_navigation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/templatetags/portal_navigation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/email.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/emailing.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/devis/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/quote_pdf_service.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/quote_to_invoice.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/devis/signals.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/devis/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/devis/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/ACTIONS_COMPLETEES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/ACTIONS_IMMEDIATES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/ARCHITECTURE.md" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/docs/ARCHITECTURE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/DECISIONS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/ERP_BACKEND.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/FEUILLE_DE_ROUTE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/RESUME_AUDIT.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/SYNTHESE_INTER_AGENTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/UX_PARCOURS_UTILISATEURS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/UX_UI_NetExpress.md" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/docs/UX_UI_NetExpress.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/expert_solutions_architect_workflow.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/factures/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/factures/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/factures/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/factures/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/manage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/netexpress/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/netexpress/settings/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/netexpress/settings/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/netexpress/settings/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/analyze_dashboard_features.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/migrate_dashboard_rationalization.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/quick_email_test.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/test_email_backend.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/test_email_console.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/test_smtp.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/scripts/test_smtp_brevo.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/static/css/jazzmin_overrides.css" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/static/css/jazzmin_overrides.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/static/css/netexpress-blue-theme.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/static/css/netexpress-design-system.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/static/css/netexpress-tokens.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/static/css/style_v2.css" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/static/css/style_v2.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/static_site/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/tailwind.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/tailwind.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/admin/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/admin/dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/admin/dashboard_quick_actions.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/admin/dashboard_quick_actions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/base_netexpress.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/base_v2.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/base_v2.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/core/admin_create_quote.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/core/admin_create_quote.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/core/admin_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/core/admin_dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/core/client_invoice_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/core/client_invoice_detail.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/core/client_invoices.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/core/client_invoices.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/core/client_quotes.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/core/client_quotes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/core/worker_dashboard.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/pdf/quote.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/quotes/quote_success.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/quotes/request_quote.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/quotes/test.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/quotes/validate_code.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/quotes/validate_expired.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/quotes/validate_success.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/tasks/partials/worker_task_card.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/tasks/partials/worker_task_card.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/templates/tasks/worker_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/templates/tasks/worker_dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/tests/test_complete_workflows.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/tests/test_complete_workflows.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/tests/test_dashboard_rationalization.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/tests/test_migration_scripts_units.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src_netexpress/tests/test_url_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/tests/test_url_routing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../20251221_120403.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../accueil.mp4" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../actuel.mp4" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/Dockerfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/forms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/templates/accounts/profile.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/templates/accounts/signup.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/accounts/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/forms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/migrations/0002_message_commune_message_zip_code_alter_message_topic.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/migrations/0003_rename_commune_message_city.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/migrations/0004_alter_message_zip_code.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/migrations/0005_message_street.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/contact/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/management/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/management/commands/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/management/commands/seed_demo_users.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/services/email_service.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/services/pdf_generator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/services/pdf_service.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/sitemaps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/templatetags/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/templatetags/legacy_filters.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/tests.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/core/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/crm/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/crm/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/crm/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/email.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/email_service.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/emailing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/forms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0002_alter_quote_number.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0003_quote_pdf_quotephoto.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0004_quoterequest_quoterequestphoto_alter_quote_status_and_more.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0005_quotevalidation.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0006_quote_public_token.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0007_quote_email_body_html.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/0008_alter_quote_email_body_html.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/quote_pdf_service.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/quote_to_invoice.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/services.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/signals.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/templates/devis/quote_pdf.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/templates/emails/quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/templates/emails/quote.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/devis/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/django_orm/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/django_orm/invoice_repository.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/docs/user_guide.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0002_invoice_notes_invoice_payment_terms_and_more.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0003_alter_invoice_status.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0004_alter_invoice_number_alter_invoice_status_and_more.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0005_alter_invoice_status.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0006_alter_invoice_status.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/0007_invoice_command_ref.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/services/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/signals.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/factures/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/domain/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/domain/entities.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/domain/invoicing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/ports/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/ports/interfaces.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/services/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/services/invoice_service.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/hexcore/services/invoicing_service.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/manage.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/forms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/services.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/templates/messaging/contact_notification.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/templates/messaging/email_base.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/templates/messaging/invoice_notification.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/templates/messaging/quote_notification.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/messaging/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/asgi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/celery.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/settings/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/settings/base.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/settings/dev.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/settings/prod.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/netexpress/wsgi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/render.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/requirements/base.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/requirements/dev.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/requirements/prod.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/migrations/0002_alter_category_icon.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/migrations/0003_remove_service_base_price_service_unit_type.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/services/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/css/backoffice.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/css/base.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/css/dashboard.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/css/jazzmin_overrides.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/css/pdf.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/css/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/default_category.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/default_service.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/hero_bg.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/logo.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/realisations/espaces_verts_1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/realisations/espaces_verts_2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/realisations/nettoyage_1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/realisations/nettoyage_2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/realisations/renovation_1.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/realisations/renovation_2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/img/script.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/js/dashboard.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/js/forms.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/js/main.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/js/premium.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/js/quote_admin.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static/js/realisations.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/static_site/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/management/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/management/commands/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/management/commands/notify_due_tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/migrations/0002_alter_task_status.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/services.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/signals.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tasks/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/admin/devis/quote/change_form.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/base.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/contact/contact.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/contact/contact_success.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/about.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/access_denied.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/client_dashboard.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/dashboard.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/excellence.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/home.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/realisations.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/core/worker_dashboard.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/devis/admin_quote_edit.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/devis/devis_form.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/devis/quote_success.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/devis/request_quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/base_email.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/invoice_notification.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/modele_quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/new_contact_admin.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/new_quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/new_quote_pdf.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/new_quote_pdf.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/emails/notification_generic.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/factures/archive.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/messaging/compose.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/messaging/message_detail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/messaging/message_list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/base_pdf.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/document_base.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/invoice.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/invoice_modern.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/invoice_premium.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/pdf/quote_premium.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/quotes/quote_success.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/quotes/request_quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/quotes/test.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/quotes/validate_code.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/quotes/validate_expired.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/quotes/validate_success.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/registration/logged_out.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/registration/login.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/robots.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/services/service_detail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/services/service_list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/tasks/task_calendar.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/tasks/task_detail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/templates/tasks/task_list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tests/test_devis_links.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tests/test_devis_urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/tests/test_models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/weasyprint_adapter/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bugfix_email_netexpress/weasyprint_adapter/pdf_generator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../fac_modèle.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../modele_mail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../modele_quote.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../notification.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src_netexpress/docs/MANUEL_UTILISATEUR.docx" beforeDir="false" afterPath="$PROJECT_DIR$/src_netexpress/docs/MANUEL_UTILISATEUR.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src_netexpress.zip" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,15 +265,15 @@
     <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/vilme/OneDrive/Bureau/netexpress/src/src_netexpress&quot;,
-    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "last_opened_file_path": "C:/Users/vilme/OneDrive/Bureau/eebc_project",
+    "show.migrate.to.gradle.popup": "false"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress" />

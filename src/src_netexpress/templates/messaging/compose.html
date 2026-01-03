@@ -5,7 +5,6 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
-{{ form.media }}
 {% endblock %}
 
 {% block content %}
@@ -29,7 +28,7 @@
     <div class="bo-head">
       <div>
         <div class="bo-title">Nouveau message</div>
-        <div class="bo-subtitle">Envoi premium (HTML uniquement) — texte en forme + bouton dans le template e-mail.</div>
+        <div class="bo-subtitle">Sélectionnez un type de message — le contenu sera généré automatiquement avec le template professionnel.</div>
       </div>
     </div>
 
@@ -40,14 +39,36 @@
           <label>Destinataire</label>
           {{ form.recipient }}
 
-          <label style="margin-top:12px;">Objet</label>
-          {{ form.subject }}
+          <label style="margin-top:12px;">Type de message</label>
+          {{ form.template_type }}
+          <p style="font-size:12px; color:#6b7280; margin-top:4px;">
+            Le sujet et le contenu seront générés automatiquement selon le type sélectionné.
+          </p>
 
-          <label style="margin-top:12px;">Message</label>
-          {{ form.body }}
+          <label style="margin-top:12px;">Nom du destinataire</label>
+          {{ form.recipient_name }}
+
+          <label style="margin-top:12px;">Référence (optionnel)</label>
+          {{ form.reference }}
+          <p style="font-size:12px; color:#6b7280; margin-top:4px;">
+            Ex: Devis #123, Tâche #456 — sera affiché dans l'email si renseigné.
+          </p>
 
           <label style="margin-top:12px;">Pièce jointe (optionnel)</label>
           {{ form.attachment }}
+
+          <!-- Info box -->
+          <div style="margin-top:16px; padding:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px;">
+            <div style="display:flex; align-items:flex-start; gap:8px;">
+              <span style="color:#3b82f6;">ℹ️</span>
+              <div>
+                <strong style="color:#1e40af; font-size:14px;">Email stylisé automatique</strong>
+                <p style="color:#1e40af; font-size:13px; margin-top:4px;">
+                  L'email sera envoyé avec le template professionnel Nettoyage Express correspondant au type sélectionné.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div style="margin-top:16px; display:flex; gap:10px;">
             <button class="bo-btn" type="submit">Envoyer</button>

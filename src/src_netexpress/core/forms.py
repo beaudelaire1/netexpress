@@ -3,7 +3,6 @@
 from decimal import Decimal
 from django import forms
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.forms import UserCreationForm
 from django.forms import inlineformset_factory
 from devis.models import Quote, QuoteItem, Client
 from factures.models import Invoice
@@ -11,10 +10,15 @@ from tasks.models import Task
 from services.models import Service
 
 
-class WorkerCreationForm(UserCreationForm):
-    """Form for creating worker accounts in admin portal."""
+class WorkerCreationForm(forms.Form):
+    """Form for creating worker accounts in admin portal.
+    
+    Le mot de passe est généré automatiquement par le service.
+    L'ouvrier devra le changer à sa première connexion.
+    """
     
     first_name = forms.CharField(
+        label="Prénom",
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
@@ -23,6 +27,7 @@ class WorkerCreationForm(UserCreationForm):
         })
     )
     last_name = forms.CharField(
+        label="Nom",
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
@@ -31,6 +36,7 @@ class WorkerCreationForm(UserCreationForm):
         })
     )
     email = forms.EmailField(
+        label="Email",
         required=True,
         widget=forms.EmailInput(attrs={
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
@@ -38,6 +44,7 @@ class WorkerCreationForm(UserCreationForm):
         })
     )
     phone = forms.CharField(
+        label="Téléphone",
         max_length=20,
         required=False,
         widget=forms.TextInput(attrs={
@@ -46,44 +53,11 @@ class WorkerCreationForm(UserCreationForm):
         })
     )
     
-    class Meta:
-        model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'phone', 'password1', 'password2')
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Style the inherited fields
-        self.fields['username'].widget.attrs.update({
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'placeholder': 'Nom d\'utilisateur'
-        })
-        self.fields['password1'].widget.attrs.update({
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
-        })
-        self.fields['password2'].widget.attrs.update({
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
-        })
-        
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        
-        if commit:
-            user.save()
-            # Add to Workers group
-            workers_group, created = Group.objects.get_or_create(name='Workers')
-            user.groups.add(workers_group)
-            
-            # Create or update profile with phone number and worker role
-            from accounts.models import Profile
-            profile, created = Profile.objects.get_or_create(user=user)
-            profile.phone = self.cleaned_data.get('phone', '')
-            profile.role = Profile.ROLE_WORKER  # Set role to worker
-            profile.save()
-        
-        return user
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Un utilisateur avec cet email existe déjà.")
+        return email
 
 
 class ClientCreationForm(forms.ModelForm):
@@ -264,7 +238,11 @@ class TaskCreationForm(forms.ModelForm):
 
 
 class QuoteEmailForm(forms.Form):
-    """Form for sending quotes by email."""
+    """Form for sending quotes by email.
+    
+    Le message est généré automatiquement via le template stylisé modele_quote.html.
+    Seul l'email du destinataire est modifiable.
+    """
     
     recipient_email = forms.EmailField(
         label="Email du destinataire",
@@ -273,37 +251,12 @@ class QuoteEmailForm(forms.Form):
             'placeholder': 'client@example.com'
         })
     )
-    subject = forms.CharField(
-        label="Sujet",
-        max_length=200,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'placeholder': 'Votre devis Nettoyage Express'
-        })
-    )
-    message = forms.CharField(
-        label="Message",
-        widget=forms.Textarea(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'rows': 6,
-            'placeholder': 'Message personnalisé pour accompagner le devis...'
-        })
-    )
     
     def __init__(self, quote=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if quote:
-            # Pre-fill with quote data
+            # Pre-fill with client email
             self.fields['recipient_email'].initial = quote.client.email
-            self.fields['subject'].initial = f"Votre devis {quote.number} - Nettoyage Express"
-            self.fields['message'].initial = f"""Bonjour {quote.client.full_name},
-
-Veuillez trouver ci-joint votre devis {quote.number}.
-
-Nous restons à votre disposition pour toute question.
-
-Cordialement,
-L'équipe Nettoyage Express"""
 
 
 class InvoiceCreationForm(forms.ModelForm):
@@ -344,29 +297,17 @@ class InvoiceCreationForm(forms.ModelForm):
 
 
 class SendQuoteEmailForm(forms.Form):
-    """Form for sending quote by email."""
+    """Form for sending quote by email.
+    
+    Le message est généré automatiquement via le template stylisé.
+    Seul l'email du destinataire est modifiable.
+    """
     
     recipient_email = forms.EmailField(
         label="Email du destinataire",
         widget=forms.EmailInput(attrs={
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
             'placeholder': 'client@example.com'
-        })
-    )
-    subject = forms.CharField(
-        label="Sujet",
-        max_length=200,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'placeholder': 'Votre devis Nettoyage Express'
-        })
-    )
-    message = forms.CharField(
-        label="Message",
-        widget=forms.Textarea(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'rows': 6,
-            'placeholder': 'Bonjour,\n\nVeuillez trouver ci-joint votre devis.\n\nCordialement,\nL\'équipe Nettoyage Express'
         })
     )
     include_pdf = forms.BooleanField(

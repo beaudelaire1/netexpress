@@ -43,8 +43,8 @@
       <div class="lg:col-span-2">
         <div class="bg-white shadow rounded-lg">
           <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Composer l'Email</h2>
-            <p class="text-sm text-gray-600">Personnalisez le message qui accompagnera le devis</p>
+            <h2 class="text-lg font-medium text-gray-900">Envoyer le Devis</h2>
+            <p class="text-sm text-gray-600">L'email sera envoyé avec le template professionnel Nettoyage Express</p>
           </div>
           
           <form method="post" class="px-6 py-4 space-y-6">
@@ -80,20 +80,20 @@
               {{ form.recipient_email }}
             </div>
 
-            <!-- Subject -->
-            <div>
-              <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                {{ form.subject.label }}
-              </label>
-              {{ form.subject }}
-            </div>
-
-            <!-- Message -->
-            <div>
-              <label for="{{ form.message.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                {{ form.message.label }}
-              </label>
-              {{ form.message }}
+            <!-- Info: Template automatique -->
+            <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-blue-800">Email stylisé automatique</h3>
+                  <p class="mt-1 text-sm text-blue-700">
+                    Le contenu de l'email sera généré automatiquement avec le template professionnel Nettoyage Express.
+                    Il inclura les informations du devis, le montant et un lien de validation.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <!-- Actions -->

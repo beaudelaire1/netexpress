@@ -41,6 +41,24 @@
       <form method="post" class="space-y-6">
         {% csrf_token %}
         
+        {% if form.non_field_errors %}
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-400"></i>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Erreur</h3>
+                <div class="mt-2 text-sm text-red-700">
+                  {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        
         <!-- Personal Information -->
         <div class="border-b border-gray-200 pb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h3>
@@ -76,6 +94,7 @@
               {% if form.email.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
               {% endif %}
+              <p class="mt-1 text-sm text-gray-500">Les identifiants seront envoyés à cette adresse</p>
             </div>
             
             <div>
@@ -90,41 +109,17 @@
           </div>
         </div>
         
-        <!-- Account Information -->
-        <div>
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Informations de connexion</h3>
-          
-          <div class="space-y-4">
-            <div>
-              <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                Nom d'utilisateur *
-              </label>
-              {{ form.username }}
-              {% if form.username.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
-              {% endif %}
-              <p class="mt-1 text-sm text-gray-500">L'ouvrier utilisera ce nom pour se connecter</p>
+        <!-- Info box -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i class="fas fa-info-circle text-blue-400"></i>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                  Mot de passe *
-                </label>
-                {{ form.password1 }}
-                {% if form.password1.errors %}
-                  <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
-                {% endif %}
-              </div>
-              
-              <div>
-                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                  Confirmer le mot de passe *
-                </label>
-                {{ form.password2 }}
-                {% if form.password2.errors %}
-                  <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
-                {% endif %}
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-blue-800">Mot de passe automatique</h3>
+              <div class="mt-2 text-sm text-blue-700">
+                <p>Un mot de passe temporaire sera généré automatiquement et envoyé par email à l'ouvrier.</p>
+                <p class="mt-1">L'ouvrier devra changer son mot de passe lors de sa première connexion.</p>
               </div>
             </div>
           </div>

@@ -1,9 +1,0 @@
-{% extends "base.html" %}{% load static %}
-{% block title %}Déconnexion — NetExpress{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">{% endblock %}
-{% block content %}
-<div class="container" style="padding:36px 0;">
-  <h1>Vous êtes déconnecté.</h1>
-  <p><a class="btn" href="{% url 'login' %}">Se reconnecter</a></p>
-</div>
-{% endblock %}

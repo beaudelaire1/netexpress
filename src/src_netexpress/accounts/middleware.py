@@ -294,3 +294,46 @@ class SecurityAuditMiddleware:
 def get_user_portal_redirect_url(user):
     """URL de redirection selon le rôle."""
     return get_portal_home_url(user)
+
+
+class ForcePasswordChangeMiddleware:
+    """
+    Middleware qui redirige les utilisateurs vers la page de changement de mot de passe
+    si leur profil a force_password_change=True.
+    """
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+        
+        # URLs exemptées (l'utilisateur doit pouvoir y accéder même s'il doit changer son mot de passe)
+        self.exempt_urls = [
+            '/accounts/password-change/',
+            '/accounts/password-change/done/',
+            '/accounts/logout/',
+            '/accounts/login/',
+            '/static/',
+            '/media/',
+        ]
+    
+    def __call__(self, request):
+        # Ignorer pour les utilisateurs non authentifiés
+        if not request.user.is_authenticated:
+            return self.get_response(request)
+        
+        # Ignorer pour les URLs exemptées
+        if any(request.path.startswith(url) for url in self.exempt_urls):
+            return self.get_response(request)
+        
+        # Vérifier si l'utilisateur doit changer son mot de passe
+        try:
+            profile = getattr(request.user, 'profile', None)
+            if profile and profile.force_password_change:
+                messages.warning(
+                    request, 
+                    "Vous devez changer votre mot de passe avant de continuer."
+                )
+                return redirect('accounts:password_change')
+        except Exception:
+            pass
+        
+        return self.get_response(request)

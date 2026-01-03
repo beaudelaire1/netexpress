@@ -4,24 +4,75 @@
 {% block title %}Admin Dashboard — NetExpress{% endblock %}
 
 {% block nav_items %}
+  <!-- Dashboard -->
   <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item bg-white/10 rounded-md">
     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
   </a>
-  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
-    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
-  </a>
-  <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item">
-    <i class="fas fa-users mr-2"></i>Ouvriers
-  </a>
-  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
-    <i class="fas fa-file-alt mr-2"></i>Devis
-  </a>
-  <a href="{% url 'core:admin_invoices_list' %}" class="portal-nav-item">
-    <i class="fas fa-receipt mr-2"></i>Factures
-  </a>
-  <a href="{% url 'core:campaigns_list' %}" class="portal-nav-item">
-    <i class="fas fa-bullhorn mr-2"></i>Campagnes
-  </a>
+  
+  <!-- Menu Gestion (Devis, Factures, Tâches) -->
+  <div class="relative" x-data="{ open: false }">
+    <button @click="open = !open" @click.outside="open = false" 
+            class="portal-nav-item flex items-center cursor-pointer">
+      <i class="fas fa-briefcase mr-2"></i>Gestion
+      <i class="fas fa-chevron-down ml-1 text-xs"></i>
+    </button>
+    <div x-show="open" x-cloak
+         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
+      <a href="{% url 'core:admin_quotes_list' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-file-alt mr-2 text-blue-500"></i>Devis
+      </a>
+      <a href="{% url 'core:admin_invoices_list' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-receipt mr-2 text-green-500"></i>Factures
+      </a>
+      <a href="{% url 'core:admin_tasks_list' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-tasks mr-2 text-purple-500"></i>Tâches
+      </a>
+    </div>
+  </div>
+  
+  <!-- Menu Équipe (Planning, Ouvriers, Clients) -->
+  <div class="relative" x-data="{ open: false }">
+    <button @click="open = !open" @click.outside="open = false" 
+            class="portal-nav-item flex items-center cursor-pointer">
+      <i class="fas fa-users mr-2"></i>Équipe
+      <i class="fas fa-chevron-down ml-1 text-xs"></i>
+    </button>
+    <div x-show="open" x-cloak
+         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
+      <a href="{% url 'core:admin_global_planning' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-calendar-alt mr-2 text-indigo-500"></i>Planning Global
+      </a>
+      <a href="{% url 'core:admin_workers_list' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-hard-hat mr-2 text-yellow-500"></i>Ouvriers
+      </a>
+      <a href="{% url 'core:admin_clients_list' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-user-tie mr-2 text-blue-500"></i>Clients
+      </a>
+    </div>
+  </div>
+  
+  <!-- Menu Marketing (Campagnes, Analytics) -->
+  <div class="relative" x-data="{ open: false }">
+    <button @click="open = !open" @click.outside="open = false" 
+            class="portal-nav-item flex items-center cursor-pointer">
+      <i class="fas fa-chart-line mr-2"></i>Marketing
+      <i class="fas fa-chevron-down ml-1 text-xs"></i>
+    </button>
+    <div x-show="open" x-cloak
+         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
+      <a href="{% url 'core:admin_analytics' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-chart-pie mr-2 text-pink-500"></i>Analytiques
+      </a>
+      <a href="{% url 'core:campaigns_list' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-bullhorn mr-2 text-orange-500"></i>Campagnes
+      </a>
+      <a href="{% url 'core:admin_reports' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i class="fas fa-file-export mr-2 text-teal-500"></i>Rapports
+      </a>
+    </div>
+  </div>
+  
+  <!-- Messages -->
   <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
@@ -462,7 +513,7 @@
         <div class="px-6 py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-bold text-gray-900">Tâches Récentes</h2>
-            <a href="{% url 'core:admin_global_planning' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            <a href="{% url 'core:admin_tasks_list' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
               Voir tout <i class="fas fa-arrow-right ml-1"></i>
             </a>
           </div>
@@ -541,6 +592,15 @@
             </div>
             <p class="text-sm font-semibold text-gray-900">Nouvelle Tâche</p>
             <p class="text-xs text-gray-600 mt-1">Assigner une tâche</p>
+          </a>
+
+          <a href="{% url 'core:admin_tasks_list' %}" 
+             class="group flex flex-col items-center p-6 bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-xl border border-violet-200">
+            <div class="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center text-white mb-3 group-hover:rotate-12 transition-transform">
+              <i class="fas fa-list-check text-2xl"></i>
+            </div>
+            <p class="text-sm font-semibold text-gray-900">Liste Tâches</p>
+            <p class="text-xs text-gray-600 mt-1">Voir toutes les tâches</p>
           </a>
 
           <a href="{% url 'core:admin_create_worker' %}" 

@@ -3,10 +3,6 @@
 
 {% block title %}Nouveau message{% endblock %}
 
-{% block extra_head %}
-{{ form.media }}
-{% endblock %}
-
 {% block content %}
 <div class="container mx-auto px-4 py-6">
     <div class="max-w-4xl mx-auto">
@@ -47,23 +43,40 @@
                         {% endif %}
                     </div>
 
-                    <!-- Subject Field -->
+                    <!-- Subject Type Field -->
                     <div>
-                        <label for="{{ form.subject.id_for_label }}" 
+                        <label for="{{ form.subject_type.id_for_label }}" 
                                class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.subject.label }}
+                            {{ form.subject_type.label }}
                         </label>
-                        {{ form.subject }}
-                        {% if form.subject.errors %}
+                        {{ form.subject_type }}
+                        {% if form.subject_type.errors %}
                             <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.subject.errors %}
+                                {% for error in form.subject_type.errors %}
                                     <p>{{ error }}</p>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
 
-                    <!-- Content Field with CKEditor -->
+                    <!-- Reference Field -->
+                    <div>
+                        <label for="{{ form.reference.id_for_label }}" 
+                               class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.reference.label }}
+                        </label>
+                        {{ form.reference }}
+                        <p class="mt-1 text-sm text-gray-500">Ex: Devis #123, Tâche #456</p>
+                        {% if form.reference.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.reference.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Content Field -->
                     <div>
                         <label for="{{ form.content.id_for_label }}" 
                                class="block text-sm font-medium text-gray-700 mb-2">
@@ -80,6 +93,19 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
+                    </div>
+
+                    <!-- Info box -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start gap-3">
+                            <span class="text-blue-500">ℹ️</span>
+                            <div>
+                                <p class="text-blue-800 font-medium text-sm">Message structuré</p>
+                                <p class="text-blue-700 text-sm mt-1">
+                                    Le sujet sera généré automatiquement à partir du type et de la référence.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

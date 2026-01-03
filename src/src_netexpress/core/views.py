@@ -1105,10 +1105,16 @@ def admin_quotes_list(request):
 
 @admin_portal_required
 def admin_send_quote_email(request, pk):
-    """Admin Portal send quote by email view."""
+    """Admin Portal send quote by email view.
+    
+    Utilise le template stylisé modele_quote.html pour l'envoi.
+    Aucun texte libre n'est permis - le contenu est généré automatiquement.
+    """
     from .forms import QuoteEmailForm
     from django.core.mail import EmailMessage as DjangoEmailMessage
+    from django.template.loader import render_to_string
     from django.conf import settings
+    from django.urls import reverse
     import logging
     
     logger = logging.getLogger(__name__)
@@ -1118,13 +1124,27 @@ def admin_send_quote_email(request, pk):
         form = QuoteEmailForm(quote=quote, data=request.POST)
         if form.is_valid():
             try:
-                # Get explicit from_email
+                # Get explicit from_email and branding
                 from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+                branding = getattr(settings, 'INVOICE_BRANDING', {})
                 
-                # Create email
+                # Générer le sujet automatiquement
+                subject = f"Votre devis {quote.number} — {branding.get('name', 'Nettoyage Express')}"
+                
+                # Générer le contenu HTML avec le template stylisé
+                site_url = branding.get('site_url', request.build_absolute_uri('/'))
+                html_body = render_to_string('emails/modele_quote.html', {
+                    'quote': quote,
+                    'client_name': quote.client.full_name,
+                    'branding': branding,
+                    'pdf_url': request.build_absolute_uri(reverse('devis:download', args=[quote.pk])),
+                    'validation_url': request.build_absolute_uri(reverse('devis:quote_validate_start', kwargs={'token': quote.public_token})) if quote.public_token else '#',
+                })
+                
+                # Create email with styled template
                 email = DjangoEmailMessage(
-                    subject=form.cleaned_data['subject'],
-                    body=form.cleaned_data['message'],
+                    subject=subject,
+                    body=html_body,
                     from_email=from_email,
                     to=[form.cleaned_data['recipient_email']]
                 )

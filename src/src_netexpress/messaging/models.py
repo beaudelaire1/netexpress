@@ -32,6 +32,9 @@ class EmailMessage(models.Model):
     acceptent plusieurs entrées séparées par des virgules.  Les
     notifications sont envoyées individuellement à chaque adresse
     via le service SMTP configuré.
+    
+    Note: Le champ body contient le HTML généré par les templates prédéfinis.
+    Aucun texte libre n'est permis - le contenu est toujours stylisé.
     """
 
     STATUS_DRAFT = "draft"
@@ -53,7 +56,7 @@ class EmailMessage(models.Model):
         help_text="Adresses e‑mail en copie carbone, séparées par des virgules."
     )
     subject = models.CharField(max_length=255)
-    body = models.TextField()
+    body = models.TextField(help_text="Contenu HTML généré par les templates prédéfinis.")
     attachment = models.FileField(
         upload_to="messages/attachments",
         blank=True,
@@ -82,14 +85,13 @@ class EmailMessage(models.Model):
 
         Exigences:
         - Aucun e-mail en texte brut (pas de multipart text/plain visible)
-        - Le contenu HTML (TinyMCE) est enveloppé dans un template professionnel
+        - Le contenu HTML est déjà stylisé via les templates prédéfinis
         - Les destinataires multiples sont envoyés individuellement (pas de fuite d'adresses)
         """
         if self.status == self.STATUS_SENT:
             return
 
         from django.conf import settings
-        from django.template.loader import render_to_string
 
         # Normaliser les destinataires (to + cc) : on envoie individuellement
         to_addresses = [a.strip() for a in (self.recipient or "").split(",") if a.strip()]
@@ -111,12 +113,8 @@ class EmailMessage(models.Model):
 
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@nettoyageexpress.com"
         
-        # Envelopper le contenu dans le template base_email pour un rendu professionnel
-        branding = getattr(settings, "INVOICE_BRANDING", {}) or {}
-        html_body = render_to_string('emails/base_email.html', {
-            'branding': branding,
-            'content': self.body or "",
-        })
+        # Le body contient déjà le HTML stylisé généré par les templates
+        html_body = self.body
 
         send_errors: list[str] = []
         for to_addr in all_addresses or []:

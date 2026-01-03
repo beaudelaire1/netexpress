@@ -77,6 +77,7 @@ class WorkerService:
             defaults={
                 'role': Profile.ROLE_WORKER,
                 'phone': phone or '',
+                'force_password_change': True,  # Forcer le changement de mot de passe
                 'notification_preferences': {
                     'email_notifications': True,
                     'task_updates': True,
@@ -89,6 +90,7 @@ class WorkerService:
         # Si le profil existait déjà, on le met à jour
         if not created:
             profile.role = Profile.ROLE_WORKER
+            profile.force_password_change = True  # Forcer le changement de mot de passe
             if phone:
                 profile.phone = phone
             profile.notification_preferences = {

@@ -2,50 +2,127 @@ from __future__ import annotations
 
 from django import forms
 from django.contrib.auth.models import User
-from ckeditor.widgets import CKEditorWidget
 
 from .models import Message, MessageThread
 
 
+# Types de messages prédéfinis avec leurs templates
+EMAIL_TEMPLATE_CHOICES = [
+    ('notification_generic', 'Notification générique'),
+    ('task_assignment', 'Assignation de tâche'),
+    ('task_completion', 'Tâche terminée'),
+    ('account_invitation', 'Invitation de compte'),
+    ('message_notification', 'Notification de message'),
+]
+
+
 class MessageComposeForm(forms.Form):
-    recipient = forms.EmailField(label="Destinataire")
-    subject = forms.CharField(label="Objet", max_length=255)
-    body = forms.CharField(
-        label="Message",
-        widget=CKEditorWidget(config_name='messaging'),
-        help_text="Utilisez les outils de formatage pour créer un message professionnel"
+    """Formulaire d'envoi d'email avec templates prédéfinis.
+    
+    Le contenu est généré automatiquement via les templates stylisés.
+    Aucun texte libre n'est permis.
+    """
+    recipient = forms.EmailField(
+        label="Destinataire",
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+            'placeholder': 'client@example.com'
+        })
     )
-    attachment = forms.FileField(label="Pièce jointe", required=False)
+    template_type = forms.ChoiceField(
+        label="Type de message",
+        choices=EMAIL_TEMPLATE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+        })
+    )
+    # Champs contextuels optionnels pour personnaliser le template
+    recipient_name = forms.CharField(
+        label="Nom du destinataire",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+            'placeholder': 'Nom du client ou employé'
+        })
+    )
+    reference = forms.CharField(
+        label="Référence (optionnel)",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+            'placeholder': 'Ex: Devis #123, Tâche #456'
+        })
+    )
+    attachment = forms.FileField(
+        label="Pièce jointe (optionnel)", 
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'
+        })
+    )
+
+
+# Types de sujets prédéfinis pour les messages internes
+INTERNAL_MESSAGE_SUBJECTS = [
+    ('question', 'Question'),
+    ('information', 'Information'),
+    ('demande', 'Demande'),
+    ('suivi_tache', 'Suivi de tâche'),
+    ('suivi_devis', 'Suivi de devis'),
+    ('suivi_facture', 'Suivi de facture'),
+    ('autre', 'Autre'),
+]
 
 
 class InternalMessageForm(forms.ModelForm):
-    """Form for creating internal messages with CKEditor."""
+    """Form for creating internal messages with predefined subjects.
+    
+    Le contenu est limité à un texte simple sans HTML libre.
+    """
     
     recipient = forms.ModelChoiceField(
         queryset=User.objects.filter(is_active=True),
         label="Destinataire",
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+        })
+    )
+    
+    subject_type = forms.ChoiceField(
+        label="Type de message",
+        choices=INTERNAL_MESSAGE_SUBJECTS,
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+        })
+    )
+    
+    reference = forms.CharField(
+        label="Référence (optionnel)",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+            'placeholder': 'Ex: Devis #123, Tâche #456'
+        })
     )
     
     content = forms.CharField(
         label="Message",
-        widget=CKEditorWidget(config_name='messaging'),
-        help_text="Utilisez les outils de formatage pour créer un message professionnel"
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+            'rows': 5,
+            'placeholder': 'Votre message...',
+            'maxlength': 2000
+        }),
+        max_length=2000,
+        help_text="Maximum 2000 caractères"
     )
     
     class Meta:
         model = Message
-        fields = ['recipient', 'subject', 'content']
-        widgets = {
-            'subject': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Objet du message'
-            })
-        }
-        labels = {
-            'subject': 'Objet',
-            'content': 'Message'
-        }
+        fields = ['recipient', 'content']
     
     def __init__(self, *args, **kwargs):
         self.sender = kwargs.pop('sender', None)
@@ -61,6 +138,16 @@ class InternalMessageForm(forms.ModelForm):
         message = super().save(commit=False)
         if self.sender:
             message.sender = self.sender
+        
+        # Générer le sujet à partir du type et de la référence
+        subject_type = self.cleaned_data.get('subject_type', 'autre')
+        subject_label = dict(INTERNAL_MESSAGE_SUBJECTS).get(subject_type, 'Message')
+        reference = self.cleaned_data.get('reference', '')
+        
+        if reference:
+            message.subject = f"{subject_label} — {reference}"
+        else:
+            message.subject = subject_label
         
         if commit:
             message.save()
@@ -87,12 +174,21 @@ class InternalMessageForm(forms.ModelForm):
 
 
 class MessageReplyForm(forms.ModelForm):
-    """Form for replying to messages within a thread."""
+    """Form for replying to messages within a thread.
+    
+    Utilise un textarea simple sans HTML libre.
+    """
     
     content = forms.CharField(
         label="Réponse",
-        widget=CKEditorWidget(config_name='messaging'),
-        help_text="Rédigez votre réponse"
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+            'rows': 4,
+            'placeholder': 'Votre réponse...',
+            'maxlength': 2000
+        }),
+        max_length=2000,
+        help_text="Maximum 2000 caractères"
     )
     
     class Meta:

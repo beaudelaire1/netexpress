@@ -34,6 +34,12 @@ class Profile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CLIENT)
     phone = models.CharField(max_length=50, blank=True)
     
+    # Force password change on first login
+    force_password_change = models.BooleanField(
+        default=False,
+        help_text="Si True, l'utilisateur doit changer son mot de passe à la prochaine connexion"
+    )
+    
     # New fields for portal functionality
     last_portal_access = models.DateTimeField(null=True, blank=True, help_text="Last time user accessed their portal")
     notification_preferences = models.JSONField(

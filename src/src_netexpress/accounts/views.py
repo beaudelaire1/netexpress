@@ -127,3 +127,61 @@ def custom_logout(request):
         messages.success(request, f"Au revoir {username}! Vous avez été déconnecté avec succès.")
     
     return redirect('core:home')
+
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def password_change(request):
+    """
+    Vue de changement de mot de passe.
+    
+    Si l'utilisateur a force_password_change=True, il est redirigé ici
+    et ne peut pas accéder aux autres pages tant qu'il n'a pas changé son mot de passe.
+    """
+    from django.contrib.auth.forms import PasswordChangeForm
+    from .models import Profile
+    
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            
+            # Désactiver le flag force_password_change
+            try:
+                profile = user.profile
+                if profile.force_password_change:
+                    profile.force_password_change = False
+                    profile.save(update_fields=['force_password_change'])
+            except Profile.DoesNotExist:
+                pass
+            
+            # Mettre à jour la session pour éviter la déconnexion
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, user)
+            
+            messages.success(request, 'Votre mot de passe a été changé avec succès!')
+            
+            # Rediriger vers le portail approprié
+            redirect_url = redirect_after_login(user)
+            return redirect(redirect_url)
+    else:
+        form = PasswordChangeForm(request.user)
+    
+    # Vérifier si c'est un changement forcé
+    is_forced = False
+    try:
+        is_forced = request.user.profile.force_password_change
+    except:
+        pass
+    
+    return render(request, 'accounts/password_change.html', {
+        'form': form,
+        'is_forced': is_forced,
+    })
+
+
+@login_required
+def password_change_done(request):
+    """Vue de confirmation après changement de mot de passe."""
+    return redirect(redirect_after_login(request.user))
