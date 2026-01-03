@@ -240,8 +240,12 @@ class MessageReplyForm(forms.ModelForm):
         
         if self.sender and self.original_message:
             reply.sender = self.sender
-            reply.recipient = self.original_message.sender
-            reply.subject = f"Re: {self.original_message.subject}"
+            # Reply to the other person in the conversation
+            if self.original_message.sender == self.sender:
+                reply.recipient = self.original_message.recipient
+            else:
+                reply.recipient = self.original_message.sender
+            reply.subject = f"Re: {self.original_message.subject.replace('Re: ', '')}"
             reply.thread = self.original_message.thread
         
         if commit:

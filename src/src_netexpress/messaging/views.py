@@ -195,10 +195,11 @@ def message_reply(request, message_id):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
     
+    # Allow both sender and recipient to reply
     original_message = get_object_or_404(
         Message,
-        id=message_id,
-        recipient=request.user  # Only recipient can reply
+        Q(sender=request.user) | Q(recipient=request.user),
+        id=message_id
     )
     
     if request.method == 'POST':
