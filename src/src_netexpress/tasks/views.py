@@ -70,6 +70,13 @@ class WorkerDashboardView(LoginRequiredMixin, TemplateView):
         context['almost_overdue_tasks_count'] = len(context['almost_overdue_tasks'])
         context['overdue_tasks_count'] = len(context['overdue_tasks'])
         
+        # Unread messages count for worker
+        from messaging.models import Message
+        context['unread_messages_count'] = Message.objects.filter(
+            recipient=self.request.user,
+            read_at__isnull=True
+        ).count()
+        
         return context
 
 

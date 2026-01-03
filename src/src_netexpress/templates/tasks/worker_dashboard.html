@@ -47,6 +47,13 @@
         
         <!-- Quick Stats -->
         <div class="mt-4 sm:mt-0 flex space-x-4">
+          <a href="{% url 'worker_messaging:internal_list' %}" class="bg-blue-50 rounded-lg px-3 py-2 text-center hover:bg-blue-100 transition-colors">
+            <div class="text-lg font-bold text-blue-600">
+              <i class="fas fa-envelope"></i>
+              {% if unread_messages_count %}<span class="ml-1 text-red-500">{{ unread_messages_count }}</span>{% endif %}
+            </div>
+            <div class="text-xs text-blue-700">Messages</div>
+          </a>
           <div class="bg-ne-primary-50 rounded-lg px-3 py-2 text-center">
             <div class="text-lg font-bold text-ne-primary-600">{{ total_assigned }}</div>
             <div class="text-xs text-ne-primary-700">Total</div>

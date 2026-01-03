@@ -8,14 +8,28 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Messages internes</h1>
         <div class="flex space-x-3">
-            <a href="{% url 'messaging:thread_list' %}" 
-               class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
-                Conversations
-            </a>
-            <a href="{% url 'messaging:internal_compose' %}" 
-               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Nouveau message
-            </a>
+            {% if request.resolver_match.namespace == 'worker_messaging' %}
+                <a href="{% url 'worker:worker_dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
+                <a href="{% url 'worker_messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Nouveau message
+                </a>
+            {% elif request.resolver_match.namespace == 'client_messaging' %}
+                <a href="{% url 'core:client_portal_dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
+                <a href="{% url 'client_messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Nouveau message
+                </a>
+            {% else %}
+                <a href="{% url 'messaging:thread_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    Conversations
+                </a>
+                <a href="{% url 'messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Nouveau message
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -52,8 +66,13 @@
                             </div>
                             
                             <h3 class="text-lg font-medium text-gray-900 mb-1">
-                                <a href="{% url 'messaging:internal_detail' message.pk %}" 
-                                   class="hover:text-blue-600 transition-colors">
+                                {% if request.resolver_match.namespace == 'worker_messaging' %}
+                                <a href="{% url 'worker_messaging:internal_detail' message.pk %}" class="hover:text-blue-600 transition-colors">
+                                {% elif request.resolver_match.namespace == 'client_messaging' %}
+                                <a href="{% url 'client_messaging:internal_detail' message.pk %}" class="hover:text-blue-600 transition-colors">
+                                {% else %}
+                                <a href="{% url 'messaging:internal_detail' message.pk %}" class="hover:text-blue-600 transition-colors">
+                                {% endif %}
                                     {{ message.subject }}
                                 </a>
                             </h3>
@@ -100,8 +119,13 @@
                 <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun message</h3>
                 <p class="text-gray-600 mb-4">Vous n'avez pas encore de messages.</p>
-                <a href="{% url 'messaging:internal_compose' %}" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                {% if request.resolver_match.namespace == 'worker_messaging' %}
+                <a href="{% url 'worker_messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                {% elif request.resolver_match.namespace == 'client_messaging' %}
+                <a href="{% url 'client_messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                {% else %}
+                <a href="{% url 'messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                {% endif %}
                     Envoyer votre premier message
                 </a>
             </div>
