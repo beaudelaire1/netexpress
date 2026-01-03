@@ -351,6 +351,13 @@
       });
     }
     
+    // Fonction pour fermer tous les dropdowns
+    function closeAllDropdowns() {
+      document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
+        menu.classList.add('hidden');
+      });
+    }
+    
     // Desktop dropdown menus
     var dropdownContainers = document.querySelectorAll('.dropdown-container');
     
@@ -359,31 +366,45 @@
       var menu = container.querySelector('.dropdown-menu');
       
       if (btn && menu) {
+        // Toggle dropdown on button click
         btn.addEventListener('click', function(e) {
+          e.preventDefault();
           e.stopPropagation();
           
-          // Close all other dropdowns
-          dropdownContainers.forEach(function(other) {
-            if (other !== container) {
-              var otherMenu = other.querySelector('.dropdown-menu');
-              if (otherMenu) otherMenu.classList.add('hidden');
-            }
-          });
+          var wasHidden = menu.classList.contains('hidden');
           
-          // Toggle this dropdown
-          menu.classList.toggle('hidden');
+          // Close all dropdowns first
+          closeAllDropdowns();
+          
+          // Open this one if it was closed
+          if (wasHidden) {
+            menu.classList.remove('hidden');
+          }
+        });
+        
+        // Close dropdown when clicking a link inside
+        var links = menu.querySelectorAll('a');
+        links.forEach(function(link) {
+          link.addEventListener('click', function() {
+            menu.classList.add('hidden');
+          });
         });
       }
     });
     
-    // Close dropdowns when clicking outside
+    // Close dropdowns when clicking anywhere on the page
     document.addEventListener('click', function(e) {
-      dropdownContainers.forEach(function(container) {
-        var menu = container.querySelector('.dropdown-menu');
-        if (menu && !container.contains(e.target)) {
-          menu.classList.add('hidden');
-        }
-      });
+      var isDropdownClick = e.target.closest('.dropdown-container');
+      if (!isDropdownClick) {
+        closeAllDropdowns();
+      }
+    });
+    
+    // Close dropdowns on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeAllDropdowns();
+      }
     });
   })();
   </script>

@@ -103,20 +103,15 @@
               <i class="fas fa-edit mr-2"></i>Modifier
             </a>
             
-            <a href="{% url 'devis:generate_invoice_pdf' invoice.pk %}" 
+            <a href="{% url 'factures:download' invoice.pk %}" 
                class="w-full btn btn-secondary flex items-center justify-center" target="_blank">
               <i class="fas fa-file-pdf mr-2"></i>Télécharger PDF
             </a>
             
-            {% if invoice.quote and invoice.quote.client and invoice.quote.client.email %}
-            <form method="post" action="{% url 'core:admin_send_invoice_email' invoice.pk %}">
-              {% csrf_token %}
-              <input type="hidden" name="recipient_email" value="{{ invoice.quote.client.email }}">
-              <button type="submit" class="w-full btn btn-outline flex items-center justify-center text-blue-600 border-blue-600 hover:bg-blue-50">
-                <i class="fas fa-envelope mr-2"></i>Envoyer par email
-              </button>
-            </form>
-            {% endif %}
+            <a href="{% url 'core:admin_send_invoice_email' invoice.pk %}" 
+               class="w-full btn btn-outline flex items-center justify-center text-blue-600 border-blue-600 hover:bg-blue-50">
+              <i class="fas fa-envelope mr-2"></i>Envoyer par email
+            </a>
             
             {% if invoice.status != 'paid' %}
             <form method="post" action="{% url 'core:admin_invoice_mark_paid' invoice.pk %}">

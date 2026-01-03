@@ -1376,42 +1376,55 @@ def admin_edit_invoice(request, pk):
 
 @admin_portal_required
 def admin_send_invoice_email(request, pk):
-    """Admin Portal send invoice by email view."""
-    from django.contrib import messages
+    """
+    Admin Portal - Envoi de facture par email.
+    
+    GET: Affiche le formulaire de confirmation avec l'email pré-rempli
+    POST: Envoie l'email avec le PDF attaché
+    """
     from django.core.mail import EmailMessage as DjangoEmailMessage
     from django.template.loader import render_to_string
     import logging
     
     logger = logging.getLogger(__name__)
-    invoice = get_object_or_404(Invoice.objects.select_related('quote', 'quote__client'), pk=pk)
+    invoice = get_object_or_404(
+        Invoice.objects.select_related('quote', 'quote__client'), 
+        pk=pk
+    )
     
-    # Récupérer l'email du client
-    client_email = None
-    client_name = "Client"
+    # Récupérer les infos client
+    client_email = ''
+    client_name = 'Client'
     if invoice.quote and invoice.quote.client:
-        client_email = invoice.quote.client.email
+        client_email = invoice.quote.client.email or ''
         client_name = invoice.quote.client.full_name
     
     if request.method == 'POST':
-        recipient_email = request.POST.get('recipient_email', client_email)
+        recipient_email = request.POST.get('recipient_email', '').strip()
         
         if not recipient_email:
-            messages.error(request, "Aucune adresse email spécifiée.")
-            return redirect('core:admin_invoice_detail', pk=pk)
+            messages.error(request, "Veuillez spécifier une adresse email.")
+            return render(request, 'core/admin_send_invoice_email.html', {
+                'invoice': invoice,
+                'client_email': client_email,
+                'client_name': client_name,
+            })
         
         try:
             from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
             branding = getattr(settings, 'INVOICE_BRANDING', {})
+            company_name = branding.get('name', 'Nettoyage Express')
             
-            # Générer le HTML avec le template
+            # Générer le contenu HTML
             html_body = render_to_string('emails/invoice_notification.html', {
                 'invoice': invoice,
                 'client_name': client_name,
                 'branding': branding,
             })
             
-            subject = f"Votre facture {invoice.number} — {branding.get('name', 'Nettoyage Express')}"
+            subject = f"Votre facture {invoice.number} — {company_name}"
             
+            # Créer l'email
             email = DjangoEmailMessage(
                 subject=subject,
                 body=html_body,
@@ -1424,9 +1437,11 @@ def admin_send_invoice_email(request, pk):
             try:
                 pdf_bytes = invoice.generate_pdf(attach=False)
                 email.attach(f'facture_{invoice.number}.pdf', pdf_bytes, 'application/pdf')
-            except Exception as e:
-                logger.error(f"Erreur génération PDF facture {invoice.number}: {e}")
+            except Exception as pdf_error:
+                logger.error(f"Erreur génération PDF facture {invoice.number}: {pdf_error}")
+                messages.warning(request, "Le PDF n'a pas pu être généré, l'email sera envoyé sans pièce jointe.")
             
+            # Envoyer
             email.send(fail_silently=False)
             
             # Mettre à jour le statut si brouillon
@@ -1434,13 +1449,24 @@ def admin_send_invoice_email(request, pk):
                 invoice.status = Invoice.InvoiceStatus.SENT
                 invoice.save(update_fields=['status'])
             
-            messages.success(request, f"Facture {invoice.number} envoyée à {recipient_email}!")
+            messages.success(request, f"Facture {invoice.number} envoyée avec succès à {recipient_email}!")
+            return redirect('core:admin_invoice_detail', pk=pk)
             
         except Exception as e:
-            logger.error(f"Erreur envoi email facture {invoice.number}: {e}")
+            logger.error(f"Erreur envoi email facture {invoice.number}: {e}", exc_info=True)
             messages.error(request, f"Erreur lors de l'envoi: {str(e)}")
+            return render(request, 'core/admin_send_invoice_email.html', {
+                'invoice': invoice,
+                'client_email': client_email,
+                'client_name': client_name,
+            })
     
-    return redirect('core:admin_invoice_detail', pk=pk)
+    # GET - Afficher le formulaire
+    return render(request, 'core/admin_send_invoice_email.html', {
+        'invoice': invoice,
+        'client_email': client_email,
+        'client_name': client_name,
+    })
 
 
 @admin_portal_required
