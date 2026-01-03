@@ -349,21 +349,21 @@ class ReportingService:
         workers = User.objects.filter(
             profile__role=Profile.ROLE_WORKER
         ).annotate(
-            total_tasks=Count('assigned_tasks', filter=Q(
+            report_total_tasks=Count('assigned_tasks', filter=Q(
                 assigned_tasks__due_date__gte=start_date,
                 assigned_tasks__due_date__lte=end_date
             )),
-            completed_tasks=Count('assigned_tasks', filter=Q(
+            report_completed_tasks=Count('assigned_tasks', filter=Q(
                 assigned_tasks__due_date__gte=start_date,
                 assigned_tasks__due_date__lte=end_date,
                 assigned_tasks__status=Task.STATUS_COMPLETED
             )),
-            overdue_tasks=Count('assigned_tasks', filter=Q(
+            report_overdue_tasks=Count('assigned_tasks', filter=Q(
                 assigned_tasks__due_date__gte=start_date,
                 assigned_tasks__due_date__lte=end_date,
                 assigned_tasks__status=Task.STATUS_OVERDUE
             ))
-        ).filter(total_tasks__gt=0)
+        ).filter(report_total_tasks__gt=0)
         
         return {
             'start_date': start_date,

@@ -11,7 +11,7 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Gestion des Clients</h1>
-          <p class="text-gray-600">{{ clients_with_stats|length }} client{{ clients_with_stats|length|pluralize:"s" }} au total</p>
+          <p class="text-gray-600">{{ total_clients }} client{{ total_clients|pluralize:"s" }} au total</p>
         </div>
         <a href="{% url 'core:admin_create_client' %}" class="btn btn-primary mt-4 md:mt-0">
           <i class="fas fa-plus mr-2"></i>Nouveau Client
@@ -27,7 +27,7 @@
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
           <div class="relative">
-            <input type="text" name="q" value="{{ request.GET.q }}" 
+            <input type="text" name="q" value="{{ search_query }}" 
                    placeholder="Nom, email, téléphone, entreprise..."
                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ne-primary-500 focus:border-transparent">
             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -37,15 +37,21 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Filtrer par</label>
           <select name="filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ne-primary-500">
             <option value="">Tous les clients</option>
-            <option value="with_quotes" {% if request.GET.filter == 'with_quotes' %}selected{% endif %}>Avec devis en attente</option>
-            <option value="with_invoices" {% if request.GET.filter == 'with_invoices' %}selected{% endif %}>Avec factures impayées</option>
-            <option value="active" {% if request.GET.filter == 'active' %}selected{% endif %}>Clients actifs (30j)</option>
+            <option value="active" {% if filter_type == 'active' %}selected{% endif %}>Clients actifs (6 mois)</option>
+            <option value="with_quotes" {% if filter_type == 'with_quotes' %}selected{% endif %}>Avec devis</option>
+            <option value="no_quotes" {% if filter_type == 'no_quotes' %}selected{% endif %}>Sans devis</option>
+            <option value="pending" {% if filter_type == 'pending' %}selected{% endif %}>Devis en attente</option>
           </select>
         </div>
-        <div class="flex items-end">
-          <button type="submit" class="w-full btn btn-secondary">
+        <div class="flex items-end space-x-2">
+          <button type="submit" class="flex-1 btn btn-secondary">
             <i class="fas fa-filter mr-2"></i>Filtrer
           </button>
+          {% if search_query or filter_type %}
+          <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary" title="Réinitialiser">
+            <i class="fas fa-times"></i>
+          </a>
+          {% endif %}
         </div>
       </form>
     </div>
@@ -53,7 +59,7 @@
 
   <!-- Clients List -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-    {% if clients_with_stats %}
+    {% if clients %}
       <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -83,56 +89,56 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              {% for client_stat in clients_with_stats %}
-                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'core:admin_client_detail' client_stat.client.pk %}'">
+              {% for client in clients %}
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'core:admin_client_detail' client.pk %}'">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <div class="w-10 h-10 bg-ne-primary-100 rounded-full flex items-center justify-center mr-3">
                         <span class="text-ne-primary-600 font-semibold">
-                          {{ client_stat.client.full_name|slice:":1"|upper }}
+                          {{ client.full_name|slice:":1"|upper }}
                         </span>
                       </div>
                       <div>
                         <div class="text-sm font-medium text-gray-900">
-                          {{ client_stat.client.full_name }}
+                          {{ client.full_name }}
                         </div>
-                        <div class="text-xs text-gray-500">Créé le {{ client_stat.client.created_at|date:"d/m/Y" }}</div>
+                        <div class="text-xs text-gray-500">Créé le {{ client.created_at|date:"d/m/Y" }}</div>
                       </div>
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ client_stat.client.email }}</div>
-                    {% if client_stat.client.phone %}
-                      <div class="text-sm text-gray-500">{{ client_stat.client.phone }}</div>
+                    <div class="text-sm text-gray-900">{{ client.email }}</div>
+                    {% if client.phone %}
+                      <div class="text-sm text-gray-500">{{ client.phone }}</div>
                     {% endif %}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">
-                      {{ client_stat.client.company|default:"—" }}
+                      {{ client.company|default:"—" }}
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-center">
                     <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
-                      {{ client_stat.total_quotes }}
+                      {{ client.total_quotes }}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-center">
                     <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                      {{ client_stat.accepted_quotes }}
+                      {{ client.accepted_quotes }}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-center">
                     <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
-                      {{ client_stat.pending_quotes }}
+                      {{ client.pending_quotes }}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onclick="event.stopPropagation()">
                     <div class="flex justify-end space-x-3">
-                      <a href="{% url 'core:admin_client_detail' client_stat.client.pk %}" 
+                      <a href="{% url 'core:admin_client_detail' client.pk %}" 
                          class="text-ne-primary-600 hover:text-ne-primary-900" title="Voir détails">
                         <i class="fas fa-eye"></i>
                       </a>
-                      <a href="{% url 'core:admin_create_quote' %}?client={{ client_stat.client.pk }}" 
+                      <a href="{% url 'core:admin_create_quote' %}?client={{ client.pk }}" 
                          class="text-blue-600 hover:text-blue-900" title="Nouveau devis">
                         <i class="fas fa-file-alt"></i>
                       </a>
@@ -143,6 +149,31 @@
             </tbody>
           </table>
         </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </div>
+            <div class="flex space-x-2">
+              {% if page_obj.has_previous %}
+              <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}" 
+                 class="px-3 py-1 bg-white border border-gray-300 rounded text-sm hover:bg-gray-50">
+                <i class="fas fa-chevron-left"></i> Précédent
+              </a>
+              {% endif %}
+              {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}" 
+                 class="px-3 py-1 bg-white border border-gray-300 rounded text-sm hover:bg-gray-50">
+                Suivant <i class="fas fa-chevron-right"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     {% else %}
       <div class="bg-white rounded-lg shadow p-12 text-center">
@@ -151,12 +182,17 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun client trouvé</h3>
         <p class="text-gray-500 mb-6">
-          {% if request.GET.q or request.GET.filter %}
+          {% if search_query or filter_type %}
             Aucun résultat pour vos critères de recherche.
           {% else %}
             Commencez par créer des clients pour gérer les devis.
           {% endif %}
         </p>
+        {% if search_query or filter_type %}
+        <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary mr-2">
+          <i class="fas fa-times mr-2"></i>Réinitialiser les filtres
+        </a>
+        {% endif %}
         <a href="{% url 'core:admin_create_client' %}" class="btn btn-primary">
           <i class="fas fa-plus mr-2"></i>Créer un client
         </a>

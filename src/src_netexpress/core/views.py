@@ -845,7 +845,7 @@ def admin_edit_quote(request, pk):
     """Admin Portal quote editing view with inline items (like Django Admin)."""
     from .forms import QuoteCreationForm, QuoteItemFormset
     from services.models import Service
-    from devis.models import Quote
+    from devis.models import Quote, QuoteItem
     
     quote = get_object_or_404(Quote, pk=pk)
     
@@ -858,7 +858,24 @@ def admin_edit_quote(request, pk):
         
         if form.is_valid() and formset.is_valid():
             quote = form.save()
-            formset.save()
+            
+            # Handle deletions FIRST - before saving new/updated items
+            # This ensures deleted items are removed even if formset.deleted_objects is empty
+            for item_form in formset:
+                if item_form.cleaned_data.get('DELETE') and item_form.instance.pk:
+                    item_form.instance.delete()
+            
+            # Save formset (new and updated items only)
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.quote = quote
+                instance.save()
+            
+            # Also handle deleted_objects as a fallback (for compatibility)
+            for obj in formset.deleted_objects:
+                if obj.pk:  # Only delete if it exists in DB
+                    obj.delete()
+            
             # Recalculate totals
             quote.compute_totals()
             messages.success(request, f"Devis {quote.number} mis à jour avec succès!")
@@ -1024,36 +1041,66 @@ def admin_workers_list(request):
 @admin_portal_required
 def admin_clients_list(request):
     """Admin Portal clients management view with optimized queries."""
-    from django.db.models import Count, Q
+    from django.db.models import Count, Q, Sum
     from django.core.paginator import Paginator
+    from factures.models import Invoice
     
-    clients = Client.objects.all().order_by('full_name')
+    # Get search and filter parameters
+    search_query = request.GET.get('q', '').strip()
+    filter_type = request.GET.get('filter', '')
     
-    # Optimize with annotations
+    clients = Client.objects.all()
+    
+    # Optimize with annotations - use 'quotes' (the related_name from Quote.client)
     clients = clients.annotate(
-        total_quotes=Count('quote'),
-        accepted_quotes=Count('quote', filter=Q(quote__status=Quote.QuoteStatus.ACCEPTED)),
-        pending_quotes=Count('quote', filter=Q(quote__status=Quote.QuoteStatus.SENT))
+        total_quotes=Count('quotes', distinct=True),
+        accepted_quotes=Count('quotes', filter=Q(quotes__status=Quote.QuoteStatus.ACCEPTED), distinct=True),
+        pending_quotes=Count('quotes', filter=Q(quotes__status=Quote.QuoteStatus.SENT), distinct=True),
+        total_invoices=Count('quotes__invoices', distinct=True),
+        paid_invoices=Count('quotes__invoices', filter=Q(quotes__invoices__status=Invoice.InvoiceStatus.PAID), distinct=True),
     )
     
-    # Add statistics for each client
-    clients_with_stats = []
-    for client in clients:
-        clients_with_stats.append({
-            'client': client,
-            'total_quotes': client.total_quotes,
-            'accepted_quotes': client.accepted_quotes,
-            'pending_quotes': client.pending_quotes,
-        })
+    # Search filter - search in name, email, phone, company
+    if search_query:
+        clients = clients.filter(
+            Q(full_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(company__icontains=search_query) |
+            Q(city__icontains=search_query)
+        )
+    
+    # Status filter
+    if filter_type == 'active':
+        # Clients with at least one quote in the last 6 months
+        from datetime import timedelta
+        from django.utils import timezone
+        six_months_ago = timezone.now() - timedelta(days=180)
+        clients = clients.filter(quotes__created_at__gte=six_months_ago).distinct()
+    elif filter_type == 'with_quotes':
+        # Clients with at least one quote
+        clients = clients.filter(total_quotes__gt=0)
+    elif filter_type == 'no_quotes':
+        # Clients without any quotes
+        clients = clients.filter(total_quotes=0)
+    elif filter_type == 'pending':
+        # Clients with pending quotes
+        clients = clients.filter(pending_quotes__gt=0)
+    
+    # Order by name
+    clients = clients.order_by('full_name')
     
     # Pagination
-    paginator = Paginator(clients_with_stats, 25)  # 25 clients per page
+    paginator = Paginator(clients, 25)  # 25 clients per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     return render(request, 'core/admin_clients_list.html', {
-        'clients_with_stats': page_obj,
-        'page_obj': page_obj
+        'clients': page_obj,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'filter_type': filter_type,
+        'total_clients': Client.objects.count(),
     })
 
 
@@ -1360,7 +1407,23 @@ def admin_edit_invoice(request, pk):
         
         if form.is_valid() and formset.is_valid():
             form.save()
-            formset.save()
+            
+            # Handle deletions FIRST - before saving new/updated items
+            for item_form in formset:
+                if item_form.cleaned_data.get('DELETE') and item_form.instance.pk:
+                    item_form.instance.delete()
+            
+            # Save formset (new and updated items only)
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.invoice = invoice
+                instance.save()
+            
+            # Also handle deleted_objects as a fallback
+            for obj in formset.deleted_objects:
+                if obj.pk:
+                    obj.delete()
+            
             invoice.compute_totals()
             messages.success(request, f"La facture {invoice.number} a été mise à jour.")
             return redirect('core:admin_invoice_detail', pk=pk)
@@ -1808,12 +1871,12 @@ def admin_export_report(request):
         report = ReportingService.generate_worker_report(start_date, end_date)
         writer.writerow(['Ouvrier', 'Taches Totales', 'Terminees', 'En Retard', 'Taux Completion'])
         for worker in report['workers']:
-            completion = (worker.completed_tasks / worker.total_tasks * 100) if worker.total_tasks > 0 else 0
+            completion = (worker.report_completed_tasks / worker.report_total_tasks * 100) if worker.report_total_tasks > 0 else 0
             writer.writerow([
                 worker.get_full_name() or worker.username,
-                worker.total_tasks,
-                worker.completed_tasks,
-                worker.overdue_tasks,
+                worker.report_total_tasks,
+                worker.report_completed_tasks,
+                worker.report_overdue_tasks,
                 f"{completion:.1f}%"
             ])
     

@@ -84,13 +84,6 @@
               </div>
               
               <div>
-                <label for="{{ form.issue_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                  Date d'émission
-                </label>
-                {{ form.issue_date }}
-              </div>
-              
-              <div>
                 <label for="{{ form.valid_until.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                   Valide jusqu'au
                 </label>
@@ -237,13 +230,13 @@
       <input type="text" name="items-__prefix__-description" id="id_items-__prefix__-description" placeholder="Description de la ligne..." class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500">
     </td>
     <td class="px-3 py-2">
-      <input type="number" name="items-__prefix__-quantity" id="id_items-__prefix__-quantity" value="1.00" step="0.01" min="0.01" class="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input">
+      <input type="number" name="items-__prefix__-quantity" id="id_items-__prefix__-quantity" value="1" step="1" min="1" class="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input">
     </td>
     <td class="px-3 py-2">
       <input type="number" name="items-__prefix__-unit_price" id="id_items-__prefix__-unit_price" placeholder="0.00" step="0.01" min="0" class="w-24 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right price-input">
     </td>
     <td class="px-3 py-2">
-      <input type="number" name="items-__prefix__-tax_rate" id="id_items-__prefix__-tax_rate" value="20.00" step="0.01" class="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input">
+      <input type="number" name="items-__prefix__-tax_rate" id="id_items-__prefix__-tax_rate" value="0.00" step="0.01" class="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input">
     </td>
     <td class="px-3 py-2 text-right">
       <span class="line-total font-medium text-gray-900">0.00 €</span>
@@ -353,9 +346,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Clear values
                     if (el.type === 'text' || el.type === 'number') {
                         if (el.classList.contains('qty-input')) {
-                            el.value = '1.00';
+                            el.value = '1';
                         } else if (el.classList.contains('tva-input')) {
-                            el.value = '20.00';
+                            el.value = '0.00';
                         } else {
                             el.value = '';
                         }
@@ -416,19 +409,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const deleteBtn = row.querySelector('.delete-row-btn');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', function() {
-                const deleteCheckbox = row.querySelector('input[type="checkbox"][name*="DELETE"]');
-                if (deleteCheckbox) {
-                    // If it's an existing item, mark for deletion
-                    if (row.querySelector('input[type="hidden"][name*="-id"]')?.value) {
-                        deleteCheckbox.checked = true;
-                        row.style.opacity = '0.3';
-                        row.style.pointerEvents = 'none';
-                    } else {
-                        // If it's a new item, just remove the row
-                        row.remove();
-                    }
+                // Find DELETE checkbox - Django renders it as input with name ending in -DELETE
+                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                // Find the hidden id field to check if this is an existing item
+                const idField = row.querySelector('input[name$="-id"]');
+                const hasExistingId = idField && idField.value && idField.value.trim() !== '';
+                
+                if (hasExistingId && deleteCheckbox) {
+                    // Existing item: mark for deletion by checking the DELETE checkbox
+                    deleteCheckbox.checked = true;
+                    // Also set the value attribute for form submission
+                    deleteCheckbox.setAttribute('checked', 'checked');
+                    deleteCheckbox.value = 'on';
+                    row.style.opacity = '0.3';
+                    row.style.pointerEvents = 'none';
+                    row.classList.add('marked-for-deletion');
                 } else {
+                    // New item (no id): just remove the row from DOM
                     row.remove();
+                    // Update TOTAL_FORMS count when removing new rows
+                    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+                    if (totalForms) {
+                        const currentTotal = parseInt(totalForms.value) || 0;
+                        if (currentTotal > 0) {
+                            totalForms.value = currentTotal - 1;
+                        }
+                    }
                 }
                 calculateTotals();
             });

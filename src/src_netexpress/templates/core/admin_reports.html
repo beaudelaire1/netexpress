@@ -231,28 +231,28 @@
                 </a>
               </div>
             </td>
-            <td class="px-4 py-3 text-center font-medium">{{ worker.total_tasks }}</td>
+            <td class="px-4 py-3 text-center font-medium">{{ worker.report_total_tasks }}</td>
             <td class="px-4 py-3 text-center">
               <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                {{ worker.completed_tasks }}
+                {{ worker.report_completed_tasks }}
               </span>
             </td>
             <td class="px-4 py-3 text-center">
-              <span class="px-2 py-1 {% if worker.overdue_tasks > 0 %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %} rounded-full text-sm">
-                {{ worker.overdue_tasks }}
+              <span class="px-2 py-1 {% if worker.report_overdue_tasks > 0 %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %} rounded-full text-sm">
+                {{ worker.report_overdue_tasks }}
               </span>
             </td>
             <td class="px-4 py-3 text-center">
-              {% with rate=worker.completed_tasks|divisibleby:worker.total_tasks %}
+              {% with rate=worker.report_completed_tasks|divisibleby:worker.report_total_tasks %}
               <div class="flex items-center justify-center">
                 <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
-                  {% if worker.total_tasks > 0 %}
-                  <div class="bg-ne-primary-500 h-2 rounded-full" style="width: {% widthratio worker.completed_tasks worker.total_tasks 100 %}%"></div>
+                  {% if worker.report_total_tasks > 0 %}
+                  <div class="bg-ne-primary-500 h-2 rounded-full" style="width: {% widthratio worker.report_completed_tasks worker.report_total_tasks 100 %}%"></div>
                   {% endif %}
                 </div>
                 <span class="text-sm font-medium text-gray-600">
-                  {% if worker.total_tasks > 0 %}
-                    {% widthratio worker.completed_tasks worker.total_tasks 100 %}%
+                  {% if worker.report_total_tasks > 0 %}
+                    {% widthratio worker.report_completed_tasks worker.report_total_tasks 100 %}%
                   {% else %}
                     0%
                   {% endif %}

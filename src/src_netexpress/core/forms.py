@@ -103,17 +103,13 @@ class QuoteCreationForm(forms.ModelForm):
     
     class Meta:
         model = Quote
-        fields = ['client', 'status', 'issue_date', 'valid_until', 'message', 'notes']
+        fields = ['client', 'status', 'valid_until', 'message', 'notes']
         widgets = {
             'client': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
             }),
             'status': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
-            }),
-            'issue_date': forms.DateInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-                'type': 'date'
             }),
             'valid_until': forms.DateInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
@@ -175,7 +171,7 @@ class QuoteItemForm(forms.ModelForm):
         if not self.initial.get('quantity'):
             self.initial['quantity'] = Decimal('1.00')
         if not self.initial.get('tax_rate'):
-            self.initial['tax_rate'] = Decimal('20.00')
+            self.initial['tax_rate'] = Decimal('0.00')
 
 
 # Formset for quote items - like Django Admin TabularInline
@@ -231,10 +227,29 @@ class TaskCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Limit assigned_to to workers only (multiple selection)
-        self.fields['assigned_to'].queryset = User.objects.filter(groups__name='Workers').order_by('first_name', 'last_name')
-        self.fields['assigned_to'].label = "Ouvriers assignés"
-        self.fields['assigned_to'].help_text = "Maintenez Ctrl pour sélectionner plusieurs ouvriers"
-        self.fields['assigned_to'].required = False
+        from django.forms import ModelMultipleChoiceField
+        
+        # Custom field to display full name instead of email
+        class WorkerChoiceField(ModelMultipleChoiceField):
+            def label_from_instance(self, obj):
+                full_name = obj.get_full_name()
+                return full_name if full_name else obj.username
+        
+        workers_queryset = User.objects.filter(groups__name='Workers').order_by('first_name', 'last_name')
+        self.fields['assigned_to'] = WorkerChoiceField(
+            queryset=workers_queryset,
+            widget=forms.SelectMultiple(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'size': '5'
+            }),
+            required=False,
+            label="Ouvriers assignés",
+            help_text="Maintenez Ctrl pour sélectionner plusieurs ouvriers"
+        )
+        
+        # Set initial value if editing
+        if self.instance and self.instance.pk:
+            self.fields['assigned_to'].initial = self.instance.assigned_to.all()
 
 
 class QuoteEmailForm(forms.Form):
