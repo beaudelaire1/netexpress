@@ -1,13 +1,12 @@
 /*
   Script utilitaire (2025) :
-  Gère le défilement doux vers les ancres internes et ignore les clics
-  sur les liens qui ne correspondent pas à un ID valide.  Ce fichier
-  peut être étendu pour ajouter d’autres interactions (par exemple, un
-  menu mobile ou la gestion d’affichage de messages flash).
+  Gere le defilement doux vers les ancres internes et ignore les clics
+  sur les liens qui ne correspondent pas a un ID valide.  Ce fichier
+  peut etre etendu pour ajouter d'autres interactions (par exemple, un
+  menu mobile ou la gestion d'affichage de messages flash).
 */
 
 // Smooth scroll for internal anchors
-// Défilement doux pour les ancres internes
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a[href^="#"]');
   if (!a) return;
@@ -20,23 +19,18 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Gestion du menu mobile : afficher/masquer la navigation lorsqu'on clique
-// sur le bouton burger (voir base.html et base.css).  On attend que le DOM
-// soit prêt pour garantir que les éléments existent.
+// Gestion du menu mobile hamburger
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const nav = document.getElementById('primary-navigation');
+  
   if (toggle && nav) {
-    // Initialise the hidden state based on aria‑expanded
-    const updateState = () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      nav.hidden = !expanded;
-    };
-    updateState();
     toggle.addEventListener('click', () => {
       const expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', (!expanded).toString());
-      updateState();
+      // Toggle classe 'open' pour CSS + attribut hidden pour accessibilite
+      nav.classList.toggle('open');
+      nav.hidden = !nav.classList.contains('open');
     });
   }
 
@@ -95,17 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const output = outSel ? document.querySelector(outSel) : null;
     const hiddenSel = range.getAttribute('data-range-hidden');
     const hidden = hiddenSel ? document.querySelector(hiddenSel) : null;
-    const suffix = range.getAttribute('data-range-suffix') || ' m²';
+    const suffix = range.getAttribute('data-range-suffix') || ' m2';
 
-    // Si un champ caché est présent et déjà pré-rempli (ex: via initial Django),
-    // on synchronise le slider au chargement.
     if (hidden && hidden.value) {
       range.value = hidden.value;
     }
 
     const update = () => {
       if (!output) return;
-      output.textContent = `${range.value}${suffix}`;
+      output.textContent = range.value + suffix;
       if (hidden) hidden.value = range.value;
     };
     range.addEventListener('input', update);
@@ -113,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ------------------------------------------------------------------
-  // Réalisations: filtre + lightbox (page /realisations/)
+  // Realisations: filtre + lightbox (page /realisations/)
   // ------------------------------------------------------------------
   const gallery = document.getElementById('gallery');
   const lightbox = document.getElementById('lightbox');
@@ -153,13 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- CSRF helpers (Django) ---
 function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
+  const value = '; ' + document.cookie;
+  const parts = value.split('; ' + name + '=');
   if (parts.length === 2) return parts.pop().split(';').shift();
   return null;
 }
 
-// Wrapper fetch qui ajoute automatiquement le token CSRF pour les requêtes mutables
+// Wrapper fetch qui ajoute automatiquement le token CSRF pour les requetes mutables
 async function safeFetch(url, options = {}) {
   const opts = { credentials: "same-origin", ...options };
   const method = (opts.method || "GET").toUpperCase();
