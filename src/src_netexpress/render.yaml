@@ -5,6 +5,7 @@
 # pour éviter d'exposer les secrets dans le dépôt Git.
 
 services:
+  # === SERVICE WEB PRINCIPAL ===
   - type: web
     name: netexpress
     env: docker
@@ -13,7 +14,6 @@ services:
     
     envVars:
       # === SECRETS (à configurer dans le Dashboard Render) ===
-      # Ces variables ne doivent JAMAIS être dans les fichiers Git
       - key: DJANGO_SECRET_KEY
         sync: false
       - key: DATABASE_URL
@@ -22,7 +22,6 @@ services:
         sync: false
       
       # === CLOUDINARY (stockage média) ===
-      # Créer un compte gratuit sur https://cloudinary.com
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
@@ -30,10 +29,12 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
       
-      # === REDIS (optionnel - pour Celery) ===
-      # Ajouter un service Redis dans Render si nécessaire
+      # === REDIS (pour Celery) ===
       - key: REDIS_URL
-        sync: false
+        fromService:
+          name: netexpress-redis
+          type: redis
+          property: connectionString
       
       # === CONFIGURATION PUBLIQUE ===
       - key: DJANGO_SETTINGS_MODULE
@@ -54,3 +55,39 @@ services:
         value: noreply@nettoyageexpresse.fr
       - key: TASK_NOTIFICATION_EMAIL
         value: noreply@nettoyageexpresse.fr
+
+  # === WORKER CELERY (tâches asynchrones) ===
+  - type: worker
+    name: netexpress-worker
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerCommand: celery -A netexpress worker --loglevel=info --concurrency=2
+    autoDeploy: true
+    
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: netexpress.settings.prod
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: netexpress-redis
+          type: redis
+          property: connectionString
+
+# === SERVICE REDIS ===
+databases:
+  - name: netexpress-redis
+    type: redis
+    plan: free
+    ipAllowList: []
