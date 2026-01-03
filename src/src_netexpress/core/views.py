@@ -14,6 +14,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 
 from services.models import Service, Category
 from devis.models import Quote, Client
