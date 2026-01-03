@@ -329,24 +329,30 @@
 
   <!-- JavaScript - Menu Navigation (vanilla JS, pas de dépendances) -->
   <script>
-  (function() {
+  document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     var mobileBtn = document.getElementById('mobile-menu-btn');
     var mobileMenu = document.getElementById('mobile-menu');
     var iconOpen = document.getElementById('menu-icon-open');
     var iconClose = document.getElementById('menu-icon-close');
     
+    console.log('Mobile menu init:', { mobileBtn: !!mobileBtn, mobileMenu: !!mobileMenu });
+    
     if (mobileBtn && mobileMenu) {
-      mobileBtn.addEventListener('click', function() {
+      mobileBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Mobile menu clicked');
+        
         var isHidden = mobileMenu.classList.contains('hidden');
         if (isHidden) {
           mobileMenu.classList.remove('hidden');
-          iconOpen.classList.add('hidden');
-          iconClose.classList.remove('hidden');
+          if (iconOpen) iconOpen.classList.add('hidden');
+          if (iconClose) iconClose.classList.remove('hidden');
         } else {
           mobileMenu.classList.add('hidden');
-          iconOpen.classList.remove('hidden');
-          iconClose.classList.add('hidden');
+          if (iconOpen) iconOpen.classList.remove('hidden');
+          if (iconClose) iconClose.classList.add('hidden');
         }
       });
     }
@@ -406,7 +412,7 @@
         closeAllDropdowns();
       }
     });
-  })();
+  });
   </script>
 
   {% block extra_js %}{% endblock %}
