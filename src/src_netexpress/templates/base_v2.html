@@ -336,13 +336,10 @@
     var iconOpen = document.getElementById('menu-icon-open');
     var iconClose = document.getElementById('menu-icon-close');
     
-    console.log('Mobile menu init:', { mobileBtn: !!mobileBtn, mobileMenu: !!mobileMenu });
-    
     if (mobileBtn && mobileMenu) {
       mobileBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Mobile menu clicked');
         
         var isHidden = mobileMenu.classList.contains('hidden');
         if (isHidden) {
@@ -364,6 +361,9 @@
       });
     }
     
+    // Variable pour tracker le dropdown ouvert
+    var openDropdown = null;
+    
     // Desktop dropdown menus
     var dropdownContainers = document.querySelectorAll('.dropdown-container');
     
@@ -381,30 +381,37 @@
           
           // Close all dropdowns first
           closeAllDropdowns();
+          openDropdown = null;
           
           // Open this one if it was closed
           if (wasHidden) {
             menu.classList.remove('hidden');
+            openDropdown = menu;
           }
         });
         
         // Close dropdown when clicking a link inside
-        var links = menu.querySelectorAll('a');
-        links.forEach(function(link) {
-          link.addEventListener('click', function() {
+        menu.addEventListener('click', function(e) {
+          if (e.target.tagName === 'A') {
             menu.classList.add('hidden');
-          });
+            openDropdown = null;
+          }
         });
       }
     });
     
     // Close dropdowns when clicking anywhere on the page
-    document.addEventListener('click', function(e) {
-      var isDropdownClick = e.target.closest('.dropdown-container');
-      if (!isDropdownClick) {
-        closeAllDropdowns();
+    document.body.addEventListener('click', function(e) {
+      // Ne pas fermer si on clique sur un bouton dropdown
+      if (e.target.closest('.dropdown-btn')) {
+        return;
       }
-    });
+      // Fermer si on clique en dehors
+      if (openDropdown && !e.target.closest('.dropdown-menu')) {
+        closeAllDropdowns();
+        openDropdown = null;
+      }
+    }, true);
     
     // Close dropdowns on Escape key
     document.addEventListener('keydown', function(e) {
