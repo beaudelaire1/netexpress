@@ -185,9 +185,9 @@
 
         <!-- Mobile menu button -->
         <div class="md:hidden flex items-center">
-          <button type="button" id="mobile-menu-btn" class="p-2 rounded-md text-white hover:bg-ne-primary-700 focus:outline-none">
-            <i class="fas fa-bars text-xl" id="menu-icon-open"></i>
-            <i class="fas fa-times text-xl hidden" id="menu-icon-close"></i>
+          <button type="button" id="mobile-menu-btn" class="p-2 rounded-md text-white hover:bg-ne-primary-700 focus:outline-none" onclick="toggleMobileMenu()">
+            <span id="menu-icon-open"><i class="fas fa-bars text-xl"></i></span>
+            <span id="menu-icon-close" class="hidden"><i class="fas fa-times text-xl"></i></span>
           </button>
         </div>
       </div>
@@ -327,33 +327,29 @@
     </div>
   </footer>
 
-  <!-- JavaScript - Menu Navigation (vanilla JS, pas de dépendances) -->
+  <!-- JavaScript - Menu Navigation -->
   <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    var mobileBtn = document.getElementById('mobile-menu-btn');
+  // Fonction globale pour le menu mobile (appelée via onclick)
+  function toggleMobileMenu() {
     var mobileMenu = document.getElementById('mobile-menu');
     var iconOpen = document.getElementById('menu-icon-open');
     var iconClose = document.getElementById('menu-icon-close');
     
-    if (mobileBtn && mobileMenu) {
-      mobileBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        var isHidden = mobileMenu.classList.contains('hidden');
-        if (isHidden) {
-          mobileMenu.classList.remove('hidden');
-          if (iconOpen) iconOpen.classList.add('hidden');
-          if (iconClose) iconClose.classList.remove('hidden');
-        } else {
-          mobileMenu.classList.add('hidden');
-          if (iconOpen) iconOpen.classList.remove('hidden');
-          if (iconClose) iconClose.classList.add('hidden');
-        }
-      });
-    }
+    if (!mobileMenu) return;
     
+    var isHidden = mobileMenu.classList.contains('hidden');
+    if (isHidden) {
+      mobileMenu.classList.remove('hidden');
+      if (iconOpen) iconOpen.classList.add('hidden');
+      if (iconClose) iconClose.classList.remove('hidden');
+    } else {
+      mobileMenu.classList.add('hidden');
+      if (iconOpen) iconOpen.classList.remove('hidden');
+      if (iconClose) iconClose.classList.add('hidden');
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour fermer tous les dropdowns
     function closeAllDropdowns() {
       document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
@@ -365,32 +361,25 @@
     var openDropdown = null;
     
     // Desktop dropdown menus
-    var dropdownContainers = document.querySelectorAll('.dropdown-container');
-    
-    dropdownContainers.forEach(function(container) {
+    document.querySelectorAll('.dropdown-container').forEach(function(container) {
       var btn = container.querySelector('.dropdown-btn');
       var menu = container.querySelector('.dropdown-menu');
       
       if (btn && menu) {
-        // Toggle dropdown on button click
         btn.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
           
           var wasHidden = menu.classList.contains('hidden');
-          
-          // Close all dropdowns first
           closeAllDropdowns();
           openDropdown = null;
           
-          // Open this one if it was closed
           if (wasHidden) {
             menu.classList.remove('hidden');
             openDropdown = menu;
           }
         });
         
-        // Close dropdown when clicking a link inside
         menu.addEventListener('click', function(e) {
           if (e.target.tagName === 'A') {
             menu.classList.add('hidden');
@@ -400,23 +389,19 @@
       }
     });
     
-    // Close dropdowns when clicking anywhere on the page
-    document.body.addEventListener('click', function(e) {
-      // Ne pas fermer si on clique sur un bouton dropdown
-      if (e.target.closest('.dropdown-btn')) {
-        return;
-      }
-      // Fermer si on clique en dehors
-      if (openDropdown && !e.target.closest('.dropdown-menu')) {
+    // Fermer dropdowns au clic extérieur
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.dropdown-container')) {
         closeAllDropdowns();
         openDropdown = null;
       }
-    }, true);
+    });
     
-    // Close dropdowns on Escape key
+    // Fermer dropdowns avec Escape
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeAllDropdowns();
+        openDropdown = null;
       }
     });
   });
