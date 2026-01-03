@@ -984,13 +984,15 @@ def admin_workers_list(request):
     from django.contrib.auth.models import User
     from django.db.models import Count, Q, Prefetch
     from django.core.paginator import Paginator
+    from accounts.models import Profile
     
-    workers = User.objects.filter(groups__name='Workers').order_by('first_name', 'last_name')
+    # Filtrer par rôle worker dans le profil
+    workers = User.objects.filter(
+        profile__role=Profile.ROLE_WORKER
+    ).select_related('profile').order_by('first_name', 'last_name')
     
-    # Optimize with prefetch and annotations
-    workers = workers.prefetch_related(
-        Prefetch('assigned_tasks', queryset=Task.objects.all(), to_attr='all_tasks')
-    ).annotate(
+    # Optimize with annotations
+    workers = workers.annotate(
         total_tasks=Count('assigned_tasks'),
         completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_COMPLETED)),
         overdue_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_OVERDUE))

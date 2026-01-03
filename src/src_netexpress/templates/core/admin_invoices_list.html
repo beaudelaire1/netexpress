@@ -100,7 +100,7 @@
                          title="Voir détails">
                         <i class="fas fa-eye"></i>
                       </a>
-                      <a href="{% url 'devis:generate_invoice_pdf' invoice.pk %}" target="_blank"
+                      <a href="{% url 'factures:download' invoice.pk %}" target="_blank"
                          class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                          title="Télécharger PDF">
                         <i class="fas fa-download"></i>
