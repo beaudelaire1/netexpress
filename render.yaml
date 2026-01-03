@@ -1,8 +1,5 @@
 # Configuration Render.com pour NetExpress
 # ===========================================
-# Les variables marquées "sync: false" doivent être configurées
-# DIRECTEMENT dans le Dashboard Render (Environment > Environment Variables)
-# pour éviter d'exposer les secrets dans le dépôt Git.
 
 services:
   # === SERVICE WEB PRINCIPAL ===
@@ -88,6 +85,5 @@ services:
 # === SERVICE REDIS ===
 databases:
   - name: netexpress-redis
-    type: redis
+    databaseName: netexpress_redis
     plan: free
-    ipAllowList: []
