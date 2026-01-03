@@ -48,6 +48,11 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="{% static 'css/style_v2.css' %}">
+  <style>
+    /* Fix dropdowns - s'assurer que hidden fonctionne */
+    .dropdown-menu.hidden { display: none !important; }
+    .dropdown-menu { display: block; }
+  </style>
   {% block extra_css %}{% endblock %}
 
   <!-- HTMX -->

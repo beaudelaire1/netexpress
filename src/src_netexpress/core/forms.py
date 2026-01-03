@@ -148,9 +148,9 @@ class QuoteItemForm(forms.ModelForm):
             }),
             'quantity': forms.NumberInput(attrs={
                 'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input',
-                'step': '0.01',
-                'min': '0.01',
-                'value': '1.00'
+                'step': '1',
+                'min': '1',
+                'value': '1'
             }),
             'unit_price': forms.NumberInput(attrs={
                 'class': 'w-24 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right price-input',
@@ -161,7 +161,7 @@ class QuoteItemForm(forms.ModelForm):
             'tax_rate': forms.NumberInput(attrs={
                 'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input',
                 'step': '0.01',
-                'value': '20.00'
+                'value': '0.00'
             }),
         }
     

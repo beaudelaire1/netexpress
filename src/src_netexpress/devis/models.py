@@ -337,7 +337,7 @@ class QuoteItem(models.Model):
         _("Taux de TVA"),
         max_digits=4,
         decimal_places=2,
-        default=Decimal("20.00"),
+        default=Decimal("0.00"),
         help_text=_("Taux de TVA en pourcentage (ex. 20.00 pour 20 %)."),
     )
 

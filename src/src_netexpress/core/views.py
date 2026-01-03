@@ -1342,9 +1342,9 @@ def admin_edit_invoice(request, pk):
             fields = ['description', 'quantity', 'unit_price', 'tax_rate']
             widgets = {
                 'description': forms.TextInput(attrs={'class': 'w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500', 'placeholder': 'Description...'}),
-                'quantity': forms.NumberInput(attrs={'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input', 'min': '1'}),
+                'quantity': forms.NumberInput(attrs={'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input', 'min': '1', 'step': '1'}),
                 'unit_price': forms.NumberInput(attrs={'step': '0.01', 'class': 'w-24 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right price-input'}),
-                'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input'}),
+                'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'value': '0.00', 'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input'}),
             }
     
     InvoiceItemFormSet = inlineformset_factory(
