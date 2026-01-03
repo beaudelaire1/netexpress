@@ -136,10 +136,27 @@
                     </span>
                   </td>
                   <td class="px-6 py-4 text-right text-sm font-medium" onclick="event.stopPropagation()">
-                    <div class="flex justify-end space-x-3">
+                    <div class="flex justify-end space-x-2">
                       <a href="{% url 'core:admin_task_detail' task.pk %}" 
-                         class="text-ne-primary-600 hover:text-ne-primary-900" title="Voir détails">
+                         class="p-2 text-gray-500 hover:text-ne-primary-600 hover:bg-gray-100 rounded" title="Voir détails">
                         <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="{% url 'core:admin_edit_task' task.pk %}" 
+                         class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      {% if task.status != 'completed' %}
+                      <form method="post" action="{% url 'core:admin_task_mark_complete' task.pk %}" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded" title="Marquer terminée">
+                          <i class="fas fa-check"></i>
+                        </button>
+                      </form>
+                      {% endif %}
+                      <a href="{% url 'core:admin_delete_task' task.pk %}" 
+                         class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded" title="Supprimer">
+                        <i class="fas fa-trash"></i>
                       </a>
                     </div>
                   </td>

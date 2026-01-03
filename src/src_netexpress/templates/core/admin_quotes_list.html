@@ -93,6 +93,11 @@
                       {% endif %}
                     </div>
                     <div class="flex items-center space-x-2">
+                      <a href="{% url 'core:admin_quote_detail' quote.pk %}"
+                         class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                         title="Voir détails">
+                        <i class="fas fa-eye"></i>
+                      </a>
                       {% if quote.status == 'draft' or quote.status == 'sent' %}
                         <a href="{% url 'core:admin_send_quote_email' quote.pk %}"
                            class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -105,7 +110,7 @@
                          title="Télécharger PDF">
                         <i class="fas fa-download"></i>
                       </a>
-                      <a href="/gestion/devis/quote/{{ quote.id }}/change/" target="_blank"
+                      <a href="{% url 'core:admin_edit_quote' quote.pk %}"
                          class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                          title="Modifier">
                         <i class="fas fa-edit"></i>

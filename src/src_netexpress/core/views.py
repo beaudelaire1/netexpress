@@ -913,6 +913,72 @@ def admin_edit_task(request, pk):
 
 
 @admin_portal_required
+def admin_delete_task(request, pk):
+    """Admin Portal task deletion view."""
+    from tasks.models import Task
+    
+    task = get_object_or_404(Task, pk=pk)
+    
+    if request.method == 'POST':
+        title = task.title
+        task.delete()
+        messages.success(request, f"Tâche '{title}' supprimée avec succès!")
+        return redirect('core:admin_tasks_list')
+    
+    return render(request, 'core/admin_delete_task.html', {'task': task})
+
+
+@admin_portal_required
+def admin_task_change_status(request, pk):
+    """Admin Portal task status change view (HTMX compatible)."""
+    from tasks.models import Task
+    
+    task = get_object_or_404(Task, pk=pk)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(Task.STATUS_CHOICES):
+            old_status = task.status
+            task.status = new_status
+            # Si marqué comme terminé, enregistrer qui l'a fait
+            if new_status == Task.STATUS_COMPLETED and old_status != Task.STATUS_COMPLETED:
+                task.completed_by = request.user
+            task.save()
+            messages.success(request, f"Statut de '{task.title}' changé en '{task.get_status_display()}'")
+        else:
+            messages.error(request, "Statut invalide")
+    
+    # Rediriger vers la page d'origine
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('core:admin_task_detail', pk=pk)
+
+
+@admin_portal_required
+def admin_task_mark_complete(request, pk):
+    """Admin Portal quick action to mark task as complete."""
+    from tasks.models import Task
+    
+    task = get_object_or_404(Task, pk=pk)
+    
+    if request.method == 'POST':
+        if task.status != Task.STATUS_COMPLETED:
+            task.status = Task.STATUS_COMPLETED
+            task.completed_by = request.user
+            task.completion_notes = request.POST.get('completion_notes', '')
+            task.save()
+            messages.success(request, f"Tâche '{task.title}' marquée comme terminée!")
+        else:
+            messages.info(request, f"La tâche '{task.title}' est déjà terminée.")
+    
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('core:admin_task_detail', pk=pk)
+
+
+@admin_portal_required
 def admin_workers_list(request):
     """Admin Portal workers management view with optimized queries."""
     from django.contrib.auth.models import User
@@ -1218,6 +1284,139 @@ def admin_invoice_mark_paid(request, pk):
         messages.success(request, f"La facture {invoice.number} a été marquée comme payée.")
     else:
         messages.info(request, f"La facture {invoice.number} est déjà payée.")
+    
+    return redirect('core:admin_invoice_detail', pk=pk)
+
+
+@admin_portal_required
+def admin_edit_invoice(request, pk):
+    """Admin Portal invoice edit view."""
+    from django.contrib import messages
+    from django import forms
+    from django.forms import inlineformset_factory
+    from factures.models import Invoice, InvoiceItem
+    
+    invoice = get_object_or_404(Invoice.objects.select_related('quote', 'quote__client'), pk=pk)
+    
+    # Form pour la facture
+    class InvoiceEditForm(forms.ModelForm):
+        class Meta:
+            model = Invoice
+            fields = ['status', 'issue_date', 'due_date', 'discount', 'notes', 'payment_terms']
+            widgets = {
+                'status': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
+                'issue_date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
+                'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
+                'discount': forms.NumberInput(attrs={'step': '0.01', 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
+                'notes': forms.Textarea(attrs={'rows': 3, 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
+                'payment_terms': forms.Textarea(attrs={'rows': 2, 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
+            }
+    
+    # Form pour les lignes de facture
+    class InvoiceItemForm(forms.ModelForm):
+        class Meta:
+            model = InvoiceItem
+            fields = ['description', 'quantity', 'unit_price', 'tax_rate']
+            widgets = {
+                'description': forms.TextInput(attrs={'class': 'w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500', 'placeholder': 'Description...'}),
+                'quantity': forms.NumberInput(attrs={'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right qty-input', 'min': '1'}),
+                'unit_price': forms.NumberInput(attrs={'step': '0.01', 'class': 'w-24 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right price-input'}),
+                'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'class': 'w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-ne-primary-500 text-right tva-input'}),
+            }
+    
+    InvoiceItemFormSet = inlineformset_factory(
+        Invoice, InvoiceItem,
+        form=InvoiceItemForm,
+        extra=1,
+        can_delete=True
+    )
+    
+    if request.method == 'POST':
+        form = InvoiceEditForm(request.POST, instance=invoice)
+        formset = InvoiceItemFormSet(request.POST, instance=invoice, prefix='items')
+        
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            invoice.compute_totals()
+            messages.success(request, f"La facture {invoice.number} a été mise à jour.")
+            return redirect('core:admin_invoice_detail', pk=pk)
+    else:
+        form = InvoiceEditForm(instance=invoice)
+        formset = InvoiceItemFormSet(instance=invoice, prefix='items')
+    
+    return render(request, 'core/admin_edit_invoice.html', {
+        'invoice': invoice,
+        'form': form,
+        'formset': formset,
+    })
+
+
+@admin_portal_required
+def admin_send_invoice_email(request, pk):
+    """Admin Portal send invoice by email view."""
+    from django.contrib import messages
+    from django.core.mail import EmailMessage as DjangoEmailMessage
+    from django.template.loader import render_to_string
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    invoice = get_object_or_404(Invoice.objects.select_related('quote', 'quote__client'), pk=pk)
+    
+    # Récupérer l'email du client
+    client_email = None
+    client_name = "Client"
+    if invoice.quote and invoice.quote.client:
+        client_email = invoice.quote.client.email
+        client_name = invoice.quote.client.full_name
+    
+    if request.method == 'POST':
+        recipient_email = request.POST.get('recipient_email', client_email)
+        
+        if not recipient_email:
+            messages.error(request, "Aucune adresse email spécifiée.")
+            return redirect('core:admin_invoice_detail', pk=pk)
+        
+        try:
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+            branding = getattr(settings, 'INVOICE_BRANDING', {})
+            
+            # Générer le HTML avec le template
+            html_body = render_to_string('emails/invoice_notification.html', {
+                'invoice': invoice,
+                'client_name': client_name,
+                'branding': branding,
+            })
+            
+            subject = f"Votre facture {invoice.number} — {branding.get('name', 'Nettoyage Express')}"
+            
+            email = DjangoEmailMessage(
+                subject=subject,
+                body=html_body,
+                from_email=from_email,
+                to=[recipient_email]
+            )
+            email.content_subtype = 'html'
+            
+            # Attacher le PDF
+            try:
+                pdf_bytes = invoice.generate_pdf(attach=False)
+                email.attach(f'facture_{invoice.number}.pdf', pdf_bytes, 'application/pdf')
+            except Exception as e:
+                logger.error(f"Erreur génération PDF facture {invoice.number}: {e}")
+            
+            email.send(fail_silently=False)
+            
+            # Mettre à jour le statut si brouillon
+            if invoice.status == Invoice.InvoiceStatus.DRAFT:
+                invoice.status = Invoice.InvoiceStatus.SENT
+                invoice.save(update_fields=['status'])
+            
+            messages.success(request, f"Facture {invoice.number} envoyée à {recipient_email}!")
+            
+        except Exception as e:
+            logger.error(f"Erreur envoi email facture {invoice.number}: {e}")
+            messages.error(request, f"Erreur lors de l'envoi: {str(e)}")
     
     return redirect('core:admin_invoice_detail', pk=pk)
 

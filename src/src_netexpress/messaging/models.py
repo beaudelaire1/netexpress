@@ -82,13 +82,14 @@ class EmailMessage(models.Model):
 
         Exigences:
         - Aucun e-mail en texte brut (pas de multipart text/plain visible)
-        - Le contenu HTML (TinyMCE) est envoyé tel quel
+        - Le contenu HTML (TinyMCE) est enveloppé dans un template professionnel
         - Les destinataires multiples sont envoyés individuellement (pas de fuite d'adresses)
         """
         if self.status == self.STATUS_SENT:
             return
 
         from django.conf import settings
+        from django.template.loader import render_to_string
 
         # Normaliser les destinataires (to + cc) : on envoie individuellement
         to_addresses = [a.strip() for a in (self.recipient or "").split(",") if a.strip()]
@@ -109,13 +110,20 @@ class EmailMessage(models.Model):
                 pass
 
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@nettoyageexpress.com"
+        
+        # Envelopper le contenu dans le template base_email pour un rendu professionnel
+        branding = getattr(settings, "INVOICE_BRANDING", {}) or {}
+        html_body = render_to_string('emails/base_email.html', {
+            'branding': branding,
+            'content': self.body or "",
+        })
 
         send_errors: list[str] = []
         for to_addr in all_addresses or []:
             try:
                 email = EmailMultiAlternatives(
                     subject=self.subject,
-                    body=self.body or "",   # body sera traité en HTML (content_subtype)
+                    body=html_body,
                     from_email=from_email,
                     to=[to_addr],
                 )

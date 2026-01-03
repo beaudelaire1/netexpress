@@ -208,12 +208,21 @@ class BrevoEmailBackend(BaseEmailBackend):
                 if mimetype == 'text/html':
                     return content
         
-        # Sinon, utiliser le body comme HTML si il contient des balises
-        if message.body and ('<' in message.body and '>' in message.body):
+        # Si content_subtype est 'html', le body EST déjà du HTML - l'utiliser tel quel
+        if hasattr(message, 'content_subtype') and message.content_subtype == 'html':
             return message.body
-            
-        # Convertir le texte brut en HTML simple
+        
+        # Si le body est déjà du HTML complet (contient <!DOCTYPE ou <html), l'utiliser tel quel
         if message.body:
+            body_lower = message.body.lower().strip()
+            if body_lower.startswith('<!doctype') or body_lower.startswith('<html'):
+                return message.body
+            
+            # Si le body contient des balises HTML, l'utiliser tel quel
+            if '<' in message.body and '>' in message.body:
+                return message.body
+            
+            # Texte brut : conversion simple
             return message.body.replace('\n', '<br>')
             
         return None

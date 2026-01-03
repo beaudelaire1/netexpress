@@ -146,7 +146,7 @@ class WorkerService:
         request=None
     ) -> bool:
         """
-        Envoie les identifiants au worker par email.
+        Envoie les identifiants au worker par email avec template HTML.
         
         Args:
             worker: User instance du worker
@@ -157,34 +157,30 @@ class WorkerService:
             bool: True si l'email a été envoyé avec succès
         """
         try:
+            from django.core.mail import EmailMessage
+            from django.template.loader import render_to_string
+            
             login_url = request.build_absolute_uri(reverse('accounts:login')) if request else '/accounts/login/'
             
             subject = f"Vos identifiants NetExpress - {worker.get_full_name()}"
-            message = f"""
-Bonjour {worker.first_name},
-
-Votre compte worker a été créé sur NetExpress.
-
-Vos identifiants de connexion :
-- Email : {worker.email}
-- Mot de passe temporaire : {temporary_password}
-
-⚠️ IMPORTANT : Veuillez changer votre mot de passe lors de votre première connexion.
-
-Accédez à votre espace : {login_url}
-
-Cordialement,
-L'équipe NetExpress
-"""
+            
+            # Utiliser le template HTML générique
+            html_body = render_to_string('emails/notification_generic.html', {
+                'headline': 'Bienvenue sur NetExpress',
+                'intro': f'Bonjour {worker.first_name},\n\nVotre compte worker a été créé sur NetExpress.',
+                'rows': [
+                    {'label': 'Email', 'value': worker.email},
+                    {'label': 'Mot de passe temporaire', 'value': temporary_password},
+                ],
+                'action_url': login_url,
+                'action_label': 'Accéder à mon espace',
+                'reference': '⚠️ IMPORTANT : Veuillez changer votre mot de passe lors de votre première connexion.',
+            })
             
             from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
-            send_mail(
-                subject,
-                message,
-                from_email,
-                [worker.email],
-                fail_silently=False,
-            )
+            email = EmailMessage(subject=subject, body=html_body, from_email=from_email, to=[worker.email])
+            email.content_subtype = 'html'
+            email.send(fail_silently=False)
             return True
         except Exception as e:
             # Log l'erreur mais ne lève pas d'exception pour ne pas bloquer la création

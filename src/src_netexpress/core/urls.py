@@ -70,13 +70,18 @@ urlpatterns = [
     # Invoices
     path("admin-dashboard/invoices/", views.admin_invoices_list, name="admin_invoices_list"),
     path("admin-dashboard/invoices/<int:pk>/", views.admin_invoice_detail, name="admin_invoice_detail"),
+    path("admin-dashboard/invoices/<int:pk>/edit/", views.admin_edit_invoice, name="admin_edit_invoice"),
     path("admin-dashboard/invoices/<int:pk>/mark-paid/", views.admin_invoice_mark_paid, name="admin_invoice_mark_paid"),
+    path("admin-dashboard/invoices/<int:pk>/send-email/", views.admin_send_invoice_email, name="admin_send_invoice_email"),
     path("admin-dashboard/invoices/create/", views.admin_create_invoice, name="admin_create_invoice"),
     
     # Tasks
     path("admin-dashboard/tasks/", views.admin_tasks_list, name="admin_tasks_list"),
     path("admin-dashboard/tasks/<int:pk>/", views.admin_task_detail, name="admin_task_detail"),
     path("admin-dashboard/tasks/<int:pk>/edit/", views.admin_edit_task, name="admin_edit_task"),
+    path("admin-dashboard/tasks/<int:pk>/delete/", views.admin_delete_task, name="admin_delete_task"),
+    path("admin-dashboard/tasks/<int:pk>/status/", views.admin_task_change_status, name="admin_task_change_status"),
+    path("admin-dashboard/tasks/<int:pk>/complete/", views.admin_task_mark_complete, name="admin_task_mark_complete"),
     path("admin-dashboard/tasks/create/", views.admin_create_task, name="admin_create_task"),
     
     # Analytics & Reporting

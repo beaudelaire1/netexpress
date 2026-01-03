@@ -22,7 +22,11 @@
 
           <tr>
             <td style="padding:22px 22px 10px 22px;">
-              {% block content %}{% endblock %}
+              {% block content %}
+              {% if content %}
+                {{ content|safe }}
+              {% endif %}
+              {% endblock %}
             </td>
           </tr>
 

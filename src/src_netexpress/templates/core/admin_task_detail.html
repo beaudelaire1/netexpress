@@ -103,9 +103,41 @@
                class="w-full btn btn-primary flex items-center justify-center">
               <i class="fas fa-edit mr-2"></i>Modifier la tâche
             </a>
+            
+            {% if task.status != 'completed' %}
+            <form method="post" action="{% url 'core:admin_task_mark_complete' task.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="w-full btn btn-secondary flex items-center justify-center text-green-600 border-green-600 hover:bg-green-50">
+                <i class="fas fa-check mr-2"></i>Marquer comme terminée
+              </button>
+            </form>
+            {% endif %}
+            
+            <!-- Changement de statut rapide -->
+            <div class="border-t pt-3 mt-3">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Changer le statut</label>
+              <form method="post" action="{% url 'core:admin_task_change_status' task.pk %}" class="flex space-x-2">
+                {% csrf_token %}
+                <select name="status" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-ne-primary-500">
+                  <option value="upcoming" {% if task.status == 'upcoming' %}selected{% endif %}>À venir</option>
+                  <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>En cours</option>
+                  <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Terminé</option>
+                  <option value="overdue" {% if task.status == 'overdue' %}selected{% endif %}>En retard</option>
+                </select>
+                <button type="submit" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">
+                  <i class="fas fa-sync"></i>
+                </button>
+              </form>
+            </div>
+            
             <a href="{% url 'core:admin_global_planning' %}" 
                class="w-full btn btn-secondary flex items-center justify-center">
               <i class="fas fa-calendar mr-2"></i>Voir dans le planning
+            </a>
+            
+            <a href="{% url 'core:admin_delete_task' task.pk %}" 
+               class="w-full btn btn-outline flex items-center justify-center text-red-600 border-red-600 hover:bg-red-50">
+              <i class="fas fa-trash mr-2"></i>Supprimer la tâche
             </a>
           </div>
         </div>
