@@ -26,12 +26,9 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
       
-      # === REDIS (pour Celery) ===
+      # === REDIS (optionnel - configurer manuellement si besoin) ===
       - key: REDIS_URL
-        fromService:
-          name: netexpress-redis
-          type: redis
-          property: connectionString
+        sync: false
       
       # === CONFIGURATION PUBLIQUE ===
       - key: DJANGO_SETTINGS_MODULE
@@ -52,38 +49,3 @@ services:
         value: noreply@nettoyageexpresse.fr
       - key: TASK_NOTIFICATION_EMAIL
         value: noreply@nettoyageexpresse.fr
-
-  # === WORKER CELERY (tâches asynchrones) ===
-  - type: worker
-    name: netexpress-worker
-    env: docker
-    dockerfilePath: Dockerfile
-    dockerCommand: celery -A netexpress worker --loglevel=info --concurrency=2
-    autoDeploy: true
-    
-    envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: netexpress.settings.prod
-      - key: DJANGO_SECRET_KEY
-        sync: false
-      - key: DATABASE_URL
-        sync: false
-      - key: BREVO_API_KEY
-        sync: false
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
-      - key: REDIS_URL
-        fromService:
-          name: netexpress-redis
-          type: redis
-          property: connectionString
-
-# === SERVICE REDIS ===
-databases:
-  - name: netexpress-redis
-    databaseName: netexpress_redis
-    plan: free
