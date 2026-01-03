@@ -1,9 +1,26 @@
+"""
+Celery configuration for NetExpress.
+
+This module configures Celery for background task processing.
+Tasks include: email sending, PDF generation, notifications.
+"""
 
 import os
 from celery import Celery
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "netexpress.settings.base")
+# Set default Django settings module
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'netexpress.settings.dev')
 
-app = Celery("netexpress")
-app.config_from_object("django.conf:settings", namespace="CELERY")
+app = Celery('netexpress')
+
+# Load config from Django settings with CELERY_ prefix
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Auto-discover tasks in all installed apps
 app.autodiscover_tasks()
+
+
+@app.task(bind=True, ignore_result=True)
+def debug_task(self):
+    """Debug task for testing Celery configuration."""
+    print(f'Request: {self.request!r}')

@@ -174,6 +174,59 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.
 DEFAULT_FROM_NAME = os.getenv('DEFAULT_FROM_NAME', 'Nettoyage Express')
 
 # ============================================================
+# ☁️ CLOUDINARY - STOCKAGE MÉDIA (PRODUCTION)
+# ============================================================
+
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME', '')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY', '')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET', '')
+
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    # Ajouter cloudinary aux apps installées
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+    
+    # Configuration Cloudinary
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
+    }
+    
+    # Utiliser Cloudinary pour les fichiers média
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    print(f"[OK] Media storage: Cloudinary ({CLOUDINARY_CLOUD_NAME})")
+else:
+    print("[WARN] ============================================")
+    print("[WARN] CLOUDINARY non configure!")
+    print("[WARN] Les fichiers media seront stockes localement.")
+    print("[WARN] Ils seront PERDUS a chaque redeploiement!")
+    print("[WARN] Configurez CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY,")
+    print("[WARN] CLOUDINARY_API_SECRET dans Render Dashboard")
+    print("[WARN] ============================================")
+
+# ============================================================
+# 🔄 CELERY - TÂCHES ASYNCHRONES (PRODUCTION)
+# ============================================================
+
+REDIS_URL = os.getenv('REDIS_URL', '')
+
+if REDIS_URL:
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
+    print(f"[OK] Celery broker: Redis configuré")
+else:
+    # Sans Redis, Celery ne fonctionnera pas - les tâches seront synchrones
+    CELERY_TASK_ALWAYS_EAGER = True  # Exécute les tâches de manière synchrone
+    CELERY_TASK_EAGER_PROPAGATES = True
+    print("[WARN] ============================================")
+    print("[WARN] REDIS_URL non configure!")
+    print("[WARN] Les taches seront executees de maniere synchrone.")
+    print("[WARN] Pour activer Celery, ajoutez un service Redis")
+    print("[WARN] dans Render et configurez REDIS_URL")
+    print("[WARN] ============================================")
+
+# ============================================================
 # 🔥 DEBUG - AFFICHAGE FINAL DE LA CONFIG
 # ============================================================
 

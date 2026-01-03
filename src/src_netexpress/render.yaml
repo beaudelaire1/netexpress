@@ -20,8 +20,20 @@ services:
         sync: false
       - key: BREVO_API_KEY
         sync: false
-        # ⚠️ IMPORTANT: Générez une NOUVELLE clé API dans Brevo
-        # après avoir supprimé les anciennes du dépôt Git
+      
+      # === CLOUDINARY (stockage média) ===
+      # Créer un compte gratuit sur https://cloudinary.com
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      
+      # === REDIS (optionnel - pour Celery) ===
+      # Ajouter un service Redis dans Render si nécessaire
+      - key: REDIS_URL
+        sync: false
       
       # === CONFIGURATION PUBLIQUE ===
       - key: DJANGO_SETTINGS_MODULE
