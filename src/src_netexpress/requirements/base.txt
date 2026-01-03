@@ -19,7 +19,7 @@ num2words==0.5.14
 
 # NetExpress v2 Transformation Dependencies
 # WYSIWYG editor for rich text messaging
-django-ckeditor>=6.7.0
+django-tinymce>=4.0.0
 
 # Task queue for background processing (notifications, emails)
 celery>=5.3.0

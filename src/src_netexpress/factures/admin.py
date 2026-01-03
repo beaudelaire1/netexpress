@@ -10,7 +10,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.core.files.base import ContentFile
 from django import forms
-from ckeditor.widgets import CKEditorWidget
+from tinymce.widgets import TinyMCE
 import os
 from django.urls import reverse
 
@@ -19,13 +19,13 @@ from core.services.email_service import PremiumEmailService
 
 
 class InvoiceAdminForm(forms.ModelForm):
-    """Custom admin form for Invoice with CKEditor for notes field."""
+    """Custom admin form for Invoice with TinyMCE for notes field."""
     
     notes = forms.CharField(
         label="Notes",
-        widget=CKEditorWidget(config_name='admin'),
+        widget=TinyMCE(attrs={'cols': 80, 'rows': 15}),
         required=False,
-        help_text="Notes pour la facture (formatage professionnel disponible)"
+        help_text="Notes pour la facture"
     )
     
     class Meta:

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\middleware.py
+# hypothesis_version: 6.148.7
+
+['/accounts/login/', '/accounts/logout/', '/accounts/signup/', '/admin-dashboard/', '/admin/', '/contact/', '/dashboard/', '/devis/', '/gestion/', '/gestion/logout/', '/health/', '/media/', '/robots.txt', '/services/', '/sitemap.xml', '/static/', '/tinymce/', 'GET', 'HEAD', 'OPTIONS', '^/$', '^/a-propos/$', '^/admin-dashboard/', '^/client/', '^/excellence/$', '^/gestion/', '^/realisations/$', '^/worker/', 'admin_business', 'admin_dashboard', 'admin_technical', 'business', 'client', 'current_portal', 'gestion', 'last_portal_access', 'profile', 'role', 'technical', 'worker']

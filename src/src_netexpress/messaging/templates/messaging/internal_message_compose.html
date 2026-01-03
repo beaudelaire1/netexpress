@@ -1,127 +1,102 @@
-{% extends "base_v2.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nouveau message interne — NetExpress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+  <script src="https://cdn.tiny.cloud/1/6qr0im1d33wizm1ytimh1kpwbugqeb8r4fq1gebb03rme6hv/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+</head>
+<body style="margin:0; padding:20px; background:#f9fafb; font-family:'Inter',sans-serif;">
 
-{% block title %}Nouveau message{% endblock %}
+<div class="bo-shell">
+  <aside class="bo-sidebar">
+    <div class="bo-brand">Nettoyage Express</div>
+    <nav class="bo-nav">
+      {% if user.is_staff %}
+        <a href="{% url 'core:admin_dashboard' %}">Retour dashboard</a>
+      {% else %}
+        <a href="{% url 'core:client_portal_dashboard' %}">Retour dashboard</a>
+      {% endif %}
+      <a class="is-primary" href="{% url 'messaging:internal_compose' %}">Nouveau message</a>
+      <a href="{% url 'messaging:internal_list' %}">Messages internes</a>
+      <a href="{% url 'messaging:list' %}">Emails envoyés</a>
+    </nav>
+  </aside>
 
-{% block content %}
-<div class="container mx-auto px-4 py-6">
-    <div class="max-w-4xl mx-auto">
-        <div class="flex items-center mb-6">
-            <a href="{% url 'messaging:internal_list' %}" 
-               class="text-gray-600 hover:text-gray-900 mr-4">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="text-2xl font-bold text-gray-900">Nouveau message</h1>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm border">
-            <form method="post" class="p-6">
-                {% csrf_token %}
-                
-                {% if form.non_field_errors %}
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                        {% for error in form.non_field_errors %}
-                            <p class="text-red-800">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <div class="space-y-6">
-                    <!-- Recipient Field -->
-                    <div>
-                        <label for="{{ form.recipient.id_for_label }}" 
-                               class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.recipient.label }}
-                        </label>
-                        {{ form.recipient }}
-                        {% if form.recipient.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.recipient.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Subject Type Field -->
-                    <div>
-                        <label for="{{ form.subject_type.id_for_label }}" 
-                               class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.subject_type.label }}
-                        </label>
-                        {{ form.subject_type }}
-                        {% if form.subject_type.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.subject_type.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Reference Field -->
-                    <div>
-                        <label for="{{ form.reference.id_for_label }}" 
-                               class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.reference.label }}
-                        </label>
-                        {{ form.reference }}
-                        <p class="mt-1 text-sm text-gray-500">Ex: Devis #123, Tâche #456</p>
-                        {% if form.reference.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.reference.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Content Field -->
-                    <div>
-                        <label for="{{ form.content.id_for_label }}" 
-                               class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.content.label }}
-                        </label>
-                        {{ form.content }}
-                        {% if form.content.help_text %}
-                            <p class="mt-1 text-sm text-gray-500">{{ form.content.help_text }}</p>
-                        {% endif %}
-                        {% if form.content.errors %}
-                            <div class="mt-1 text-sm text-red-600">
-                                {% for error in form.content.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Info box -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div class="flex items-start gap-3">
-                            <span class="text-blue-500">ℹ️</span>
-                            <div>
-                                <p class="text-blue-800 font-medium text-sm">Message structuré</p>
-                                <p class="text-blue-700 text-sm mt-1">
-                                    Le sujet sera généré automatiquement à partir du type et de la référence.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-                    <a href="{% url 'messaging:internal_list' %}" 
-                       class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        Annuler
-                    </a>
-                    <button type="submit" 
-                            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-paper-plane mr-2"></i>
-                        Envoyer
-                    </button>
-                </div>
-            </form>
-        </div>
+  <main class="bo-main">
+    <div class="bo-head">
+      <div>
+        <div class="bo-title">Nouveau message interne</div>
+        <div class="bo-subtitle">Envoyez un message à un membre de l'équipe.</div>
+      </div>
     </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="bo-card" style="margin-bottom:14px; padding:12px 16px; {% if message.tags == 'error' %}border-color:rgba(220,38,38,0.3); background:rgba(220,38,38,0.05);{% else %}border-color:rgba(45,138,94,0.3); background:rgba(45,138,94,0.05);{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <section class="bo-card">
+      <form method="post">
+        {% csrf_token %}
+        <div class="bo-form">
+          <label>Destinataire</label>
+          <select name="recipient" id="id_recipient" style="width:100%; padding:11px 12px; border-radius:14px; border:1px solid var(--bo-border); background:#fff; color:var(--bo-text);" required>
+            <option value="">-- Sélectionner un destinataire --</option>
+            {% for user_choice in form.recipient.field.queryset %}
+              <option value="{{ user_choice.pk }}">{{ user_choice.get_full_name|default:user_choice.username }} ({{ user_choice.email }})</option>
+            {% endfor %}
+          </select>
+
+          <label style="margin-top:14px;">Type de message</label>
+          <select name="subject_type" id="id_subject_type" style="width:100%; padding:11px 12px; border-radius:14px; border:1px solid var(--bo-border); background:#fff; color:var(--bo-text);">
+            {% for value, label in form.subject_type.field.choices %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+
+          <label style="margin-top:14px;">Référence (optionnel)</label>
+          <input type="text" name="reference" placeholder="Ex: Devis #123, Tâche #456">
+
+          <label style="margin-top:14px;">Message</label>
+          <textarea id="id_content" name="content"></textarea>
+
+          {% if form.errors %}
+            <div style="margin-top:14px; padding:12px; border-radius:12px; background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.2); color:#991b1b; font-size:13px;">
+              {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div style="margin-top:18px; display:flex; gap:10px;">
+            <button class="bo-btn" type="submit">Envoyer</button>
+            <a class="bo-btn is-ghost" href="{% url 'messaging:internal_list' %}">Annuler</a>
+          </div>
+        </div>
+      </form>
+    </section>
+  </main>
 </div>
-{% endblock %}
+
+<script>
+tinymce.init({
+  selector: '#id_content',
+  height: 300,
+  menubar: false,
+  plugins: 'anchor autolink charmap emoticons link lists searchreplace table visualblocks wordcount',
+  toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | link | numlist bullist | emoticons | removeformat',
+  content_style: 'body { font-family: Inter, Arial, sans-serif; font-size: 14px; line-height: 1.6; }'
+});
+</script>
+</body>
+</html>

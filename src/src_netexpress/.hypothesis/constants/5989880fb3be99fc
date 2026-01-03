@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\admin.py
+# hypothesis_version: 6.148.7
+
+['Notes', 'PDF', '__all__', 'cols', 'created_at', 'description', 'factures:download', 'generate_pdfs', 'issue_date', 'number', 'pdf_link', 'quantity', 'quote', 'rows', 'send_invoices', 'status', 'tax_rate', 'total_ht', 'total_ttc', 'total_tva', 'tva', 'unit_price', '–']

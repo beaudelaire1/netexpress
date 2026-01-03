@@ -50,8 +50,8 @@ urlpatterns = [
     path("taches/", include("tasks.urls")),
     path("messages/", include(("messaging.urls", "messaging"), namespace="messaging")),
     
-    # CKEditor URLs for WYSIWYG functionality
-    path("ckeditor/", include("ckeditor_uploader.urls")),
+    # TinyMCE URLs
+    path("tinymce/", include("tinymce.urls")),
     
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),

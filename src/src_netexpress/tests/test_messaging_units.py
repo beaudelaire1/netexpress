@@ -144,7 +144,8 @@ class InternalMessageFormTests(TestCase):
         """Test form with valid data."""
         form_data = {
             'recipient': self.recipient.id,
-            'subject': 'Test Subject',
+            'subject_type': 'question',
+            'reference': 'Devis #123',
             'content': '<p>Test content with <strong>formatting</strong></p>'
         }
         
@@ -154,14 +155,15 @@ class InternalMessageFormTests(TestCase):
         message = form.save()
         self.assertEqual(message.sender, self.sender)
         self.assertEqual(message.recipient, self.recipient)
-        self.assertEqual(message.subject, 'Test Subject')
+        self.assertEqual(message.subject, 'Question — Devis #123')
         self.assertIn('<strong>formatting</strong>', message.content)
     
     def test_form_creates_thread(self):
         """Test that form creates message thread."""
         form_data = {
             'recipient': self.recipient.id,
-            'subject': 'Test Thread Subject',
+            'subject_type': 'suivi_devis',
+            'reference': 'Test #456',
             'content': 'Test content'
         }
         
@@ -172,7 +174,7 @@ class InternalMessageFormTests(TestCase):
         
         # Should create a thread
         self.assertIsNotNone(message.thread)
-        self.assertEqual(message.thread.subject, 'Test Thread Subject')
+        self.assertEqual(message.thread.subject, 'Suivi de devis — Test #456')
         self.assertIn(self.sender, message.thread.participants.all())
         self.assertIn(self.recipient, message.thread.participants.all())
     
@@ -188,7 +190,7 @@ class InternalMessageFormTests(TestCase):
         """Test form with invalid data."""
         # Missing required fields
         form_data = {
-            'subject': 'Test Subject'
+            'subject_type': 'question'
             # Missing recipient and content
         }
         
@@ -336,7 +338,8 @@ class MessagingViewTests(TestCase):
         url = reverse('messaging:internal_compose')
         form_data = {
             'recipient': self.recipient.id,
-            'subject': 'Test Subject',
+            'subject_type': 'information',
+            'reference': '',
             'content': '<p>Test content</p>'
         }
         
@@ -346,7 +349,7 @@ class MessagingViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         
         # Message should be created
-        message = Message.objects.get(subject='Test Subject')
+        message = Message.objects.get(subject='Information')
         self.assertEqual(message.sender, self.sender)
         self.assertEqual(message.recipient, self.recipient)
     
@@ -401,8 +404,8 @@ class MessagingViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class CKEditorIntegrationTests(TestCase):
-    """Unit tests for CKEditor integration."""
+class MessageContentTests(TestCase):
+    """Unit tests for message content handling."""
     
     def setUp(self):
         """Set up test users."""
@@ -417,16 +420,14 @@ class CKEditorIntegrationTests(TestCase):
             password='testpass123'
         )
     
-    def test_ckeditor_content_handling(self):
-        """Test that CKEditor content is properly handled."""
-        # Test various CKEditor output formats
+    def test_message_content_handling(self):
+        """Test that message content is properly handled."""
+        # Test various content formats
         test_contents = [
-            '<p>Simple paragraph</p>',
-            '<p><strong>Bold text</strong> and <em>italic text</em></p>',
-            '<ul><li>Item 1</li><li>Item 2</li></ul>',
-            '<ol><li>First</li><li>Second</li></ol>',
-            '<p>Text with <a href="http://example.com">link</a></p>',
-            '<p>Line 1<br />Line 2</p>',  # CKEditor uses <br /> format
+            'Simple text message',
+            'Message with\nmultiple lines',
+            'Message with special chars: é à ü ñ',
+            'Message with numbers: 12345',
         ]
         
         for content in test_contents:
@@ -434,7 +435,7 @@ class CKEditorIntegrationTests(TestCase):
                 message = Message.objects.create(
                     sender=self.sender,
                     recipient=self.recipient,
-                    subject='CKEditor Test',
+                    subject='Content Test',
                     content=content
                 )
                 
@@ -445,13 +446,10 @@ class CKEditorIntegrationTests(TestCase):
                 retrieved = Message.objects.get(id=message.id)
                 self.assertEqual(retrieved.content, content)
     
-    def test_ckeditor_form_widget_configuration(self):
-        """Test that CKEditor widget is properly configured in forms."""
+    def test_form_widget_configuration(self):
+        """Test that content field uses TinyMCE widget."""
         form = InternalMessageForm(sender=self.sender)
         
-        # Check that content field uses CKEditorWidget
+        # Check that content field uses TinyMCE
         content_widget = form.fields['content'].widget
-        self.assertEqual(content_widget.__class__.__name__, 'CKEditorWidget')
-        
-        # Check that messaging config is used
-        self.assertEqual(content_widget.config_name, 'messaging')
+        self.assertEqual(content_widget.__class__.__name__, 'TinyMCE')

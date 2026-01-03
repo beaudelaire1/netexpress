@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\messaging\views.py
+# hypothesis_version: 6.148.7
+
+[400, 401, 405, '-created_at', '-last_message_at', 'Client', 'INVOICE_BRANDING', 'Method not allowed', 'Nettoyage Express', 'POST', 'account_invitation', 'admin:login', 'attachment', 'brand', 'branding', 'content', 'created_at', 'email_messages', 'error', 'errors', 'form', 'message', 'message_notification', 'messages', 'messaging:list', 'name', 'notification_generic', 'participants', 'read_at', 'recipient', 'recipient_name', 'reply_form', 'reply_id', 'sender', 'subject', 'success', 'task_assignment', 'task_completion', 'template', 'thread', 'thread_messages', 'threads', 'unread_count']

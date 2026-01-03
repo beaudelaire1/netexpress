@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from django import forms
 from django.contrib.auth.models import User
+from django.conf import settings
+from tinymce.widgets import TinyMCE
 
 from .models import Message, MessageThread
+from devis.models import Client
 
 
 # Types de messages prédéfinis avec leurs templates
@@ -17,51 +20,70 @@ EMAIL_TEMPLATE_CHOICES = [
 
 
 class MessageComposeForm(forms.Form):
-    """Formulaire d'envoi d'email avec templates prédéfinis.
+    """Formulaire d'envoi d'email avec contenu libre et mise en forme.
     
-    Le contenu est généré automatiquement via les templates stylisés.
-    Aucun texte libre n'est permis.
+    Permet d'écrire un message personnalisé avec TinyMCE.
     """
-    recipient = forms.EmailField(
+    client = forms.ModelChoiceField(
+        queryset=Client.objects.all().order_by('full_name'),
         label="Destinataire",
-        widget=forms.EmailInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'placeholder': 'client@example.com'
-        })
-    )
-    template_type = forms.ChoiceField(
-        label="Type de message",
-        choices=EMAIL_TEMPLATE_CHOICES,
+        required=False,
+        empty_label="-- Sélectionner un client --",
         widget=forms.Select(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+            'class': 'bo-input',
+            'id': 'id_client'
         })
     )
-    # Champs contextuels optionnels pour personnaliser le template
-    recipient_name = forms.CharField(
-        label="Nom du destinataire",
-        max_length=100,
+    recipient = forms.EmailField(
+        label="Ou saisir un email",
         required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'placeholder': 'Nom du client ou employé'
+        widget=forms.EmailInput(attrs={
+            'class': 'bo-input',
+            'placeholder': 'client@example.com',
+            'id': 'id_recipient'
         })
     )
-    reference = forms.CharField(
-        label="Référence (optionnel)",
-        max_length=100,
-        required=False,
+    subject = forms.CharField(
+        label="Objet",
+        max_length=200,
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'placeholder': 'Ex: Devis #123, Tâche #456'
+            'class': 'bo-input',
+            'placeholder': 'Objet du message'
         })
+    )
+    content = forms.CharField(
+        label="Message",
+        widget=forms.Textarea(attrs={
+            'id': 'id_content',
+            'rows': 10
+        }),
+        help_text="Rédigez votre message avec mise en forme"
     )
     attachment = forms.FileField(
         label="Pièce jointe (optionnel)", 
         required=False,
         widget=forms.FileInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'
+            'class': 'bo-input'
         })
     )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        client = cleaned_data.get('client')
+        recipient = cleaned_data.get('recipient')
+        
+        # Au moins un des deux doit être renseigné
+        if not client and not recipient:
+            raise forms.ValidationError("Veuillez sélectionner un client ou saisir un email.")
+        
+        # Si client sélectionné, utiliser son email
+        if client:
+            cleaned_data['recipient'] = client.email
+            cleaned_data['recipient_name'] = client.full_name
+        else:
+            cleaned_data['recipient_name'] = ''
+        
+        return cleaned_data
 
 
 # Types de sujets prédéfinis pour les messages internes
@@ -76,11 +98,15 @@ INTERNAL_MESSAGE_SUBJECTS = [
 ]
 
 
+# Configuration TinyMCE simplifiée pour les messages
+TINYMCE_MESSAGING_ATTRS = {
+    'cols': 80,
+    'rows': 10,
+}
+
+
 class InternalMessageForm(forms.ModelForm):
-    """Form for creating internal messages with predefined subjects.
-    
-    Le contenu est limité à un texte simple sans HTML libre.
-    """
+    """Form for creating internal messages with rich text editor."""
     
     recipient = forms.ModelChoiceField(
         queryset=User.objects.filter(is_active=True),
@@ -110,14 +136,20 @@ class InternalMessageForm(forms.ModelForm):
     
     content = forms.CharField(
         label="Message",
-        widget=forms.Textarea(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'rows': 5,
-            'placeholder': 'Votre message...',
-            'maxlength': 2000
-        }),
-        max_length=2000,
-        help_text="Maximum 2000 caractères"
+        widget=TinyMCE(
+            attrs=TINYMCE_MESSAGING_ATTRS,
+            mce_attrs={
+                'theme': 'silver',
+                'height': 250,
+                'menubar': False,
+                'plugins': 'advlist autolink lists link',
+                'toolbar': 'bold italic underline | forecolor | bullist numlist | link | removeformat',
+                'branding': False,
+                'promotion': False,
+                'license_key': 'gpl',
+            }
+        ),
+        help_text="Utilisez la barre d'outils pour formater votre message"
     )
     
     class Meta:
@@ -174,21 +206,24 @@ class InternalMessageForm(forms.ModelForm):
 
 
 class MessageReplyForm(forms.ModelForm):
-    """Form for replying to messages within a thread.
-    
-    Utilise un textarea simple sans HTML libre.
-    """
+    """Form for replying to messages within a thread with rich text editor."""
     
     content = forms.CharField(
         label="Réponse",
-        widget=forms.Textarea(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
-            'rows': 4,
-            'placeholder': 'Votre réponse...',
-            'maxlength': 2000
-        }),
-        max_length=2000,
-        help_text="Maximum 2000 caractères"
+        widget=TinyMCE(
+            attrs=TINYMCE_MESSAGING_ATTRS,
+            mce_attrs={
+                'theme': 'silver',
+                'height': 200,
+                'menubar': False,
+                'plugins': 'advlist autolink lists link',
+                'toolbar': 'bold italic underline | forecolor | bullist numlist | link | removeformat',
+                'branding': False,
+                'promotion': False,
+                'license_key': 'gpl',
+            }
+        ),
+        help_text="Utilisez la barre d'outils pour formater votre réponse"
     )
     
     class Meta:

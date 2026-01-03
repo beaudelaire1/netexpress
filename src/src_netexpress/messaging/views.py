@@ -55,9 +55,9 @@ class MessageDetailView(LoginRequiredMixin, DetailView):
 
 
 def compose(request):
-    """Compose & send a premium HTML email using predefined templates.
+    """Compose & send a custom HTML email with rich text formatting.
 
-    Aucun texte libre n'est permis - le contenu est généré via les templates stylisés.
+    Permet d'écrire un message personnalisé avec TinyMCE (texte libre).
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return redirect("admin:login")
@@ -65,41 +65,40 @@ def compose(request):
     if request.method == "POST":
         form = MessageComposeForm(request.POST, request.FILES)
         if form.is_valid():
-            template_type = form.cleaned_data["template_type"]
-            config = TEMPLATE_CONFIG.get(template_type, TEMPLATE_CONFIG['notification_generic'])
+            # Récupérer les données du formulaire
+            recipient_email = form.cleaned_data["recipient"]
+            recipient_name = form.cleaned_data.get("recipient_name") or "Client"
+            subject = form.cleaned_data["subject"]
+            content = form.cleaned_data["content"]
             
-            # Préparer le contexte pour le template
+            # Préparer le contexte pour le template d'email
             branding = getattr(settings, 'INVOICE_BRANDING', {}) or {}
             context = {
                 'branding': branding,
                 'brand': branding.get('name', 'Nettoyage Express'),
-                'recipient_name': form.cleaned_data.get('recipient_name') or 'Client',
-                'headline': config['subject'].split('—')[0].strip(),
-                'reference': form.cleaned_data.get('reference') or '',
+                'recipient_name': recipient_name,
+                'content': content,  # Contenu HTML de TinyMCE
             }
             
-            # Générer le HTML avec le template stylisé
-            html_body = render_to_string(config['template'], context)
+            # Générer le HTML avec le template de base
+            html_body = render_to_string('emails/custom_message.html', context)
             
             msg = EmailMessage.objects.create(
-                recipient=form.cleaned_data["recipient"],
-                subject=config['subject'],
+                recipient=recipient_email,
+                subject=subject,
                 body=html_body,
                 attachment=form.cleaned_data.get("attachment"),
             )
             try:
                 msg.send()
-                messages.success(request, "Message envoyé avec le template professionnel.")
-            except Exception:
-                messages.error(request, "Erreur lors de l'envoi du message.")
+                messages.success(request, f"Message envoyé avec succès à {recipient_email}.")
+            except Exception as e:
+                messages.error(request, f"Erreur lors de l'envoi du message: {str(e)}")
             return redirect("messaging:list")
     else:
         form = MessageComposeForm()
 
-    return render(request, "messaging/compose.html", {
-        "form": form,
-        "template_choices": EMAIL_TEMPLATE_CHOICES,
-    })
+    return render(request, "messaging/compose.html", {"form": form})
 
 
 # Internal Messaging System Views

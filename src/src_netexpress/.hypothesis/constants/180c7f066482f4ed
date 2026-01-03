@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\services\email_service.py
+# hypothesis_version: 6.148.7
+
+['/', 'BrevoEmailBackend', 'Client', 'DEFAULT_FROM_EMAIL', 'DEV', 'EMAIL_BACKEND', 'FAC', 'INVOICE_BRANDING', 'NetExpress', 'SITE_URL', 'application/pdf', 'branding', 'client', 'client_name', 'company_name', 'cta_url', 'email', 'full_name', 'invoice', 'name', 'password_setup_url', 'pdf', 'quote', 'text/html', 'user']

@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\manage.py
+# hypothesis_version: 6.148.7
+
+['--settings', '__main__', 'check_brevo', 'runserver', 'shell', 'test']

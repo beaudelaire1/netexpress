@@ -66,8 +66,7 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'whitenoise.runserver_nostatic',
-    'ckeditor',
-    'ckeditor_uploader',
+    'tinymce',
 
     # Project apps
     'core.apps.CoreConfig',
@@ -329,63 +328,38 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ============================================================
-# 📝 CKEDITOR CONFIGURATION
+# 📝 TINYMCE CONFIGURATION
 # ============================================================
 
-# CKEditor settings for WYSIWYG messaging
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_IMAGE_BACKEND = "pillow"
-CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'
+TINYMCE_DEFAULT_CONFIG = {
+    'theme': 'silver',
+    'height': 300,
+    'menubar': False,
+    'plugins': [
+        'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview',
+        'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'table', 'wordcount'
+    ],
+    'toolbar': 'undo redo | formatselect | bold italic underline strikethrough | '
+               'forecolor backcolor | alignleft aligncenter alignright alignjustify | '
+               'bullist numlist outdent indent | link | removeformat',
+    'content_css': 'default',
+    'branding': False,
+    'promotion': False,
+    'license_key': 'gpl',
+}
 
-CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'Custom',
-        'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
-            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source']
-        ],
-        'height': 200,
-        'width': '100%',
-        'toolbarCanCollapse': True,
-        'forcePasteAsPlainText': True,
-        'removePlugins': 'stylesheetparser',
-        'allowedContent': True,
-    },
-    'messaging': {
-        'toolbar': 'Messaging',
-        'toolbar_Messaging': [
-            ['Bold', 'Italic', 'Underline'],
-            ['NumberedList', 'BulletedList'],
-            ['Link', 'Unlink'],
-            ['RemoveFormat']
-        ],
-        'height': 150,
-        'width': '100%',
-        'removePlugins': 'stylesheetparser',
-        'forcePasteAsPlainText': True,
-        'enterMode': 2,  # Use <br> instead of <p>
-        'shiftEnterMode': 1,  # Use <p> for Shift+Enter
-    },
-    'admin': {
-        'toolbar': 'Admin',
-        'toolbar_Admin': [
-            ['Bold', 'Italic', 'Underline', 'Strike'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
-            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['Link', 'Unlink', 'Anchor'],
-            ['Image', 'Table', 'HorizontalRule'],
-            ['TextColor', 'BGColor'],
-            ['Smiley', 'SpecialChar'],
-            ['RemoveFormat', 'Source']
-        ],
-        'height': 300,
-        'width': '100%',
-        'filebrowserWindowWidth': 940,
-        'filebrowserWindowHeight': 725,
-    }
+# Configuration simplifiée pour les messages
+TINYMCE_MESSAGING_CONFIG = {
+    'theme': 'silver',
+    'height': 200,
+    'menubar': False,
+    'plugins': ['advlist', 'autolink', 'lists', 'link'],
+    'toolbar': 'bold italic underline | forecolor | bullist numlist | link | removeformat',
+    'content_css': 'default',
+    'branding': False,
+    'promotion': False,
+    'license_key': 'gpl',
 }
 
 # ============================================================

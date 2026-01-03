@@ -1,0 +1,4 @@
+# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\signals.py
+# hypothesis_version: 6.148.7
+
+['AdminBusiness', 'AdminTechnical', 'Clients', 'Workers', 'accounts', 'add', 'auth', 'category', 'change', 'client', 'clients', 'delete', 'devis', 'factures', 'grant_all', 'group', 'invoice', 'invoiceitem', 'is_staff', 'is_superuser', 'models', 'name', 'profile', 'quote', 'quoteitem', 'quoterequest', 'role', 'service', 'services', 'task', 'tasks', 'user', 'view']

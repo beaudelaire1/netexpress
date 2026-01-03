@@ -135,7 +135,7 @@ class RoleBasedAccessMiddleware:
             '/devis/',
             '/static/',
             '/media/',
-            '/ckeditor/',
+            '/tinymce/',
             '/sitemap.xml',
             '/robots.txt',
             '/health/',
