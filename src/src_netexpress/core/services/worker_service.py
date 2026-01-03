@@ -54,8 +54,8 @@ class WorkerService:
         if User.objects.filter(email=email).exists():
             raise ValidationError(f"Un utilisateur avec l'email {email} existe déjà.")
         
-        # Génération username unique
-        username = WorkerService._generate_username(email)
+        # Génération username unique (format: 2 lettres prénom + _ + nom)
+        username = WorkerService._generate_username(first_name, last_name)
         
         # Génération mot de passe temporaire sécurisé
         temporary_password = WorkerService._generate_temporary_password()
@@ -108,21 +108,45 @@ class WorkerService:
         return user, temporary_password
     
     @staticmethod
-    def _generate_username(email: str) -> str:
-        """Génère un username unique à partir de l'email."""
+    def _generate_username(first_name: str, last_name: str) -> str:
+        """
+        Génère un username unique au format: 2 premières lettres du prénom + _ + nom.
+        Exemple: Jean HERBOS -> je_herbos
+        """
         import re
+        import unicodedata
         
-        base_username = email.split('@')[0]
-        # Normalisation
-        base_username = re.sub(r'[^a-zA-Z0-9_-]', '_', base_username)
-        base_username = re.sub(r'^[^a-zA-Z0-9]+', '', base_username) or 'worker'
+        def normalize(text: str) -> str:
+            """Normalise le texte: supprime accents, met en minuscules."""
+            # Supprimer les accents
+            text = unicodedata.normalize('NFD', text)
+            text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
+            # Minuscules et garder uniquement lettres/chiffres
+            text = text.lower()
+            text = re.sub(r'[^a-z0-9]', '', text)
+            return text
+        
+        # Normaliser prénom et nom
+        prenom = normalize(first_name)
+        nom = normalize(last_name)
+        
+        # 2 premières lettres du prénom + _ + nom complet
+        prefix = prenom[:2] if len(prenom) >= 2 else prenom
+        base_username = f"{prefix}_{nom}" if nom else prefix
+        
+        # S'assurer que le username n'est pas vide
+        if not base_username or base_username == '_':
+            base_username = 'worker'
+        
+        # Limiter la longueur
         base_username = base_username[:140]
         
         username = base_username
         counter = 1
         
+        # Vérifier l'unicité
         while User.objects.filter(username=username).exists():
-            username = f"{base_username}_{counter}"
+            username = f"{base_username}{counter}"
             counter += 1
             if counter > 10000:
                 username = f"{base_username}_{secrets.token_hex(4)}"
@@ -169,14 +193,14 @@ class WorkerService:
             # Utiliser le template HTML générique
             html_body = render_to_string('emails/notification_generic.html', {
                 'headline': 'Bienvenue sur NetExpress',
-                'intro': f'Bonjour {worker.first_name},\n\nVotre compte worker a été créé sur NetExpress.',
+                'intro': f'Bonjour {worker.first_name},\n\nVotre compte ouvrier a été créé sur NetExpress. Voici vos identifiants de connexion :',
                 'rows': [
-                    {'label': 'Email', 'value': worker.email},
-                    {'label': 'Mot de passe temporaire', 'value': temporary_password},
+                    {'label': 'Identifiant', 'value': worker.username},
+                    {'label': 'Mot de passe', 'value': temporary_password},
                 ],
                 'action_url': login_url,
-                'action_label': 'Accéder à mon espace',
-                'reference': '⚠️ IMPORTANT : Veuillez changer votre mot de passe lors de votre première connexion.',
+                'action_label': 'Se connecter',
+                'reference': '⚠️ IMPORTANT : Vous devrez changer votre mot de passe lors de votre première connexion.',
             })
             
             from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
