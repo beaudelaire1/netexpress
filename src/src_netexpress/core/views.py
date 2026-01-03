@@ -982,7 +982,7 @@ def admin_task_mark_complete(request, pk):
 def admin_workers_list(request):
     """Admin Portal workers management view with optimized queries."""
     from django.contrib.auth.models import User
-    from django.db.models import Count, Q, Prefetch
+    from django.db.models import Count, Q
     from django.core.paginator import Paginator
     from accounts.models import Profile
     
@@ -991,11 +991,11 @@ def admin_workers_list(request):
         profile__role=Profile.ROLE_WORKER
     ).select_related('profile').order_by('first_name', 'last_name')
     
-    # Optimize with annotations
+    # Optimize with annotations (noms uniques pour éviter conflits)
     workers = workers.annotate(
-        total_tasks=Count('assigned_tasks'),
-        completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_COMPLETED)),
-        overdue_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_OVERDUE))
+        tasks_total=Count('assigned_tasks'),
+        tasks_done=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_COMPLETED)),
+        tasks_late=Count('assigned_tasks', filter=Q(assigned_tasks__status=Task.STATUS_OVERDUE))
     )
     
     # Add task statistics for each worker
@@ -1003,10 +1003,10 @@ def admin_workers_list(request):
     for worker in workers:
         workers_with_stats.append({
             'worker': worker,
-            'total_tasks': worker.total_tasks,
-            'completed_tasks': worker.completed_tasks,
-            'pending_tasks': worker.total_tasks - worker.completed_tasks,
-            'overdue_tasks': worker.overdue_tasks,
+            'total_tasks': worker.tasks_total,
+            'completed_tasks': worker.tasks_done,
+            'pending_tasks': worker.tasks_total - worker.tasks_done,
+            'overdue_tasks': worker.tasks_late,
         })
     
     # Pagination
