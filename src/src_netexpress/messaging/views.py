@@ -155,6 +155,24 @@ class InternalMessageDetailView(LoginRequiredMixin, DetailView):
             context['thread_messages'] = self.object.thread.messages.select_related(
                 'sender', 'recipient'
             ).order_by('created_at')
+        else:
+            # No thread yet - find related messages between same participants
+            # This handles messages that weren't properly threaded
+            related_messages = Message.objects.filter(
+                Q(sender=self.object.sender, recipient=self.object.recipient) |
+                Q(sender=self.object.recipient, recipient=self.object.sender)
+            ).filter(
+                # Match by subject (with or without Re:)
+                Q(subject=self.object.subject) |
+                Q(subject=f"Re: {self.object.subject}") |
+                Q(subject=self.object.subject.replace("Re: ", ""))
+            ).select_related('sender', 'recipient').order_by('created_at')
+            
+            if related_messages.count() > 1:
+                context['thread_messages'] = related_messages
+            else:
+                # Just show the single message
+                context['thread_messages'] = [self.object]
         
         return context
 

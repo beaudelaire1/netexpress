@@ -3,6 +3,7 @@ from __future__ import annotations
 from django import forms
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
 from tinymce.widgets import TinyMCE
 
 from .models import Message, MessageThread
@@ -245,15 +246,34 @@ class MessageReplyForm(forms.ModelForm):
                 reply.recipient = self.original_message.recipient
             else:
                 reply.recipient = self.original_message.sender
-            reply.subject = f"Re: {self.original_message.subject.replace('Re: ', '')}"
-            reply.thread = self.original_message.thread
+            
+            # Clean up subject (avoid multiple Re:)
+            base_subject = self.original_message.subject.replace('Re: ', '')
+            reply.subject = f"Re: {base_subject}"
+            
+            # Use existing thread or create one
+            if self.original_message.thread:
+                reply.thread = self.original_message.thread
+            else:
+                # Create a new thread for this conversation
+                thread = MessageThread.objects.create(
+                    subject=base_subject,
+                    last_message_at=reply.created_at if reply.created_at else timezone.now()
+                )
+                thread.participants.add(self.sender, reply.recipient)
+                reply.thread = thread
+                
+                # Also associate the original message with this thread
+                self.original_message.thread = thread
+                self.original_message.save(update_fields=['thread'])
         
         if commit:
             reply.save()
             
-            # Update thread's last message time
+            # Update thread's last message time and ensure participants
             if reply.thread:
                 reply.thread.last_message_at = reply.created_at
+                reply.thread.participants.add(reply.sender, reply.recipient)
                 reply.thread.save(update_fields=['last_message_at'])
         
         return reply
