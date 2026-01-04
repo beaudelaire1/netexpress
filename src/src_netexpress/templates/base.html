@@ -10,8 +10,11 @@
   <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
 
-  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
-  <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
+  <meta name="description" content="{% block meta_description %}Nettoyage Express : services professionnels de nettoyage, entretien d'espaces verts, peinture et bricolage à Cayenne, Matoury, Remire-Montjoly et Macouria en Guyane. Devis gratuit en ligne.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}nettoyage Cayenne, nettoyage Matoury, nettoyage Remire-Montjoly, nettoyage Macouria, entretien espaces verts Guyane, jardinage Cayenne, peinture Matoury, bricolage Guyane, devis nettoyage Cayenne, entreprise nettoyage 973{% endblock %}">
+  <meta name="geo.region" content="GF">
+  <meta name="geo.placename" content="Matoury, Cayenne, Remire-Montjoly, Macouria">
+  <meta name="geo.position" content="4.8467;-52.3339">
   <title>{% block title %}Nettoyage Express{% endblock %}</title>
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
   <!-- Polices et icônes : centralisées ici pour éviter duplication/FOUT -->
@@ -34,6 +37,7 @@
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Nettoyage Express",
+    "description": "Services professionnels de nettoyage, entretien d'espaces verts, peinture et bricolage en Guyane française",
     "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
     "telephone": "05 94 30 23 68",
     "address": {
@@ -41,7 +45,92 @@
       "streetAddress": "753, Chemin de la Désirée",
       "postalCode": "97351",
       "addressLocality": "Matoury",
-      "addressCountry": "FR"
+      "addressRegion": "Guyane",
+      "addressCountry": "GF"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "4.8467",
+      "longitude": "-52.3339"
+    },
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Cayenne",
+        "containedIn": {
+          "@type": "AdministrativeArea",
+          "name": "Guyane"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Matoury",
+        "containedIn": {
+          "@type": "AdministrativeArea",
+          "name": "Guyane"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Remire-Montjoly",
+        "containedIn": {
+          "@type": "AdministrativeArea",
+          "name": "Guyane"
+        }
+      },
+      {
+        "@type": "City",
+        "name": "Macouria",
+        "containedIn": {
+          "@type": "AdministrativeArea",
+          "name": "Guyane"
+        }
+      }
+    ],
+    "priceRange": "€€",
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "08:00",
+        "closes": "18:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "08:00",
+        "closes": "12:00"
+      }
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Services de nettoyage et d'entretien",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Nettoyage de prestige",
+            "description": "Nettoyage intérieur, vitrerie et désinfection professionnelle"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Entretien d'espaces verts",
+            "description": "Tonte, taille, jardinage et aménagement paysager"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Peinture et rénovation",
+            "description": "Travaux de peinture et petites réparations"
+          }
+        }
+      ]
     }
   }
   </script>
@@ -51,17 +140,15 @@
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Nettoyage Express",
-      "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
-      "telephone": "05 94 30 23 68",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "753, Chemin de la Désirée",
-        "postalCode": "97351",
-        "addressLocality": "Matoury",
-        "addressCountry": "GF"
-      }
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Accueil",
+          "item": "{{ request.build_absolute_uri|cut:request.get_full_path }}"
+        }
+      ]
     }
   </script>
   <!--
@@ -132,6 +219,11 @@
       properly closed to meet the zero syntax error requirement.
     -->
     <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
+    <p class="footer-locations" style="margin-top: 10px; font-size: 0.9em; color: #666;">
+      <strong>Zones d'intervention :</strong> Cayenne, Matoury, Remire-Montjoly, Macouria et environs
+      <br>
+      <span class="footer-contact">📍 753, Chemin de la Désirée, 97351 Matoury | 📞 05 94 30 23 68</span>
+    </p>
   </footer>
 
 
