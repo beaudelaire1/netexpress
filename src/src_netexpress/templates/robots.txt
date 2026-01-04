@@ -1,4 +1,33 @@
+# Robots.txt pour Nettoyage Express Guyane
+# Site: https://www.nettoyageexpresse.fr
+# Contact: contact@nettoyageexpresse.fr
+
 User-agent: *
+# Pages autorisées
+Allow: /
+Allow: /services/
+Allow: /contact/
+Allow: /devis/
+Allow: /excellence/
+Allow: /realisations/
+
+# Pages restreintes (admin/gestion)
 Disallow: /admin/
 Disallow: /gestion/
-Sitemap: /sitemap.xml
+Disallow: /accounts/
+Disallow: /client/
+Disallow: /worker/
+Disallow: /admin-dashboard/
+Disallow: /messages/
+Disallow: /taches/
+Disallow: /factures/
+
+# Paramètres de recherche et pages dynamiques
+Disallow: /*?*
+Allow: /devis/demande/?service_type=*
+
+# Délai de crawl (en secondes)
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://www.nettoyageexpresse.fr/sitemap.xml
