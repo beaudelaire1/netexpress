@@ -124,7 +124,8 @@ class BrevoEmailBackend(BaseEmailBackend):
                 sender={"name": sender_name, "email": sender_email},
                 subject=message.subject,
                 html_content=self._get_html_content(message),
-                text_content=message.body if message.body else None,
+                text_content=self._get_text_content(message),
+                headers={"charset": "utf-8"},
             )
             
             # Ajouter les pièces jointes si présentes
@@ -226,3 +227,15 @@ class BrevoEmailBackend(BaseEmailBackend):
             return message.body.replace('\n', '<br>')
             
         return None
+    
+    def _get_text_content(self, message):
+        """
+        Récupère le contenu texte brut du message pour l'alternative text/plain.
+        """
+        # Si content_subtype est 'html', extraire le texte du HTML
+        if hasattr(message, 'content_subtype') and message.content_subtype == 'html':
+            # Retourner None pour laisser Brevo générer le texte depuis le HTML
+            return None
+        
+        # Sinon retourner le body tel quel
+        return message.body if message.body else None

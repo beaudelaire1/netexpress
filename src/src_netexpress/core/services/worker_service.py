@@ -193,19 +193,25 @@ class WorkerService:
             # Utiliser le template HTML générique
             html_body = render_to_string('emails/notification_generic.html', {
                 'headline': 'Bienvenue sur NetExpress',
-                'intro': f'Bonjour {worker.first_name},\n\nVotre compte ouvrier a été créé sur NetExpress. Voici vos identifiants de connexion :',
+                'intro': f'Bonjour {worker.first_name},<br><br>Votre compte ouvrier a été créé sur NetExpress. Voici vos identifiants de connexion :',
                 'rows': [
                     {'label': 'Identifiant', 'value': worker.username},
                     {'label': 'Mot de passe', 'value': temporary_password},
                 ],
                 'action_url': login_url,
                 'action_label': 'Se connecter',
-                'reference': '⚠️ IMPORTANT : Vous devrez changer votre mot de passe lors de votre première connexion.',
+                'reference': 'IMPORTANT : Vous devrez changer votre mot de passe lors de votre première connexion.',
             })
             
             from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
-            email = EmailMessage(subject=subject, body=html_body, from_email=from_email, to=[worker.email])
+            email = EmailMessage(
+                subject=subject, 
+                body=html_body, 
+                from_email=from_email, 
+                to=[worker.email]
+            )
             email.content_subtype = 'html'
+            email.encoding = 'utf-8'
             email.send(fail_silently=False)
             return True
         except Exception as e:
