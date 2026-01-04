@@ -1,14 +1,24 @@
 {% load static %}
-<html lang="fr">
+<html lang="fr-GF">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Language and regional targeting -->
+  <link rel="alternate" hreflang="fr-GF" href="{{ request.build_absolute_uri }}" />
+  <link rel="alternate" hreflang="fr" href="{{ request.build_absolute_uri }}" />
   <!-- Provide a concise description of the site for search engines -->
   <meta property="og:site_name" content="Nettoyage Express">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:locale" content="fr_GF">
   <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.svg' %}">
+  
+  <!-- Twitter Card tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}{% block og_title %}Nettoyage Express{% endblock %}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_desc %}{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}{% endblock %}">
 
   <meta name="description" content="{% block meta_description %}Nettoyage Express : services professionnels de nettoyage, entretien d'espaces verts, peinture et bricolage à Cayenne, Matoury, Remire-Montjoly et Macouria en Guyane. Devis gratuit en ligne.{% endblock %}">
   <meta name="keywords" content="{% block meta_keywords %}nettoyage Cayenne, nettoyage Matoury, nettoyage Remire-Montjoly, nettoyage Macouria, entretien espaces verts Guyane, jardinage Cayenne, peinture Matoury, bricolage Guyane, devis nettoyage Cayenne, entreprise nettoyage 973{% endblock %}">
@@ -161,7 +171,7 @@
     <div class="container header-row">
       <a href="{% url 'core:home' %}" class="brand" aria-label="Accueil">
         {# Utilise un pictogramme pour le logo afin d'éviter une dépendance à un fichier manquant. #}
-        <span class="brand-icon" aria-hidden="true"> <img src="{% static 'img/logo.svg' %}" alt="Logo" width="50"> </span>
+        <span class="brand-icon" aria-hidden="true"> <img src="{% static 'img/logo.svg' %}" alt="Nettoyage Express - Services de nettoyage en Guyane" width="50"> </span>
         <span class="brand-name">Nettoyage Express</span>
       </a>
       <!-- Bouton burger pour l'affichage mobile -->

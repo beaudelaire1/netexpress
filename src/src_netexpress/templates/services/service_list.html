@@ -33,9 +33,9 @@
         <article class="service-card">
           <div class="service-media">
             {% if service.image %}
-              <img src="{{ service.image.url }}" alt="{{ service.title }}">
+              <img src="{{ service.image.url }}" alt="{{ service.title }} - Service professionnel à Cayenne et Matoury">
             {% else %}
-              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }}">
+              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }} - Nettoyage Express Guyane">
             {% endif %}
           </div>
           <div class="service-body">
