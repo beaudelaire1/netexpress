@@ -85,7 +85,7 @@
           <p class="text-gray-600 mt-1">Vue d'ensemble des performances et KPIs en temps réel</p>
         </div>
         <div class="flex items-center space-x-4">
-          <button onclick="location.reload()" class="px-4 py-2 bg-ne-primary-600 text-white rounded-lg hover:bg-ne-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
+          <button onclick="window.location.href='{% url 'core:admin_dashboard' %}?refresh=1'" class="px-4 py-2 bg-ne-primary-600 text-white rounded-lg hover:bg-ne-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
             <i class="fas fa-sync-alt mr-2"></i>Actualiser
           </button>
           <div class="text-sm text-gray-500">
@@ -244,7 +244,9 @@
                       <p class="text-sm font-semibold text-gray-900">
                         {{ worker_stat.worker.get_full_name|default:worker_stat.worker.username }}
                       </p>
-                      <p class="text-xs text-gray-500">{{ worker_stat.total_tasks }} tâches assignées</p>
+                      <p class="text-xs text-gray-500">
+                        <span class="text-green-600 font-medium">{{ worker_stat.completed_tasks }}</span> / {{ worker_stat.total_tasks }} tâches terminées
+                      </p>
                     </div>
                   </div>
                   <div class="text-right">

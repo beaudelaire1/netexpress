@@ -304,6 +304,7 @@ body {
     box-shadow: var(--shadow-soft);
     color: var(--primary-green);
     text-align: left;
+    overflow: hidden;
 }
 
 .section-label {
@@ -317,6 +318,8 @@ body {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .option {
@@ -325,12 +328,13 @@ body {
     align-items: center;
     justify-content: center;
     flex: 1;
+    min-width: 0;
     padding: 20px;
     border: 1px solid #e5e7eb;
     border-radius: var(--radius);
-    margin-right: 10px;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
+    background: transparent;
 }
 
 .option:last-child {
@@ -341,11 +345,13 @@ body {
     font-size: 1.5rem;
     margin-bottom: 10px;
     color: var(--primary-green);
+    flex-shrink: 0;
 }
 
 .option span {
     font-weight: 500;
     color: var(--text-main);
+    text-align: center;
 }
 
 .option.active {
@@ -742,6 +748,9 @@ footer {
   -webkit-mask:
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
+  mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: borderFlow 7s linear infinite;
@@ -750,4 +759,287 @@ footer {
 @keyframes borderFlow{
   0%{ background-position: 0% 50%; }
   100%{ background-position: 100% 50%; }
+}
+
+
+/* =============================================
+   RESPONSIVE MOBILE FIXES
+   ============================================= */
+
+/* Global overflow fix */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Mobile responsive (max-width: 768px) */
+@media (max-width: 768px) {
+    /* Hero section */
+    .hero {
+        height: auto;
+        min-height: 60vh;
+        padding: 40px 20px;
+    }
+    
+    .hero-content h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    .hero-content p {
+        font-size: 1rem;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .hero-buttons .btn-primary,
+    .hero-buttons .btn-outline {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    /* Navbar mobile */
+    .navbar {
+        padding: 0.75rem 4%;
+        flex-wrap: wrap;
+    }
+    
+    .nav-links {
+        display: none;
+    }
+    
+    .btn-cta {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    
+    /* Expertise section */
+    .expertise {
+        padding: 40px 5%;
+    }
+    
+    .section-head h2 {
+        font-size: 1.75rem;
+    }
+    
+    .tabs-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        padding: 12px 20px;
+    }
+    
+    .content-card {
+        flex-direction: column;
+    }
+    
+    .card-image {
+        min-height: 200px;
+    }
+    
+    .card-text {
+        padding: 25px;
+    }
+    
+    .card-text h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Quote section (formulaire devis) */
+    .quote-section {
+        padding: 40px 4%;
+    }
+    
+    .quote-header h2 {
+        font-size: 1.75rem;
+    }
+    
+    .form-card {
+        padding: 20px 15px;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    .service-selector {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .option {
+        margin-right: 0;
+        padding: 15px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .option i {
+        margin-bottom: 0;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .option span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .input-group {
+        width: 100%;
+    }
+    
+    .btn-submit {
+        padding: 14px 20px;
+    }
+    
+    /* Portfolio section */
+    .portfolio {
+        padding: 40px 4%;
+    }
+    
+    .portfolio-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .portfolio-item {
+        height: 200px;
+    }
+    
+    /* Page header */
+    .page-header {
+        height: auto;
+        min-height: 30vh;
+        padding: 40px 20px;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    /* Page content */
+    .page-content {
+        padding: 40px 5%;
+    }
+    
+    /* Contact section */
+    .contact-card {
+        padding: 20px 15px;
+    }
+    
+    .contact-head h1 {
+        font-size: 1.75rem;
+    }
+    
+    /* Values grid */
+    .values-grid {
+        gap: 20px;
+    }
+    
+    .value-card {
+        padding: 25px;
+    }
+    
+    .value-card i {
+        font-size: 2rem;
+    }
+    
+    .value-card h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Small mobile (max-width: 480px) */
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 1.75rem;
+    }
+    
+    .section-head h2,
+    .quote-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .form-card {
+        padding: 15px 12px;
+    }
+    
+    .option {
+        padding: 12px;
+    }
+    
+    .card-text {
+        padding: 20px 15px;
+    }
+    
+    .card-text h3 {
+        font-size: 1.25rem;
+    }
+    
+    .features li {
+        font-size: 0.9rem;
+    }
+}
+
+/* Fix for inputs and selects overflow */
+input, select, textarea, button {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.styled-slider {
+    max-width: 100%;
+}
+
+/* Fix for animated border on mobile */
+@media (max-width: 768px) {
+    .animated-border::before {
+        inset: -1px;
+    }
+}
+
+/* Additional mobile fixes for common overflow issues */
+.tabs-wrapper,
+.tab-content,
+.quick-quote-form {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Ensure all text doesn't cause horizontal scroll */
+h1, h2, h3, h4, h5, h6, p, span, a, li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Fix for tables on mobile */
+table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Fix for pre and code blocks */
+pre, code {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-width: 100%;
 }

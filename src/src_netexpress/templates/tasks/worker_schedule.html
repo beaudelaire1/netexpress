@@ -121,18 +121,23 @@
         
         <!-- View Toggle (Mobile/Desktop) -->
         <div class="mt-4 sm:mt-0 flex space-x-2">
-          <button onclick="calendar.changeView('dayGridMonth')" 
-                  class="bg-ne-primary-600 hover:bg-ne-primary-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+          <button id="btn-today" onclick="goToToday()" 
+                  class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+            <i class="fas fa-calendar-day mr-1"></i>
+            <span class="hidden sm:inline">Aujourd'hui</span>
+          </button>
+          <button id="btn-month" onclick="changeCalendarView('dayGridMonth')" 
+                  class="view-btn bg-ne-primary-600 hover:bg-ne-primary-700 text-white px-3 py-2 rounded-md text-sm font-medium">
             <i class="fas fa-calendar mr-1"></i>
             <span class="hidden sm:inline">Mois</span>
           </button>
-          <button onclick="calendar.changeView('dayGridWeek')" 
-                  class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+          <button id="btn-week" onclick="changeCalendarView('dayGridWeek')" 
+                  class="view-btn bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
             <i class="fas fa-calendar-week mr-1"></i>
             <span class="hidden sm:inline">Semaine</span>
           </button>
-          <button onclick="calendar.changeView('listWeek')" 
-                  class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+          <button id="btn-list" onclick="changeCalendarView('listWeek')" 
+                  class="view-btn bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm font-medium">
             <i class="fas fa-list mr-1"></i>
             <span class="hidden sm:inline">Liste</span>
           </button>
@@ -244,19 +249,22 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script>
 let calendar;
+let currentView = 'dayGridMonth';
 
 document.addEventListener('DOMContentLoaded', function() {
   const calendarEl = document.getElementById('calendar');
+  const initialView = window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth';
+  currentView = initialView;
   
   calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+    initialView: initialView,
     locale: 'fr',
     firstDay: 1, // Monday
     height: 'auto',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'dayGridMonth,dayGridWeek,listWeek'
+      right: ''  // On utilise nos propres boutons
     },
     buttonText: {
       today: 'Aujourd\'hui',
@@ -279,15 +287,51 @@ document.addEventListener('DOMContentLoaded', function() {
     // Responsive settings
     windowResize: function() {
       if (window.innerWidth < 768) {
-        calendar.changeView('listWeek');
-      } else {
-        calendar.changeView('dayGridMonth');
+        changeCalendarView('listWeek');
       }
     }
   });
   
   calendar.render();
+  updateViewButtons(initialView);
 });
+
+function goToToday() {
+  if (calendar) {
+    calendar.today();
+  }
+}
+
+function changeCalendarView(viewName) {
+  if (calendar) {
+    calendar.changeView(viewName);
+    currentView = viewName;
+    updateViewButtons(viewName);
+  }
+}
+
+function updateViewButtons(activeView) {
+  // Reset all view buttons to gray
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.classList.remove('bg-ne-primary-600', 'hover:bg-ne-primary-700');
+    btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+  });
+  
+  // Highlight the active button
+  let activeBtn = null;
+  if (activeView === 'dayGridMonth') {
+    activeBtn = document.getElementById('btn-month');
+  } else if (activeView === 'dayGridWeek') {
+    activeBtn = document.getElementById('btn-week');
+  } else if (activeView === 'listWeek') {
+    activeBtn = document.getElementById('btn-list');
+  }
+  
+  if (activeBtn) {
+    activeBtn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+    activeBtn.classList.add('bg-ne-primary-600', 'hover:bg-ne-primary-700');
+  }
+}
 
 function showTaskModal(event) {
   const modal = document.getElementById('task-modal');

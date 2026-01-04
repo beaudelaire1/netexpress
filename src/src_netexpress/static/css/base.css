@@ -162,6 +162,17 @@ img {
   .nav.open { display: flex; }
   .header-row { flex-wrap: wrap; }
   .nav-link { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 0; }
+  .nav-link.cta { 
+    margin-left: 0; 
+    margin-top: 10px;
+    text-align: center;
+  }
+  .brand-name {
+    font-size: 0.9rem;
+  }
+  .brand-icon img {
+    width: 35px;
+  }
 }
 
 /* 4. FORMULAIRES (Le fix pour qu'ils ne soient pas étirés) */
@@ -235,6 +246,12 @@ label {
 @media (max-width: 600px) {
   .row.row-2 {
     grid-template-columns: 1fr;
+  }
+  /* Fix for span-2 on mobile */
+  [style*="grid-column: span 2"],
+  [style*="grid-column:span 2"],
+  .col-span-2 {
+    grid-column: 1 / -1 !important;
   }
 }
 

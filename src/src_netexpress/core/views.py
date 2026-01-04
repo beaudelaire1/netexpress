@@ -399,6 +399,11 @@ def admin_dashboard(request):
     
     # Cache key for dashboard data (5 minutes cache)
     cache_key = 'admin_dashboard_data'
+    
+    # Permettre de forcer le rafraîchissement via le bouton "Actualiser"
+    if request.GET.get('refresh') == '1':
+        cache.delete(cache_key)
+    
     cached_data = cache.get(cache_key)
     
     if cached_data is None:
