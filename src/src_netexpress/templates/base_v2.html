@@ -6,13 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <!-- SEO Meta Tags -->
-  <meta property="og:site_name" content="Nettoyage Express">
+  <meta property="og:site_name" content="Nettoyage Express Guyane">
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
-  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
-  <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
+  <meta name="description" content="{% block meta_description %}Nettoyage Express : entreprise de nettoyage professionnel, entretien d'espaces verts et travaux de rénovation en Guyane française. Cayenne, Matoury, Kourou, Remire-Montjoly. Devis gratuit sous 24h.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}nettoyage Guyane, entretien espaces verts Guyane, jardinage Cayenne, peinture Matoury, bricolage Guyane française, nettoyage professionnel Kourou, entreprise nettoyage 973, devis nettoyage Guyane, services à domicile Guyane{% endblock %}">
+  <!-- Geo Meta Tags pour SEO local Guyane -->
+  <meta name="geo.region" content="GF">
+  <meta name="geo.placename" content="Matoury, Guyane française">
+  <meta name="geo.position" content="4.8500;-52.3333">
+  <meta name="ICBM" content="4.8500, -52.3333">
+  
+  <!-- Langue et région -->
+  <meta name="language" content="fr">
+  <meta name="content-language" content="fr-GF">
+  
+  <!-- Robots -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow">
+  
+
   
   <title>{% block title %}Nettoyage Express{% endblock %}</title>
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
