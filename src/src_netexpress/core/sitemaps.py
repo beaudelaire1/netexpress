@@ -26,7 +26,12 @@ class StaticViewSitemap(Sitemap):
 
 
 class ServiceSitemap(Sitemap):
-    """Sitemap for service pages."""
+    """Sitemap for service pages.
+    
+    Note: Uses created_at for lastmod since there's no updated_at field.
+    Consider adding an updated_at field to Service model for better SEO:
+    updated_at = models.DateTimeField(auto_now=True)
+    """
     changefreq = "weekly"
     priority = 0.8
     
@@ -35,4 +40,5 @@ class ServiceSitemap(Sitemap):
         return Service.objects.filter(is_active=True)
     
     def lastmod(self, obj):
+        # TODO: Use obj.updated_at when field is added to Service model
         return obj.created_at
