@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Accueil — Nettoyage Express{% endblock %}
+{% block title %}Nettoyage Express — Services de Nettoyage à Cayenne, Matoury, Remire-Montjoly et Macouria{% endblock %}
+
+{% block meta_description %}Nettoyage Express, votre entreprise de nettoyage professionnel en Guyane. Services de nettoyage, entretien d'espaces verts, peinture et bricolage à Cayenne, Matoury, Remire-Montjoly et Macouria. Devis gratuit en ligne.{% endblock %}
+
+{% block og_title %}Nettoyage Express — Votre Expert en Nettoyage et Entretien en Guyane{% endblock %}
+{% block og_desc %}Services professionnels de nettoyage, espaces verts et rénovation à Cayenne, Matoury, Remire-Montjoly et Macouria. Demandez votre devis gratuit.{% endblock %}
 
 {% block content %}
   <!-- En‑tête immersif -->
@@ -9,7 +14,7 @@
       <div class="overlay"></div>
       <div class="hero-content">
           <h1>L'Art du Détail,<br>La Passion du Vert.</h1>
-          <p>Nettoyage de prestige, entretien d'espaces verts et rénovation fine.</p>
+          <p>Nettoyage de prestige, entretien d'espaces verts et rénovation fine à Cayenne, Matoury, Remire-Montjoly et Macouria.</p>
           <div class="hero-buttons">
               <a href="{% url 'services:list' %}" class="btn-primary">Découvrir nos services</a>
               <a href="{% url 'contact:contact' %}" class="btn-outline">Nous contacter</a>
@@ -34,7 +39,7 @@
           <div id="nettoyage" class="tab-content active" role="tabpanel">
               <div class="content-card">
                   <div class="card-image">
-                      <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage de prestige">
+                      <img src="{% static 'img/default_service.jpg' %}" alt="Service de nettoyage de prestige à Cayenne et Matoury - Nettoyage Express">
                   </div>
                   <div class="card-text">
                       <h3>Nettoyage de prestige</h3>
@@ -52,7 +57,7 @@
           <div id="espaces-verts" class="tab-content" role="tabpanel" hidden>
               <div class="content-card">
                   <div class="card-image">
-                      <img src="{% static 'img/default_category.jpg' %}" alt="Espaces verts">
+                      <img src="{% static 'img/default_category.jpg' %}" alt="Entretien d'espaces verts et jardinage en Guyane - Nettoyage Express">
                   </div>
                   <div class="card-text">
                       <h3>Création &amp; Entretien</h3>
@@ -70,7 +75,7 @@
           <div id="renovation" class="tab-content" role="tabpanel" hidden>
               <div class="content-card">
                   <div class="card-image">
-                      <img src="{% static 'img/hero_bg.png' %}" alt="Rénovation">
+                      <img src="{% static 'img/hero_bg.png' %}" alt="Services de rénovation et peinture à Cayenne - Nettoyage Express">
                   </div>
                   <div class="card-text">
                       <h3>Rénovation express</h3>
@@ -144,6 +149,55 @@
       </div>
   </section>
 
+  <!-- Section zones d'intervention -->
+  <section class="service-areas" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 60px 20px; margin: 40px 0; border-radius: 8px;">
+      <div class="section-head">
+          <h2>Nous Intervenons dans Toute la Guyane</h2>
+          <p>Un service de qualité proche de chez vous</p>
+      </div>
+      
+      <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+          <p style="font-size: 1.1em; line-height: 1.8; margin-bottom: 30px;">
+              <strong>Nettoyage Express</strong> est votre partenaire de confiance pour tous vos besoins en 
+              <strong>nettoyage professionnel</strong>, <strong>entretien d'espaces verts</strong> et 
+              <strong>travaux de rénovation</strong> en Guyane française. Basée à <strong>Matoury</strong>, 
+              notre équipe intervient rapidement sur l'ensemble de l'agglomération de Cayenne.
+          </p>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 40px 0;">
+              <div style="background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  <i class="fa-solid fa-map-marker-alt" style="font-size: 2em; color: #4CAF50; margin-bottom: 15px;"></i>
+                  <h3 style="font-size: 1.2em; margin: 10px 0; color: #333;">Cayenne</h3>
+                  <p style="color: #666; font-size: 0.95em;">Centre-ville et quartiers environnants</p>
+              </div>
+              
+              <div style="background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  <i class="fa-solid fa-map-marker-alt" style="font-size: 2em; color: #4CAF50; margin-bottom: 15px;"></i>
+                  <h3 style="font-size: 1.2em; margin: 10px 0; color: #333;">Matoury</h3>
+                  <p style="color: #666; font-size: 0.95em;">Siège social et zone prioritaire</p>
+              </div>
+              
+              <div style="background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  <i class="fa-solid fa-map-marker-alt" style="font-size: 2em; color: #4CAF50; margin-bottom: 15px;"></i>
+                  <h3 style="font-size: 1.2em; margin: 10px 0; color: #333;">Remire-Montjoly</h3>
+                  <p style="color: #666; font-size: 0.95em;">Résidences et espaces verts</p>
+              </div>
+              
+              <div style="background: white; padding: 30px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                  <i class="fa-solid fa-map-marker-alt" style="font-size: 2em; color: #4CAF50; margin-bottom: 15px;"></i>
+                  <h3 style="font-size: 1.2em; margin: 10px 0; color: #333;">Macouria</h3>
+                  <p style="color: #666; font-size: 0.95em;">Zones résidentielles et commerciales</p>
+              </div>
+          </div>
+          
+          <p style="margin-top: 30px; font-size: 1em; color: #555;">
+              <i class="fa-solid fa-phone" style="color: #4CAF50;"></i> Contactez-nous au 
+              <strong><a href="tel:0594302368" style="color: #4CAF50; text-decoration: none;">05 94 30 23 68</a></strong> 
+              pour un <strong>devis gratuit</strong> et une intervention rapide dans votre commune.
+          </p>
+      </div>
+  </section>
+
   <!-- Section portfolio -->
   <section class="portfolio">
       <div class="section-head">
@@ -153,23 +207,23 @@
 
       <div class="portfolio-grid">
           <div class="portfolio-item">
-              <img src="{% static 'img/hero_bg.png' %}" alt="Jardin Villa">
+              <img src="{% static 'img/hero_bg.png' %}" alt="Aménagement jardin et espaces verts Villa Remire-Montjoly - Nettoyage Express">
               <div class="overlay-info">
                   <span class="category">Espaces Verts</span>
-                  <h3 class="title">Villa Montjoly</h3>
+                  <h3 class="title">Villa Remire-Montjoly</h3>
               </div>
           </div>
 
           <div class="portfolio-item">
-              <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage Vitres">
+              <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage professionnel résidence Cayenne - Nettoyage Express">
               <div class="overlay-info">
                   <span class="category">Nettoyage</span>
-                  <h3 class="title">Résidence Kourou</h3>
+                  <h3 class="title">Résidence Cayenne</h3>
               </div>
           </div>
 
           <div class="portfolio-item">
-              <img src="{% static 'img/default_category.jpg' %}" alt="Rénovation Salon">
+              <img src="{% static 'img/default_category.jpg' %}" alt="Rénovation appartement Cayenne - Travaux de peinture">
               <div class="overlay-info">
                   <span class="category">Rénovation</span>
                   <h3 class="title">Appartement Cayenne</h3>
@@ -177,10 +231,10 @@
           </div>
 
           <div class="portfolio-item">
-              <img src="{% static 'img/default_service.jpg' %}" alt="Entretien Palmier">
+              <img src="{% static 'img/default_service.jpg' %}" alt="Entretien jardin tropical Remire-Montjoly - Nettoyage Express">
               <div class="overlay-info">
                   <span class="category">Espaces Verts</span>
-                  <h3 class="title">Jardin Tropical Remire</h3>
+                  <h3 class="title">Jardin Tropical Remire-Montjoly</h3>
               </div>
           </div>
       </div>

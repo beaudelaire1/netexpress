@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Nos Services — NetExpress{% endblock %}
+{% block title %}Services de Nettoyage et Entretien à Cayenne, Matoury — Nettoyage Express{% endblock %}
+
+{% block meta_description %}Découvrez nos services professionnels de nettoyage, entretien d'espaces verts, peinture et bricolage. Intervention rapide à Cayenne, Matoury, Remire-Montjoly et Macouria. Devis gratuit.{% endblock %}
+
+{% block og_title %}Catalogue des Services — Nettoyage Express Guyane{% endblock %}
+{% block og_desc %}Services professionnels à Cayenne, Matoury, Remire-Montjoly et Macouria : nettoyage de prestige, espaces verts, peinture et rénovation.{% endblock %}
 
 {% block content %}
   <header class="page-header">
     <div class="overlay"></div>
     <div class="hero-content">
       <h1>Nos Services</h1>
-      <p>Nettoyage, espaces verts et petits travaux : une seule équipe, un niveau d'exigence constant.</p>
+      <p>Nettoyage, espaces verts et petits travaux en Guyane : une seule équipe, un niveau d'exigence constant à Cayenne, Matoury, Remire-Montjoly et Macouria.</p>
     </div>
   </header>
 
@@ -28,9 +33,9 @@
         <article class="service-card">
           <div class="service-media">
             {% if service.image %}
-              <img src="{{ service.image.url }}" alt="{{ service.title }}">
+              <img src="{{ service.image.url }}" alt="{{ service.title }} - Service professionnel à Cayenne et Matoury">
             {% else %}
-              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }}">
+              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }} - Nettoyage Express Guyane">
             {% endif %}
           </div>
           <div class="service-body">
