@@ -1,78 +1,105 @@
 """
-Vues pour la gestion des factures.
-Rationalisation : retrait de la couche expérimentale hexcore pour revenir à une approche Django pure.
+Vues pour la génération et la consultation des factures. 
+Compatibles avec factures/urls.py : 
+ - create_invoice
+ - download
+ - archive
 """
 
-import logging
-
 from django.contrib import messages
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from core.decorators import business_admin_required
 
+from django.conf import settings
 from devis.models import Quote
-from .models import Invoice
+from devis.services import create_invoice_from_quote
+from . models import Invoice
+from core.services.email_service import PremiumEmailService
+from core.decorators import admin_portal_required
 
-logger = logging.getLogger(__name__)
+# Import the hexagonal service layer and its adapters
+from hexcore.services.invoice_service import InvoiceService
+from django_orm. invoice_repository import DjangoInvoiceRepository
+# Import the PDF generator from the adapter module.   Using a distinct
+# module name prevents shadowing the external ``weasyprint`` library.
+from weasyprint_adapter.pdf_generator import WeasyPrintGenerator
 
 
-@login_required
-@business_admin_required
-def create_invoice(request, quote_id: int):
+@admin_portal_required
+def create_invoice(request, quote_id:  int):
     """
-    Crée une facture à partir d'un devis existant.
-    Approche directe via le modèle Invoice.
+    Crée une facture à partir d'un devis existant. 
+
+    Logique explicite :  on passe par la Service Layer (devis.services.create_invoice_from_quote),
+    puis on génère immédiatement le PDF. 
     """
+    # Use the application service to orchestrate creation and PDF generation. 
     quote = get_object_or_404(Quote, pk=quote_id)
-    
+    # Instanciation du service de facturation.   On spécifie
+    # explicitement le template premium pour le générateur PDF.
+    service = InvoiceService(
+        invoice_repository=DjangoInvoiceRepository(),
+        pdf_generator=WeasyPrintGenerator(template_name="pdf/invoice_premium.html"),
+    )
+    # First, create the invoice from the quote via the repository
     try:
-        # Création de la facture via la méthode de classe du modèle
-        invoice = Invoice.create_from_quote(quote)
-        
-        # Génération du PDF
-        invoice.generate_pdf(attach=True)
-        
-        messages.success(request, f"La facture {invoice.number} a été créée avec succès.")
-        
-        # Alerte si la facture est vide
-        if not invoice.invoice_items.exists():
-            messages.warning(request, "Attention : la facture créée ne contient aucune ligne.")
-            
+        invoice_entity = service.create_invoice_from_quote(quote_id)
+        # At this stage the invoice exists in the database and has a number
+        messages.success(request, f"La facture {invoice_entity.number} a été créée avec succès.")
     except Exception as e:
         messages.error(request, f"Erreur lors de la création de la facture : {str(e)}")
-        
+        return redirect(reverse("factures:archive"))
+
+    # Look up the corresponding Invoice model to obtain its primary key. 
+    try:
+        invoice_model = Invoice.objects.get(number=invoice_entity.number)
+    except Invoice.DoesNotExist:
+        messages.error(request, "La facture a été créée mais n'a pas pu être retrouvée en base.")
+        return redirect(reverse("factures:archive"))
+
+    # Générer et attacher le PDF premium à partir du modèle Django.  On
+    # recalcul les totaux avant la génération pour s'assurer que le
+    # document reflète les dernières valeurs.
+    try:
+        invoice_model.compute_totals()
+        invoice_model.generate_pdf(attach=True)
+        # Envoi immédiat de la facture au client (PDF en pièce jointe)
+        PremiumEmailService().send_invoice_notification(invoice_model)
+        # Marquer la facture comme envoyée (si le champ existe)
+        try:
+            if hasattr(invoice_model, "status"):
+                invoice_model.status = Invoice.InvoiceStatus. SENT
+                invoice_model.save(update_fields=["status"])
+        except Exception:
+            pass
+    except Exception as e: 
+        messages.error(
+            request,
+            f"La facture a été créée mais l'envoi e‑mail a échoué : {str(e)}",
+        )
+    # Warn if invoice has no line items
+    if not invoice_model.invoice_items.exists():
+        messages.warning(request, "La facture a été créée mais elle ne contient aucune ligne.")
     return redirect(reverse("factures:archive"))
 
 
-@login_required
-@business_admin_required
-def download_invoice(request, pk: int):
+@admin_portal_required
+def download_invoice(request, pk:  int):
     """
-    Téléchargement du PDF de la facture.
-    
-    Note: On Render, filesystem is ephemeral, so we always generate fresh.
+    Retourne le PDF de la facture.  Compatible Django 5. 
     """
     invoice = get_object_or_404(Invoice, pk=pk)
-    
-    try:
-        # Always generate fresh PDF (ephemeral filesystem on Render)
-        pdf_bytes = invoice.generate_pdf(attach=False)
-        
-        response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response['Content-Disposition'] = f'inline; filename="facture_{invoice.number}.pdf"'
-        return response
-    except Exception as exc:
-        logger.error(f"Erreur lors de la génération du PDF pour la facture {pk}: {exc}", exc_info=True)
-        raise Http404("Impossible de générer le PDF de la facture")
+    if not invoice.pdf:
+        raise Http404("Cette facture n'a pas encore de PDF généré.")
+
+    return FileResponse(invoice.pdf. open("rb"), filename=invoice.pdf.name, as_attachment=False)
 
 
-@login_required
-@business_admin_required
+@admin_portal_required
 def archive(request):
     """
-    Archive des factures.
+    Affiche toutes les factures avec lien vers téléchargement PDF.
     """
-    invoices = Invoice.objects.all().order_by("-issue_date", "-number")
-    return render(request, "factures/archive.html", {"invoices": invoices})
+    invoices = Invoice.objects.exclude(pdf="").order_by("-issue_date", "-number")
+    return render(request, "factures/archive.html", {"invoices":  invoices})
