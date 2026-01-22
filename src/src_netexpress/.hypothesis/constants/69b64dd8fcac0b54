@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/core/templatetags/portal_notifications.py
+# hypothesis_version: 6.150.2
+
+['#', '/admin-dashboard/', '/client/', '/worker/', 'request']

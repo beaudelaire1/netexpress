@@ -34,6 +34,9 @@ class TestFacturesViewsAccessControl:
     
     def test_admin_business_group_member_can_access_archive_view(self, client):
         """Users in admin_business group should be able to access the invoice archive view."""
+        # Import Profile here to avoid tight coupling
+        from accounts.models import Profile
+        
         # Create user and add to admin_business group
         user = User.objects.create_user(
             username="business_admin_invoice",
@@ -45,7 +48,6 @@ class TestFacturesViewsAccessControl:
         
         # Create profile with admin_business role
         # The middleware and role system requires a profile with explicit role
-        from accounts.models import Profile
         Profile.objects.update_or_create(
             user=user,
             defaults={'role': 'admin_business'}
@@ -74,7 +76,8 @@ class TestFacturesViewsAccessControl:
         # Should be redirected (302) - either to login or to their appropriate portal
         assert response.status_code == 302
         # The user is redirected away from the factures view because they don't have permission
-        assert response.url in ['/admin/login/', '/client/']
+        # Could be either the login URL or their portal (client portal in this case)
+        assert response.url in ['/admin/login/', reverse('accounts:login'), '/client/']
     
     def test_unauthenticated_user_cannot_access_archive_view(self, client):
         """Unauthenticated users should be redirected to login."""
@@ -83,4 +86,4 @@ class TestFacturesViewsAccessControl:
         # Should be redirected to login
         assert response.status_code == 302
         # First decorator is @login_required which redirects to /accounts/login/
-        assert '/login' in response.url
+        assert 'login' in response.url

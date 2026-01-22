@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/devis/application/quote_validation.py
+# hypothesis_version: 6.150.2
+
+['Validation expirée.', 'created_at', 'number', 'status']

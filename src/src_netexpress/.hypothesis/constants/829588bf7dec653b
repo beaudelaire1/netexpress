@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/accounts/models.py
+# hypothesis_version: 6.150.2
+
+['Client', 'Ouvrier', 'admin_business', 'admin_technical', 'client', 'profil', 'profile', 'profils', 'worker']

@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/messaging/migrations/0001_initial.py
+# hypothesis_version: 6.150.2
+
+[255, 500, '-created_at', 'Brouillon', 'EmailMessage', 'Envoyé', 'ID', 'attachment', 'body', 'cc', 'created_at', 'draft', 'error_message', 'failed', 'id', 'message envoyé', 'messages envoyés', 'messages/attachments', 'ordering', 'recipient', 'sent', 'sent_at', 'status', 'subject', 'verbose_name', 'verbose_name_plural', 'Échec']

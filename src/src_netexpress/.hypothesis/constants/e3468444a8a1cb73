@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/core/services/worker_service.py
+# hypothesis_version: 6.150.2
+
+[100, 140, 10000, '/accounts/login/', 'DEFAULT_FROM_EMAIL', 'Identifiant', 'Mn', 'Mot de passe', 'NFD', 'Se connecter', 'Workers', '[^a-z0-9]', '_', 'accounts:login', 'action_label', 'action_url', 'completed_tasks', 'completed_this_month', 'completion_rate', 'email_notifications', 'headline', 'html', 'in_progress_tasks', 'intro', 'invoice_updates', 'is_active', 'label', 'last_login', 'overdue_tasks', 'phone', 'quote_updates', 'reference', 'role', 'rows', 'task_updates', 'tasks_this_month', 'total_tasks', 'upcoming_tasks', 'utf-8', 'value', 'worker']

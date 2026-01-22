@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/netexpress/celery.py
+# hypothesis_version: 6.150.2
+
+['CELERY', 'django.conf:settings', 'netexpress']

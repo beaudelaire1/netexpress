@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/factures/migrations/0007_invoice_command_ref.py
+# hypothesis_version: 6.150.2
+
+[100, 'command_ref', 'factures', 'invoice']

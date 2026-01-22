@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/tasks/application/status.py
+# hypothesis_version: 6.150.2
+
+['completed', 'due_date', 'start_date', 'status']

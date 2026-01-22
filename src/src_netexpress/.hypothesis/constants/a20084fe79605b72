@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/accounts/management/commands/migrate_users_to_roles.py
+# hypothesis_version: 6.150.2
+
+['--dry-run', '--force', '=', 'Clients', 'Workers', 'assigned_tasks', 'dry_run', 'force', 'store_true']

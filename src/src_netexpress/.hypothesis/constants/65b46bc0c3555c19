@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/core/services/client_service.py
+# hypothesis_version: 6.150.2
+
+['-created_at', '0.00', 'accepted_quotes', 'amount', 'date', 'draft_quotes', 'has_user_account', 'invoice', 'invoiced_quotes', 'object', 'overdue_invoices', 'paid_invoices', 'quote', 'rejected_quotes', 'sent_quotes', 'service', 'status', 'title', 'total', 'total_invoiced', 'total_invoices', 'total_overdue', 'total_paid', 'total_quotes', 'total_ttc', 'total_unpaid', 'type', 'unpaid_invoices']

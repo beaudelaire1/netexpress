@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/factures/migrations/0005_alter_invoice_status.py
+# hypothesis_version: 6.150.2
+
+['Avoir', 'Brouillon', 'Devis', 'En retard', 'Envoyée', 'Partiellement payée', 'Payée', 'Refacturation', 'avoir', 'demo', 'draft', 'factures', 'invoice', 'ok', 'overdue', 'paid', 'partial', 'refacturation', 'sent', 'status']

@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/factures/models.py
+# hypothesis_version: 6.150.2
+
+[100, 255, ',', '-', '-issue_date', '-number', '.', '0.00', '0.0001', '0.01', '100', 'Avoir', 'Brouillon', 'Devis', 'En retard', 'Envoyée', 'InvoiceItem', 'Ligne', 'Partiellement payée', 'Payée', 'Refacturation', 'amount', 'avoir', 'demo', 'devis.Quote', 'draft', 'facture', 'factures', 'invoice_items', 'invoices', 'issue_date', 'ligne de facture', 'lignes de facture', 'number', 'overdue', 'paid', 'partial', 'refacturation', 'sent', 'total_ht', 'total_ttc', 'tva']

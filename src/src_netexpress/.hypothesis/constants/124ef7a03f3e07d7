@@ -1,0 +1,4 @@
+# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/devis/migrations/0006_quote_public_token.py
+# hypothesis_version: 6.150.2
+
+['0005_quotevalidation', 'Quote', 'devis', 'public_token', 'quote']
