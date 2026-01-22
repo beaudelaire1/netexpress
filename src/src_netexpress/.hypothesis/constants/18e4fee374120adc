@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\models.py
-# hypothesis_version: 6.148.7
-
-[100, 255, ',', '-', '-issue_date', '-number', '.', '/\\', '0.00', '0.0001', '0.01', '100', 'Avoir', 'Brouillon', 'Devis', 'En retard', 'Envoyée', 'INVOICE_BRANDING', 'Invoice', 'InvoiceItem', 'Ligne', 'MEDIA_ROOT', 'Nettoyage Express', 'Partiellement payée', 'Payée', 'Refacturation', 'address', 'address_lines', 'amount', 'avoir', 'bic', 'contact@exemple.fr', 'default_notes', 'demo', 'description', 'devis.Quote', 'draft', 'email', 'facture', 'factures', 'font_bold_path', 'font_path', 'iban', 'invoice_items', 'invoices', 'issue_date', 'ligne de facture', 'lignes de facture', 'logo_path', 'name', 'number', 'overdue', 'paid', 'partial', 'payment_terms', 'phone', 'quantity', 'refacturation', 'sent', 'siret', 'static:', 'tagline', 'tax_rate', 'total_ht', 'total_ttc', 'tva', 'tva_intra', 'unit_price', 'website']

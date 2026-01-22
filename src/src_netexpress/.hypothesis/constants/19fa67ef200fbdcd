@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\urls_admin.py
-# hypothesis_version: 6.148.7
-
-['admin_portal', 'dashboard', 'dashboard/', 'global_planning', 'legacy_dashboard', 'notification_count', 'notification_list', 'notifications/count/', 'notifications/list/', 'planning/']

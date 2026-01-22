@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\migrations\0002_uinotification.py
-# hypothesis_version: 6.148.7
-
-[200, 500, '-created_at', '0001_initial', 'Account Created', 'Document Updated', 'General', 'ID', 'Invoice Created', 'Message Received', 'Quote Validated', 'Task Assigned', 'Task Completed', 'UI Notification', 'UI Notifications', 'UINotification', 'account_created', 'core', 'created_at', 'document_updated', 'general', 'id', 'indexes', 'invoice_created', 'link_url', 'message', 'message_received', 'notification_type', 'ordering', 'quote_validated', 'read', 'read_at', 'task_assigned', 'task_completed', 'title', 'ui_notifications', 'user', 'verbose_name', 'verbose_name_plural']

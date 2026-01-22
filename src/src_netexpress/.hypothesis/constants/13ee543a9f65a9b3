@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\messaging\views.py
-# hypothesis_version: 6.148.7
-
-['-created_at', 'Message envoyé.', 'POST', 'admin:login', 'attachment', 'body', 'email_messages', 'form', 'message', 'messaging:list', 'recipient', 'subject']

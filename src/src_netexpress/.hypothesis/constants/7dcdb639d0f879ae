@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/devis/views.py
-# hypothesis_version: 6.150.2
-
-['Cache-Control', 'Content-Disposition', 'Email envoyé.', 'GET', 'PDF généré.', 'POST', '_action', 'application/pdf', 'base_price', 'code', 'convert_invoice', 'description', 'devis:quote_success', 'form', 'generate_pdf', 'id', 'name', 'photos_list', 'public, max-age=3600', 'quote', 'send_email', 'tax_rate', 'validation']

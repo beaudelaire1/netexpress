@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/core/portal_routing.py
-# hypothesis_version: 6.150.2
-
-['/client/messages/', '/gestion/', '/worker/messages/', 'admin_business', 'admin_technical', 'worker']

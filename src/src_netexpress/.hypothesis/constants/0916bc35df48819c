@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/devis/migrations/0003_quote_pdf_quotephoto.py
-# hypothesis_version: 6.150.2
-
-['ID', 'QuotePhoto', 'devis', 'devis.quote', 'devis/photos', 'id', 'image', 'pdf', 'photo du devis', 'photos', 'photos du devis', 'quote', 'verbose_name', 'verbose_name_plural']

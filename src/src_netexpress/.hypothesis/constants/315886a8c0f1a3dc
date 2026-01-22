@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/netexpress/settings/test.py
-# hypothesis_version: 6.150.2
-
-['127.0.0.1', ':memory:', 'ENGINE', 'NAME', 'WARNING', 'class', 'console', 'default', 'handlers', 'level', 'localhost', 'root', 'testserver', 'version']

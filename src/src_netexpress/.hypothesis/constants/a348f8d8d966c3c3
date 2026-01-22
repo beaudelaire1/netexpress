@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\views.py
-# hypothesis_version: 6.148.7
-
-['-issue_date', '-number', 'Content-Disposition', 'application/pdf', 'factures:archive', 'invoices']

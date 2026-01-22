@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/contact/migrations/0003_rename_commune_message_city.py
-# hypothesis_version: 6.150.2
-
-['city', 'commune', 'contact', 'message']

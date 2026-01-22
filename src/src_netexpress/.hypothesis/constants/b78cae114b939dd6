@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/tasks/services.py
-# hypothesis_version: 6.150.2
-
-['BrevoEmailBackend', 'DEFAULT_FROM_EMAIL', 'EMAIL_BACKEND', 'INVOICE_BRANDING', 'Nettoyage Express', 'action_label', 'action_url', 'brand', 'headline', 'html', 'intro', 'name', 'no-reply@example.com', 'rows']

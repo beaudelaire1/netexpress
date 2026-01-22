@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\migrations\0003_add_new_roles.py
-# hypothesis_version: 6.148.7
-
-['Client', 'Ouvrier', 'accounts', 'admin_business', 'admin_technical', 'client', 'profile', 'role', 'worker']

@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/devis/migrations/0007_alter_quoteitem_tax_rate.py
-# hypothesis_version: 6.150.2
-
-['0.00', 'Taux de TVA', 'devis', 'quoteitem', 'tax_rate']

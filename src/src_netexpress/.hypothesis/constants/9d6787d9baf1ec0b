@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/contact/migrations/0002_message_commune_message_zip_code_alter_message_topic.py
-# hypothesis_version: 6.150.2
-
-[200, 97351, '0001_initial', 'Autre', 'Bricolage', 'Matoury', 'Partenariat', 'Peinture', 'Rénovation', 'Service Espace Vert', 'autre', 'bricolage', 'commune', 'contact', 'message', 'partenariat', 'peinture', 'renovation', 'service_vert', 'topic', 'zip_code']

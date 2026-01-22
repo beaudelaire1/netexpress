@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/core/templatetags/admin_dashboard.py
-# hypothesis_version: 6.150.2
-
-[100, '-created_at', '/admin-dashboard/', '0.00', 'Dashboard Business', 'Nouveau Client', 'Nouveau Devis', 'Nouvelle Facture', 'Nouvelle Tâche', 'color', 'conversion_rate', 'dark', 'fas fa-chart-line', 'fas fa-file-alt', 'fas fa-receipt', 'fas fa-tasks', 'fas fa-user-plus', 'icon', 'info', 'monthly_revenue', 'overdue_tasks', 'pending_revenue', 'primary', 'quick_actions', 'recent_invoices', 'recent_quotes', 'recent_tasks', 'success', 'task_completion_rate', 'title', 'total', 'total_invoices', 'total_quotes', 'total_revenue', 'total_tasks', 'total_ttc', 'url', 'warning']

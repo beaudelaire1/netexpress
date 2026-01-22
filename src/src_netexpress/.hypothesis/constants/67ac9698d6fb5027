@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/tasks/migrations/0003_task_assigned_to_task_completed_by_and_more.py
-# hypothesis_version: 6.150.2
-
-['Workers', 'assigned_tasks', 'assigned_to', 'completed_by', 'completed_tasks', 'completion_notes', 'groups__name', 'task', 'tasks']

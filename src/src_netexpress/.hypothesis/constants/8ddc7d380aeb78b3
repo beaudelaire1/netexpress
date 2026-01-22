@@ -1,4 +1,0 @@
-# file: /home/runner/work/netexpress/netexpress/src/src_netexpress/core/decorators.py
-# hypothesis_version: 6.150.2
-
-['*', '/admin/login/', 'Accès refusé.', 'XMLHttpRequest', 'admin_business', 'admin_technical', 'client', 'invoices.create', 'invoices.edit', 'invoices.view', 'quotes.create', 'quotes.edit', 'quotes.view', 'tasks.assign', 'tasks.complete', 'tasks.create', 'tasks.view', 'users.create', 'users.edit', 'users.view', 'worker', 'x-requested-with']

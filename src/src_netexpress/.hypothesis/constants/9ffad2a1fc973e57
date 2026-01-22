@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\services\notification_service.py
-# hypothesis_version: 6.148.7
-
-['-created_at', '.html', '/admin-dashboard/', '/client/', '/client/invoices/', '/client/quotes/', '/messaging/', '/worker/dashboard/', 'BrevoEmailBackend', 'DEFAULT_FROM_EMAIL', 'EMAIL_BACKEND', 'NetExpress', 'account_created', 'account_invitation', 'client', 'company_name', 'completed_by', 'document_updated', 'emails/', 'general', 'invoice_created', 'message', 'message_notification', 'message_received', 'password_reset_url', 'profile', 'quote', 'quote_validated', 'quote_validation', 'rb', 'recipient', 'sender', 'task', 'task_assigned', 'task_assignment', 'task_completed', 'task_completion', 'text/html', 'user', 'worker']
