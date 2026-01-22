@@ -11,21 +11,23 @@
   {% else %}
     {# Image de remplacement locale si aucune image n'est associée au service.  On choisit un visuel
        cohérent en fonction de la catégorie du service pour éviter les dépendances à Unsplash. #}
-    {% if service.category.slug == 'espaces-verts' %}
+    {% if service.category and service.category.slug == 'espaces-verts' %}
       <img src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'peinture' %}
+    {% elif service.category and service.category.slug == 'peinture' %}
       <img src="{% static 'img/peinture.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'bricolage' %}
+    {% elif service.category and service.category.slug == 'bricolage' %}
       <img src="{% static 'img/brico.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'elagage' %}
+    {% elif service.category and service.category.slug == 'elagage' %}
       <img src="{% static 'img/elagage.jpg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
     {% else %}
       <img src="{% static 'img/service-1.svg' %}" alt="{{ service.title }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
     {% endif %}
   {% endif %}
   <p>{{ service.description }}</p>
-  <p><strong>Catégorie&nbsp;:</strong> {{ service.category.name }}</p>
-  <p class="meta"><strong>Prix&nbsp;:</strong> À partir de {{ service.base_price }} € — durée ~{{ service.duration_minutes }} min.</p>
+  {% if service.category %}
+    <p><strong>Catégorie&nbsp;:</strong> {{ service.category.name }}</p>
+  {% endif %}
+  <p class="meta"><strong>Durée estimée&nbsp;:</strong> ~{{ service.duration_minutes }} min.</p>
 
   {% if service.tasks.all %}
     <h3>Checklist</h3>

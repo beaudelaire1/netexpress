@@ -6,7 +6,6 @@ Compatibles avec factures/urls.py :
  - archive
 """
 
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,6 +16,7 @@ from devis.models import Quote
 from devis.services import create_invoice_from_quote
 from .models import Invoice
 from core.services.email_service import PremiumEmailService
+from core.decorators import business_admin_required
 
 # Import the hexagonal service layer and its adapters
 from hexcore.services.invoice_service import InvoiceService
@@ -26,7 +26,7 @@ from django_orm.invoice_repository import DjangoInvoiceRepository
 from weasyprint_adapter.pdf_generator import WeasyPrintGenerator
 
 
-@staff_member_required
+@business_admin_required
 def create_invoice(request, quote_id: int):
     """
     Crée une facture à partir d'un devis existant.
@@ -84,7 +84,7 @@ def create_invoice(request, quote_id: int):
     return redirect(reverse("factures:archive"))
 
 
-@staff_member_required
+@business_admin_required
 def download_invoice(request, pk: int):
     """
     Retourne le PDF de la facture. Compatible Django 5.
@@ -96,7 +96,7 @@ def download_invoice(request, pk: int):
     return FileResponse(invoice.pdf.open("rb"), filename=invoice.pdf.name, as_attachment=False)
 
 
-@staff_member_required
+@business_admin_required
 def archive(request):
     """
     Affiche toutes les factures avec lien vers téléchargement PDF.
