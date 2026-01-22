@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\messaging\urls.py
-# hypothesis_version: 6.148.7
-
-['<int:pk>/', 'compose', 'compose/', 'detail', 'internal/', 'internal/<int:pk>/', 'internal/compose/', 'internal_compose', 'internal_detail', 'internal_list', 'list', 'mark_read', 'message_reply', 'messaging', 'thread_list', 'threads/']

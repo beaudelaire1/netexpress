@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\migrations\0004_task_assigned_to_many_to_many.py
-# hypothesis_version: 6.148.7
-
-['Workers', 'assigned_tasks', 'assigned_to', 'groups__name', 'task', 'tasks']

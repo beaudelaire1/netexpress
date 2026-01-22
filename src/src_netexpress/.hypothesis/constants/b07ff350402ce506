@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\models.py
-# hypothesis_version: 6.148.7
-
-[100, 255, ',', '-', '-issue_date', '-number', '.', '0.00', '0.0001', '0.01', '100', 'Avoir', 'Brouillon', 'Devis', 'En retard', 'Envoyée', 'Invoice', 'InvoiceItem', 'Ligne', 'Partiellement payée', 'Payée', 'Refacturation', 'amount', 'avoir', 'demo', 'description', 'devis.Quote', 'draft', 'facture', 'factures', 'invoice_items', 'invoices', 'issue_date', 'ligne de facture', 'lignes de facture', 'number', 'overdue', 'paid', 'partial', 'quantity', 'refacturation', 'sent', 'tax_rate', 'total_ht', 'total_ttc', 'tva', 'unit_price']

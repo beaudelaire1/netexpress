@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\django_orm\invoice_repository.py
-# hypothesis_version: 6.148.7
-
-[', ', '0.00', 'discount', 'invoice_items', 'notes', 'payment_terms', 'quote__client', 'total_ht', 'total_ttc', 'tva']

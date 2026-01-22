@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\netexpress\settings\dev.py
-# hypothesis_version: 6.148.7
-
-[587, '.env', '.env.local', '0.0.0.0', '127.0.0.1', 'BREVO_API_KEY', 'DEFAULT_FROM_EMAIL', 'DEFAULT_FROM_NAME', 'DJANGO_SECRET_KEY', 'EMAIL_BACKEND', 'EMAIL_HOST', 'EMAIL_HOST_PASSWORD', 'EMAIL_HOST_USER', 'EMAIL_PORT', 'EMAIL_USE_TLS', 'ENGINE', 'INFO', 'NAME', 'Nettoyage Express', 'True', 'class', 'console', 'db.sqlite3', 'default', 'django', 'format', 'formatter', 'formatters', 'handlers', 'level', 'localhost', 'loggers', 'propagate', 'root', 'simple', 'smtp.gmail.com', 'style', 'version', '{']

@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\services\migrations\0001_initial.py
-# hypothesis_version: 6.148.7
-
-[100, 200, 255, 'Category', 'Catégorie du service', 'ID', 'Service', 'ServiceTask', 'base_price', 'category', 'catégorie', 'catégories', 'created_at', 'description', 'duration_minutes', 'icon', 'id', 'image', 'is_active', 'name', 'order', 'ordering', 'service', 'services', 'services.category', 'services.service', 'short_description', 'slug', 'tasks', 'title', 'tâche', 'tâches', 'verbose_name', 'verbose_name_plural']

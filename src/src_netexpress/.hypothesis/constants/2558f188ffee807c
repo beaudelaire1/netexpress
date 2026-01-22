@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\contact\migrations\0001_initial.py
-# hypothesis_version: 6.148.7
-
-[200, 254, '-created_at', 'Autre', 'Gros volumes', 'ID', 'Message', 'Partenariat', 'Prospection', 'Service après‑vente', 'autre', 'body', 'created_at', 'email', 'full_name', 'gros_volumes', 'id', 'indexes', 'ip', 'message de contact', 'messages de contact', 'ordering', 'partenariat', 'phone', 'processed', 'prospection', 'sav', 'topic', 'verbose_name', 'verbose_name_plural']

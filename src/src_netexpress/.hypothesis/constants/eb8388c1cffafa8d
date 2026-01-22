@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\accounts\portal.py
-# hypothesis_version: 6.148.7
-
-['/', '/admin-dashboard/', '/client/', '/gestion/', '/worker/', 'Workers', 'admin_business', 'admin_dashboard', 'admin_technical', 'client', 'gestion', 'is_staff', 'is_superuser', 'profile', 'role', 'worker']
