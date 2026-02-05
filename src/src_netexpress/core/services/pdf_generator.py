@@ -55,9 +55,28 @@ def render_quote_pdf(quote, *, extra_context: Optional[Dict[str, Any]] = None) -
     html = render_to_string("pdf/quote.html", ctx)
     base_url = str(getattr(settings, "BASE_DIR", Path.cwd()))
 
-    css_path = Path(base_url) / "static" / "css" / "pdf.css"
+    # Try to locate the CSS file using staticfiles finders (production-ready)
+    css_path = None
+    try:
+        from django.contrib.staticfiles import finders
+        css_path = finders.find("css/pdf.css")
+    except (ImportError, AttributeError):
+        pass
+    # Fallback to STATIC_ROOT if finders don't work
+    if not css_path:
+        static_root = getattr(settings, "STATIC_ROOT", None)
+        if static_root:
+            candidate = Path(static_root) / "css" / "pdf.css"
+            if candidate.exists():
+                css_path = str(candidate)
+    # Final fallback to BASE_DIR/static for development
+    if not css_path:
+        candidate = Path(base_url) / "static" / "css" / "pdf.css"
+        if candidate.exists():
+            css_path = str(candidate)
+    
     stylesheets = []
-    if css_path.exists():
+    if css_path:
         stylesheets.append(CSS(filename=str(css_path)))
 
     pdf_bytes = HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)
@@ -81,9 +100,28 @@ def render_invoice_pdf(invoice, *, extra_context: Optional[Dict[str, Any]] = Non
     html = render_to_string("pdf/invoice_premium.html", ctx)
     base_url = str(getattr(settings, "BASE_DIR", Path.cwd()))
 
-    css_path = Path(base_url) / "static" / "css" / "pdf.css"
+    # Try to locate the CSS file using staticfiles finders (production-ready)
+    css_path = None
+    try:
+        from django.contrib.staticfiles import finders
+        css_path = finders.find("css/pdf.css")
+    except (ImportError, AttributeError):
+        pass
+    # Fallback to STATIC_ROOT if finders don't work
+    if not css_path:
+        static_root = getattr(settings, "STATIC_ROOT", None)
+        if static_root:
+            candidate = Path(static_root) / "css" / "pdf.css"
+            if candidate.exists():
+                css_path = str(candidate)
+    # Final fallback to BASE_DIR/static for development
+    if not css_path:
+        candidate = Path(base_url) / "static" / "css" / "pdf.css"
+        if candidate.exists():
+            css_path = str(candidate)
+    
     stylesheets = []
-    if css_path.exists():
+    if css_path:
         stylesheets.append(CSS(filename=str(css_path)))
 
     pdf_bytes = HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)

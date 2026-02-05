@@ -223,21 +223,22 @@ EMAIL_BACKEND = env(
     default="django.core.mail.backends.smtp.EmailBackend"
 )
 
-EMAIL_HOST = env("EMAIL_HOST", default="mail.google.com")
+EMAIL_HOST = env("EMAIL_HOST", default="smtp-relay.brevo.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="vilmebeaudelaire5@gmail.com")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env(
-    "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER
+    "DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER if EMAIL_HOST_USER else "noreply@example.com"
 )
 
 # Utiliser la console comme backend d'e‑mail en mode debug.  Cela
 # permet de visualiser les courriels envoyés directement dans le
 # terminal lors du développement sans nécessiter de serveur SMTP.
-if DEBUG:
+# Seulement si EMAIL_BACKEND n'est pas explicitement défini via env.
+if DEBUG and not env("EMAIL_BACKEND", default=None):
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Notification routing

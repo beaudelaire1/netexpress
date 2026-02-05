@@ -7,7 +7,7 @@ Compatibles avec factures/urls.py :
 """
 
 from django.contrib import messages
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -88,11 +88,36 @@ def create_invoice(request, quote_id: int):
 def download_invoice(request, pk: int):
     """
     Retourne le PDF de la facture. Compatible Django 5.
+    Si le fichier PDF n'existe pas ou n'est pas accessible (système éphémère),
+    le régénère à la volée.
     """
     invoice = get_object_or_404(Invoice, pk=pk)
-    if not invoice.pdf:
-        raise Http404("Cette facture n'a pas encore de PDF généré.")
-
+    
+    # Vérifier si le PDF existe et est accessible
+    pdf_exists = False
+    if invoice.pdf:
+        try:
+            # Tenter d'ouvrir le fichier pour vérifier qu'il existe réellement
+            invoice.pdf.open("rb")
+            invoice.pdf.close()
+            pdf_exists = True
+        except OSError:
+            # Le fichier n'existe pas (système éphémère) ou n'est pas accessible
+            pdf_exists = False
+    
+    # Si le PDF n'existe pas, le régénérer à la volée
+    if not pdf_exists:
+        try:
+            # Régénérer le PDF sans l'attacher (pour éviter d'écrire sur le système éphémère)
+            pdf_bytes = invoice.generate_pdf(attach=False)
+            # Construire le nom du fichier
+            filename = f"{invoice.number or 'facture'}.pdf"
+            response = HttpResponse(pdf_bytes, content_type="application/pdf")
+            response["Content-Disposition"] = f'inline; filename="{filename}"'
+            return response
+        except Exception as e:
+            raise Http404(f"Impossible de générer le PDF de la facture : {str(e)}")
+    
     return FileResponse(invoice.pdf.open("rb"), filename=invoice.pdf.name, as_attachment=False)
 
 
