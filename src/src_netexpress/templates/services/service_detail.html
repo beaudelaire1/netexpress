@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ service.title }} — NetExpress{% endblock %}
+{% block title %}{{ service.title }} — Service Professionnel en Guyane | Nettoyage Express{% endblock %}
+
+{% block meta_description %}{{ service.description|truncatewords:25 }} Service professionnel en Guyane française. Cayenne, Matoury, Kourou. Devis gratuit sous 24h.{% endblock %}
+
+{% block og_title %}{{ service.title }} — Nettoyage Express Guyane{% endblock %}
+{% block og_desc %}{{ service.description|truncatewords:20 }} Intervention en Guyane. Devis gratuit.{% endblock %}
 
 {% block content %}
 <section class="section">

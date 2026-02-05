@@ -1,15 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Accueil — Nettoyage Express{% endblock %}
+{% block title %}Nettoyage Express — Nettoyage, Espaces Verts & Rénovation à Cayenne et en Guyane{% endblock %}
+
+{% block meta_description %}Nettoyage Express : votre expert en nettoyage professionnel, entretien d'espaces verts et rénovation en Guyane française. Cayenne, Matoury, Kourou, Remire-Montjoly. Devis gratuit sous 24h. ☎ 05 94 30 23 68{% endblock %}
+
+{% block og_title %}Nettoyage Express — Services de Nettoyage Premium en Guyane{% endblock %}
+{% block og_desc %}Entreprise de nettoyage professionnel, jardinage et rénovation en Guyane. Interventions à Cayenne, Matoury, Kourou. Équipes formées, matériel professionnel. Devis gratuit.{% endblock %}
+
+{% block twitter_title %}Nettoyage Express — Nettoyage & Espaces Verts en Guyane{% endblock %}
+{% block twitter_desc %}Services de nettoyage professionnel et entretien d'espaces verts en Guyane française. Devis gratuit sous 24h.{% endblock %}
 
 {% block content %}
   <!-- En‑tête immersif -->
   <header class="hero">
       <div class="overlay"></div>
       <div class="hero-content">
-          <h1>L'Art du Détail,<br>La Passion du Vert.</h1>
-          <p>Nettoyage de prestige, entretien d'espaces verts et rénovation fine.</p>
+          <h1>Nettoyage Professionnel,<br>Espaces Verts & Rénovation en Guyane</h1>
+          <p>Nettoyage de prestige, entretien d'espaces verts et rénovation fine à Cayenne, Matoury, Kourou et dans toute la Guyane française.</p>
           <div class="hero-buttons">
               <a href="{% url 'services:list' %}" class="btn-primary">Découvrir nos services</a>
               <a href="{% url 'contact:contact' %}" class="btn-outline">Nous contacter</a>
@@ -20,8 +28,8 @@
   <!-- Section d'expertise avec onglets -->
   <section class="expertise">
       <div class="section-head">
-          <h2>Nos Domaines d'Expertise</h2>
-          <p>Une approche globale pour sublimer votre habitat.</p>
+          <h2>Nos Services de Nettoyage et Entretien en Guyane</h2>
+          <p>Une approche globale pour sublimer votre habitat à Cayenne, Matoury, Kourou et dans toute la Guyane.</p>
       </div>
 
       <div class="tabs-wrapper">
@@ -37,8 +45,8 @@
                       <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage de prestige">
                   </div>
                   <div class="card-text">
-                      <h3>Nettoyage de prestige</h3>
-                      <p>Des finitions irréprochables, un matériel adapté et une intervention discrète pour sublimer vos espaces.</p>
+                      <h3>Nettoyage professionnel en Guyane</h3>
+                      <p>Des finitions irréprochables, un matériel adapté et une intervention discrète pour sublimer vos espaces à Cayenne, Matoury et dans toute la Guyane.</p>
                       <ul class="features">
                           <li><i class="fa-solid fa-check"></i> Nettoyage intérieur &amp; vitrerie</li>
                           <li><i class="fa-solid fa-check"></i> Désinfection &amp; remise en état</li>
@@ -55,8 +63,8 @@
                       <img src="{% static 'img/default_category.jpg' %}" alt="Espaces verts">
                   </div>
                   <div class="card-text">
-                      <h3>Création &amp; Entretien</h3>
-                      <p>Votre extérieur est le prolongement de votre luxe intérieur. Nous transformons votre jardin en un havre de paix.</p>
+                      <h3>Entretien Espaces Verts Guyane</h3>
+                      <p>Votre extérieur est le prolongement de votre luxe intérieur. Nous transformons votre jardin guyanais en un havre de paix tropical.</p>
                       <ul class="features">
                           <li><i class="fa-solid fa-check"></i> Tonte &amp; Taille architecturale</li>
                           <li><i class="fa-solid fa-check"></i> Design paysager</li>
@@ -73,8 +81,8 @@
                       <img src="{% static 'img/hero_bg.png' %}" alt="Rénovation">
                   </div>
                   <div class="card-text">
-                      <h3>Rénovation express</h3>
-                      <p>Petits travaux, retouches et finitions pour remettre votre espace au niveau attendu, rapidement et proprement.</p>
+                      <h3>Rénovation & Peinture Guyane</h3>
+                      <p>Petits travaux, retouches et finitions pour remettre votre espace au niveau attendu, rapidement et proprement à Cayenne, Kourou et environs.</p>
                       <ul class="features">
                           <li><i class="fa-solid fa-check"></i> Peinture &amp; retouches</li>
                           <li><i class="fa-solid fa-check"></i> Petites réparations</li>
@@ -147,8 +155,8 @@
   <!-- Section portfolio -->
   <section class="portfolio">
       <div class="section-head">
-          <h2>Nos Réalisations</h2>
-          <p>Découvrez l'excellence de nos interventions en Guyane.</p>
+          <h2>Nos Réalisations en Guyane</h2>
+          <p>Découvrez l'excellence de nos interventions de nettoyage et jardinage en Guyane française.</p>
       </div>
 
       <div class="portfolio-grid">
