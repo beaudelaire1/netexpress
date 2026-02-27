@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ service.title }} — NetExpress{% endblock %}
+{% block title %}{{ service.title }} à Cayenne et Matoury — Nettoyage Express{% endblock %}
+
+{% block meta_description %}{{ service.description|truncatewords:25 }} Service professionnel à Cayenne, Matoury, Remire-Montjoly et Macouria. Demandez votre devis gratuit.{% endblock %}
+
+{% block og_title %}{{ service.title }} — Nettoyage Express Guyane{% endblock %}
+{% block og_desc %}{{ service.short_description|default:service.description|truncatewords:20 }} Intervention en Guyane.{% endblock %}
 
 {% block content %}
 <section class="section">
