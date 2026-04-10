@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Modifier {{ task.title }} — NetExpress{% endblock %}
 
@@ -10,7 +10,7 @@
   <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
     <i class="fas fa-calendar-alt mr-2"></i>Planning Global
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}
@@ -61,6 +61,17 @@
               {% if form.description.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
               {% endif %}
+            </div>
+
+            <div>
+              <label for="{{ form.client.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Client concerné
+              </label>
+              {{ form.client }}
+              {% if form.client.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.client.errors.0 }}</p>
+              {% endif %}
+              <p class="mt-1 text-sm text-gray-500">Le rattachement client alimente le suivi visible dans le portail.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -6,23 +6,37 @@ Tests dashboard rendering, document filtering, and messaging integration.
 """
 
 import pytest
+from datetime import timedelta
 from unittest.mock import Mock, patch, MagicMock
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User, Group, AnonymousUser
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from accounts.models import Profile
 from core.views import (
     client_dashboard, 
+    client_tasks,
     client_quotes, 
     client_invoices, 
+    client_documents,
     client_quote_detail, 
-    client_invoice_detail
+    client_invoice_detail,
+    client_document_detail,
 )
 from core.services.document_service import ClientDocumentService
+from core.models import ClientPortalDocument
 from devis.models import Client, Quote
 from factures.models import Invoice
+from tasks.models import Task
+
+
+def ensure_profile(user, role):
+    profile, _ = Profile.objects.get_or_create(user=user, defaults={'role': role})
+    profile.role = role
+    profile.save()
+    return profile
 
 
 class TestClientPortalViews(TestCase):
@@ -43,7 +57,7 @@ class TestClientPortalViews(TestCase):
             password='testpass123'
         )
         self.client_user.groups.add(self.client_group)
-        Profile.objects.filter(user=self.client_user).update(role='client')
+        ensure_profile(self.client_user, Profile.ROLE_CLIENT)
         
         self.staff_user = User.objects.create_user(
             username='staffuser',
@@ -70,6 +84,36 @@ class TestClientPortalViews(TestCase):
             status='sent',
             total_ttc=120.00
         )
+
+        self.portal_document = ClientPortalDocument.objects.create(
+            client=self.test_client,
+            title='Rapport de visite',
+            category=ClientPortalDocument.CATEGORY_REPORT,
+            file=SimpleUploadedFile('rapport.pdf', b'%PDF-1.4 test', content_type='application/pdf'),
+        )
+
+        self.other_client = Client.objects.create(
+            full_name='Autre Client',
+            email='other-client@example.com',
+            phone='0987654321'
+        )
+
+        self.client_task = Task.objects.create(
+            title='Nettoyage après chantier',
+            client=self.test_client,
+            location='Matoury',
+            start_date=self.test_quote.issue_date,
+            due_date=self.test_quote.issue_date + timedelta(days=10),
+            status=Task.STATUS_IN_PROGRESS,
+        )
+        self.other_client_task = Task.objects.create(
+            title='Intervention autre dossier',
+            client=self.other_client,
+            location='Cayenne',
+            start_date=self.test_quote.issue_date,
+            due_date=self.test_quote.issue_date + timedelta(days=14),
+            status=Task.STATUS_UPCOMING,
+        )
     
     def test_client_dashboard_renders_correctly(self):
         """
@@ -90,15 +134,17 @@ class TestClientPortalViews(TestCase):
             mock_service.get_recent_documents.return_value = {
                 'quotes': [self.test_quote],
                 'invoices': [self.test_invoice],
+                'portal_documents': [self.portal_document],
             }
             mock_service.get_accessible_quotes.return_value = Quote.objects.filter(pk=self.test_quote.pk)
             mock_service.get_accessible_invoices.return_value = Invoice.objects.filter(pk=self.test_invoice.pk)
+            mock_service.get_accessible_portal_documents.return_value = ClientPortalDocument.objects.filter(pk=self.portal_document.pk)
             
             response = client_dashboard(request)
             
             # Check response
             self.assertIsInstance(response, TemplateResponse)
-            self.assertEqual(response.template_name, 'core/client_dashboard.html')
+            self.assertEqual(response.template_name, 'core/client_dashboard_premium.html')
             
             # Check context contains expected data
             context = response.context_data
@@ -118,19 +164,15 @@ class TestClientPortalViews(TestCase):
             email='nonclient@example.com',
             password='testpass123'
         )
-        # The signal automatically creates a profile with role='client'
-        # We need to update it to 'worker' after creation
-        non_client_user.profile.role = 'worker'
-        non_client_user.profile.save()
+        ensure_profile(non_client_user, Profile.ROLE_WORKER)
         
         request = self.factory.get('/client/')
         request.user = non_client_user
         
         response = client_dashboard(request)
         
-        self.assertIsInstance(response, TemplateResponse)
-        self.assertEqual(response.template_name, 'core/access_denied.html')
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/worker/')
     
     def test_client_dashboard_denies_anonymous_access(self):
         """
@@ -164,8 +206,32 @@ class TestClientPortalViews(TestCase):
             response = client_quotes(request)
             
             self.assertIsInstance(response, TemplateResponse)
-            self.assertEqual(response.template_name, 'core/client_quotes.html')
+            self.assertEqual(response.template_name, 'core/client_quotes_premium.html')
             self.assertIn('quotes', response.context_data)
+
+    def test_client_tasks_list_renders_only_linked_tasks(self):
+        """Client sees only tasks explicitly linked to their record."""
+        request = self.factory.get('/client/tasks/')
+        request.user = self.client_user
+
+        response = client_tasks(request)
+
+        self.assertIsInstance(response, TemplateResponse)
+        self.assertEqual(response.template_name, 'core/client_tasks.html')
+        tasks = list(response.context_data['tasks'])
+        self.assertIn(self.client_task, tasks)
+        self.assertNotIn(self.other_client_task, tasks)
+        self.assertEqual(response.context_data['task_summary']['in_progress'], 1)
+
+    def test_client_tasks_status_filter_applies(self):
+        """The portal task filter narrows the visible status correctly."""
+        request = self.factory.get('/client/tasks/?status=in_progress')
+        request.user = self.client_user
+
+        response = client_tasks(request)
+
+        tasks = list(response.context_data['tasks'])
+        self.assertEqual(tasks, [self.client_task])
     
     def test_client_invoices_list_renders_correctly(self):
         """
@@ -181,8 +247,24 @@ class TestClientPortalViews(TestCase):
             response = client_invoices(request)
             
             self.assertIsInstance(response, TemplateResponse)
-            self.assertEqual(response.template_name, 'core/client_invoices.html')
+            self.assertEqual(response.template_name, 'core/client_invoices_premium.html')
             self.assertIn('invoices', response.context_data)
+
+    def test_client_documents_list_renders_correctly(self):
+        """
+        Test that client documents list renders with published portal documents.
+        """
+        request = self.factory.get('/client/documents/')
+        request.user = self.client_user
+
+        with patch('core.views.ClientDocumentService') as mock_service:
+            mock_service.get_accessible_portal_documents.return_value = ClientPortalDocument.objects.filter(pk=self.portal_document.pk)
+
+            response = client_documents(request)
+
+            self.assertIsInstance(response, TemplateResponse)
+            self.assertEqual(response.template_name, 'core/client_documents_premium.html')
+            self.assertIn('documents', response.context_data)
     
     def test_client_quote_detail_renders_correctly(self):
         """
@@ -199,7 +281,7 @@ class TestClientPortalViews(TestCase):
             response = client_quote_detail(request, pk=self.test_quote.pk)
             
             self.assertIsInstance(response, TemplateResponse)
-            self.assertEqual(response.template_name, 'core/client_quote_detail.html')
+            self.assertEqual(response.template_name, 'core/client_quote_detail_premium.html')
             self.assertIn('quote', response.context_data)
             self.assertEqual(response.context_data['quote'], self.test_quote)
             
@@ -239,7 +321,7 @@ class TestClientPortalViews(TestCase):
             response = client_invoice_detail(request, pk=self.test_invoice.pk)
             
             self.assertIsInstance(response, TemplateResponse)
-            self.assertEqual(response.template_name, 'core/client_invoice_detail.html')
+            self.assertEqual(response.template_name, 'core/client_invoice_detail_premium.html')
             self.assertIn('invoice', response.context_data)
             self.assertEqual(response.context_data['invoice'], self.test_invoice)
             
@@ -263,6 +345,24 @@ class TestClientPortalViews(TestCase):
             
             self.assertEqual(response.status_code, 403)
             self.assertEqual(response.template_name, 'core/access_denied.html')
+
+    def test_client_document_detail_renders_correctly(self):
+        """
+        Test that client document detail renders with access control.
+        """
+        request = self.factory.get(f'/client/documents/{self.portal_document.pk}/')
+        request.user = self.client_user
+
+        with patch('core.views.ClientDocumentService') as mock_service:
+            mock_service.can_access_portal_document.return_value = True
+            mock_service.track_portal_document_access.return_value = None
+
+            response = client_document_detail(request, pk=self.portal_document.pk)
+
+            self.assertIsInstance(response, TemplateResponse)
+            self.assertEqual(response.template_name, 'core/client_document_detail_premium.html')
+            self.assertEqual(response.context_data['document'], self.portal_document)
+            mock_service.track_portal_document_access.assert_called_once_with(self.portal_document)
 
 
 class TestClientDocumentService(TestCase):
@@ -313,6 +413,20 @@ class TestClientDocumentService(TestCase):
             client=self.other_client,
             status='sent',
             total_ttc=150.00
+        )
+
+        self.portal_document = ClientPortalDocument.objects.create(
+            client=self.test_client,
+            title='Attestation d\'intervention',
+            category=ClientPortalDocument.CATEGORY_CERTIFICATE,
+            file=SimpleUploadedFile('attestation.pdf', b'%PDF-1.4 attestation', content_type='application/pdf'),
+        )
+
+        self.other_portal_document = ClientPortalDocument.objects.create(
+            client=self.other_client,
+            title='Rapport confidentiel',
+            category=ClientPortalDocument.CATEGORY_REPORT,
+            file=SimpleUploadedFile('rapport.pdf', b'%PDF-1.4 confidential', content_type='application/pdf'),
         )
     
     def test_get_accessible_quotes_filters_by_client_email(self):
@@ -402,6 +516,26 @@ class TestClientDocumentService(TestCase):
         self.assertEqual(stats['total_invoices'], 1)  # 1 invoice for this client
         self.assertEqual(stats['pending_quotes'], 2)  # Both quotes are pending (draft/sent)
         self.assertEqual(stats['unpaid_invoices'], 1)  # 1 unpaid invoice
+        self.assertEqual(stats['portal_documents'], 1)
+
+    def test_get_accessible_portal_documents_filters_by_client_email(self):
+        """Test that manually published portal documents are filtered by client email."""
+        visible_documents = ClientDocumentService.get_accessible_portal_documents(self.client_user)
+
+        self.assertIn(self.portal_document, visible_documents)
+        self.assertNotIn(self.other_portal_document, visible_documents)
+
+    def test_can_access_portal_document_enforces_publication_and_ownership(self):
+        """Test portal document access rules for clients and staff."""
+        self.assertTrue(
+            ClientDocumentService.can_access_portal_document(self.client_user, self.portal_document)
+        )
+        self.assertFalse(
+            ClientDocumentService.can_access_portal_document(self.client_user, self.other_portal_document)
+        )
+        self.assertTrue(
+            ClientDocumentService.can_access_portal_document(self.staff_user, self.other_portal_document)
+        )
     
     def test_get_recent_documents_limits_results(self):
         """
@@ -450,7 +584,7 @@ class TestClientPortalIntegration(TestCase):
             email='client@example.com',
             password='testpass123'
         )
-        Profile.objects.filter(user=self.client_user).update(role='client')
+        ensure_profile(self.client_user, Profile.ROLE_CLIENT)
     
     def test_messaging_integration_in_templates(self):
         """
@@ -489,11 +623,13 @@ class TestClientPortalIntegration(TestCase):
         
         # For unit testing, we verify that the views use the correct templates
         expected_templates = [
-            'core/client_dashboard.html',
-            'core/client_quotes.html',
-            'core/client_invoices.html',
-            'core/client_quote_detail.html',
-            'core/client_invoice_detail.html',
+            'core/client_dashboard_premium.html',
+            'core/client_quotes_premium.html',
+            'core/client_invoices_premium.html',
+            'core/client_documents_premium.html',
+            'core/client_quote_detail_premium.html',
+            'core/client_invoice_detail_premium.html',
+            'core/client_document_detail_premium.html',
         ]
         
         # All templates should exist and follow the same base structure

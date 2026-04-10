@@ -51,6 +51,9 @@ class Profile(models.Model):
     class Meta:
         verbose_name = "profil"
         verbose_name_plural = "profils"
+        indexes = [
+            models.Index(fields=["role"]),
+        ]
 
     def __str__(self) -> str:
         return f"{self.user.username} ({self.role})"

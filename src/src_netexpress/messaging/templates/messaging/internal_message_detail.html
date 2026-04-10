@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}{{ message.subject }}{% endblock %}
 
@@ -11,13 +11,7 @@
 <div class="container mx-auto px-4 py-6">
     <div class="max-w-4xl mx-auto">
         <div class="flex items-center mb-6">
-            {% if request.resolver_match.namespace == 'worker_messaging' %}
-            <a href="{% url 'worker_messaging:internal_list' %}" class="text-gray-600 hover:text-gray-900 mr-4">
-            {% elif request.resolver_match.namespace == 'client_messaging' %}
-            <a href="{% url 'client_messaging:internal_list' %}" class="text-gray-600 hover:text-gray-900 mr-4">
-            {% else %}
-            <a href="{% url 'messaging:internal_list' %}" class="text-gray-600 hover:text-gray-900 mr-4">
-            {% endif %}
+            <a href="{% portal_messages_route user 'internal_list' %}" class="text-gray-600 hover:text-gray-900 mr-4">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <h1 class="text-2xl font-bold text-gray-900">{{ message.subject }}</h1>
@@ -105,25 +99,13 @@
                 </h3>
             </div>
             <div class="p-6">
-                {% if request.resolver_match.namespace == 'worker_messaging' %}
-                <form id="reply-form" method="post" action="{% url 'worker_messaging:message_reply' message.id %}">
-                {% elif request.resolver_match.namespace == 'client_messaging' %}
-                <form id="reply-form" method="post" action="{% url 'client_messaging:message_reply' message.id %}">
-                {% else %}
-                <form id="reply-form" method="post" action="{% url 'messaging:message_reply' message.id %}">
-                {% endif %}
+                <form id="reply-form" method="post" action="{% portal_messages_route user 'message_reply' message.id %}">
                     {% csrf_token %}
                     <div class="mb-4">
                         <textarea id="reply_content" name="content" rows="6" class="w-full"></textarea>
                     </div>
                     <div class="flex justify-end space-x-3">
-                        {% if request.resolver_match.namespace == 'worker_messaging' %}
-                        <a href="{% url 'worker_messaging:internal_list' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        {% elif request.resolver_match.namespace == 'client_messaging' %}
-                        <a href="{% url 'client_messaging:internal_list' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        {% else %}
-                        <a href="{% url 'messaging:internal_list' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        {% endif %}
+                        <a href="{% portal_messages_route user 'internal_list' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                             Retour
                         </a>
                         <button type="submit" id="submit-btn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">

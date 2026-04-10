@@ -1,0 +1,178 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}Mes Documents — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="portal-premium-shell">
+  <div class="portal-premium-wrap space-y-8">
+    <section class="portal-premium-hero p-8 lg:p-10">
+      <div class="grid gap-8 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+        <div>
+          <p class="portal-premium-kicker">Bibliothèque documentaire</p>
+          <h1 class="mt-4 portal-premium-title">Tous vos contrats, rapports et pièces utiles dans une seule bibliothèque.</h1>
+          <p class="mt-5 portal-premium-subtitle">
+            Votre espace documentaire NetExpress réunit les fichiers publiés pour votre dossier, avec aperçu, téléchargement direct et mise en avant des éléments prioritaires.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="portal-premium-chip">
+              <i class="fas fa-user-tie"></i>
+              {{ client_record.full_name|default:user.get_full_name|default:user.username }}
+            </span>
+            {% if client_record.company %}
+              <span class="portal-premium-chip">
+                <i class="fas fa-building"></i>
+                {{ client_record.company }}
+              </span>
+            {% endif %}
+            {% if document_summary.latest_publication %}
+              <span class="portal-premium-chip">
+                <i class="fas fa-clock"></i>
+                Dernière publication {{ document_summary.latest_publication|date:"d/m/Y" }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action primary">
+              <i class="fas fa-headset"></i>Demander un document
+            </a>
+            <a href="{% url 'core:client_portal_dashboard' %}" class="portal-premium-action ghost">
+              <i class="fas fa-arrow-left"></i>Retour au dashboard
+            </a>
+          </div>
+        </div>
+
+        <aside class="portal-premium-glass p-6 lg:p-7">
+          <p class="portal-premium-kicker">Synthèse documents</p>
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Total publiés</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ document_summary.total }}</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Prioritaires</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ document_summary.pinned }}</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">À échéance proche</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ document_summary.expiring_soon }}</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Déjà consultés</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ document_summary.downloaded }}</p>
+            </div>
+          </div>
+          <div class="mt-5 rounded-[1.4rem] border border-white/10 bg-white/8 p-4 text-sm text-slate-100">
+            {% if document_summary.expiring_soon %}
+              <p class="font-semibold text-white">Des documents expirent bientôt.</p>
+              <p class="mt-2 text-white/75">Ils restent visibles et clairement marqués pour éviter les oublis de récupération.</p>
+            {% else %}
+              <p class="font-semibold text-white">Votre bibliothèque est rangée.</p>
+              <p class="mt-2 text-white/75">Les fichiers prioritaires et les documents déjà consultés sont instantanément repérables.</p>
+            {% endif %}
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="portal-premium-metric-grid portal-premium-stagger">
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Documents</span>
+        <p class="portal-premium-value">{{ document_summary.total }}</p>
+        <p class="portal-premium-copy">fichiers disponibles dans votre bibliothèque client</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Mises en avant</span>
+        <p class="portal-premium-value">{{ document_summary.pinned }}</p>
+        <p class="portal-premium-copy">documents épinglés pour attirer votre attention</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Échéance proche</span>
+        <p class="portal-premium-value">{{ document_summary.expiring_soon }}</p>
+        <p class="portal-premium-copy">ressources à récupérer avant leur date limite</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Consultés</span>
+        <p class="portal-premium-value">{{ document_summary.downloaded }}</p>
+        <p class="portal-premium-copy">documents déjà ouverts ou téléchargés</p>
+      </article>
+    </section>
+
+    {% if documents %}
+      <div class="grid gap-6 lg:grid-cols-2">
+        {% for document in documents %}
+          <article class="portal-premium-card p-6 lg:p-7">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div class="flex h-14 w-14 items-center justify-center rounded-[1.35rem] {% if document.category == 'contract' %}bg-blue-100 text-blue-700{% elif document.category == 'report' %}bg-emerald-100 text-emerald-700{% elif document.category == 'certificate' %}bg-amber-100 text-amber-700{% elif document.category == 'photo' %}bg-fuchsia-100 text-fuchsia-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                  <i class="fas {% if document.category == 'contract' %}fa-file-signature{% elif document.category == 'report' %}fa-clipboard-list{% elif document.category == 'certificate' %}fa-certificate{% elif document.category == 'photo' %}fa-image{% else %}fa-file-lines{% endif %}"></i>
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-xl font-semibold text-slate-900">{{ document.title }}</h2>
+                    {% if document.is_pinned %}
+                      <span class="portal-premium-badge bg-amber-100 text-amber-700">Prioritaire</span>
+                    {% endif %}
+                    {% if document.is_expired %}
+                      <span class="portal-premium-badge bg-red-100 text-red-700">Expiré</span>
+                    {% elif document.can_preview_inline %}
+                      <span class="portal-premium-badge bg-blue-100 text-blue-700">Aperçu</span>
+                    {% endif %}
+                  </div>
+                  <p class="mt-2 text-xs uppercase tracking-[0.22em] text-slate-400">{{ document.get_category_display }} · publié le {{ document.published_at|date:"d/m/Y" }}</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{{ document.filename|truncatechars:22 }}</span>
+            </div>
+
+            <p class="mt-5 text-sm leading-7 text-slate-600">{{ document.description|default:"Document partagé par votre interlocuteur NetExpress, prêt à être consulté ou téléchargé." }}</p>
+
+            <div class="mt-5 portal-premium-inline-meta">
+              {% if document.expires_at %}
+                <span><i class="fas fa-calendar-xmark mr-2 text-slate-400"></i>Expire le {{ document.expires_at|date:"d/m/Y" }}</span>
+              {% endif %}
+              <span><i class="fas fa-download mr-2 text-slate-400"></i>{{ document.download_count }} téléchargement{{ document.download_count|pluralize:"s" }}</span>
+              <span><i class="fas fa-clock mr-2 text-slate-400"></i>{% if document.last_accessed_at %}Consulté le {{ document.last_accessed_at|date:"d/m/Y H:i" }}{% else %}Jamais consulté{% endif %}</span>
+            </div>
+
+            <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+              <a href="{% url 'core:client_document_detail' document.pk %}" class="portal-premium-action secondary">
+                <i class="fas fa-eye"></i>Voir le détail
+              </a>
+              <a href="{% url 'core:client_document_download' document.pk %}" class="portal-premium-action primary">
+                <i class="fas fa-download"></i>Télécharger
+              </a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="portal-premium-empty">
+        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl text-slate-400">
+          <i class="fas fa-folder-open"></i>
+        </div>
+        <h2 class="mt-6 text-2xl font-semibold text-slate-900">Aucun document partagé pour le moment</h2>
+        <p class="mt-3 text-sm text-slate-500">Votre bibliothèque se remplira dès qu'un contrat, un rapport ou une ressource sera publié pour votre dossier.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

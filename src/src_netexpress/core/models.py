@@ -86,7 +86,86 @@ class ClientDocument(models.Model):
         self.save(update_fields=['last_accessed_at'])
 
 
-__all__ = ['ClientDocument', 'UINotification', 'PortalSession']
+class ClientPortalDocument(models.Model):
+    """Document métier publié manuellement pour un client dans son portail."""
+
+    CATEGORY_GENERAL = 'general'
+    CATEGORY_CONTRACT = 'contract'
+    CATEGORY_REPORT = 'report'
+    CATEGORY_CERTIFICATE = 'certificate'
+    CATEGORY_PHOTO = 'photo'
+    CATEGORY_OTHER = 'other'
+
+    CATEGORY_CHOICES = [
+        (CATEGORY_GENERAL, 'Document général'),
+        (CATEGORY_CONTRACT, 'Contrat'),
+        (CATEGORY_REPORT, 'Rapport'),
+        (CATEGORY_CERTIFICATE, 'Attestation'),
+        (CATEGORY_PHOTO, 'Photo / visuel'),
+        (CATEGORY_OTHER, 'Autre'),
+    ]
+
+    client = models.ForeignKey(
+        'devis.Client',
+        on_delete=models.CASCADE,
+        related_name='portal_documents',
+        help_text="Client destinataire du document",
+    )
+    title = models.CharField(max_length=180, help_text="Titre affiché dans le portail client")
+    description = models.TextField(blank=True, help_text="Résumé ou consignes associées au document")
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default=CATEGORY_GENERAL)
+    file = models.FileField(upload_to='client_portal_documents/%Y/%m')
+    is_pinned = models.BooleanField(default=False, help_text="Met en avant le document dans le portail")
+    is_published = models.BooleanField(default=True, help_text="Masque ou affiche le document côté client")
+    expires_at = models.DateField(null=True, blank=True, help_text="Date limite d'accès optionnelle")
+    published_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    published_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='published_client_documents',
+        help_text="Collaborateur ayant publié le document",
+    )
+    last_accessed_at = models.DateTimeField(null=True, blank=True)
+    download_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Document portail client'
+        verbose_name_plural = 'Documents portail client'
+        ordering = ['-is_pinned', '-published_at']
+        indexes = [
+            models.Index(fields=['client', 'is_published', '-published_at']),
+            models.Index(fields=['expires_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.client.full_name} - {self.title}"
+
+    @property
+    def filename(self):
+        return self.file.name.rsplit('/', 1)[-1]
+
+    @property
+    def is_expired(self):
+        return bool(self.expires_at and self.expires_at < timezone.localdate())
+
+    @property
+    def can_preview_inline(self):
+        extension = self.filename.rsplit('.', 1)[-1].lower() if '.' in self.filename else ''
+        return extension in {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+    def mark_accessed(self, download=False):
+        self.last_accessed_at = timezone.now()
+        update_fields = ['last_accessed_at']
+        if download:
+            self.download_count += 1
+            update_fields.append('download_count')
+        self.save(update_fields=update_fields)
+
+
+__all__ = ['ClientDocument', 'ClientPortalDocument', 'UINotification', 'PortalSession']
 
 
 class PortalSession(models.Model):
@@ -270,6 +349,7 @@ class UINotification(models.Model):
     
     NOTIFICATION_TYPES = [
         ('task_completed', 'Task Completed'),
+        ('task_updated', 'Task Updated'),
         ('task_assigned', 'Task Assigned'),
         ('quote_validated', 'Quote Validated'),
         ('invoice_created', 'Invoice Created'),

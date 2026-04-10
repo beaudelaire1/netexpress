@@ -4,16 +4,42 @@ Services for Client Portal document access control and filtering.
 
 from typing import List, Optional
 from django.contrib.auth.models import User
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from django.utils import timezone
 
 from devis.models import Quote
 from factures.models import Invoice
-from ..models import ClientDocument
+from ..models import ClientDocument, ClientPortalDocument
 
 
 class ClientDocumentService:
     """Service for managing client document access and filtering."""
+
+    @staticmethod
+    def _get_user_email(user: User) -> str:
+        return (getattr(user, 'email', '') or '').strip()
+
+    @staticmethod
+    def get_accessible_portal_documents(user: User) -> QuerySet[ClientPortalDocument]:
+        """Get manually published portal documents accessible to a client user."""
+        if not user.is_authenticated:
+            return ClientPortalDocument.objects.none()
+
+        queryset = ClientPortalDocument.objects.select_related('client', 'published_by')
+        if user.is_staff or user.is_superuser:
+            return queryset
+
+        user_email = ClientDocumentService._get_user_email(user)
+        if not user_email:
+            return ClientPortalDocument.objects.none()
+
+        today = timezone.localdate()
+        return queryset.filter(
+            client__email__iexact=user_email,
+            is_published=True,
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=today)
+        )
     
     @staticmethod
     def get_accessible_quotes(user: User) -> QuerySet[Quote]:
@@ -26,7 +52,7 @@ class ClientDocumentService:
             return Quote.objects.all()
         
         # For client users, filter by email
-        user_email = getattr(user, 'email', '') or ''
+        user_email = ClientDocumentService._get_user_email(user)
         if not user_email:
             return Quote.objects.none()
         
@@ -43,7 +69,7 @@ class ClientDocumentService:
             return Invoice.objects.all()
         
         # For client users, filter by email through quote relationship
-        user_email = getattr(user, 'email', '') or ''
+        user_email = ClientDocumentService._get_user_email(user)
         if not user_email:
             return Invoice.objects.none()
         
@@ -61,7 +87,7 @@ class ClientDocumentService:
         
         # Client users can only access their own quotes
         # Use case-insensitive comparison consistently
-        user_email = getattr(user, 'email', '') or ''
+        user_email = ClientDocumentService._get_user_email(user)
         if not user_email:
             return False
         
@@ -83,6 +109,24 @@ class ClientDocumentService:
             return False
         
         return ClientDocumentService.can_access_quote(user, invoice.quote)
+
+    @staticmethod
+    def can_access_portal_document(user: User, document: ClientPortalDocument) -> bool:
+        """Check if a user can access a manually published client document."""
+        if not user.is_authenticated:
+            return False
+
+        if user.is_staff or user.is_superuser:
+            return True
+
+        user_email = ClientDocumentService._get_user_email(user)
+        if not user_email:
+            return False
+
+        if not document.is_published or document.is_expired:
+            return False
+
+        return (getattr(document.client, 'email', '') or '').lower() == user_email.lower()
     
     @staticmethod
     def track_document_access(user: User, quote: Optional[Quote] = None, invoice: Optional[Invoice] = None):
@@ -117,6 +161,16 @@ class ClientDocumentService:
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Erreur lors du suivi d'accès au document pour {user}: {e}", exc_info=True)
+
+    @staticmethod
+    def track_portal_document_access(document: ClientPortalDocument, download: bool = False):
+        """Track client access to a manually published portal document."""
+        try:
+            document.mark_accessed(download=download)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur lors du suivi d'accès au document portail {document.pk}: {e}", exc_info=True)
     
     @staticmethod
     def get_client_document_stats(user: User) -> dict:
@@ -126,6 +180,7 @@ class ClientDocumentService:
         
         quotes = ClientDocumentService.get_accessible_quotes(user)
         invoices = ClientDocumentService.get_accessible_invoices(user)
+        portal_documents = ClientDocumentService.get_accessible_portal_documents(user)
         
         # Get pending quotes (draft or sent)
         pending_quotes = quotes.filter(status__in=['draft', 'sent'])
@@ -138,6 +193,7 @@ class ClientDocumentService:
             'total_invoices': invoices.count(),
             'pending_quotes': pending_quotes.count(),
             'unpaid_invoices': unpaid_invoices.count(),
+            'portal_documents': portal_documents.count(),
         }
     
     @staticmethod
@@ -148,6 +204,7 @@ class ClientDocumentService:
         
         quotes = ClientDocumentService.get_accessible_quotes(user)
         invoices = ClientDocumentService.get_accessible_invoices(user)
+        portal_documents = ClientDocumentService.get_accessible_portal_documents(user)
         
         # Get recent pending quotes
         recent_pending_quotes = quotes.filter(
@@ -162,4 +219,5 @@ class ClientDocumentService:
         return {
             'quotes': list(recent_pending_quotes),
             'invoices': list(recent_unpaid_invoices),
+            'portal_documents': list(portal_documents[:limit]),
         }

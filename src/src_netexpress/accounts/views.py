@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 from django.contrib import messages
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.forms import SetPasswordForm, AuthenticationForm
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.views.decorators.http import require_http_methods
 
-from .forms import ProfileForm, SignUpForm
+from .forms import PortalAuthenticationForm, ProfileForm, SignUpForm
 from core.portal_routing import redirect_after_login
 
 User = get_user_model()
@@ -41,11 +41,10 @@ def custom_login(request):
         return redirect(redirect_url)
     
     if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
+        form = PortalAuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            # AuthenticationForm valide deja les credentials avec le request.
+            user = form.get_user()
             if user is not None:
                 login(request, user)
                 messages.success(request, f"Bienvenue, {user.get_full_name() or user.username}!")
@@ -59,7 +58,7 @@ def custom_login(request):
                 redirect_url = redirect_after_login(user)
                 return redirect(redirect_url)
     else:
-        form = AuthenticationForm()
+                form = PortalAuthenticationForm(request)
     
     return render(request, "registration/login.html", {"form": form})
 
@@ -98,7 +97,7 @@ def password_setup(request, uidb64, token):
             if form.is_valid():
                 form.save()
                 # Log the user in automatically after password setup
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.success(request, 'Votre mot de passe a été configuré avec succès. Bienvenue !')
                 
                 # Redirect to client portal

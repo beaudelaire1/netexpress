@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Créer une Tâche — NetExpress{% endblock %}
 
@@ -10,7 +10,7 @@
   <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
     <i class="fas fa-calendar-alt mr-2"></i>Planning Global
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}
@@ -23,7 +23,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Créer une Tâche</h1>
-          <p class="text-gray-600">Ajouter une nouvelle tâche au planning</p>
+          <p class="text-gray-600">Ajouter une nouvelle tâche au planning de {{ company_name }}{% if company_siret %} • SIRET {{ company_siret }}{% endif %}</p>
         </div>
         <a href="{% url 'core:admin_global_planning' %}" class="btn btn-secondary">
           <i class="fas fa-arrow-left mr-2"></i>Retour au planning
@@ -35,6 +35,23 @@
   <!-- Form -->
   <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white rounded-lg shadow p-6">
+      {% if prefilled_client %}
+        <div class="mb-6 rounded-lg border border-ne-primary-200 bg-ne-primary-50 px-4 py-3 text-sm text-ne-primary-900">
+          Dossier client lié : <strong>{{ prefilled_client.full_name }}</strong>{% if prefilled_client.company %} · {{ prefilled_client.company }}{% endif %}.
+          Les champs sont préremplis pour organiser une intervention, une relance ou un suivi client sans quitter le portail métier. Cette tâche sera aussi visible dans l'espace client pour le suivi d'avancement.
+        </div>
+      {% endif %}
+
+      {% if prefilled_worker %}
+        <div class="mb-6 rounded-lg border border-ne-primary-200 bg-ne-primary-50 px-4 py-3 text-sm text-ne-primary-900">
+          La tâche sera préparée pour <strong>{{ prefilled_worker.get_full_name|default:prefilled_worker.username }}</strong>. Vous restez dans le portail métier et serez redirigé vers la fiche de tâche après création.
+        </div>
+      {% elif company_siret %}
+        <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          Référence entreprise : <strong>{{ company_name }}</strong> · SIRET <strong>{{ company_siret }}</strong>
+        </div>
+      {% endif %}
+
       <form method="post" class="space-y-6">
         {% csrf_token %}
         
@@ -61,6 +78,17 @@
               {% if form.description.errors %}
                 <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
               {% endif %}
+            </div>
+
+            <div>
+              <label for="{{ form.client.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Client concerné
+              </label>
+              {{ form.client }}
+              {% if form.client.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.client.errors.0 }}</p>
+              {% endif %}
+              <p class="mt-1 text-sm text-gray-500">Le client verra cette tâche dans son portail pour suivre l'avancement.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

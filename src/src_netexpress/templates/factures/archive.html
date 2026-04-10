@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load portal_navigation %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
 {% endblock %}
@@ -11,15 +12,8 @@
   <aside class="bo-sidebar" aria-label="Navigation factures">
     <div class="bo-brand">Nettoyage Express</div>
     <nav class="bo-nav">
-      {% if user.is_superuser %}
-        <a href="/gestion/">Retour dashboard</a>
-      {% elif user.is_staff %}
-        <a href="{% url 'core:admin_dashboard' %}">Retour dashboard</a>
-      {% elif user.profile.role == 'worker' %}
-        <a href="{% url 'worker:worker_dashboard' %}">Retour dashboard</a>
-      {% else %}
-        <a href="{% url 'core:client_portal_dashboard' %}">Retour dashboard</a>
-      {% endif %}
+      {% portal_home_url user as dashboard_url %}
+      <a href="{{ dashboard_url }}">Retour dashboard</a>
       <a href="{% url 'tasks:calendar' %}">Calendrier tâches</a>
       <a class="is-primary" href="{% url 'factures:archive' %}">Factures</a>
     </nav>

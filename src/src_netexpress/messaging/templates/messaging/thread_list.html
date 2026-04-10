@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Conversations{% endblock %}
 
@@ -8,11 +8,11 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Conversations</h1>
         <div class="flex space-x-3">
-            <a href="{% url 'messaging:internal_list' %}" 
+            <a href="{% portal_messages_route user 'internal_list' %}" 
                class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
                 Tous les messages
             </a>
-            <a href="{% url 'messaging:internal_compose' %}" 
+            <a href="{% portal_messages_route user 'internal_compose' %}" 
                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                 Nouveau message
             </a>
@@ -60,7 +60,7 @@
                             {% with last_message=thread.messages.last %}
                             {% if last_message %}
                             <div class="mt-2">
-                                <a href="{% url 'messaging:internal_detail' last_message.pk %}" 
+                                <a href="{% portal_messages_route user 'internal_detail' last_message.pk %}" 
                                    class="text-blue-600 hover:text-blue-800 text-sm">
                                     Voir la conversation
                                 </a>
@@ -101,7 +101,7 @@
                 <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune conversation</h3>
                 <p class="text-gray-600 mb-4">Vous n'avez pas encore de conversations.</p>
-                <a href="{% url 'messaging:internal_compose' %}" 
+                <a href="{% portal_messages_route user 'internal_compose' %}" 
                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                     Démarrer une conversation
                 </a>

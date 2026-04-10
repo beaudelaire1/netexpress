@@ -1,0 +1,55 @@
+{% load static %}
+
+<footer class="site-footer-rich" role="contentinfo">
+  <div class="site-footer-inner">
+    <div class="site-footer-grid">
+      <section class="site-footer-brand" aria-label="Présentation Nettoyage Express">
+        <img src="{% static 'img/logo.png' %}" alt="Nettoyage Express" class="site-footer-logo">
+        <p class="site-footer-copy">Votre partenaire local pour l'entretien de la maison et du bureau en Guyane.</p>
+      </section>
+
+      <section class="site-footer-column" aria-labelledby="site-footer-contact-title">
+        <h2 id="site-footer-contact-title" class="site-footer-title">Contact</h2>
+        <ul class="site-footer-list">
+          <li>
+            <a href="tel:+594594302368" class="site-footer-link">
+              <i class="fas fa-phone" aria-hidden="true"></i>
+              <span>05 94 30 23 68</span>
+            </a>
+          </li>
+          <li>
+            <a href="tel:+594694462012" class="site-footer-link">
+              <i class="fas fa-mobile-alt" aria-hidden="true"></i>
+              <span>06 94 46 20 12</span>
+            </a>
+          </li>
+          <li>
+            <a href="mailto:contact@nettoyageexpresse.fr" class="site-footer-link">
+              <i class="fas fa-envelope" aria-hidden="true"></i>
+              <span>contact@nettoyageexpresse.fr</span>
+            </a>
+          </li>
+          <li class="site-footer-address">
+            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+            <span>753, Chemin de la Désirée<br>97351 Matoury</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="site-footer-column" aria-labelledby="site-footer-services-title">
+        <h2 id="site-footer-services-title" class="site-footer-title">Services</h2>
+        <ul class="site-footer-list">
+          <li class="site-footer-service"><span class="site-footer-service-bullet" aria-hidden="true">•</span><span>Nettoyage professionnel</span></li>
+          <li class="site-footer-service"><span class="site-footer-service-bullet" aria-hidden="true">•</span><span>Entretien espaces verts</span></li>
+          <li class="site-footer-service"><span class="site-footer-service-bullet" aria-hidden="true">•</span><span>Peinture et bricolage</span></li>
+          <li class="site-footer-service"><span class="site-footer-service-bullet" aria-hidden="true">•</span><span>Maintenance générale</span></li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="site-footer-bottom">
+      <p class="site-footer-legal">© {% now "Y" %} Nettoyage Express — Tous droits réservés.</p>
+      <p class="site-footer-credit">Développé par <a href="https://www.traitdunion.it" target="_blank" rel="noopener noreferrer">Trait d'Union Studio</a></p>
+    </div>
+  </div>
+</footer>

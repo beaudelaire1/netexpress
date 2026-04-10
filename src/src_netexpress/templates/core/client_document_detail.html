@@ -1,0 +1,96 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}{{ document.title }} — Espace Client{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <a href="{% url 'core:client_documents' %}" class="inline-flex items-center text-sm font-medium text-ne-primary-700 hover:text-ne-primary-800">
+            <i class="fas fa-arrow-left mr-2"></i>Retour aux documents
+          </a>
+          <h1 class="mt-4 text-2xl font-bold text-gray-900">{{ document.title }}</h1>
+          <p class="mt-2 text-sm text-gray-500">{{ document.get_category_display }} · publié le {{ document.published_at|date:"d/m/Y à H:i" }}</p>
+        </div>
+        <a href="{% url 'core:client_document_download' document.pk %}" class="inline-flex items-center justify-center rounded-xl bg-ne-primary-600 px-4 py-3 text-sm font-semibold text-white hover:bg-ne-primary-700">
+          <i class="fas fa-download mr-2"></i>Télécharger le document
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900">Informations</h2>
+        <dl class="mt-5 space-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-[0.22em] text-gray-400">Fichier</dt>
+            <dd class="mt-1 font-medium text-gray-800">{{ document.filename }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-[0.22em] text-gray-400">Description</dt>
+            <dd class="mt-1 text-gray-600">{{ document.description|default:"Aucune description fournie." }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-[0.22em] text-gray-400">Dernier accès</dt>
+            <dd class="mt-1 text-gray-600">{% if document.last_accessed_at %}{{ document.last_accessed_at|date:"d/m/Y à H:i" }}{% else %}Première consultation{% endif %}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-[0.22em] text-gray-400">Disponibilité</dt>
+            <dd class="mt-1 text-gray-600">{% if document.expires_at %}Valable jusqu'au {{ document.expires_at|date:"d/m/Y" }}{% else %}Sans date d'expiration{% endif %}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-900">Aperçu</h2>
+          {% if document.can_preview_inline %}
+            <a href="{% url 'core:client_document_download' document.pk %}?inline=1" target="_blank" class="text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">Ouvrir dans un nouvel onglet</a>
+          {% endif %}
+        </div>
+
+        {% if document.can_preview_inline %}
+          <div class="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+            {% if document.filename|lower|slice:"-3:" == 'pdf' %}
+              <iframe src="{% url 'core:client_document_download' document.pk %}?inline=1" class="h-[42rem] w-full" title="Aperçu document"></iframe>
+            {% else %}
+              <img src="{% url 'core:client_document_download' document.pk %}?inline=1" alt="{{ document.title }}" class="max-h-[42rem] w-full object-contain bg-white">
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="mt-5 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-3xl text-gray-400 shadow-sm">
+              <i class="fas fa-file-arrow-down"></i>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold text-gray-900">Aperçu non disponible</h3>
+            <p class="mt-2 text-sm text-gray-500">Ce format doit être téléchargé pour être consulté.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

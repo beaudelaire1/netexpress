@@ -85,6 +85,14 @@ class Task(models.Model):
 
     title: str = models.CharField(max_length=200)
     description: str = models.TextField(blank=True)
+    client = models.ForeignKey(
+        'devis.Client',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tasks',
+        help_text="Client concerné par cette tâche pour le suivi portail"
+    )
     location: str = models.CharField(max_length=200, blank=True)
     team: str = models.CharField(
         max_length=100,

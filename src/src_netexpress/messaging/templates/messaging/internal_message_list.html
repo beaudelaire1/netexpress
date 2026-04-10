@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Messages internes{% endblock %}
 
@@ -23,10 +23,10 @@
                     Nouveau message
                 </a>
             {% else %}
-                <a href="{% url 'messaging:thread_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <a href="{% portal_messages_route user 'thread_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
                     Conversations
                 </a>
-                <a href="{% url 'messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <a href="{% portal_messages_route user 'internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                     Nouveau message
                 </a>
             {% endif %}
@@ -71,7 +71,7 @@
                                 {% elif request.resolver_match.namespace == 'client_messaging' %}
                                 <a href="{% url 'client_messaging:internal_detail' message.pk %}" class="hover:text-blue-600 transition-colors">
                                 {% else %}
-                                <a href="{% url 'messaging:internal_detail' message.pk %}" class="hover:text-blue-600 transition-colors">
+                                <a href="{% portal_messages_route user 'internal_detail' message.pk %}" class="hover:text-blue-600 transition-colors">
                                 {% endif %}
                                     {{ message.subject }}
                                 </a>
@@ -124,7 +124,7 @@
                 {% elif request.resolver_match.namespace == 'client_messaging' %}
                 <a href="{% url 'client_messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                 {% else %}
-                <a href="{% url 'messaging:internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <a href="{% portal_messages_route user 'internal_compose' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                 {% endif %}
                     Envoyer votre premier message
                 </a>

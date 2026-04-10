@@ -1,8 +1,11 @@
+from smtplib import SMTPAuthenticationError
+
 from django.contrib import admin, messages
 from django.urls import path, reverse
 from django.shortcuts import get_object_or_404, redirect
 from django import forms
 from tinymce.widgets import TinyMCE
+from core.utils import sanitize_html
 from .models import Quote, QuoteItem, Client
 
 
@@ -19,6 +22,9 @@ class QuoteAdminForm(forms.ModelForm):
     class Meta:
         model = Quote
         fields = '__all__'
+
+    def clean_notes(self):
+        return sanitize_html(self.cleaned_data.get('notes', ''))
 
 
 class QuoteItemInline(admin.TabularInline):
@@ -98,8 +104,17 @@ class QuoteAdmin(admin.ModelAdmin):
 
     def _view_send_email(self, request, pk: int):
         quote = get_object_or_404(Quote, pk=pk)
-        quote.send_email(request=request, force_pdf=True)
-        self.message_user(request, "Email devis envoyé.", level=messages.SUCCESS)
+        try:
+            quote.send_email(request=request, force_pdf=True)
+            self.message_user(request, "Email devis envoyé.", level=messages.SUCCESS)
+        except SMTPAuthenticationError:
+            self.message_user(
+                request,
+                "Échec SMTP Brevo: authentification refusée. Vérifiez BREVO_SMTP_LOGIN/BREVO_SMTP_PASSWORD ou basculez sur l'API Brevo.",
+                level=messages.ERROR,
+            )
+        except Exception as exc:
+            self.message_user(request, f"Erreur envoi devis: {exc}", level=messages.ERROR)
         return redirect(reverse("admin:devis_quote_change", args=[quote.pk]))
 
     def _view_convert_invoice(self, request, pk: int):
@@ -125,9 +140,27 @@ class QuoteAdmin(admin.ModelAdmin):
 
     @admin.action(description="📧 Envoyer le devis par email")
     def action_send_quote_email(self, request, queryset):
+        sent_count = 0
+        failed_count = 0
         for quote in queryset:
             if hasattr(quote, "send_email"):
-                quote.send_email(request=request, force_pdf=True)
-        self.message_user(request, "Devis envoyés par email.", level=messages.SUCCESS)
+                try:
+                    quote.send_email(request=request, force_pdf=True)
+                    sent_count += 1
+                except SMTPAuthenticationError:
+                    failed_count += 1
+                    self.message_user(
+                        request,
+                        "Échec SMTP Brevo: authentification refusée. Vérifiez BREVO_SMTP_LOGIN/BREVO_SMTP_PASSWORD ou configurez BREVO_API_KEY.",
+                        level=messages.ERROR,
+                    )
+                    break
+                except Exception as exc:
+                    failed_count += 1
+                    self.message_user(request, f"Erreur envoi devis {quote.number}: {exc}", level=messages.ERROR)
+        if sent_count:
+            self.message_user(request, f"{sent_count} devis envoyé(s) par email.", level=messages.SUCCESS)
+        elif not failed_count:
+            self.message_user(request, "Aucun devis sélectionné pour l'envoi.", level=messages.WARNING)
 
 # NOTE : on ne register pas QuoteItem pour éviter un menu séparé en admin.

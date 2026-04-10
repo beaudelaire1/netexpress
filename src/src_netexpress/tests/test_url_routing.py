@@ -36,6 +36,13 @@ from core.portal_routing import (
 )
 
 
+def ensure_profile(user, role):
+    profile, _ = Profile.objects.get_or_create(user=user, defaults={'role': role})
+    profile.role = role
+    profile.save()
+    return profile
+
+
 class TestPortalURLPatterns(TestCase):
     """Test portal URL access patterns."""
     
@@ -49,16 +56,14 @@ class TestPortalURLPatterns(TestCase):
             email='client@test.com',
             password='testpass123'
         )
-        self.client_user.profile.role = Profile.ROLE_CLIENT
-        self.client_user.profile.save()
+        ensure_profile(self.client_user, Profile.ROLE_CLIENT)
         
         self.worker_user = User.objects.create_user(
             username='worker_test',
             email='worker@test.com',
             password='testpass123'
         )
-        self.worker_user.profile.role = Profile.ROLE_WORKER
-        self.worker_user.profile.save()
+        ensure_profile(self.worker_user, Profile.ROLE_WORKER)
         
         self.admin_business_user = User.objects.create_user(
             username='admin_business_test',
@@ -66,8 +71,7 @@ class TestPortalURLPatterns(TestCase):
             password='testpass123',
             is_staff=True
         )
-        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
-        self.admin_business_user.profile.save()
+        ensure_profile(self.admin_business_user, Profile.ROLE_ADMIN_BUSINESS)
 
         self.admin_technical_user = User.objects.create_user(
             username='admin_technical_test',
@@ -76,6 +80,7 @@ class TestPortalURLPatterns(TestCase):
             is_staff=True,
             is_superuser=True
         )
+        ensure_profile(self.admin_technical_user, Profile.ROLE_ADMIN_TECHNICAL)
     
     def test_client_portal_url_patterns(self):
         """
@@ -89,6 +94,7 @@ class TestPortalURLPatterns(TestCase):
             '/client/',
             '/client/quotes/',
             '/client/invoices/',
+            '/client/documents/',
         ]
         
         for url in client_urls:
@@ -156,6 +162,9 @@ class TestPortalURLPatterns(TestCase):
         # Test main admin portal URLs
         admin_urls = [
             '/admin-dashboard/',
+            '/admin-dashboard/email-health/',
+            '/admin-dashboard/clients/import/',
+            '/admin-dashboard/clients/import/template/',
         ]
         
         for url in admin_urls:
@@ -245,16 +254,14 @@ class TestRedirectLogic(TestCase):
             email='client@redirect.com',
             password='testpass123'
         )
-        self.client_user.profile.role = Profile.ROLE_CLIENT
-        self.client_user.profile.save()
+        ensure_profile(self.client_user, Profile.ROLE_CLIENT)
         
         self.worker_user = User.objects.create_user(
             username='worker_redirect',
             email='worker@redirect.com',
             password='testpass123'
         )
-        self.worker_user.profile.role = Profile.ROLE_WORKER
-        self.worker_user.profile.save()
+        ensure_profile(self.worker_user, Profile.ROLE_WORKER)
         
         self.admin_business_user = User.objects.create_user(
             username='admin_business_redirect',
@@ -262,8 +269,7 @@ class TestRedirectLogic(TestCase):
             password='testpass123',
             is_staff=True
         )
-        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
-        self.admin_business_user.profile.save()
+        ensure_profile(self.admin_business_user, Profile.ROLE_ADMIN_BUSINESS)
 
         self.admin_technical_user = User.objects.create_user(
             username='admin_technical_redirect',
@@ -272,6 +278,7 @@ class TestRedirectLogic(TestCase):
             is_staff=True,
             is_superuser=True
         )
+        ensure_profile(self.admin_technical_user, Profile.ROLE_ADMIN_TECHNICAL)
     
     def test_get_user_role_function(self):
         """
@@ -301,7 +308,7 @@ class TestRedirectLogic(TestCase):
             password='testpass123'
         )
         # Delete the auto-created profile to simulate missing profile
-        user_no_profile.profile.delete()
+        Profile.objects.filter(user=user_no_profile).delete()
         role = get_user_role(user_no_profile)
         self.assertEqual(role, 'client')
     
@@ -324,7 +331,7 @@ class TestRedirectLogic(TestCase):
 
         # Test admin technical portal URL
         url = get_portal_home_url(self.admin_technical_user)
-        self.assertEqual(url, '/gestion/')
+        self.assertEqual(url, '/admin-dashboard/')
     
     def test_redirect_to_user_portal_function(self):
         """
@@ -349,7 +356,7 @@ class TestRedirectLogic(TestCase):
         # Test admin technical redirect
         response = redirect_to_user_portal(self.admin_technical_user)
         self.assertIsInstance(response, HttpResponseRedirect)
-        self.assertEqual(response.url, '/gestion/')
+        self.assertEqual(response.url, '/admin-dashboard/')
     
     def test_is_portal_url_function(self):
         """
@@ -443,8 +450,8 @@ class TestRedirectLogic(TestCase):
         self.assertTrue(user_can_access_portal(self.admin_business_user, 'admin_dashboard'))
         self.assertTrue(user_can_access_portal(self.admin_business_user, 'gestion'))
 
-        # Test admin technical access (gestion only)
-        self.assertFalse(user_can_access_portal(self.admin_technical_user, 'admin_dashboard'))
+        # Test admin technical access (admin dashboard + gestion)
+        self.assertTrue(user_can_access_portal(self.admin_technical_user, 'admin_dashboard'))
         self.assertTrue(user_can_access_portal(self.admin_technical_user, 'gestion'))
     
     def test_validate_portal_access_function(self):
@@ -502,16 +509,14 @@ class TestPortalRouter(TestCase):
             email='client@router.com',
             password='testpass123'
         )
-        self.client_user.profile.role = Profile.ROLE_CLIENT
-        self.client_user.profile.save()
+        ensure_profile(self.client_user, Profile.ROLE_CLIENT)
         
         self.worker_user = User.objects.create_user(
             username='worker_router',
             email='worker@router.com',
             password='testpass123'
         )
-        self.worker_user.profile.role = Profile.ROLE_WORKER
-        self.worker_user.profile.save()
+        ensure_profile(self.worker_user, Profile.ROLE_WORKER)
         
         self.admin_business_user = User.objects.create_user(
             username='admin_business_router',
@@ -519,8 +524,7 @@ class TestPortalRouter(TestCase):
             password='testpass123',
             is_staff=True
         )
-        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
-        self.admin_business_user.profile.save()
+        ensure_profile(self.admin_business_user, Profile.ROLE_ADMIN_BUSINESS)
 
         self.admin_technical_user = User.objects.create_user(
             username='admin_technical_router',
@@ -529,6 +533,7 @@ class TestPortalRouter(TestCase):
             is_staff=True,
             is_superuser=True
         )
+        ensure_profile(self.admin_technical_user, Profile.ROLE_ADMIN_TECHNICAL)
     
     def test_portal_router_initialization(self):
         """
@@ -566,7 +571,7 @@ class TestPortalRouter(TestCase):
         self.assertEqual(admin_router.get_dashboard_url(), '/admin-dashboard/')
 
         tech_router = PortalRouter(self.admin_technical_user)
-        self.assertEqual(tech_router.get_dashboard_url(), '/gestion/')
+        self.assertEqual(tech_router.get_dashboard_url(), '/admin-dashboard/')
     
     def test_portal_router_get_messages_url(self):
         """
@@ -574,16 +579,16 @@ class TestPortalRouter(TestCase):
         **Requirements: 1.1**
         """
         client_router = PortalRouter(self.client_user)
-        self.assertEqual(client_router.get_messages_url(), '/client/messages/')
+        self.assertEqual(client_router.get_messages_url(), '/client/messages/threads/')
         
         worker_router = PortalRouter(self.worker_user)
-        self.assertEqual(worker_router.get_messages_url(), '/worker/messages/')
+        self.assertEqual(worker_router.get_messages_url(), '/worker/messages/threads/')
         
         admin_router = PortalRouter(self.admin_business_user)
-        self.assertEqual(admin_router.get_messages_url(), '/admin-dashboard/messages/')
+        self.assertEqual(admin_router.get_messages_url(), '/admin-dashboard/messages/threads/')
 
         tech_router = PortalRouter(self.admin_technical_user)
-        self.assertEqual(tech_router.get_messages_url(), '/gestion/')
+        self.assertEqual(tech_router.get_messages_url(), '/admin-dashboard/messages/threads/')
     
     def test_portal_router_can_access_url(self):
         """
@@ -605,7 +610,7 @@ class TestPortalRouter(TestCase):
         self.assertTrue(admin_router.can_access_url('/gestion/'))
 
         tech_router = PortalRouter(self.admin_technical_user)
-        self.assertFalse(tech_router.can_access_url('/admin-dashboard/'))
+        self.assertTrue(tech_router.can_access_url('/admin-dashboard/'))
         self.assertTrue(tech_router.can_access_url('/gestion/'))
 
 
@@ -622,16 +627,14 @@ class TestAccessControlDecorators(TestCase):
             email='client@decorator.com',
             password='testpass123'
         )
-        self.client_user.profile.role = Profile.ROLE_CLIENT
-        self.client_user.profile.save()
+        ensure_profile(self.client_user, Profile.ROLE_CLIENT)
         
         self.worker_user = User.objects.create_user(
             username='worker_decorator',
             email='worker@decorator.com',
             password='testpass123'
         )
-        self.worker_user.profile.role = Profile.ROLE_WORKER
-        self.worker_user.profile.save()
+        ensure_profile(self.worker_user, Profile.ROLE_WORKER)
         
         self.admin_business_user = User.objects.create_user(
             username='admin_business_decorator',
@@ -639,8 +642,7 @@ class TestAccessControlDecorators(TestCase):
             password='testpass123',
             is_staff=True
         )
-        self.admin_business_user.profile.role = Profile.ROLE_ADMIN_BUSINESS
-        self.admin_business_user.profile.save()
+        ensure_profile(self.admin_business_user, Profile.ROLE_ADMIN_BUSINESS)
         
         # Create mock views for testing decorators
         @client_portal_required

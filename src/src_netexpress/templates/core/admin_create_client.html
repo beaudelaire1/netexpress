@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Créer un Client — NetExpress{% endblock %}
 
@@ -7,139 +7,177 @@
   <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
   </a>
-  <a href="{% url 'core:admin_global_planning' %}" class="portal-nav-item">
-    <i class="fas fa-calendar-alt mr-2"></i>Planning Global
+  <a href="{% url 'core:admin_clients_list' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-user-tie mr-2"></i>Clients
   </a>
-  <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item">
-    <i class="fas fa-users mr-2"></i>Ouvriers
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Devis
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% url 'core:admin_invoices_list' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Factures
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50">
-  <!-- Header -->
-  <div class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex items-center justify-between">
+<div class="min-h-screen bg-slate-50">
+  <div class="border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(15,107,76,0.12),_transparent_36%),linear-gradient(180deg,#ffffff_0%,#f4f8f5_100%)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Créer un Client</h1>
-          <p class="text-gray-600">Ajouter un nouveau client au système</p>
+          <a href="{% url 'core:admin_clients_list' %}" class="inline-flex items-center text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">
+            <i class="fas fa-arrow-left mr-2"></i>Retour aux clients
+          </a>
+          <p class="mt-5 text-sm font-semibold uppercase tracking-[0.3em] text-ne-primary-700">Nouveau client</p>
+          <h1 class="mt-3 text-3xl font-bold text-slate-900">Créer une fiche client propre dès le premier passage</h1>
+          <p class="mt-3 max-w-3xl text-sm text-slate-600">Renseignez les coordonnées, préparez si besoin l'accès portail et renvoyez ensuite l'équipe directement vers la création de devis.</p>
         </div>
-        <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary">
-          <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
-        </a>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="{% url 'core:admin_import_clients' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+            <i class="fas fa-file-excel mr-2"></i>Importer un lot Excel
+          </a>
+          <a href="{% url 'core:admin_clients_list' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+            <i class="fas fa-list mr-2"></i>Voir tous les clients
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p class="text-sm text-slate-500">Canal principal</p>
+          <p class="mt-2 text-2xl font-semibold text-slate-900">Email</p>
+          <p class="mt-1 text-xs text-slate-500">servira aussi de clé pour l'espace client et les imports futurs</p>
+        </div>
+        <div class="rounded-2xl border border-blue-100 bg-blue-50/80 p-5 shadow-sm">
+          <p class="text-sm text-blue-700">Activation portail</p>
+          <p class="mt-2 text-2xl font-semibold text-blue-900">Optionnelle</p>
+          <p class="mt-1 text-xs text-blue-700">peut être préparée dès la création de la fiche</p>
+        </div>
+        <div class="rounded-2xl border border-amber-100 bg-amber-50/80 p-5 shadow-sm">
+          <p class="text-sm text-amber-700">Étape suivante</p>
+          <p class="mt-2 text-2xl font-semibold text-amber-900">Créer un devis</p>
+          <p class="mt-1 text-xs text-amber-700">le raccourci sera proposé juste après l'enregistrement</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-900 p-5 shadow-sm">
+          <p class="text-sm text-slate-300">Qualité de fiche</p>
+          <p class="mt-2 text-2xl font-semibold text-white">Coordonnées nettes</p>
+          <p class="mt-1 text-xs text-slate-400">utile pour les devis, factures, invitations et relances</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Form -->
-  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="bg-white rounded-lg shadow p-6">
-      <form method="post" class="space-y-6">
-        {% csrf_token %}
-        
-        <!-- Personal Information -->
-        <div class="border-b border-gray-200 pb-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Informations personnelles</h3>
-          
-          <div class="space-y-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <form method="post" class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      {% csrf_token %}
+
+      <div class="space-y-6">
+        {% if form.non_field_errors %}
+          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {% for error in form.non_field_errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:p-7">
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Identité client</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Coordonnées principales</h2>
+          <div class="mt-6 space-y-5">
             <div>
-              <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                Nom complet *
-              </label>
+              <label for="{{ form.full_name.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Nom complet</label>
               {{ form.full_name }}
-              {% if form.full_name.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
-              {% endif %}
+              {% if form.full_name.errors %}<p class="mt-2 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>{% endif %}
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
+                <label for="{{ form.email.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Email</label>
                 {{ form.email }}
-                {% if form.email.errors %}
-                  <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
-                {% endif %}
+                {% if form.email.errors %}<p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>{% endif %}
               </div>
-              
               <div>
-                <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                  Téléphone
-                </label>
+                <label for="{{ form.phone.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Téléphone</label>
                 {{ form.phone }}
-                {% if form.phone.errors %}
-                  <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
-                {% endif %}
+                {% if form.phone.errors %}<p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>{% endif %}
               </div>
             </div>
-            
             <div>
-              <label for="{{ form.company.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                Entreprise (optionnel)
-              </label>
+              <label for="{{ form.company.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Entreprise</label>
               {{ form.company }}
-              {% if form.company.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.company.errors.0 }}</p>
-              {% endif %}
+              {% if form.company.errors %}<p class="mt-2 text-sm text-red-600">{{ form.company.errors.0 }}</p>{% endif %}
             </div>
           </div>
-        </div>
-        
-        <!-- Address Information -->
-        <div>
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Adresse</h3>
-          
-          <div class="space-y-4">
+        </section>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:p-7">
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Localisation</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Adresse et rattachement géographique</h2>
+          <div class="mt-6 space-y-5">
             <div>
-              <label for="{{ form.address_line.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                Adresse
-              </label>
+              <label for="{{ form.address_line.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Adresse</label>
               {{ form.address_line }}
-              {% if form.address_line.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.address_line.errors.0 }}</p>
-              {% endif %}
+              {% if form.address_line.errors %}<p class="mt-2 text-sm text-red-600">{{ form.address_line.errors.0 }}</p>{% endif %}
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                  Ville
-                </label>
+                <label for="{{ form.city.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Ville</label>
                 {{ form.city }}
-                {% if form.city.errors %}
-                  <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
-                {% endif %}
+                {% if form.city.errors %}<p class="mt-2 text-sm text-red-600">{{ form.city.errors.0 }}</p>{% endif %}
               </div>
-              
               <div>
-                <label for="{{ form.zip_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                  Code postal
-                </label>
+                <label for="{{ form.zip_code.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-700">Code postal</label>
                 {{ form.zip_code }}
-                {% if form.zip_code.errors %}
-                  <p class="mt-1 text-sm text-red-600">{{ form.zip_code.errors.0 }}</p>
-                {% endif %}
+                {% if form.zip_code.errors %}<p class="mt-2 text-sm text-red-600">{{ form.zip_code.errors.0 }}</p>{% endif %}
               </div>
             </div>
           </div>
+        </section>
+      </div>
+
+      <aside class="space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Espace client</p>
+          <h2 class="mt-3 text-xl font-semibold text-slate-900">Préparer le portail dès maintenant</h2>
+          <label class="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+            {{ form.create_portal_access }}
+            <span>
+              <span class="block font-semibold text-slate-900">Activer l'accès portail</span>
+              <span class="mt-1 block text-slate-500">Crée le compte client, utilise l'email comme identifiant et envoie un lien pour définir le mot de passe si la messagerie est disponible.</span>
+            </span>
+          </label>
+          {% if form.create_portal_access.errors %}
+            <p class="mt-2 text-sm text-red-600">{{ form.create_portal_access.errors.0 }}</p>
+          {% endif %}
+
+          <div class="mt-5 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
+            <p class="font-semibold">Bonne pratique</p>
+            <p class="mt-2">Activez le portail si le client doit accéder rapidement à ses devis, factures et documents publiés. Son email devient l'identifiant de connexion.</p>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Après création</p>
+          <div class="mt-4 space-y-3 text-sm text-slate-600">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">Créer un devis en un clic depuis la fiche client.</div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">Publier des documents dans le portail si le compte est activé.</div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">Relancer l'invitation portail depuis la fiche détail si nécessaire.</div>
+          </div>
+        </section>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-3">
+            <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-ne-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-ne-primary-700">
+              <i class="fas fa-check mr-2"></i>Créer le client
+            </button>
+            <a href="{% url 'core:admin_clients_list' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              Annuler
+            </a>
+          </div>
         </div>
-        
-        <!-- Submit Buttons -->
-        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-          <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary">
-            Annuler
-          </a>
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-plus mr-2"></i>Créer le client
-          </button>
-        </div>
-      </form>
-    </div>
+      </aside>
+    </form>
   </div>
 </div>
 {% endblock %}

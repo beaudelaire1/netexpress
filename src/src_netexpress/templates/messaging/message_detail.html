@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load portal_navigation %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
@@ -12,15 +13,10 @@
   <aside class="bo-sidebar" aria-label="Navigation messages">
     <div class="bo-brand">Nettoyage Express</div>
     <nav class="bo-nav">
-      {% if user.is_superuser %}
-        <a href="/gestion/">Retour dashboard</a>
-      {% elif user.is_staff %}
-        <a href="{% url 'core:admin_dashboard' %}">Retour dashboard</a>
-      {% else %}
-        <a href="{% url 'core:client_portal_dashboard' %}">Retour dashboard</a>
-      {% endif %}
-      <a href="{% url 'messaging:compose' %}">Nouveau message</a>
-      <a class="is-primary" href="{% url 'messaging:list' %}">Historique</a>
+      {% portal_home_url user as dashboard_url %}
+      <a href="{{ dashboard_url }}">Retour dashboard</a>
+      <a href="{% portal_messages_route user 'compose' %}">Nouveau message</a>
+      <a class="is-primary" href="{% portal_messages_route user 'list' %}">Historique</a>
     </nav>
   </aside>
 

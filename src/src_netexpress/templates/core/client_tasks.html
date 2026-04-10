@@ -1,0 +1,170 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}Mes Interventions — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_tasks' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-list-check mr-2"></i>Mes Interventions
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="portal-premium-shell">
+  <div class="portal-premium-wrap space-y-8">
+    <section class="portal-premium-hero p-8 lg:p-10">
+      <div class="grid gap-8 xl:grid-cols-[1.15fr_0.85fr] xl:items-start">
+        <div class="relative z-10">
+          <p class="portal-premium-kicker">Suivi d'avancement</p>
+          <h1 class="mt-4 portal-premium-title">Vos interventions visibles en temps réel dans le portail client.</h1>
+          <p class="mt-5 portal-premium-subtitle">
+            Consultez ici les tâches planifiées pour votre dossier{% if client_record %} {{ client_record.company|default:client_record.full_name }}{% endif %}, leur échéance et leur état d'avancement.
+          </p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action primary">
+              <i class="fas fa-headset"></i>Poser une question
+            </a>
+            <a href="{% url 'core:client_portal_dashboard' %}" class="portal-premium-action secondary">
+              <i class="fas fa-arrow-left"></i>Retour au dashboard
+            </a>
+          </div>
+        </div>
+
+        <aside class="portal-premium-glass portal-premium-floating p-6 lg:p-7">
+          <p class="portal-premium-kicker">Synthèse</p>
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Total</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ task_summary.total }}</p>
+              <p class="mt-2 text-sm text-white/70">tâches rattachées à votre dossier</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">En cours</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ task_summary.in_progress }}</p>
+              <p class="mt-2 text-sm text-white/70">interventions activement traitées</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">À venir</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ task_summary.upcoming }}</p>
+              <p class="mt-2 text-sm text-white/70">interventions déjà planifiées</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Terminées</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ task_summary.completed }}</p>
+              <p class="mt-2 text-sm text-white/70">interventions clôturées</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="portal-premium-surface p-6 lg:p-7">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="portal-premium-kicker text-ne-primary-700">Filtre</p>
+          <h2 class="mt-3 portal-premium-heading">Sélectionnez l'état à consulter</h2>
+        </div>
+        <form method="get" class="flex flex-wrap gap-3">
+          <select name="status" class="rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700 focus:border-ne-primary-500 focus:outline-none focus:ring-2 focus:ring-ne-primary-100">
+            <option value="">Tous les états</option>
+            <option value="upcoming" {% if status_filter == 'upcoming' %}selected{% endif %}>À venir</option>
+            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>En cours</option>
+            <option value="almost_overdue" {% if status_filter == 'almost_overdue' %}selected{% endif %}>Presque en retard</option>
+            <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>En retard</option>
+            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Terminées</option>
+          </select>
+          <button type="submit" class="portal-premium-action secondary">
+            <i class="fas fa-filter"></i>Appliquer
+          </button>
+        </form>
+      </div>
+
+      <div class="mt-6 portal-premium-list">
+        {% for task in tasks %}
+          <article class="portal-premium-list-item">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="text-lg font-semibold text-slate-900">{{ task.title }}</p>
+                  <span class="portal-premium-badge {% if task.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif task.status == 'overdue' %}bg-red-100 text-red-700{% elif task.status == 'almost_overdue' %}bg-amber-100 text-amber-700{% elif task.status == 'in_progress' %}bg-blue-100 text-blue-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                    {{ task.get_status_display }}
+                  </span>
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-3 text-sm text-slate-500">
+                  {% if task.location %}
+                    <span><i class="fas fa-location-dot mr-2 text-ne-primary-600"></i>{{ task.location }}</span>
+                  {% endif %}
+                  <span><i class="fas fa-play mr-2 text-ne-primary-600"></i>Début {{ task.start_date|date:"d/m/Y" }}</span>
+                  <span><i class="fas fa-flag-checkered mr-2 text-ne-primary-600"></i>Échéance {{ task.due_date|date:"d/m/Y" }}</span>
+                </div>
+
+                <p class="mt-4 text-sm text-slate-600">
+                  {% if task.status == 'completed' %}
+                    Cette intervention est terminée. Vous pouvez contacter notre équipe si vous avez besoin d'un complément ou d'une validation finale.
+                  {% elif task.status == 'in_progress' %}
+                    Notre équipe travaille actuellement sur cette intervention.
+                  {% elif task.status == 'almost_overdue' %}
+                    Cette intervention arrive proche de son échéance prévue.
+                  {% elif task.status == 'overdue' %}
+                    Cette intervention a dépassé son échéance planifiée et fait l'objet d'un suivi prioritaire.
+                  {% else %}
+                    Cette intervention est planifiée et démarrera selon les dates indiquées.
+                  {% endif %}
+                </p>
+
+                {% if task.assigned_to.all %}
+                  <p class="mt-4 text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Intervenants :
+                    {% for worker in task.assigned_to.all %}
+                      {{ worker.get_full_name|default:worker.username }}{% if not forloop.last %} · {% endif %}
+                    {% endfor %}
+                  </p>
+                {% endif %}
+              </div>
+
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-center lg:min-w-[150px]">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Mise à jour</p>
+                <p class="mt-2 text-sm font-semibold text-slate-900">{{ task.updated_at|date:"d/m/Y" }}</p>
+                <p class="mt-2 text-xs text-slate-500">Taux d'avancement estimé</p>
+                <p class="mt-2 text-2xl font-semibold text-ne-primary-700">
+                  {% if task.status == 'completed' %}100%
+                  {% elif task.status == 'in_progress' %}60%
+                  {% elif task.status == 'almost_overdue' %}80%
+                  {% elif task.status == 'overdue' %}90%
+                  {% else %}15%
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <div class="portal-premium-empty">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-400">
+              <i class="fas fa-list-check"></i>
+            </div>
+            <h3 class="mt-4 text-lg font-semibold text-slate-900">Aucune intervention à afficher</h3>
+            <p class="mt-2 text-sm text-slate-500">Les tâches planifiées pour votre dossier apparaitront ici dès qu'elles seront créées par notre équipe.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

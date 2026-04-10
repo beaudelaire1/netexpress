@@ -6,6 +6,8 @@ directement depuis la liste dans l'admin et de visualiser les attributs
 principaux (numéro, devis associé, montant, date).
 """
 
+from smtplib import SMTPAuthenticationError
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.core.files.base import ContentFile
@@ -93,9 +95,17 @@ class InvoiceAdmin(admin.ModelAdmin):
             invoice.compute_totals()
             invoice.generate_pdf(attach=True)
             try:
-                email_service.send_invoice_notification(invoice)
-                count += 1
-            except Exception:
+                if email_service.send_invoice_notification(invoice):
+                    count += 1
+            except SMTPAuthenticationError:
+                self.message_user(
+                    request,
+                    "Échec SMTP Brevo: authentification refusée. Vérifiez BREVO_SMTP_LOGIN/BREVO_SMTP_PASSWORD ou configurez BREVO_API_KEY.",
+                    level='ERROR',
+                )
+                break
+            except Exception as exc:
+                self.message_user(request, f"Erreur envoi facture {invoice.number}: {exc}", level='ERROR')
                 # En cas d'erreur d'envoi, on passe à la facture suivante
                 continue
         self.message_user(request, f"{count} facture(s) envoyée(s) par e‑mail.")

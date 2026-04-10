@@ -5,11 +5,31 @@ Provides unified navigation system with role-based menu items.
 """
 
 from django import template
-from django.urls import reverse, NoReverseMatch
-from django.utils.safestring import mark_safe
-from core.portal_routing import get_user_role, PortalRouter
+from django.urls import reverse
+from core.portal_routing import (
+    PortalRouter,
+    get_portal_home_url,
+    get_portal_messages_route as resolve_portal_messages_route,
+    get_user_role,
+)
 
 register = template.Library()
+
+
+@register.simple_tag
+def portal_home_url(user):
+    """Retourne l'URL du portail principal de l'utilisateur authentifié."""
+    if not getattr(user, 'is_authenticated', False):
+        return '/accounts/login/'
+    return get_portal_home_url(user)
+
+
+@register.simple_tag
+def portal_messages_route(user, route_name='thread_list', *args):
+    """Retourne une route de messagerie dans le namespace du portail courant."""
+    if not getattr(user, 'is_authenticated', False):
+        return '/accounts/login/'
+    return resolve_portal_messages_route(user, route_name, *args)
 
 
 @register.simple_tag(takes_context=True)
@@ -32,6 +52,8 @@ def portal_navigation(context):
     
     role = get_user_role(user)
     router = PortalRouter(user)
+    messages_url = router.get_messages_url()
+    messages_base_url = resolve_portal_messages_route(user, 'list')
     
     # Base navigation items (common to all roles)
     nav_items = []
@@ -53,9 +75,9 @@ def portal_navigation(context):
             },
             {
                 'label': 'Messages',
-                'url': '/admin-dashboard/messages/',
+                'url': messages_url,
                 'icon': 'fas fa-envelope',
-                'active_patterns': ['/admin-dashboard/messages/']
+                'active_patterns': [messages_base_url]
             },
             {
                 'label': 'Gestion',
@@ -67,10 +89,22 @@ def portal_navigation(context):
     elif role == 'admin_technical':
         nav_items = [
             {
-                'label': 'Gestion',
-                'url': '/gestion/',
-                'icon': 'fas fa-cogs',
-                'active_patterns': ['/gestion/']
+                'label': 'Dashboard Admin',
+                'url': '/admin-dashboard/',
+                'icon': 'fas fa-tachometer-alt',
+                'active_patterns': ['/admin-dashboard/']
+            },
+            {
+                'label': 'Planning Global',
+                'url': '/admin-dashboard/planning/',
+                'icon': 'fas fa-calendar-alt',
+                'active_patterns': ['/admin-dashboard/planning/']
+            },
+            {
+                'label': 'Messages',
+                'url': messages_url,
+                'icon': 'fas fa-envelope',
+                'active_patterns': [messages_base_url]
             }
         ]
     elif role == 'worker':
@@ -89,9 +123,9 @@ def portal_navigation(context):
             },
             {
                 'label': 'Messages',
-                'url': '/worker/messages/',
+                'url': messages_url,
                 'icon': 'fas fa-envelope',
-                'active_patterns': ['/worker/messages/']
+                'active_patterns': [messages_base_url]
             }
         ]
     else:  # client
@@ -116,9 +150,9 @@ def portal_navigation(context):
             },
             {
                 'label': 'Messages',
-                'url': '/client/messages/',
+                'url': messages_url,
                 'icon': 'fas fa-envelope',
-                'active_patterns': ['/client/messages/']
+                'active_patterns': [messages_base_url]
             }
         ]
     
@@ -148,7 +182,12 @@ def portal_navigation(context):
         })
     elif role == 'admin_technical':
         user_menu_items.insert(0, {
-            'label': 'Gestion',
+            'label': 'Dashboard Admin',
+            'url': '/admin-dashboard/',
+            'icon': 'fas fa-tachometer-alt'
+        })
+        user_menu_items.insert(1, {
+            'label': 'Interface technique',
             'url': '/gestion/',
             'icon': 'fas fa-cogs'
         })
@@ -206,8 +245,8 @@ def portal_breadcrumb(context):
         })
     elif role == 'admin_technical':
         breadcrumbs.append({
-            'label': 'Gestion',
-            'url': '/gestion/'
+            'label': 'Dashboard Admin',
+            'url': '/admin-dashboard/'
         })
     elif role == 'worker':
         breadcrumbs.append({
@@ -305,10 +344,16 @@ def portal_quick_actions(context):
     elif role == 'admin_technical':
         actions = [
             {
-                'label': 'Gestion',
-                'url': '/gestion/',
-                'icon': 'fas fa-cogs',
+                'label': 'Nouvelle Tâche',
+                'url': reverse('core:admin_create_task'),
+                'icon': 'fas fa-tasks',
                 'class': 'btn-primary'
+            },
+            {
+                'label': 'Planning Global',
+                'url': reverse('core:admin_global_planning'),
+                'icon': 'fas fa-calendar-alt',
+                'class': 'btn-secondary'
             }
         ]
     elif role == 'worker':

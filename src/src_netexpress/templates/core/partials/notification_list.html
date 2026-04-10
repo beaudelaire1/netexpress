@@ -12,6 +12,8 @@
         <div class="flex-shrink-0">
           {% if notification.notification_type == 'task_completed' %}
             <i class="fas fa-check-circle text-green-500"></i>
+          {% elif notification.notification_type == 'task_updated' %}
+            <i class="fas fa-spinner text-blue-500"></i>
           {% elif notification.notification_type == 'task_assigned' %}
             <i class="fas fa-tasks text-blue-500"></i>
           {% elif notification.notification_type == 'quote_validated' %}

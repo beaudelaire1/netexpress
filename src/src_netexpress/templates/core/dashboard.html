@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Tableau de bord — NetExpress{% endblock %}
 
@@ -17,8 +17,8 @@
       <a class="is-primary" href="{% url 'tasks:calendar' %}">Calendrier des tâches</a>
       <a href="{% url 'tasks:list' %}">Liste des tâches</a>
       <a href="{% url 'factures:archive' %}">Factures</a>
-      <a href="{% url 'messaging:compose' %}">Nouveau message</a>
-      <a href="{% url 'messaging:list' %}">Historique messages</a>
+      <a href="{% portal_messages_route user 'compose' %}">Nouveau message</a>
+      <a href="{% portal_messages_route user 'list' %}">Historique messages</a>
     </nav>
   </aside>
 

@@ -15,6 +15,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.files.base import ContentFile
+from core.mixins import SoftDeleteMixin
+from core.utils import num2words_fr
 
 
 # =========================
@@ -22,19 +24,14 @@ from django.core.files.base import ContentFile
 # =========================
 
 def _num2words_fr(v: Decimal) -> str:
-    """Import tardif de .utils.num2words_fr, repli numérique FR si absent."""
-    try:
-        from .utils import num2words_fr as _n2w
-        return _n2w(v)
-    except Exception:
-        return str(v).replace(".", ",")
+    return num2words_fr(v)
 
 
 # =========================
 # Modèles
 # =========================
 
-class Invoice(models.Model):
+class Invoice(SoftDeleteMixin, models.Model):
 
     class InvoiceStatus(models.TextChoices):
         DRAFT = "draft", _("Brouillon")
@@ -77,7 +74,10 @@ class Invoice(models.Model):
 
     class Meta:
         ordering = ["-issue_date", "-number"]
-        indexes = [models.Index(fields=["number", "issue_date"])]
+        indexes = [
+            models.Index(fields=["number", "issue_date"]),
+            models.Index(fields=["status"]),
+        ]
         verbose_name = _("facture")
         verbose_name_plural = _("factures")
 

@@ -1,0 +1,226 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}Mes Factures — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="portal-premium-shell">
+  <div class="portal-premium-wrap space-y-8">
+    <section class="portal-premium-hero p-8 lg:p-10">
+      <div class="grid gap-8 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+        <div>
+          <p class="portal-premium-kicker">Facturation et règlements</p>
+          <h1 class="mt-4 portal-premium-title">Une lecture claire de vos montants, échéances et justificatifs.</h1>
+          <p class="mt-5 portal-premium-subtitle">
+            Toutes vos factures sont regroupées ici, avec un accès direct aux PDF, aux références de commande et au suivi des paiements en cours.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="portal-premium-chip">
+              <i class="fas fa-user-tie"></i>
+              {{ client_record.full_name|default:user.get_full_name|default:user.username }}
+            </span>
+            {% if client_record.company %}
+              <span class="portal-premium-chip">
+                <i class="fas fa-building"></i>
+                {{ client_record.company }}
+              </span>
+            {% endif %}
+            {% if invoice_summary.next_due_date %}
+              <span class="portal-premium-chip">
+                <i class="fas fa-calendar-days"></i>
+                Prochaine échéance {{ invoice_summary.next_due_date|date:"d/m/Y" }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'core:client_quotes' %}" class="portal-premium-action secondary">
+              <i class="fas fa-file-alt"></i>Voir mes devis
+            </a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action ghost">
+              <i class="fas fa-headset"></i>Parler à NetExpress
+            </a>
+          </div>
+        </div>
+
+        <aside class="portal-premium-glass p-6 lg:p-7">
+          <p class="portal-premium-kicker">Santé facturation</p>
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Encours</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ invoice_summary.total_due|floatformat:2 }} €</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Réglé</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ invoice_summary.total_paid|floatformat:2 }} €</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Factures ouvertes</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ invoice_summary.unpaid }}</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">Retards</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ invoice_summary.overdue }}</p>
+            </div>
+          </div>
+          <div class="mt-5 rounded-[1.4rem] border border-white/10 bg-white/8 p-4 text-sm text-slate-100">
+            {% if invoice_summary.overdue %}
+              <p class="font-semibold text-white">Des factures nécessitent une régularisation.</p>
+              <p class="mt-2 text-white/75">Les documents concernés restent identifiables immédiatement avec un code couleur plus direct.</p>
+            {% elif invoice_summary.unpaid %}
+              <p class="font-semibold text-white">Votre facturation est active.</p>
+              <p class="mt-2 text-white/75">Chaque facture garde un accès express au détail, au devis lié et au téléchargement du PDF.</p>
+            {% else %}
+              <p class="font-semibold text-white">Aucun encours en ce moment.</p>
+              <p class="mt-2 text-white/75">Vos paiements soldés restent consultables pour archivage ou comptabilité.</p>
+            {% endif %}
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="portal-premium-metric-grid portal-premium-stagger">
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Factures totales</span>
+        <p class="portal-premium-value">{{ invoice_summary.total }}</p>
+        <p class="portal-premium-copy">historique complet de vos documents de facturation</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Ouvertes</span>
+        <p class="portal-premium-value">{{ invoice_summary.unpaid }}</p>
+        <p class="portal-premium-copy">factures envoyées, partielles ou en retard</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Réglées</span>
+        <p class="portal-premium-value">{{ invoice_summary.paid }}</p>
+        <p class="portal-premium-copy">documents déjà soldés et archivés</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Montant à suivre</span>
+        <p class="portal-premium-value">{{ invoice_summary.total_due|floatformat:2 }} €</p>
+        <p class="portal-premium-copy">encours global sur les factures non soldées</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Retards</span>
+        <p class="portal-premium-value">{{ invoice_summary.overdue }}</p>
+        <p class="portal-premium-copy">dossiers à surveiller en priorité</p>
+      </article>
+    </section>
+
+    {% if invoices %}
+      <div class="portal-premium-stagger space-y-5">
+        {% for invoice in invoices %}
+          <article class="portal-premium-card overflow-hidden">
+            <div class="portal-premium-statusline {% if invoice.status == 'paid' %}success{% elif invoice.status == 'overdue' %}alert{% elif invoice.status == 'partial' %}info{% else %}warning{% endif %}"></div>
+            <div class="p-6 lg:p-7">
+              <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <h2 class="text-2xl font-semibold text-slate-900">{{ invoice.number }}</h2>
+                    <span class="portal-premium-badge {% if invoice.status == 'draft' %}bg-slate-100 text-slate-700{% elif invoice.status == 'sent' %}bg-amber-100 text-amber-700{% elif invoice.status == 'paid' %}bg-emerald-100 text-emerald-700{% elif invoice.status == 'partial' %}bg-blue-100 text-blue-700{% elif invoice.status == 'overdue' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                      {{ invoice.get_status_display }}
+                    </span>
+                    {% if invoice.command_ref %}
+                      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Commande {{ invoice.command_ref }}</span>
+                    {% endif %}
+                  </div>
+
+                  <div class="mt-4 portal-premium-inline-meta">
+                    <span><i class="fas fa-calendar-days mr-2 text-slate-400"></i>Émise le {{ invoice.issue_date|date:"d/m/Y" }}</span>
+                    {% if invoice.due_date %}
+                      <span><i class="fas fa-hourglass-half mr-2 text-slate-400"></i>Échéance {{ invoice.due_date|date:"d/m/Y" }}</span>
+                    {% endif %}
+                    {% if invoice.quote %}
+                      <span><i class="fas fa-link mr-2 text-slate-400"></i>Liée au devis {{ invoice.quote.number }}</span>
+                    {% endif %}
+                  </div>
+
+                  {% if invoice.notes %}
+                    <p class="mt-4 text-sm leading-7 text-slate-600">{{ invoice.notes|truncatewords:28 }}</p>
+                  {% endif %}
+
+                  {% if invoice.status == 'overdue' %}
+                    <div class="mt-4 rounded-[1.15rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      <i class="fas fa-triangle-exclamation mr-2"></i>Cette facture demande une régularisation rapide. L'équipe reste joignable depuis la messagerie intégrée.
+                    </div>
+                  {% elif invoice.status == 'sent' %}
+                    <div class="mt-4 rounded-[1.15rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                      <i class="fas fa-clock mr-2"></i>Facture en attente de règlement. Toutes les références utiles sont déjà centralisées dans sa fiche détail.
+                    </div>
+                  {% elif invoice.status == 'paid' %}
+                    <div class="mt-4 rounded-[1.15rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                      <i class="fas fa-circle-check mr-2"></i>Facture réglée. Le PDF reste disponible pour vos besoins d'archivage ou de comptabilité.
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="xl:w-72 xl:flex-none">
+                  <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
+                    <p class="portal-premium-label">Montant TTC</p>
+                    <p class="mt-3 text-3xl font-semibold text-slate-900">{{ invoice.total_ttc|floatformat:2 }} €</p>
+                    <dl class="mt-4 space-y-2 text-sm text-slate-600">
+                      <div class="flex items-center justify-between gap-3">
+                        <dt>Total HT</dt>
+                        <dd class="font-medium text-slate-800">{{ invoice.total_ht|floatformat:2 }} €</dd>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <dt>TVA</dt>
+                        <dd class="font-medium text-slate-800">{{ invoice.tva|floatformat:2 }} €</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div class="mt-4 flex flex-col gap-3">
+                    <a href="{% url 'core:client_invoice_detail' invoice.pk %}" class="portal-premium-action primary">
+                      <i class="fas fa-eye"></i>Voir le détail
+                    </a>
+                    {% if invoice.pdf %}
+                      <a href="{% url 'core:client_invoice_download' invoice.pk %}" target="_blank" class="portal-premium-action secondary">
+                        <i class="fas fa-download"></i>Télécharger le PDF
+                      </a>
+                    {% endif %}
+                    {% if invoice.quote %}
+                      <a href="{% url 'core:client_quote_detail' invoice.quote.pk %}" class="portal-premium-action ghost">
+                        <i class="fas fa-file-alt"></i>Voir le devis lié
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="portal-premium-empty">
+        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl text-slate-400">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h2 class="mt-6 text-2xl font-semibold text-slate-900">Aucune facture disponible</h2>
+        <p class="mt-3 text-sm text-slate-500">Vos futures factures apparaitront ici automatiquement, avec le même niveau de détail que le reste de votre espace client.</p>
+        <div class="mt-6 flex justify-center">
+          <a href="{% url 'core:client_quotes' %}" class="portal-premium-action secondary">
+            <i class="fas fa-file-alt"></i>Consulter mes devis
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

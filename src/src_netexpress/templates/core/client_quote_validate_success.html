@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Devis validé — NetExpress{% endblock %}
 
@@ -13,7 +13,7 @@
   <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
     <i class="fas fa-receipt mr-2"></i>Mes Factures
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}
@@ -122,7 +122,7 @@
             <i class="fas fa-tachometer-alt mr-2"></i>Retour au tableau de bord
           </a>
           
-          <a href="{% url 'messaging:thread_list' %}" 
+           <a href="{% portal_messages_route user 'thread_list' %}" 
              class="w-full inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500 transition-colors">
             <i class="fas fa-envelope mr-2"></i>Contacter l'équipe
           </a>

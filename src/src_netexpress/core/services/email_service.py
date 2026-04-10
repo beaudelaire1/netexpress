@@ -202,10 +202,10 @@ class EmailService:
                 logger.warning(f"Could not attach quote PDF: {e}")
         # Attach PDF - generate fresh for ephemeral filesystem
         try:
-            pdf_bytes = invoice.generate_pdf(attach=False)
-            email.attach(f"facture_{invoice.number}.pdf", pdf_bytes, 'application/pdf')
-        except Exception:
-            pass  # Continue without attachment if generation fails
+            pdf_bytes = quote.generate_pdf(attach=False)
+            email.attach(f"devis_{quote.number}.pdf", pdf_bytes, 'application/pdf')
+        except Exception as e:
+            logger.warning(f"Could not attach quote PDF: {e}")
         
         try:
             email.send()
@@ -224,6 +224,12 @@ class EmailService:
             quote: Quote instance that triggered the account creation
             request: Optional request object for building absolute URLs
         """
+        client = getattr(quote, 'client', None)
+        return EmailService.send_client_portal_invitation(user, client, request=request)
+
+    @staticmethod
+    def send_client_portal_invitation(user, client=None, request=None):
+        """Send a generic portal invitation email to a client account."""
         if not user.email:
             return False
             
@@ -236,14 +242,12 @@ class EmailService:
         password_setup_url = f"{base_url}{reverse('accounts:password_setup', kwargs={'uidb64': uid, 'token': token})}"
         
         # Get client information
-        client = getattr(quote, 'client', None)
         client_name = getattr(client, 'full_name', '') if client else user.get_full_name() or user.username
         
         # Render email template
         context = {
             'user': user,
             'client_name': client_name,
-            'quote': quote,
             'password_setup_url': password_setup_url,
             'company_name': getattr(settings, 'INVOICE_BRANDING', {}).get('name', 'NetExpress'),
         }

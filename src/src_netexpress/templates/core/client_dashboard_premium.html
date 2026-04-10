@@ -1,0 +1,420 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}Mon Espace Client — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% url 'core:client_tasks' %}" class="portal-nav-item">
+    <i class="fas fa-list-check mr-2"></i>Mes Interventions
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="portal-premium-shell">
+  <div class="portal-premium-wrap space-y-8">
+    <section class="portal-premium-hero p-8 lg:p-10">
+      <div class="grid gap-8 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+        <div class="relative z-10">
+          <p class="portal-premium-kicker">Espace client NetExpress</p>
+          <h1 class="mt-4 portal-premium-title">Une vue nette, rassurante et premium sur l'ensemble de votre dossier.</h1>
+          <p class="mt-5 portal-premium-subtitle">
+            Bienvenue {{ user.get_full_name|default:user.username }}. Retrouvez vos devis, vos factures, vos documents publiés, l'avancement des interventions et les prochaines actions à mener sans friction.
+          </p>
+
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="portal-premium-chip">
+              <i class="fas fa-building"></i>
+              {{ client_record.company|default:"Compte client NetExpress" }}
+            </span>
+            {% if client_record.city %}
+              <span class="portal-premium-chip">
+                <i class="fas fa-location-dot"></i>
+                {{ client_record.city }}
+              </span>
+            {% endif %}
+            {% if user.profile.last_portal_access %}
+              <span class="portal-premium-chip">
+                <i class="fas fa-clock"></i>
+                Dernière connexion {{ user.profile.last_portal_access|date:"d/m/Y à H:i" }}
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{% url 'devis:request_quote' %}" class="portal-premium-action primary">
+              <i class="fas fa-plus"></i>Demander un devis
+            </a>
+            <a href="{% url 'core:client_documents' %}" class="portal-premium-action secondary">
+              <i class="fas fa-folder-open"></i>Voir mes documents
+            </a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action ghost">
+              <i class="fas fa-headset"></i>Contacter l'équipe
+            </a>
+          </div>
+        </div>
+
+        <aside class="portal-premium-glass portal-premium-floating p-6 lg:p-7">
+          <p class="portal-premium-kicker">Instantané</p>
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Devis à confirmer</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ quote_summary.pending }}</p>
+              <p class="mt-2 text-sm text-white/70">dossiers en attente de validation ou de finalisation</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Encours facturation</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ invoice_summary.total_due|floatformat:2 }} €</p>
+              <p class="mt-2 text-sm text-white/70">montant actuellement à suivre</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Documents publiés</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ document_summary.total }}</p>
+              <p class="mt-2 text-sm text-white/70">ressources disponibles dans votre bibliothèque</p>
+            </div>
+            <div class="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">Devis valorisés</p>
+              <p class="mt-2 text-3xl font-semibold text-white">{{ quote_summary.total_value|floatformat:2 }} €</p>
+              <p class="mt-2 text-sm text-white/70">volume cumulé des devis émis</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-[1.4rem] border border-white/10 bg-white/8 p-4 text-sm text-slate-100">
+            {% if invoice_summary.next_due_date %}
+              <p class="font-semibold text-white">Prochaine échéance le {{ invoice_summary.next_due_date|date:"d/m/Y" }}</p>
+              <p class="mt-2 text-white/75">Nous avons mis en avant les factures à suivre pour éviter tout retard inutile.</p>
+            {% elif quote_summary.expiring_soon %}
+              <p class="font-semibold text-white">{{ quote_summary.expiring_soon }} devis à échéance proche</p>
+              <p class="mt-2 text-white/75">Pensez à les consulter pour accélérer la mise en production de vos prestations.</p>
+            {% else %}
+              <p class="font-semibold text-white">Votre espace est à jour</p>
+              <p class="mt-2 text-white/75">Toutes vos ressources clés sont accessibles depuis ce tableau de bord.</p>
+            {% endif %}
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="portal-premium-metric-grid portal-premium-stagger">
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Total devis</span>
+        <p class="portal-premium-value">{{ stats.total_quotes }}</p>
+        <p class="portal-premium-copy">historique consolidé de vos propositions commerciales</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">En attente</span>
+        <p class="portal-premium-value">{{ stats.pending_quotes }}</p>
+        <p class="portal-premium-copy">devis encore ouverts ou nécessitant votre retour</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Total factures</span>
+        <p class="portal-premium-value">{{ stats.total_invoices }}</p>
+        <p class="portal-premium-copy">ensemble des documents de facturation disponibles</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Montant à suivre</span>
+        <p class="portal-premium-value">{{ invoice_summary.total_due|floatformat:2 }} €</p>
+        <p class="portal-premium-copy">factures envoyées, partielles ou en retard</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Bibliothèque client</span>
+        <p class="portal-premium-value">{{ document_summary.total }}</p>
+        <p class="portal-premium-copy">contrats, rapports et documents publiés par l'équipe</p>
+      </article>
+      <article class="portal-premium-card p-6">
+        <span class="portal-premium-label">Interventions en cours</span>
+        <p class="portal-premium-value">{{ task_summary.in_progress }}</p>
+        <p class="portal-premium-copy">tâches rattachées à votre dossier actuellement actives</p>
+      </article>
+    </section>
+
+    <div class="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+      <div class="space-y-6">
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p class="portal-premium-kicker text-ne-primary-700">Priorités</p>
+              <h2 class="mt-3 portal-premium-heading">Ce qui mérite votre attention aujourd'hui</h2>
+            </div>
+            <p class="text-sm text-slate-500">Une lecture simple pour passer à l'action rapidement.</p>
+          </div>
+
+          <div class="mt-6 grid gap-4 lg:grid-cols-3">
+            <div class="portal-premium-list-item">
+              <div class="portal-premium-statusline warning"></div>
+              <div class="pt-4">
+                <p class="portal-premium-label">Validation devis</p>
+                <p class="mt-3 text-2xl font-semibold text-slate-900">{{ quote_summary.pending }}</p>
+                <p class="mt-2 text-sm text-slate-600">devis encore ouverts pour arbitrage ou confirmation</p>
+                <a href="{% url 'core:client_quotes' %}" class="mt-4 inline-flex items-center text-sm font-semibold text-amber-700 hover:text-amber-800">
+                  Ouvrir les devis <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+              </div>
+            </div>
+            <div class="portal-premium-list-item">
+              <div class="portal-premium-statusline {% if invoice_summary.overdue %}alert{% else %}info{% endif %}"></div>
+              <div class="pt-4">
+                <p class="portal-premium-label">Facturation</p>
+                <p class="mt-3 text-2xl font-semibold text-slate-900">{{ invoice_summary.unpaid }}</p>
+                <p class="mt-2 text-sm text-slate-600">factures actuellement non soldées{% if invoice_summary.overdue %}, dont {{ invoice_summary.overdue }} en retard{% endif %}</p>
+                <a href="{% url 'core:client_invoices' %}" class="mt-4 inline-flex items-center text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">
+                  Consulter la facturation <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+              </div>
+            </div>
+            <div class="portal-premium-list-item">
+              <div class="portal-premium-statusline success"></div>
+              <div class="pt-4">
+                <p class="portal-premium-label">Documentation</p>
+                <p class="mt-3 text-2xl font-semibold text-slate-900">{{ document_summary.total }}</p>
+                <p class="mt-2 text-sm text-slate-600">documents partagés, avec {{ document_summary.pinned }} ressource{{ document_summary.pinned|pluralize:"s" }} mise{{ document_summary.pinned|pluralize:"s" }} en avant</p>
+                <a href="{% url 'core:client_documents' %}" class="mt-4 inline-flex items-center text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">
+                  Ouvrir la bibliothèque <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+          <section class="portal-premium-surface p-6 lg:p-7">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="portal-premium-kicker text-ne-primary-700">Devis récents</p>
+                <h2 class="mt-3 text-2xl font-semibold text-slate-900">Vos propositions ouvertes</h2>
+              </div>
+              <a href="{% url 'core:client_quotes' %}" class="text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">Tout voir</a>
+            </div>
+            <div class="mt-6 portal-premium-list">
+              {% for quote in pending_quotes %}
+                <article class="portal-premium-list-item">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-base font-semibold text-slate-900">{{ quote.number }}</p>
+                        <span class="portal-premium-badge {% if quote.status == 'accepted' %}bg-emerald-100 text-emerald-700{% elif quote.status == 'sent' %}bg-amber-100 text-amber-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                          {{ quote.get_status_display }}
+                        </span>
+                      </div>
+                      <p class="mt-2 text-sm text-slate-500">Émis le {{ quote.issue_date|date:"d/m/Y" }}{% if quote.valid_until %} · valable jusqu'au {{ quote.valid_until|date:"d/m/Y" }}{% endif %}</p>
+                    </div>
+                    <p class="text-lg font-semibold text-slate-900">{{ quote.total_ttc|floatformat:2 }} €</p>
+                  </div>
+                  <a href="{% url 'core:client_quote_detail' quote.pk %}" class="mt-4 inline-flex items-center text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">
+                    Voir le devis <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                  </a>
+                </article>
+              {% empty %}
+                <div class="portal-premium-empty">
+                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-400">
+                    <i class="fas fa-file-alt"></i>
+                  </div>
+                  <h3 class="mt-4 text-lg font-semibold text-slate-900">Aucun devis en attente</h3>
+                  <p class="mt-2 text-sm text-slate-500">Vos futurs devis apparaitront ici avec un accès direct aux validations.</p>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="portal-premium-surface p-6 lg:p-7">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="portal-premium-kicker text-ne-primary-700">Factures à suivre</p>
+                <h2 class="mt-3 text-2xl font-semibold text-slate-900">Votre situation de paiement</h2>
+              </div>
+              <a href="{% url 'core:client_invoices' %}" class="text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">Tout voir</a>
+            </div>
+            <div class="mt-6 portal-premium-list">
+              {% for invoice in unpaid_invoices %}
+                <article class="portal-premium-list-item">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-base font-semibold text-slate-900">{{ invoice.number }}</p>
+                        <span class="portal-premium-badge {% if invoice.status == 'overdue' %}bg-red-100 text-red-700{% elif invoice.status == 'partial' %}bg-blue-100 text-blue-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                          {{ invoice.get_status_display }}
+                        </span>
+                      </div>
+                      <p class="mt-2 text-sm text-slate-500">Émise le {{ invoice.issue_date|date:"d/m/Y" }}{% if invoice.due_date %} · échéance {{ invoice.due_date|date:"d/m/Y" }}{% endif %}</p>
+                    </div>
+                    <p class="text-lg font-semibold text-slate-900">{{ invoice.total_ttc|floatformat:2 }} €</p>
+                  </div>
+                  <a href="{% url 'core:client_invoice_detail' invoice.pk %}" class="mt-4 inline-flex items-center text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">
+                    Voir la facture <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                  </a>
+                </article>
+              {% empty %}
+                <div class="portal-premium-empty">
+                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-400">
+                    <i class="fas fa-receipt"></i>
+                  </div>
+                  <h3 class="mt-4 text-lg font-semibold text-slate-900">Aucune facture à suivre</h3>
+                  <p class="mt-2 text-sm text-slate-500">Les factures payées ou futures apparaitront ici selon leur statut.</p>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Actions rapides</p>
+          <h2 class="mt-3 portal-premium-heading">Accès direct à vos parcours clés</h2>
+          <div class="mt-6 grid gap-4">
+            <a href="{% url 'devis:request_quote' %}" class="portal-premium-card p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-base font-semibold text-slate-900">Demander un nouveau devis</p>
+                  <p class="mt-2 text-sm text-slate-500">Déposez un besoin, un message ou des pièces jointes pour lancer l'étude.</p>
+                </div>
+                <i class="fas fa-plus text-ne-primary-600"></i>
+              </div>
+            </a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-card p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-base font-semibold text-slate-900">Messagerie client</p>
+                  <p class="mt-2 text-sm text-slate-500">Posez une question, relancez un dossier ou demandez une précision.</p>
+                </div>
+                <i class="fas fa-envelope text-ne-primary-600"></i>
+              </div>
+            </a>
+            <a href="{% url 'core:client_documents' %}" class="portal-premium-card p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-base font-semibold text-slate-900">Bibliothèque documentaire</p>
+                  <p class="mt-2 text-sm text-slate-500">Retrouvez rapports, attestations, photos et contrats publiés pour vous.</p>
+                </div>
+                <i class="fas fa-folder-tree text-ne-primary-600"></i>
+              </div>
+            </a>
+            <a href="{% url 'core:client_tasks' %}" class="portal-premium-card p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-base font-semibold text-slate-900">Suivre mes interventions</p>
+                  <p class="mt-2 text-sm text-slate-500">Visualisez les tâches liées à votre dossier et leur état d'avancement.</p>
+                </div>
+                <i class="fas fa-list-check text-ne-primary-600"></i>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="portal-premium-kicker text-ne-primary-700">Interventions</p>
+              <h2 class="mt-3 text-2xl font-semibold text-slate-900">Avancement des tâches liées à votre dossier</h2>
+            </div>
+            <a href="{% url 'core:client_tasks' %}" class="text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">Tout voir</a>
+          </div>
+          <div class="mt-6 portal-premium-list">
+            {% for task in recent_client_tasks %}
+              <article class="portal-premium-list-item">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-base font-semibold text-slate-900">{{ task.title }}</p>
+                      <span class="portal-premium-badge {% if task.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif task.status == 'overdue' %}bg-red-100 text-red-700{% elif task.status == 'almost_overdue' %}bg-amber-100 text-amber-700{% elif task.status == 'in_progress' %}bg-blue-100 text-blue-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+                        {{ task.get_status_display }}
+                      </span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-500">
+                      {% if task.location %}{{ task.location }} · {% endif %}début {{ task.start_date|date:"d/m/Y" }} · échéance {{ task.due_date|date:"d/m/Y" }}
+                    </p>
+                    <p class="mt-3 text-sm text-slate-600">
+                      {% if task.status == 'completed' %}
+                        Intervention terminée par notre équipe.
+                      {% elif task.status == 'in_progress' %}
+                        Intervention en cours d'exécution.
+                      {% elif task.status == 'almost_overdue' %}
+                        Intervention proche de l'échéance planifiée.
+                      {% elif task.status == 'overdue' %}
+                        Intervention en retard de clôture, notre équipe la suit activement.
+                      {% else %}
+                        Intervention planifiée et à venir.
+                      {% endif %}
+                    </p>
+                    {% if task.assigned_to.all %}
+                      <p class="mt-3 text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Équipe :
+                        {% for worker in task.assigned_to.all %}
+                          {{ worker.get_full_name|default:worker.username }}{% if not forloop.last %} · {% endif %}
+                        {% endfor %}
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+              </article>
+            {% empty %}
+              <div class="portal-premium-empty">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-400">
+                  <i class="fas fa-list-check"></i>
+                </div>
+                <h3 class="mt-4 text-lg font-semibold text-slate-900">Aucune intervention visible</h3>
+                <p class="mt-2 text-sm text-slate-500">Les tâches liées à votre dossier apparaitront ici dès leur planification par notre équipe.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="portal-premium-kicker text-ne-primary-700">Documents</p>
+              <h2 class="mt-3 text-2xl font-semibold text-slate-900">Les derniers fichiers partagés</h2>
+            </div>
+            <a href="{% url 'core:client_documents' %}" class="text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">Tout voir</a>
+          </div>
+          <div class="mt-6 portal-premium-list">
+            {% for document in recent_portal_documents %}
+              <article class="portal-premium-list-item">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-base font-semibold text-slate-900">{{ document.title }}</p>
+                      {% if document.is_pinned %}
+                        <span class="portal-premium-badge bg-amber-100 text-amber-700">Prioritaire</span>
+                      {% endif %}
+                    </div>
+                    <p class="mt-2 text-xs uppercase tracking-[0.22em] text-slate-400">{{ document.get_category_display }} · {{ document.published_at|date:"d/m/Y" }}</p>
+                    {% if document.description %}
+                      <p class="mt-3 text-sm text-slate-600">{{ document.description|truncatewords:18 }}</p>
+                    {% endif %}
+                  </div>
+                  <a href="{% url 'core:client_document_detail' document.pk %}" title="Voir le document {{ document.title }}" aria-label="Voir le document {{ document.title }}" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 hover:bg-slate-50">
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                </div>
+              </article>
+            {% empty %}
+              <div class="portal-premium-empty">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-400">
+                  <i class="fas fa-folder-open"></i>
+                </div>
+                <h3 class="mt-4 text-lg font-semibold text-slate-900">Aucun document publié</h3>
+                <p class="mt-2 text-sm text-slate-500">La bibliothèque se remplira automatiquement dès qu'un document vous sera adressé.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

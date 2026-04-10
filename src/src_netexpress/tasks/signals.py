@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
+from core.services import notification_service
 from .models import Task
 from .services import EmailNotificationService
 
@@ -26,6 +27,8 @@ def notify_status_change(sender, instance: Task, **kwargs) -> None:
         prev = Task.objects.get(pk=instance.pk)
     except Task.DoesNotExist:
         return
+
+    instance._previous_status = prev.status
 
     if prev.status == instance.status:
         return
@@ -50,6 +53,22 @@ def notify_status_change(sender, instance: Task, **kwargs) -> None:
         action_url=getattr(settings, "SITE_URL", "") + instance.get_absolute_url() if getattr(settings, "SITE_URL", "") else None,
         action_label="Voir la tâche",
     )
+
+
+@receiver(post_save, sender=Task)
+def notify_client_status_change(sender, instance: Task, created: bool, **kwargs) -> None:
+    """Notify the linked client when a task starts or completes."""
+    if created:
+        return
+
+    previous_status = getattr(instance, '_previous_status', None)
+    if not previous_status or previous_status == instance.status:
+        return
+
+    try:
+        notification_service.notify_client_task_status_update(instance, previous_status=previous_status)
+    finally:
+        delattr(instance, '_previous_status')
 
 
 @receiver(post_save, sender=Task)

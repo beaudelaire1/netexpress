@@ -8,6 +8,7 @@ from devis.models import Quote, QuoteItem, Client
 from factures.models import Invoice
 from tasks.models import Task
 from services.models import Service
+from .models import ClientPortalDocument
 
 
 class WorkerCreationForm(forms.Form):
@@ -62,6 +63,16 @@ class WorkerCreationForm(forms.Form):
 
 class ClientCreationForm(forms.ModelForm):
     """Form for creating client accounts in admin portal."""
+
+    create_portal_access = forms.BooleanField(
+        label="Activer immédiatement l'espace client",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'rounded border-gray-300 text-ne-primary-600 focus:ring-ne-primary-500'
+        }),
+        help_text="Crée le compte portail, utilise l'email du client comme identifiant de connexion et envoie un lien de création de mot de passe."
+    )
     
     class Meta:
         model = Client
@@ -96,6 +107,44 @@ class ClientCreationForm(forms.ModelForm):
                 'placeholder': '97300'
             }),
         }
+
+
+class ClientPortalDocumentForm(forms.ModelForm):
+    """Form for publishing a client document to the portal."""
+
+    class Meta:
+        model = ClientPortalDocument
+        fields = ['title', 'category', 'description', 'file', 'is_pinned', 'expires_at']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'placeholder': 'Ex. Rapport d\'intervention - Avril 2026'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'rows': 3,
+                'placeholder': 'Précisions utiles pour le client, contenu du document, date d\'effet...'
+            }),
+            'file': forms.ClearableFileInput(attrs={
+                'class': 'block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-ne-primary-600 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-ne-primary-700'
+            }),
+            'is_pinned': forms.CheckboxInput(attrs={
+                'class': 'rounded border-gray-300 text-ne-primary-600 focus:ring-ne-primary-500'
+            }),
+            'expires_at': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'type': 'date'
+            }),
+        }
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data.get('file')
+        if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:
+            raise forms.ValidationError("Le fichier est trop volumineux (10 Mo max).")
+        return uploaded_file
 
 
 class QuoteCreationForm(forms.ModelForm):
@@ -191,7 +240,7 @@ class TaskCreationForm(forms.ModelForm):
     
     class Meta:
         model = Task
-        fields = ['title', 'description', 'location', 'team', 'assigned_to', 'start_date', 'due_date']
+        fields = ['title', 'description', 'client', 'location', 'team', 'assigned_to', 'start_date', 'due_date']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
@@ -201,6 +250,9 @@ class TaskCreationForm(forms.ModelForm):
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
                 'rows': 4,
                 'placeholder': 'Description détaillée de la tâche...'
+            }),
+            'client': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
@@ -227,13 +279,29 @@ class TaskCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Limit assigned_to to workers only (multiple selection)
-        from django.forms import ModelMultipleChoiceField
+        from django.forms import ModelChoiceField, ModelMultipleChoiceField
         
         # Custom field to display full name instead of email
         class WorkerChoiceField(ModelMultipleChoiceField):
             def label_from_instance(self, obj):
                 full_name = obj.get_full_name()
-                return full_name if full_name else obj.username
+                return full_name or obj.username
+
+        class ClientChoiceField(ModelChoiceField):
+            def label_from_instance(self, obj):
+                company_label = f" · {obj.company}" if obj.company else ""
+                return f"{obj.full_name}{company_label}"
+
+        clients_queryset = Client.objects.order_by('company', 'full_name')
+        self.fields['client'] = ClientChoiceField(
+            queryset=clients_queryset,
+            required=False,
+            label="Client concerné",
+            help_text="Rattache la tâche à un dossier client pour le suivi dans le portail.",
+            widget=forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+            }),
+        )
         
         workers_queryset = User.objects.filter(groups__name='Workers').order_by('first_name', 'last_name')
         self.fields['assigned_to'] = WorkerChoiceField(
@@ -249,6 +317,7 @@ class TaskCreationForm(forms.ModelForm):
         
         # Set initial value if editing
         if self.instance and self.instance.pk:
+            self.fields['client'].initial = self.instance.client
             self.fields['assigned_to'].initial = self.instance.assigned_to.all()
 
 

@@ -7,14 +7,20 @@ Ces vues fournissent :
   - un tableau de bord agrégé pour le back‑office.
 """
 
+from datetime import timedelta
+from io import BytesIO
+from pathlib import Path
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.db.models import Sum
 
 from services.models import Service, Category
 from devis.models import Quote, Client
@@ -23,6 +29,79 @@ from tasks.models import Task
 from messaging.models import EmailMessage
 from .services.document_service import ClientDocumentService
 from .decorators import client_portal_required, worker_portal_required, admin_portal_required
+
+
+def _get_client_portal_user(client):
+    """Return the portal account matching a client email, if any."""
+    return User.objects.filter(email__iexact=client.email).select_related('profile').first()
+
+
+def _get_client_portal_record(user):
+    """Return the latest client record linked to the authenticated portal user."""
+    user_email = (getattr(user, "email", "") or "").strip()
+    if not user_email:
+        return None
+    return Client.objects.filter(email__iexact=user_email).order_by("-created_at").first()
+
+
+def _sum_amount(queryset, field_name):
+    """Aggregate a monetary field and always return a concrete value."""
+    return queryset.aggregate(total=Sum(field_name)).get("total") or 0
+
+
+def _build_quote_summary(quotes):
+    """Compute premium summary data for client quote pages."""
+    today = timezone.localdate()
+    pending_statuses = [Quote.QuoteStatus.DRAFT, Quote.QuoteStatus.SENT]
+    return {
+        "total": quotes.count(),
+        "pending": quotes.filter(status__in=pending_statuses).count(),
+        "accepted": quotes.filter(status=Quote.QuoteStatus.ACCEPTED).count(),
+        "rejected": quotes.filter(status=Quote.QuoteStatus.REJECTED).count(),
+        "expiring_soon": quotes.filter(
+            status__in=pending_statuses,
+            valid_until__isnull=False,
+            valid_until__gte=today,
+            valid_until__lte=today + timedelta(days=10),
+        ).count(),
+        "total_value": _sum_amount(quotes, "total_ttc"),
+        "latest_issue_date": quotes.order_by("-issue_date").values_list("issue_date", flat=True).first(),
+    }
+
+
+def _build_invoice_summary(invoices):
+    """Compute premium summary data for client invoice pages."""
+    unpaid_statuses = [
+        Invoice.InvoiceStatus.SENT,
+        Invoice.InvoiceStatus.PARTIAL,
+        Invoice.InvoiceStatus.OVERDUE,
+    ]
+    unpaid_invoices = invoices.filter(status__in=unpaid_statuses)
+    return {
+        "total": invoices.count(),
+        "unpaid": unpaid_invoices.count(),
+        "paid": invoices.filter(status=Invoice.InvoiceStatus.PAID).count(),
+        "overdue": invoices.filter(status=Invoice.InvoiceStatus.OVERDUE).count(),
+        "total_due": _sum_amount(unpaid_invoices, "total_ttc"),
+        "total_paid": _sum_amount(invoices.filter(status=Invoice.InvoiceStatus.PAID), "total_ttc"),
+        "next_due_date": unpaid_invoices.filter(due_date__isnull=False).order_by("due_date").values_list("due_date", flat=True).first(),
+    }
+
+
+def _build_document_summary(documents):
+    """Compute premium summary data for manually published client documents."""
+    today = timezone.localdate()
+    return {
+        "total": documents.count(),
+        "pinned": documents.filter(is_pinned=True).count(),
+        "expiring_soon": documents.filter(
+            expires_at__isnull=False,
+            expires_at__gte=today,
+            expires_at__lte=today + timedelta(days=14),
+        ).count(),
+        "downloaded": documents.filter(download_count__gt=0).count(),
+        "latest_publication": documents.order_by("-published_at").values_list("published_at", flat=True).first(),
+    }
 
 
 def home(request):
@@ -100,19 +179,23 @@ def health(request):
 
 # Dashboard technique supprimé - Migration vers /admin-dashboard/
 # Les fonctionnalités sont maintenant disponibles dans admin_dashboard()
-# Les superusers et admins techniques accèdent à /gestion/ (Django Admin)
+# Le portail métier principal reste /admin-dashboard/ ; /gestion/ ne sert qu'aux opérations techniques avancées.
 # Les admins business accèdent à /admin-dashboard/
 
 
 @client_portal_required
 def client_dashboard(request):
     """Enhanced Client Portal dashboard with document filtering."""
+    from .services.client_service import ClientService
+
     # Update last portal access
     if hasattr(request.user, 'profile'):
         from django.utils import timezone
         request.user.profile.last_portal_access = timezone.now()
         request.user.profile.save(update_fields=['last_portal_access'])
     
+    client_record = _get_client_portal_record(request.user)
+
     # Get document statistics and recent documents using the service
     stats = ClientDocumentService.get_client_document_stats(request.user)
     recent_docs = ClientDocumentService.get_recent_documents(request.user, limit=5)
@@ -120,16 +203,50 @@ def client_dashboard(request):
     # Get all documents for the sidebar links
     all_quotes = ClientDocumentService.get_accessible_quotes(request.user).order_by("-issue_date")
     all_invoices = ClientDocumentService.get_accessible_invoices(request.user).order_by("-issue_date")
+    all_portal_documents = ClientDocumentService.get_accessible_portal_documents(request.user)
+    client_tasks = ClientService.get_portal_tasks(client_record)
     
     return TemplateResponse(
         request,
-        "core/client_dashboard.html",
+        "core/client_dashboard_premium.html",
         {
-            "pending_quotes": recent_docs['quotes'],
-            "unpaid_invoices": recent_docs['invoices'],
+            "client_record": client_record,
+            "pending_quotes": recent_docs.get('quotes', []),
+            "unpaid_invoices": recent_docs.get('invoices', []),
+            "recent_portal_documents": recent_docs.get('portal_documents', []),
             "all_quotes": all_quotes,
             "all_invoices": all_invoices,
             "stats": stats,
+            "quote_summary": _build_quote_summary(all_quotes),
+            "invoice_summary": _build_invoice_summary(all_invoices),
+            "document_summary": _build_document_summary(all_portal_documents),
+            "recent_client_tasks": client_tasks[:4],
+            "task_summary": ClientService.get_portal_task_summary(client_tasks),
+        },
+    )
+
+
+@client_portal_required
+def client_tasks(request):
+    """Client portal view exposing the tasks linked to the authenticated client."""
+    from .services.client_service import ClientService
+
+    client_record = _get_client_portal_record(request.user)
+    tasks = ClientService.get_portal_tasks(client_record)
+    full_summary = ClientService.get_portal_task_summary(tasks)
+    status_filter = request.GET.get('status', '').strip()
+
+    if status_filter and status_filter in dict(Task.STATUS_CHOICES):
+        tasks = tasks.filter(status=status_filter)
+
+    return TemplateResponse(
+        request,
+        'core/client_tasks.html',
+        {
+            'client_record': client_record,
+            'tasks': tasks,
+            'task_summary': full_summary,
+            'status_filter': status_filter,
         },
     )
 
@@ -141,8 +258,12 @@ def client_quotes(request):
     
     return TemplateResponse(
         request,
-        "core/client_quotes.html",
-        {"quotes": quotes},
+        "core/client_quotes_premium.html",
+        {
+            "client_record": _get_client_portal_record(request.user),
+            "quotes": quotes,
+            "quote_summary": _build_quote_summary(quotes),
+        },
     )
 
 
@@ -153,9 +274,75 @@ def client_invoices(request):
     
     return TemplateResponse(
         request,
-        "core/client_invoices.html",
-        {"invoices": invoices},
+        "core/client_invoices_premium.html",
+        {
+            "client_record": _get_client_portal_record(request.user),
+            "invoices": invoices,
+            "invoice_summary": _build_invoice_summary(invoices),
+        },
     )
+
+
+@client_portal_required
+def client_documents(request):
+    """Client Portal manually published documents list."""
+    documents = ClientDocumentService.get_accessible_portal_documents(request.user)
+
+    return TemplateResponse(
+        request,
+        "core/client_documents_premium.html",
+        {
+            "client_record": _get_client_portal_record(request.user),
+            "documents": documents,
+            "document_summary": _build_document_summary(documents),
+        },
+    )
+
+
+@client_portal_required
+def client_document_detail(request, pk):
+    """Client Portal document detail view."""
+    from .models import ClientPortalDocument
+
+    document = get_object_or_404(
+        ClientPortalDocument.objects.select_related('client', 'published_by'),
+        pk=pk,
+    )
+
+    if not ClientDocumentService.can_access_portal_document(request.user, document):
+        return TemplateResponse(request, "core/access_denied.html", {"target": "document"}, status=403)
+
+    ClientDocumentService.track_portal_document_access(document)
+
+    return TemplateResponse(
+        request,
+        "core/client_document_detail_premium.html",
+        {"document": document},
+    )
+
+
+@client_portal_required
+def client_document_download(request, pk):
+    """Secure download endpoint for published client portal documents."""
+    import mimetypes
+    from django.http import FileResponse, Http404
+    from .models import ClientPortalDocument
+
+    document = get_object_or_404(ClientPortalDocument, pk=pk)
+    if not ClientDocumentService.can_access_portal_document(request.user, document):
+        return TemplateResponse(request, "core/access_denied.html", {"target": "document"}, status=403)
+
+    if not document.file:
+        raise Http404("Le fichier demandé est introuvable.")
+
+    inline = request.GET.get('inline') == '1'
+    ClientDocumentService.track_portal_document_access(document, download=not inline)
+    content_type, _ = mimetypes.guess_type(document.file.name)
+    response = FileResponse(document.file.open('rb'), content_type=content_type or 'application/octet-stream')
+    response['Content-Disposition'] = (
+        f"inline; filename=\"{document.filename}\"" if inline else f"attachment; filename=\"{document.filename}\""
+    )
+    return response
 
 
 @client_portal_required
@@ -172,7 +359,7 @@ def client_quote_detail(request, pk):
     
     return TemplateResponse(
         request,
-        "core/client_quote_detail.html",
+        "core/client_quote_detail_premium.html",
         {"quote": quote},
     )
 
@@ -191,7 +378,7 @@ def client_invoice_detail(request, pk):
     
     return TemplateResponse(
         request,
-        "core/client_invoice_detail.html",
+        "core/client_invoice_detail_premium.html",
         {"invoice": invoice},
     )
 
@@ -272,7 +459,7 @@ def client_quote_validate_start(request, pk):
     except QuoteNotValidatableError:
         return TemplateResponse(
             request,
-            "core/client_quote_detail.html",
+            "core/client_quote_detail_premium.html",
             {"quote": quote, "error_message": "Ce devis ne peut pas être validé dans son état actuel."},
         )
     
@@ -305,7 +492,7 @@ def client_quote_validate_code(request, pk):
     except QuoteValidation.DoesNotExist:
         return TemplateResponse(
             request,
-            "core/client_quote_detail.html",
+            "core/client_quote_detail_premium.html",
             {
                 "quote": quote,
                 "error_message": "Aucune validation en cours pour ce devis."
@@ -396,6 +583,7 @@ def admin_dashboard(request):
     from django.contrib.auth.models import User
     from django.core.cache import cache
     import json
+    from .services.email_health_service import EmailHealthService
     
     # Cache key for dashboard data (5 minutes cache)
     cache_key = 'admin_dashboard_data'
@@ -620,6 +808,53 @@ def admin_dashboard(request):
             # Revenue Trend for Charts (as JSON string for template)
             'revenue_trend': cached_data['revenue_trend'],
             'revenue_trend_json': revenue_trend_json,
+            'email_health_summary': EmailHealthService.get_configuration_report(),
+        },
+    )
+
+
+@admin_portal_required
+def admin_email_health(request):
+    """Centre de supervision email pour le portail admin."""
+    from .services.email_health_service import EmailHealthService
+
+    email_health = EmailHealthService.get_configuration_report()
+    probe_result = None
+    test_result = None
+    default_test_recipient = request.user.email or ""
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'probe':
+            probe_result = EmailHealthService.probe_delivery_backend()
+            if probe_result['status'] == 'healthy':
+                messages.success(request, probe_result['title'])
+            elif probe_result['status'] == 'warning':
+                messages.warning(request, probe_result['title'])
+            else:
+                messages.error(request, probe_result['title'])
+        elif action == 'send_test_email':
+            default_test_recipient = (request.POST.get('recipient_email') or '').strip()
+            test_result = EmailHealthService.send_test_email(default_test_recipient, triggered_by=request.user)
+            if test_result['status'] == 'healthy':
+                messages.success(request, test_result['title'])
+            elif test_result['status'] == 'warning':
+                messages.warning(request, test_result['title'])
+            else:
+                messages.error(request, test_result['title'])
+        else:
+            messages.warning(request, "Action de supervision email inconnue.")
+
+        email_health = EmailHealthService.get_configuration_report()
+
+    return render(
+        request,
+        'core/admin_email_health.html',
+        {
+            'email_health': email_health,
+            'probe_result': probe_result,
+            'test_result': test_result,
+            'default_test_recipient': default_test_recipient,
         },
     )
 
@@ -779,6 +1014,8 @@ def admin_create_client(request):
     """Admin Portal client creation view."""
     from .forms import ClientCreationForm
     from .services.client_service import ClientService
+    from accounts.services import ClientAccountCreationService
+    from core.services.email_service import EmailService
     from django.core.exceptions import ValidationError
     
     if request.method == 'POST':
@@ -797,6 +1034,20 @@ def admin_create_client(request):
                     link_to_user=False  # Option pour lier à un User existant (futur)
                 )
                 messages.success(request, f"Client {client.full_name} créé avec succès!")
+
+                if form.cleaned_data.get('create_portal_access'):
+                    portal_user, account_created = ClientAccountCreationService.create_from_client(client)
+                    invitation_sent = EmailService.send_client_portal_invitation(portal_user, client, request=request)
+                    if invitation_sent:
+                        status_label = "activé" if account_created else "mis à jour"
+                        messages.success(request, f"Espace client {status_label} et invitation envoyée à {portal_user.email}.")
+                    else:
+                        messages.warning(
+                            request,
+                            "Le compte portail a été préparé, mais l'invitation email n'a pas pu être envoyée. "
+                            "Vérifiez la configuration mail ou utilisez le flux mot de passe oublié."
+                        )
+
                 return redirect('core:admin_client_detail', pk=client.pk)
             except ValidationError as e:
                 form.add_error(None, str(e))
@@ -814,10 +1065,16 @@ def admin_create_quote(request):
     
     # Get services for JavaScript autofill (Service model has no price field)
     services_data = list(Service.objects.filter(is_active=True).values('id', 'title'))
+    prefilled_client = None
+
+    if request.method == 'GET' and request.GET.get('client'):
+        prefilled_client = Client.objects.filter(pk=request.GET.get('client')).first()
     
     if request.method == 'POST':
         form = QuoteCreationForm(request.POST)
         formset = QuoteItemFormset(request.POST, prefix='items')
+        if request.POST.get('client'):
+            prefilled_client = Client.objects.filter(pk=request.POST.get('client')).first()
         
         if form.is_valid() and formset.is_valid():
             quote = form.save()
@@ -834,7 +1091,8 @@ def admin_create_quote(request):
             messages.success(request, f"Devis {quote.number} créé avec succès!")
             return redirect('core:admin_quote_detail', pk=quote.pk)
     else:
-        form = QuoteCreationForm()
+        initial = {'client': prefilled_client.pk} if prefilled_client else None
+        form = QuoteCreationForm(initial=initial)
         formset = QuoteItemFormset(prefix='items')
     
     import json
@@ -842,6 +1100,7 @@ def admin_create_quote(request):
         'form': form,
         'formset': formset,
         'services_json': json.dumps(services_data, default=str),
+        'prefilled_client': prefilled_client,
     })
 
 
@@ -901,18 +1160,54 @@ def admin_edit_quote(request, pk):
 @admin_portal_required
 def admin_create_task(request):
     """Admin Portal task creation view."""
+    from django.conf import settings
+    from django.contrib.auth.models import User
     from .forms import TaskCreationForm
+
+    worker_id = request.GET.get('worker')
+    client_id = request.GET.get('client')
+    prefilled_worker = None
+    prefilled_client = None
+    initial = {}
+
+    if worker_id:
+        prefilled_worker = User.objects.filter(pk=worker_id, groups__name='Workers').first()
+        if prefilled_worker:
+            initial['assigned_to'] = [prefilled_worker.pk]
+
+    if client_id:
+        prefilled_client = Client.objects.filter(pk=client_id).first()
+        if prefilled_client:
+            initial['client'] = prefilled_client.pk
+            initial.setdefault('title', f"Suivi client - {prefilled_client.company or prefilled_client.full_name}")
+            location_parts = [
+                prefilled_client.address_line,
+                " ".join(part for part in [prefilled_client.zip_code, prefilled_client.city] if part).strip(),
+            ]
+            prefilled_location = ", ".join(part for part in location_parts if part)
+            if prefilled_location:
+                initial.setdefault('location', prefilled_location)
+            if prefilled_client.company:
+                initial.setdefault('team', prefilled_client.company)
+
+    branding = getattr(settings, 'INVOICE_BRANDING', {})
     
     if request.method == 'POST':
         form = TaskCreationForm(request.POST)
         if form.is_valid():
             task = form.save()
             messages.success(request, f"Tâche '{task.title}' créée avec succès!")
-            return redirect('core:admin_dashboard')
+            return redirect('core:admin_task_detail', pk=task.pk)
     else:
-        form = TaskCreationForm()
+        form = TaskCreationForm(initial=initial)
     
-    return render(request, 'core/admin_create_task.html', {'form': form})
+    return render(request, 'core/admin_create_task.html', {
+        'form': form,
+        'company_name': branding.get('name', 'NetExpress'),
+        'company_siret': branding.get('siret', ''),
+        'prefilled_worker': prefilled_worker,
+        'prefilled_client': prefilled_client,
+    })
 
 
 @admin_portal_required
@@ -1046,14 +1341,28 @@ def admin_workers_list(request):
 @admin_portal_required
 def admin_clients_list(request):
     """Admin Portal clients management view with optimized queries."""
-    from django.db.models import Count, Q, Sum
+    from django.db.models import Count, Q, Sum, Exists, OuterRef, Max, Subquery, DecimalField, Value
+    from django.db.models.functions import Coalesce
     from django.core.paginator import Paginator
     from factures.models import Invoice
+    from .models import ClientPortalDocument
     
     # Get search and filter parameters
     search_query = request.GET.get('q', '').strip()
     filter_type = request.GET.get('filter', '')
     
+    portal_user_subquery = User.objects.filter(email__iexact=OuterRef('email'))
+    revenue_subquery = Invoice.objects.filter(
+        quote__client=OuterRef('pk')
+    ).values('quote__client').annotate(
+        total=Sum('total_ttc')
+    ).values('total')[:1]
+    open_balance_subquery = Invoice.objects.filter(
+        quote__client=OuterRef('pk'),
+        status__in=[Invoice.InvoiceStatus.SENT, Invoice.InvoiceStatus.PARTIAL, Invoice.InvoiceStatus.OVERDUE],
+    ).values('quote__client').annotate(
+        total=Sum('total_ttc')
+    ).values('total')[:1]
     clients = Client.objects.all()
     
     # Optimize with annotations - use 'quotes' (the related_name from Quote.client)
@@ -1063,6 +1372,19 @@ def admin_clients_list(request):
         pending_quotes=Count('quotes', filter=Q(quotes__status=Quote.QuoteStatus.SENT), distinct=True),
         total_invoices=Count('quotes__invoices', distinct=True),
         paid_invoices=Count('quotes__invoices', filter=Q(quotes__invoices__status=Invoice.InvoiceStatus.PAID), distinct=True),
+        portal_enabled=Exists(portal_user_subquery),
+        published_documents=Count('portal_documents', filter=Q(portal_documents__is_published=True), distinct=True),
+        total_revenue=Coalesce(
+            Subquery(revenue_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
+            Value(0),
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        ),
+        open_balance=Coalesce(
+            Subquery(open_balance_subquery, output_field=DecimalField(max_digits=10, decimal_places=2)),
+            Value(0),
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        ),
+        last_quote_date=Max('quotes__issue_date'),
     )
     
     # Search filter - search in name, email, phone, company
@@ -1078,8 +1400,6 @@ def admin_clients_list(request):
     # Status filter
     if filter_type == 'active':
         # Clients with at least one quote in the last 6 months
-        from datetime import timedelta
-        from django.utils import timezone
         six_months_ago = timezone.now() - timedelta(days=180)
         clients = clients.filter(quotes__created_at__gte=six_months_ago).distinct()
     elif filter_type == 'with_quotes':
@@ -1094,36 +1414,267 @@ def admin_clients_list(request):
     
     # Order by name
     clients = clients.order_by('full_name')
+    filtered_total = clients.count()
     
     # Pagination
     paginator = Paginator(clients, 25)  # 25 clients per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    base_clients = Client.objects.annotate(portal_enabled=Exists(portal_user_subquery))
+    six_months_ago = timezone.now() - timedelta(days=180)
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    total_clients = Client.objects.count()
+    clients_with_portal = base_clients.filter(portal_enabled=True).count()
+    clients_without_quotes = Client.objects.annotate(total_quotes=Count('quotes')).filter(total_quotes=0).count()
+    new_clients_30d = Client.objects.filter(created_at__gte=thirty_days_ago).count()
+    portal_conversion_rate = round((clients_with_portal / total_clients) * 100, 1) if total_clients else 0
     
     return render(request, 'core/admin_clients_list.html', {
         'clients': page_obj,
         'page_obj': page_obj,
         'search_query': search_query,
         'filter_type': filter_type,
-        'total_clients': Client.objects.count(),
+        'total_clients': total_clients,
+        'filtered_total': filtered_total,
+        'clients_with_portal': clients_with_portal,
+        'clients_without_portal': max(total_clients - clients_with_portal, 0),
+        'clients_without_quotes': clients_without_quotes,
+        'new_clients_30d': new_clients_30d,
+        'portal_conversion_rate': portal_conversion_rate,
+        'active_clients': Client.objects.filter(quotes__created_at__gte=six_months_ago).distinct().count(),
+        'clients_needing_followup': Client.objects.filter(
+            quotes__invoices__status__in=[Invoice.InvoiceStatus.SENT, Invoice.InvoiceStatus.PARTIAL, Invoice.InvoiceStatus.OVERDUE]
+        ).distinct().count(),
+        'published_documents_total': ClientPortalDocument.objects.filter(is_published=True).count(),
     })
+
+
+@admin_portal_required
+def admin_client_import_template(request):
+    """Download a ready-to-use Excel template for client imports."""
+    from devis.import_service import IMPORT_COLUMN_GUIDE, TEMPLATE_HEADERS, TEMPLATE_SAMPLE_ROW
+
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+    except ImportError:
+        fallback_lines = [";".join(TEMPLATE_HEADERS), ";".join(TEMPLATE_SAMPLE_ROW)]
+        response = HttpResponse("\n".join(fallback_lines), content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="modele-import-clients-netexpress.csv"'
+        return response
+
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Clients"
+    worksheet.append(TEMPLATE_HEADERS)
+    worksheet.append(TEMPLATE_SAMPLE_ROW)
+    worksheet.freeze_panes = "A2"
+    worksheet.auto_filter.ref = f"A1:G2"
+
+    header_fill = PatternFill(fill_type="solid", fgColor="0E6B4C")
+    note_fill = PatternFill(fill_type="solid", fgColor="F3F7F4")
+    header_font = Font(color="FFFFFF", bold=True)
+
+    for cell in worksheet[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+
+    column_widths = [24, 32, 20, 32, 18, 16, 24]
+    for index, width in enumerate(column_widths, start=1):
+        worksheet.column_dimensions[chr(64 + index)].width = width
+
+    instructions = workbook.create_sheet("Consignes")
+    instructions.append(["Colonne", "Obligatoire", "Noms acceptés"])
+    for cell in instructions[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+
+    for entry in IMPORT_COLUMN_GUIDE:
+        instructions.append([
+            entry["label"],
+            "Oui" if entry["required"] else "Non",
+            ", ".join(entry["aliases"]),
+        ])
+
+    instructions.append([])
+    instructions.append(["Conseils", "", "L'email sert de clé de rapprochement pour mettre à jour un client existant."])
+    instructions.append(["Conseils", "", "Les lignes totalement vides sont ignorées automatiquement."])
+    instructions.append(["Conseils", "", "Les doublons d'email dans le même fichier sont signalés et ignorés."])
+
+    for row in instructions.iter_rows(min_row=2, max_row=instructions.max_row):
+        for cell in row:
+            cell.alignment = Alignment(vertical="top", wrap_text=True)
+            if cell.row >= instructions.max_row - 2:
+                cell.fill = note_fill
+
+    instructions.column_dimensions["A"].width = 18
+    instructions.column_dimensions["B"].width = 14
+    instructions.column_dimensions["C"].width = 64
+    instructions.freeze_panes = "A2"
+
+    buffer = BytesIO()
+    workbook.save(buffer)
+    workbook.close()
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = 'attachment; filename="modele-import-clients-netexpress.xlsx"'
+    return response
+
+
+@admin_portal_required
+def admin_import_clients(request):
+    """Import clients from an Excel file (.xlsx)."""
+    from devis.import_service import ALLOWED_EXTENSIONS, IMPORT_COLUMN_GUIDE, import_clients_from_excel
+
+    result = None
+    update_existing = request.method == 'POST' and request.POST.get('update_existing') == '1'
+    if request.method == 'POST':
+        excel_file = request.FILES.get('excel_file')
+        if not excel_file:
+            messages.error(request, "Veuillez sélectionner un fichier Excel.")
+        elif Path(excel_file.name).suffix.lower() not in ALLOWED_EXTENSIONS:
+            messages.error(request, "Format invalide. Utilisez un fichier Excel .xlsx ou .xlsm.")
+        elif excel_file.size > 5 * 1024 * 1024:  # 5 MB max
+            messages.error(request, "Fichier trop volumineux (max 5 Mo).")
+        else:
+            result = import_clients_from_excel(excel_file, update_existing=update_existing)
+            if result.created or result.updated:
+                messages.success(
+                    request,
+                    f"Import terminé : {result.created} créé(s), {result.updated} mis à jour, {result.skipped} ignoré(s)."
+                )
+            elif result.errors:
+                messages.error(request, "L'import a échoué. Voir les erreurs ci-dessous.")
+            else:
+                messages.info(request, "Aucun nouveau client à importer.")
+    return render(request, 'core/admin_import_clients.html', {
+        'accepted_extensions_text': ", ".join(sorted(ALLOWED_EXTENSIONS)),
+        'import_column_guide': IMPORT_COLUMN_GUIDE,
+        'max_file_size_mb': 5,
+        'result': result,
+        'update_existing': update_existing,
+    })
+
+
+@admin_portal_required
+def admin_client_activate_portal_access(request, pk):
+    """Create or refresh a client portal account from the admin dashboard."""
+    from accounts.services import ClientAccountCreationService
+    from core.services.email_service import EmailService
+    from django.core.exceptions import ValidationError
+
+    client = get_object_or_404(Client, pk=pk)
+    if request.method != 'POST':
+        return redirect('core:admin_client_detail', pk=client.pk)
+
+    try:
+        portal_user, account_created = ClientAccountCreationService.create_from_client(client)
+        invitation_sent = EmailService.send_client_portal_invitation(portal_user, client, request=request)
+
+        if invitation_sent:
+            messages.success(
+                request,
+                f"Accès portail {'créé' if account_created else 'réactivé'} pour {client.full_name}. Invitation envoyée à {portal_user.email}."
+            )
+        else:
+            messages.warning(
+                request,
+                "Le compte portail est prêt, mais l'invitation email n'a pas été envoyée. "
+                "Contrôlez la configuration SMTP/Brevo puis renvoyez l'invitation."
+            )
+    except ValidationError as exc:
+        messages.error(request, str(exc))
+
+    return redirect('core:admin_client_detail', pk=client.pk)
+
+
+@admin_portal_required
+def admin_client_publish_document(request, pk):
+    """Publish a document to a client's portal from the admin dashboard."""
+    from django.urls import reverse
+    from .forms import ClientPortalDocumentForm
+    from .services.notification_service import notification_service
+
+    client = get_object_or_404(Client, pk=pk)
+    if request.method != 'POST':
+        return redirect('core:admin_client_detail', pk=client.pk)
+
+    form = ClientPortalDocumentForm(request.POST, request.FILES)
+    if form.is_valid():
+        document = form.save(commit=False)
+        document.client = client
+        document.published_by = request.user
+        document.save()
+
+        portal_user = _get_client_portal_user(client)
+        if portal_user:
+            notification_service.create_ui_notification(
+                user=portal_user,
+                title=f"Nouveau document disponible : {document.title}",
+                message="Un nouveau document a été publié dans votre espace client.",
+                notification_type='document_updated',
+                link_url=reverse('core:client_document_detail', args=[document.pk]),
+            )
+            messages.success(request, f"Document publié pour {client.full_name} et notification portail créée.")
+        else:
+            messages.success(request, f"Document publié pour {client.full_name}.")
+            messages.warning(request, "Aucun compte portail n'est actif pour ce client. Le document sera visible dès activation de son accès.")
+    else:
+        for errors in form.errors.values():
+            for error in errors:
+                messages.error(request, error)
+
+    return redirect('core:admin_client_detail', pk=client.pk)
 
 
 @admin_portal_required
 def admin_create_invoice(request):
     """Admin Portal invoice creation view."""
     from .forms import InvoiceCreationForm
+    prefilled_client = None
+    prefilled_quote = None
+
+    if request.GET.get('quote'):
+        prefilled_quote = Quote.objects.select_related('client').filter(pk=request.GET.get('quote')).first()
+    if request.GET.get('client'):
+        prefilled_client = Client.objects.filter(pk=request.GET.get('client')).first()
+    elif prefilled_quote:
+        prefilled_client = prefilled_quote.client
     
     if request.method == 'POST':
         form = InvoiceCreationForm(request.POST)
+        if request.POST.get('quote'):
+            prefilled_quote = Quote.objects.select_related('client').filter(pk=request.POST.get('quote')).first()
+            if prefilled_quote:
+                prefilled_client = prefilled_quote.client
+
+        if prefilled_client:
+            form.fields['quote'].queryset = form.fields['quote'].queryset.filter(client=prefilled_client)
+
         if form.is_valid():
             invoice = form.save()
             messages.success(request, f"Facture {invoice.number} créée avec succès!")
             return redirect('core:admin_invoices_list')
     else:
-        form = InvoiceCreationForm()
+        initial = {'quote': prefilled_quote.pk} if prefilled_quote else None
+        form = InvoiceCreationForm(initial=initial)
+        if prefilled_client:
+            form.fields['quote'].queryset = form.fields['quote'].queryset.filter(client=prefilled_client)
+            if not form.fields['quote'].queryset.exists():
+                messages.warning(request, "Aucun devis accepté n'est actuellement disponible pour ce client.")
     
-    return render(request, 'core/admin_create_invoice.html', {'form': form})
+    return render(request, 'core/admin_create_invoice.html', {
+        'form': form,
+        'prefilled_client': prefilled_client,
+        'prefilled_quote': prefilled_quote,
+    })
 
 
 @admin_portal_required
@@ -1165,6 +1716,7 @@ def admin_send_quote_email(request, pk):
     Utilise le template stylisé modele_quote.html pour l'envoi.
     Aucun texte libre n'est permis - le contenu est généré automatiquement.
     """
+    from smtplib import SMTPAuthenticationError
     from .forms import QuoteEmailForm
     from django.core.mail import EmailMessage as DjangoEmailMessage
     from django.template.loader import render_to_string
@@ -1229,6 +1781,12 @@ def admin_send_quote_email(request, pk):
                 messages.success(request, f"Devis {quote.number} envoyé avec succès à {form.cleaned_data['recipient_email']}!")
                 return redirect('core:admin_quotes_list')
                 
+            except SMTPAuthenticationError:
+                logger.error(f"Erreur auth SMTP devis {quote.number}", exc_info=True)
+                messages.error(
+                    request,
+                    "Authentification SMTP refusée par Brevo. Vérifiez BREVO_SMTP_LOGIN/BREVO_SMTP_PASSWORD ou configurez BREVO_API_KEY.",
+                )
             except Exception as e:
                 logger.error(f"Erreur inattendue lors de l'envoi de l'email pour le devis {quote.number}: {e}", exc_info=True)
                 messages.error(request, f"Erreur lors de l'envoi de l'email : {str(e)}")
@@ -1275,6 +1833,8 @@ def admin_worker_detail(request, pk):
 @admin_portal_required
 def admin_client_detail(request, pk):
     """Admin Portal client detail view."""
+    from django.urls import reverse
+    from .forms import ClientPortalDocumentForm
     from .services.client_service import ClientService
     
     client = get_object_or_404(Client, pk=pk)
@@ -1292,16 +1852,123 @@ def admin_client_detail(request, pk):
     invoices = Invoice.objects.filter(quote__client=client).select_related('quote').order_by('-issue_date')
     
     # Vérifier si un User existe avec cet email
-    from django.contrib.auth.models import User
-    user_account = User.objects.filter(email=client.email).first()
+    user_account = _get_client_portal_user(client)
+    portal_documents = client.portal_documents.select_related('published_by').all()
+    invoice_candidate = quotes.filter(status=Quote.QuoteStatus.ACCEPTED).exclude(invoices__isnull=False).first()
+    overdue_invoice = invoices.filter(status=Invoice.InvoiceStatus.OVERDUE).order_by('due_date', '-issue_date').first()
+    expiring_quote = quotes.filter(status=Quote.QuoteStatus.SENT, valid_until__isnull=False).order_by('valid_until').first()
+    expired_document = portal_documents.filter(expires_at__lt=timezone.localdate()).first()
+
+    client_actions = [
+        {
+            'label': 'Créer un devis',
+            'description': 'Ouvrir un nouveau devis avec le client déjà sélectionné.',
+            'url': f"{reverse('core:admin_create_quote')}?client={client.pk}",
+            'icon': 'fa-file-circle-plus',
+            'tone': 'primary',
+        },
+        {
+            'label': 'Planifier une tâche',
+            'description': 'Préremplir une tâche avec ce client, son adresse et son contexte.',
+            'url': f"{reverse('core:admin_create_task')}?client={client.pk}",
+            'icon': 'fa-calendar-plus',
+            'tone': 'slate',
+        },
+    ]
+
+    if invoice_candidate:
+        client_actions.insert(1, {
+            'label': f"Facturer {invoice_candidate.number}",
+            'description': 'Basculer directement sur une facture prête à partir du devis accepté.',
+            'url': f"{reverse('core:admin_create_invoice')}?client={client.pk}&quote={invoice_candidate.pk}",
+            'icon': 'fa-receipt',
+            'tone': 'emerald',
+        })
+
+    if not user_account:
+        client_actions.append({
+            'label': 'Activer le portail client',
+            'description': 'Créer ou relancer l’accès espace client depuis ce dossier.',
+            'url': '#portal-access',
+            'icon': 'fa-user-lock',
+            'tone': 'blue',
+        })
+
+    if stats['published_documents_count'] == 0 or stats['expired_documents_count'] > 0:
+        client_actions.append({
+            'label': 'Mettre à jour les documents',
+            'description': 'Publier un document de suivi, rapport ou attestation dans le portail.',
+            'url': '#publish-document',
+            'icon': 'fa-folder-open',
+            'tone': 'amber',
+        })
+
+    client_alerts = []
+
+    if overdue_invoice:
+        client_alerts.append({
+            'title': f"Relance urgente sur {overdue_invoice.number}",
+            'description': f"Facture en retard de {overdue_invoice.total_ttc:.2f} € à suivre immédiatement.",
+            'url': reverse('core:admin_invoice_detail', args=[overdue_invoice.pk]),
+            'cta': 'Ouvrir la facture',
+            'icon': 'fa-triangle-exclamation',
+            'tone': 'danger',
+        })
+
+    if invoice_candidate:
+        client_alerts.append({
+            'title': f"{invoice_candidate.number} est prêt à être facturé",
+            'description': f"Un devis accepté de {invoice_candidate.total_ttc:.2f} € attend sa conversion en facture.",
+            'url': f"{reverse('core:admin_create_invoice')}?client={client.pk}&quote={invoice_candidate.pk}",
+            'cta': 'Créer la facture',
+            'icon': 'fa-circle-check',
+            'tone': 'success',
+        })
+
+    if expiring_quote and expiring_quote.valid_until and expiring_quote.valid_until <= timezone.localdate() + timedelta(days=7):
+        expiry_label = 'a expiré' if expiring_quote.valid_until < timezone.localdate() else 'expire bientôt'
+        client_alerts.append({
+            'title': f"{expiring_quote.number} {expiry_label}",
+            'description': f"Le devis envoyé au client doit être relancé avant le {expiring_quote.valid_until.strftime('%d/%m/%Y')}.",
+            'url': reverse('core:admin_quote_detail', args=[expiring_quote.pk]),
+            'cta': 'Ouvrir le devis',
+            'icon': 'fa-hourglass-half',
+            'tone': 'warning',
+        })
+
+    if expired_document:
+        client_alerts.append({
+            'title': 'Document portail à renouveler',
+            'description': f"{expired_document.title} est expiré. Une mise à jour évite un portail client obsolète.",
+            'url': '#publish-document',
+            'cta': 'Publier un document',
+            'icon': 'fa-folder-minus',
+            'tone': 'warning',
+        })
+
+    if stats['days_since_last_activity'] and stats['days_since_last_activity'] >= 45:
+        client_alerts.append({
+            'title': 'Compte à relancer',
+            'description': f"Aucune activité récente depuis {stats['days_since_last_activity']} jours sur ce dossier client.",
+            'url': f"{reverse('core:admin_create_quote')}?client={client.pk}",
+            'cta': 'Préparer une relance',
+            'icon': 'fa-phone-volume',
+            'tone': 'slate',
+        })
     
     return render(request, 'core/admin_client_detail.html', {
         'client': client,
         'stats': stats,
         'history': history,
+        'history_preview': history[:12],
         'quotes': quotes,
         'invoices': invoices,
         'user_account': user_account,
+        'portal_documents': portal_documents,
+        'portal_document_form': ClientPortalDocumentForm(),
+        'client_actions': client_actions,
+        'client_alerts': client_alerts,
+        'invoice_candidate': invoice_candidate,
     })
 
 
@@ -1451,6 +2118,7 @@ def admin_send_invoice_email(request, pk):
     GET: Affiche le formulaire de confirmation avec l'email pré-rempli
     POST: Envoie l'email avec le PDF attaché
     """
+    from smtplib import SMTPAuthenticationError
     from django.core.mail import EmailMessage as DjangoEmailMessage
     from django.template.loader import render_to_string
     import logging
@@ -1521,6 +2189,17 @@ def admin_send_invoice_email(request, pk):
             messages.success(request, f"Facture {invoice.number} envoyée avec succès à {recipient_email}!")
             return redirect('core:admin_invoice_detail', pk=pk)
             
+        except SMTPAuthenticationError:
+            logger.error(f"Erreur auth SMTP facture {invoice.number}", exc_info=True)
+            messages.error(
+                request,
+                "Authentification SMTP refusée par Brevo. Vérifiez BREVO_SMTP_LOGIN/BREVO_SMTP_PASSWORD ou configurez BREVO_API_KEY.",
+            )
+            return render(request, 'core/admin_send_invoice_email.html', {
+                'invoice': invoice,
+                'client_email': client_email,
+                'client_name': client_name,
+            })
         except Exception as e:
             logger.error(f"Erreur envoi email facture {invoice.number}: {e}", exc_info=True)
             messages.error(request, f"Erreur lors de l'envoi: {str(e)}")
@@ -1544,7 +2223,7 @@ def admin_task_detail(request, pk):
     from tasks.models import Task
     
     task = get_object_or_404(
-        Task.objects.prefetch_related('assigned_to').select_related('completed_by'),
+        Task.objects.prefetch_related('assigned_to').select_related('client', 'completed_by'),
         pk=pk
     )
     
@@ -1560,11 +2239,12 @@ def admin_tasks_list(request):
     from django.core.paginator import Paginator
     from django.db.models import Q
     
-    tasks = Task.objects.prefetch_related('assigned_to').order_by('-due_date', '-created_at')
+    tasks = Task.objects.prefetch_related('assigned_to').select_related('client').order_by('-due_date', '-created_at')
     
     # Filtres
     status_filter = request.GET.get('status')
     worker_filter = request.GET.get('worker')
+    client_filter = request.GET.get('client')
     search_query = request.GET.get('q')  # 'q' pour correspondre au template
     
     if status_filter:
@@ -1577,12 +2257,18 @@ def admin_tasks_list(request):
             tasks = tasks.annotate(worker_count=Count('assigned_to')).filter(worker_count=0)
         else:
             tasks = tasks.filter(assigned_to__id=worker_filter)
+
+    if client_filter:
+        tasks = tasks.filter(client__id=client_filter)
     
     if search_query:
         tasks = tasks.filter(
             Q(title__icontains=search_query) |
             Q(description__icontains=search_query) |
-            Q(location__icontains=search_query)
+            Q(location__icontains=search_query) |
+            Q(client__full_name__icontains=search_query) |
+            Q(client__company__icontains=search_query) |
+            Q(client__email__icontains=search_query)
         )
     
     # Pagination
@@ -1594,13 +2280,16 @@ def admin_tasks_list(request):
     from django.contrib.auth.models import User
     from accounts.models import Profile
     workers = User.objects.filter(profile__role=Profile.ROLE_WORKER, is_active=True).order_by('first_name', 'last_name')
+    clients = Client.objects.order_by('company', 'full_name')
     
     return render(request, 'core/admin_tasks_list.html', {
         'tasks': page_obj,
         'page_obj': page_obj,
         'workers': workers,
+        'clients': clients,
         'status_filter': status_filter,
         'worker_filter': worker_filter,
+        'client_filter': client_filter,
         'search_query': search_query,
     })
 

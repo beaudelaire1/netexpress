@@ -1,41 +1,89 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Gestion des Clients — NetExpress{% endblock %}
 
+{% block nav_items %}
+  <a href="{% url 'core:admin_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:admin_clients_list' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-user-tie mr-2"></i>Clients
+  </a>
+  <a href="{% url 'core:admin_quotes_list' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Devis
+  </a>
+  <a href="{% url 'core:admin_invoices_list' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Factures
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-gray-50">
-  <!-- Header -->
-  <div class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+<div class="min-h-screen bg-slate-50">
+  <div class="bg-[radial-gradient(circle_at_top_left,_rgba(15,107,76,0.14),_transparent_38%),radial-gradient(circle_at_top_right,_rgba(15,23,42,0.1),_transparent_36%),linear-gradient(180deg,#f8fafc_0%,#eef5f1_100%)] border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Gestion des Clients</h1>
-          <p class="text-gray-600">{{ total_clients }} client{{ total_clients|pluralize:"s" }} au total</p>
+          <p class="text-sm font-semibold uppercase tracking-[0.3em] text-ne-primary-700">Relation client</p>
+          <h1 class="mt-3 text-3xl font-bold text-slate-900">Pilotage des clients</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-600">Vision commerciale, accès portail, documents publiés et points d'attention sur un seul écran.</p>
         </div>
-        <a href="{% url 'core:admin_create_client' %}" class="btn btn-primary mt-4 md:mt-0">
-          <i class="fas fa-plus mr-2"></i>Nouveau Client
-        </a>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="{% url 'core:admin_import_clients' %}" class="inline-flex items-center justify-center rounded-xl border border-ne-primary-200 bg-white px-4 py-3 text-sm font-semibold text-ne-primary-700 shadow-sm hover:border-ne-primary-300 hover:bg-ne-primary-50">
+            <i class="fas fa-file-excel mr-2"></i>Importer via Excel
+          </a>
+          <a href="{% url 'core:admin_create_client' %}" class="inline-flex items-center justify-center rounded-xl bg-ne-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-ne-primary-600/20 hover:bg-ne-primary-700">
+            <i class="fas fa-plus mr-2"></i>Nouveau client
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div class="rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm">
+          <p class="text-sm text-slate-500">Clients enregistrés</p>
+          <p class="mt-2 text-3xl font-semibold text-slate-900">{{ total_clients }}</p>
+          <p class="mt-1 text-xs text-slate-500">{{ filtered_total }} dans la vue actuelle</p>
+        </div>
+        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-5 shadow-sm">
+          <p class="text-sm text-emerald-700">Clients actifs</p>
+          <p class="mt-2 text-3xl font-semibold text-emerald-900">{{ active_clients }}</p>
+          <p class="mt-1 text-xs text-emerald-700">activité sur les 6 derniers mois</p>
+        </div>
+        <div class="rounded-2xl border border-blue-100 bg-blue-50/80 p-5 shadow-sm">
+          <p class="text-sm text-blue-700">Portails activés</p>
+          <p class="mt-2 text-3xl font-semibold text-blue-900">{{ clients_with_portal }}</p>
+          <p class="mt-1 text-xs text-blue-700">comptes client prêts à l'usage</p>
+        </div>
+        <div class="rounded-2xl border border-amber-100 bg-amber-50/80 p-5 shadow-sm">
+          <p class="text-sm text-amber-700">Suivi à relancer</p>
+          <p class="mt-2 text-3xl font-semibold text-amber-900">{{ clients_needing_followup }}</p>
+          <p class="mt-1 text-xs text-amber-700">encours de paiement ou dossiers ouverts</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-900 p-5 shadow-sm">
+          <p class="text-sm text-slate-300">Documents publiés</p>
+          <p class="mt-2 text-3xl font-semibold text-white">{{ published_documents_total }}</p>
+          <p class="mt-1 text-xs text-slate-400">ressources visibles dans le portail client</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Filtres et Recherche -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-    <div class="bg-white rounded-lg shadow p-4">
-      <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <form method="get" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div class="lg:col-span-5">
+          <label for="client-search" class="mb-2 block text-sm font-medium text-slate-700">Recherche</label>
           <div class="relative">
-            <input type="text" name="q" value="{{ search_query }}" 
-                   placeholder="Nom, email, téléphone, entreprise..."
-                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ne-primary-500 focus:border-transparent">
-            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            <input type="text" id="client-search" name="q" value="{{ search_query }}" placeholder="Nom, email, téléphone, entreprise, ville..." class="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 text-sm focus:border-ne-primary-500 focus:outline-none focus:ring-2 focus:ring-ne-primary-100">
+            <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
           </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Filtrer par</label>
-          <select name="filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ne-primary-500">
+        <div class="lg:col-span-3">
+          <label for="client-filter" class="mb-2 block text-sm font-medium text-slate-700">Segment</label>
+          <select id="client-filter" name="filter" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-ne-primary-500 focus:outline-none focus:ring-2 focus:ring-ne-primary-100">
             <option value="">Tous les clients</option>
             <option value="active" {% if filter_type == 'active' %}selected{% endif %}>Clients actifs (6 mois)</option>
             <option value="with_quotes" {% if filter_type == 'with_quotes' %}selected{% endif %}>Avec devis</option>
@@ -43,104 +91,95 @@
             <option value="pending" {% if filter_type == 'pending' %}selected{% endif %}>Devis en attente</option>
           </select>
         </div>
-        <div class="flex items-end space-x-2">
-          <button type="submit" class="flex-1 btn btn-secondary">
-            <i class="fas fa-filter mr-2"></i>Filtrer
+        <div class="lg:col-span-4 flex items-end gap-3">
+          <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+            <i class="fas fa-filter mr-2"></i>Appliquer
           </button>
           {% if search_query or filter_type %}
-          <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary" title="Réinitialiser">
-            <i class="fas fa-times"></i>
-          </a>
+            <a href="{% url 'core:admin_clients_list' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <i class="fas fa-rotate-left mr-2"></i>Réinitialiser
+            </a>
           {% endif %}
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Clients List -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
     {% if clients %}
-      <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Entreprise
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Devis
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acceptés
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  En Attente
-                </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Client</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Contact</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Activité</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Portail</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Finance</th>
+                <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Actions</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="divide-y divide-slate-100">
               {% for client in clients %}
-                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{% url 'core:admin_client_detail' client.pk %}'">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="w-10 h-10 bg-ne-primary-100 rounded-full flex items-center justify-center mr-3">
-                        <span class="text-ne-primary-600 font-semibold">
-                          {{ client.full_name|slice:":1"|upper }}
-                        </span>
+                <tr class="hover:bg-slate-50/80 cursor-pointer" onclick="window.location='{% url 'core:admin_client_detail' client.pk %}'">
+                  <td class="px-6 py-5 align-top">
+                    <div class="flex items-start gap-4">
+                      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ne-primary-100 text-lg font-bold text-ne-primary-700">
+                        {{ client.full_name|slice:":1"|upper }}
                       </div>
                       <div>
-                        <div class="text-sm font-medium text-gray-900">
-                          {{ client.full_name }}
-                        </div>
-                        <div class="text-xs text-gray-500">Créé le {{ client.created_at|date:"d/m/Y" }}</div>
+                        <p class="text-sm font-semibold text-slate-900">{{ client.full_name }}</p>
+                        <p class="mt-1 text-sm text-slate-500">{{ client.company|default:"Client particulier" }}</p>
+                        <p class="mt-2 text-xs text-slate-400">Créé le {{ client.created_at|date:"d/m/Y" }}</p>
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ client.email }}</div>
-                    {% if client.phone %}
-                      <div class="text-sm text-gray-500">{{ client.phone }}</div>
-                    {% endif %}
+                  <td class="px-6 py-5 align-top">
+                    <p class="text-sm font-medium text-slate-900">{{ client.email }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ client.phone|default:"Téléphone non renseigné" }}</p>
+                    <p class="mt-2 text-xs text-slate-400">{{ client.city|default:"Ville non renseignée" }}</p>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">
-                      {{ client.company|default:"—" }}
+                  <td class="px-6 py-5 align-top">
+                    <div class="flex flex-wrap gap-2">
+                      <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ client.total_quotes }} devis</span>
+                      <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">{{ client.accepted_quotes }} acceptés</span>
+                      <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">{{ client.pending_quotes }} en attente</span>
+                      <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">{{ client.published_documents }} docs</span>
                     </div>
+                    <p class="mt-3 text-xs text-slate-500">
+                      {% if client.last_quote_date %}
+                        Dernier devis émis le {{ client.last_quote_date|date:"d/m/Y" }}
+                      {% else %}
+                        Aucun devis émis pour l'instant
+                      {% endif %}
+                    </p>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-center">
-                    <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
-                      {{ client.total_quotes }}
-                    </span>
+                  <td class="px-6 py-5 align-top">
+                    {% if client.portal_enabled %}
+                      <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        <i class="fas fa-circle-check mr-2"></i>Accès actif
+                      </span>
+                    {% else %}
+                      <span class="inline-flex items-center rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600">
+                        <i class="fas fa-lock mr-2"></i>Non activé
+                      </span>
+                    {% endif %}
+                    <p class="mt-3 text-xs text-slate-500">{{ client.published_documents }} document{{ client.published_documents|pluralize:"s" }} publié{{ client.published_documents|pluralize:"s" }}</p>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-center">
-                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                      {{ client.accepted_quotes }}
-                    </span>
+                  <td class="px-6 py-5 align-top">
+                    <p class="text-sm font-semibold text-slate-900">CA {{ client.total_revenue|default:0|floatformat:2 }} €</p>
+                    <p class="mt-1 text-sm {% if client.open_balance %}text-amber-700{% else %}text-slate-500{% endif %}">
+                      Encours {{ client.open_balance|default:0|floatformat:2 }} €
+                    </p>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-center">
-                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
-                      {{ client.pending_quotes }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onclick="event.stopPropagation()">
-                    <div class="flex justify-end space-x-3">
-                      <a href="{% url 'core:admin_client_detail' client.pk %}" 
-                         class="text-ne-primary-600 hover:text-ne-primary-900" title="Voir détails">
-                        <i class="fas fa-eye"></i>
+                  <td class="px-6 py-5 align-top text-right" onclick="event.stopPropagation()">
+                    <div class="flex justify-end gap-2">
+                      <a href="{% url 'core:admin_client_detail' client.pk %}" class="inline-flex items-center rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                        <i class="fas fa-eye mr-2"></i>Ouvrir
                       </a>
-                      <a href="{% url 'core:admin_create_quote' %}?client={{ client.pk }}" 
-                         class="text-blue-600 hover:text-blue-900" title="Nouveau devis">
-                        <i class="fas fa-file-alt"></i>
+                      <a href="{% url 'core:admin_create_quote' %}?client={{ client.pk }}" class="inline-flex items-center rounded-xl bg-ne-primary-600 px-3 py-2 text-sm font-semibold text-white hover:bg-ne-primary-700">
+                        <i class="fas fa-file-circle-plus mr-2"></i>Devis
                       </a>
                     </div>
                   </td>
@@ -149,53 +188,46 @@
             </tbody>
           </table>
         </div>
-        
-        <!-- Pagination -->
+
         {% if page_obj.has_other_pages %}
-        <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
-          <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-700">
-              Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
-            </div>
-            <div class="flex space-x-2">
+          <div class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <p class="text-sm text-slate-600">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</p>
+            <div class="flex gap-2">
               {% if page_obj.has_previous %}
-              <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}" 
-                 class="px-3 py-1 bg-white border border-gray-300 rounded text-sm hover:bg-gray-50">
-                <i class="fas fa-chevron-left"></i> Précédent
-              </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                  <i class="fas fa-chevron-left mr-2"></i>Précédent
+                </a>
               {% endif %}
               {% if page_obj.has_next %}
-              <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}" 
-                 class="px-3 py-1 bg-white border border-gray-300 rounded text-sm hover:bg-gray-50">
-                Suivant <i class="fas fa-chevron-right"></i>
-              </a>
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                  Suivant<i class="fas fa-chevron-right ml-2"></i>
+                </a>
               {% endif %}
             </div>
           </div>
-        </div>
         {% endif %}
       </div>
     {% else %}
-      <div class="bg-white rounded-lg shadow p-12 text-center">
-        <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-6">
-          <i class="fas fa-users text-4xl text-gray-400"></i>
+      <div class="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-4xl text-slate-400">
+          <i class="fas fa-users"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun client trouvé</h3>
-        <p class="text-gray-500 mb-6">
+        <h3 class="mt-6 text-xl font-semibold text-slate-900">Aucun client trouvé</h3>
+        <p class="mt-2 text-sm text-slate-500">
           {% if search_query or filter_type %}
-            Aucun résultat pour vos critères de recherche.
+            Aucun client ne correspond aux critères choisis.
           {% else %}
-            Commencez par créer des clients pour gérer les devis.
+            Commencez par créer une fiche client ou importez votre base Excel.
           {% endif %}
         </p>
-        {% if search_query or filter_type %}
-        <a href="{% url 'core:admin_clients_list' %}" class="btn btn-secondary mr-2">
-          <i class="fas fa-times mr-2"></i>Réinitialiser les filtres
-        </a>
-        {% endif %}
-        <a href="{% url 'core:admin_create_client' %}" class="btn btn-primary">
-          <i class="fas fa-plus mr-2"></i>Créer un client
-        </a>
+        <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <a href="{% url 'core:admin_import_clients' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <i class="fas fa-file-import mr-2"></i>Importer des clients
+          </a>
+          <a href="{% url 'core:admin_create_client' %}" class="inline-flex items-center justify-center rounded-xl bg-ne-primary-600 px-4 py-3 text-sm font-semibold text-white hover:bg-ne-primary-700">
+            <i class="fas fa-plus mr-2"></i>Créer un client
+          </a>
+        </div>
       </div>
     {% endif %}
   </div>

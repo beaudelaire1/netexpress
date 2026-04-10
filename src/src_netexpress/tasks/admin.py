@@ -13,14 +13,23 @@ from .models import Task
 class TaskAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "client",
         "get_status_display",
         "start_date",
         "due_date",
         "location",
         "team",
     )
-    list_filter = ("status", "due_date", "team")
-    search_fields = ("title", "description", "location", "team")
+    list_filter = ("status", "due_date", "team", "client")
+    search_fields = (
+        "title",
+        "description",
+        "location",
+        "team",
+        "client__full_name",
+        "client__company",
+        "client__email",
+    )
     date_hierarchy = "due_date"
     actions = ["mark_completed"]
 

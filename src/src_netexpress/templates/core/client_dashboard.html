@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Mon Espace Client — NetExpress{% endblock %}
 
@@ -13,7 +13,10 @@
   <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
     <i class="fas fa-receipt mr-2"></i>Mes Factures
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}
@@ -41,7 +44,7 @@
 
   <!-- Stats Cards -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
       <!-- Total Quotes -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
@@ -101,10 +104,24 @@
           </div>
         </div>
       </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-folder-open text-slate-700"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Documents Partagés</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ stats.portal_documents }}</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Recent Documents -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <!-- Recent Quotes -->
       <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
@@ -217,13 +234,51 @@
           {% endif %}
         </div>
       </div>
+
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-medium text-gray-900">Documents Partagés</h2>
+            <a href="{% url 'core:client_documents' %}" class="text-sm text-ne-primary-600 hover:text-ne-primary-500">
+              Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          {% if recent_portal_documents %}
+            <div class="space-y-4">
+              {% for document in recent_portal_documents %}
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">{{ document.title }}</p>
+                      <p class="mt-1 text-xs uppercase tracking-wide text-gray-400">{{ document.get_category_display }} · {{ document.published_at|date:"d/m/Y" }}</p>
+                      {% if document.description %}
+                        <p class="mt-2 text-sm text-gray-600">{{ document.description|truncatewords:16 }}</p>
+                      {% endif %}
+                    </div>
+                    <a href="{% url 'core:client_document_detail' document.pk %}" class="text-ne-primary-600 hover:text-ne-primary-500">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8">
+              <i class="fas fa-folder-open text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500">Aucun document partagé</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="mt-8">
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Actions Rapides</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <a href="{% url 'devis:request_quote' %}" 
              class="flex items-center p-4 bg-ne-primary-50 rounded-lg hover:bg-ne-primary-100 transition-colors">
             <div class="flex-shrink-0">
@@ -237,7 +292,7 @@
             </div>
           </a>
 
-          <a href="{% url 'messaging:thread_list' %}" 
+           <a href="{% portal_messages_route user 'thread_list' %}" 
              class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
             <div class="flex-shrink-0">
               <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -260,6 +315,19 @@
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-900">Mes Devis</p>
               <p class="text-xs text-gray-500">Consulter mes devis</p>
+            </div>
+          </a>
+
+          <a href="{% url 'core:client_documents' %}" 
+             class="flex items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
+                <i class="fas fa-folder-open text-slate-700"></i>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-900">Documents</p>
+              <p class="text-xs text-gray-500">Voir les fichiers partagés</p>
             </div>
           </a>
 

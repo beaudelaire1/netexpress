@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Mes Devis — NetExpress{% endblock %}
 
@@ -13,7 +13,10 @@
   <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
     <i class="fas fa-receipt mr-2"></i>Mes Factures
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}

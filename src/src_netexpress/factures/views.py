@@ -10,7 +10,7 @@ from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from core.decorators import business_admin_required
+from core.decorators import admin_portal_required
 
 from devis.models import Quote
 from .models import Invoice
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
-@business_admin_required
+@admin_portal_required
 def create_invoice(request, quote_id: int):
     """
     Crée une facture à partir d'un devis existant.
@@ -47,7 +47,7 @@ def create_invoice(request, quote_id: int):
 
 
 @login_required
-@business_admin_required
+@admin_portal_required
 def download_invoice(request, pk: int):
     """
     Téléchargement du PDF de la facture.
@@ -69,7 +69,7 @@ def download_invoice(request, pk: int):
 
 
 @login_required
-@business_admin_required
+@admin_portal_required
 def archive(request):
     """
     Archive des factures.

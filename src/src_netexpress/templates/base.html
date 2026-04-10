@@ -1,4 +1,4 @@
-{% load static %}
+{% load static portal_navigation %}
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -72,10 +72,8 @@
   -->
   <header class="site-header">
     <div class="container header-row">
-      <a href="{% url 'core:home' %}" class="brand" aria-label="Accueil">
-        {# Utilise un pictogramme pour le logo afin d'éviter une dépendance à un fichier manquant. #}
-        <span class="brand-icon" aria-hidden="true"> <img src="{% static 'img/logo.svg' %}" alt="Logo" width="50"> </span>
-        <span class="brand-name">Nettoyage Express</span>
+      <a href="{% url 'core:home' %}" class="brand" aria-label="Nettoyage Express — Accueil">
+        <img src="{% static 'img/logo.png' %}" alt="Nettoyage Express" class="brand-logo">
       </a>
       <!-- Bouton burger pour l'affichage mobile -->
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="primary-navigation">&#9776;</button>
@@ -85,25 +83,33 @@
         <a class="nav-link" href="{% url 'core:excellence' %}">L’Excellence</a>
         <a class="nav-link" href="{% url 'core:realisations' %}">Réalisations</a>
         <a class="nav-link" href="{% url 'contact:contact' %}">Contact</a>
-        <a class="nav-link cta" href="{% url 'devis:request_quote' %}">Devis Express</a>
+        <a class="nav-link cta" href="{% url 'devis:request_quote' %}" aria-label="Demander un devis express">
+          <i class="fas fa-bolt" aria-hidden="true"></i>
+          <span>Devis Express</span>
+        </a>
         {% if user.is_authenticated %}
-          {% if user.is_superuser %}
-            <a class="nav-link" href="/gestion/">Dashboard</a>
-          {% elif user.is_staff %}
-            {% if user.profile.role == 'admin_technical' %}
-              <a class="nav-link" href="/gestion/">Dashboard</a>
-            {% else %}
-              <a class="nav-link" href="{% url 'core:admin_dashboard' %}">Dashboard</a>
-            {% endif %}
-          {% else %}
-            {% if user.profile.role == 'worker' %}
-              <a class="nav-link" href="{% url 'worker:worker_dashboard' %}">Mon Dashboard</a>
-            {% else %}
-              <a class="nav-link" href="{% url 'core:client_portal_dashboard' %}">Mon Dashboard</a>
-            {% endif %}
-          {% endif %}
-          <a class="nav-link" href="{% url 'accounts:profile' %}">Profil</a>
-          <a class="nav-link" href="{% url 'logout' %}">Déconnexion</a>
+          {% portal_home_url user as account_dashboard_url %}
+          <details class="account-menu">
+            <summary class="nav-link account-trigger">
+              <span class="account-chip">{{ user.username|slice:":1"|upper }}</span>
+              <span>Compte</span>
+              <i class="fas fa-chevron-down account-chevron" aria-hidden="true"></i>
+            </summary>
+            <div class="account-dropdown">
+              <a class="account-dropdown-link" href="{{ account_dashboard_url }}">
+                <i class="fas fa-gauge-high" aria-hidden="true"></i>
+                <span>{% if user.is_staff or user.is_superuser %}Dashboard{% else %}Mon Dashboard{% endif %}</span>
+              </a>
+              <a class="account-dropdown-link" href="{% url 'accounts:profile' %}">
+                <i class="fas fa-user" aria-hidden="true"></i>
+                <span>Profil</span>
+              </a>
+              <a class="account-dropdown-link logout" href="{% url 'logout' %}">
+                <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
+                <span>Déconnexion</span>
+              </a>
+            </div>
+          </details>
         {% else %}
           <a class="nav-link" href="{% url 'accounts:signup' %}">Créer un compte</a>
           <a class="nav-link" href="{% url 'login' %}">Connexion</a>
@@ -124,15 +130,7 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="site-footer">
-    <!--
-      The copyright notice is wrapped in its own paragraph.  A missing
-      closing </p> tag caused invalid HTML and could break the
-      rendering of the footer.  Ensure that every opened tag is
-      properly closed to meet the zero syntax error requirement.
-    -->
-    <p>© {% now "Y" %} Nettoyage Express — Votre partenaire local pour l’entretien de la maison et du bureau en Guyane.</p>
-  </footer>
+  {% include "includes/site_footer.html" %}
 
 
 

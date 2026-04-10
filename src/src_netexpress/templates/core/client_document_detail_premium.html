@@ -1,0 +1,140 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}{{ document.title }} — Espace Client{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="portal-premium-shell">
+  <div class="portal-premium-wrap space-y-8">
+    <section class="portal-premium-hero p-8 lg:p-10">
+      <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <a href="{% url 'core:client_documents' %}" class="inline-flex items-center text-sm font-semibold text-white/80 hover:text-white">
+            <i class="fas fa-arrow-left mr-2"></i>Retour aux documents
+          </a>
+          <p class="mt-6 portal-premium-kicker">Document partagé</p>
+          <h1 class="mt-4 portal-premium-title">{{ document.title }}</h1>
+          <p class="mt-4 portal-premium-subtitle">Une fiche claire pour consulter les consignes, vérifier la disponibilité du fichier et accéder immédiatement à l'aperçu ou au téléchargement.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="portal-premium-chip"><i class="fas fa-folder-tree"></i>{{ document.get_category_display }}</span>
+            <span class="portal-premium-chip"><i class="fas fa-calendar-days"></i>Publié le {{ document.published_at|date:"d/m/Y à H:i" }}</span>
+            {% if document.expires_at %}
+              <span class="portal-premium-chip"><i class="fas fa-hourglass-half"></i>Valable jusqu'au {{ document.expires_at|date:"d/m/Y" }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex w-full flex-col gap-3 xl:w-80">
+          <a href="{% url 'core:client_document_download' document.pk %}" class="portal-premium-action primary">
+            <i class="fas fa-download"></i>Télécharger le document
+          </a>
+          {% if document.can_preview_inline %}
+            <a href="{% url 'core:client_document_download' document.pk %}?inline=1" target="_blank" class="portal-premium-action secondary">
+              <i class="fas fa-up-right-from-square"></i>Ouvrir dans un onglet
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <div class="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
+      <div class="space-y-6">
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Informations</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Métadonnées du document</h2>
+          <dl class="mt-6 space-y-4 text-sm text-slate-600">
+            <div>
+              <dt class="portal-premium-label">Fichier</dt>
+              <dd class="mt-2 text-base font-semibold text-slate-900">{{ document.filename }}</dd>
+            </div>
+            <div>
+              <dt class="portal-premium-label">Description</dt>
+              <dd class="mt-2 leading-7">{{ document.description|default:"Aucune description n'a été ajoutée pour ce document." }}</dd>
+            </div>
+            <div>
+              <dt class="portal-premium-label">Dernier accès</dt>
+              <dd class="mt-2 text-base font-semibold text-slate-900">{% if document.last_accessed_at %}{{ document.last_accessed_at|date:"d/m/Y à H:i" }}{% else %}Première consultation{% endif %}</dd>
+            </div>
+            <div>
+              <dt class="portal-premium-label">Téléchargements</dt>
+              <dd class="mt-2 text-base font-semibold text-slate-900">{{ document.download_count }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Disponibilité</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Accès au fichier</h2>
+          {% if document.is_expired %}
+            <div class="mt-6 rounded-[1.2rem] border border-red-200 bg-red-50 px-4 py-4 text-sm leading-7 text-red-700">
+              <i class="fas fa-triangle-exclamation mr-2"></i>La période d'accès indiquée est dépassée. Contactez l'équipe si vous avez besoin d'une republication.
+            </div>
+          {% elif document.expires_at %}
+            <div class="mt-6 rounded-[1.2rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-7 text-amber-700">
+              <i class="fas fa-hourglass-half mr-2"></i>Ce document reste accessible jusqu'au {{ document.expires_at|date:"d/m/Y" }}.
+            </div>
+          {% else %}
+            <div class="mt-6 portal-premium-note">Ce document ne possède pas de date d'expiration et reste disponible tant qu'il est publié dans votre espace.</div>
+          {% endif %}
+
+          <div class="mt-6 flex flex-col gap-3">
+            <a href="{% url 'core:client_document_download' document.pk %}" class="portal-premium-action primary">
+              <i class="fas fa-download"></i>Télécharger
+            </a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action ghost">
+              <i class="fas fa-envelope"></i>Demander un complément
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <section class="portal-premium-surface p-6 lg:p-7">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="portal-premium-kicker text-ne-primary-700">Aperçu</p>
+            <h2 class="mt-3 text-2xl font-semibold text-slate-900">Consultation du document</h2>
+          </div>
+          {% if document.can_preview_inline %}
+            <a href="{% url 'core:client_document_download' document.pk %}?inline=1" target="_blank" class="text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800">Ouvrir dans un onglet</a>
+          {% endif %}
+        </div>
+
+        {% if document.can_preview_inline %}
+          <div class="mt-6 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
+            {% if document.filename|lower|slice:"-3:" == 'pdf' %}
+              <iframe src="{% url 'core:client_document_download' document.pk %}?inline=1" class="h-[44rem] w-full" title="Aperçu document"></iframe>
+            {% else %}
+              <img src="{% url 'core:client_document_download' document.pk %}?inline=1" alt="{{ document.title }}" class="max-h-[44rem] w-full object-contain bg-white">
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="portal-premium-empty mt-6">
+            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl text-slate-400">
+              <i class="fas fa-file-arrow-down"></i>
+            </div>
+            <h3 class="mt-6 text-xl font-semibold text-slate-900">Aperçu non disponible</h3>
+            <p class="mt-3 text-sm text-slate-500">Ce format de fichier doit être téléchargé pour être consulté correctement.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

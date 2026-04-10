@@ -73,6 +73,7 @@ def download_quote_pdf(request, pk):
 @require_http_methods(["GET", "POST"])
 def admin_quote_edit(request, pk):
     """Éditeur back-office simple : métadonnées devis + actions."""
+    from smtplib import SMTPAuthenticationError
     quote = get_object_or_404(Quote, pk=pk)
     if request.method == "POST":
         form = QuoteAdminForm(request.POST, instance=quote)
@@ -85,8 +86,16 @@ def admin_quote_edit(request, pk):
             elif action == "send_email":
                 if not quote.pdf:
                     quote.generate_pdf(attach=True)
-                send_quote_email(quote, request=request)
-                messages.success(request, "Email envoyé.")
+                try:
+                    send_quote_email(quote, request=request)
+                    messages.success(request, "Email envoyé.")
+                except SMTPAuthenticationError:
+                    messages.error(
+                        request,
+                        "Authentification SMTP refusée par Brevo. Vérifiez BREVO_SMTP_LOGIN/BREVO_SMTP_PASSWORD ou configurez BREVO_API_KEY.",
+                    )
+                except Exception as exc:
+                    messages.error(request, f"Erreur envoi email: {exc}")
             elif action == "convert_invoice":
                 result = create_invoice_from_quote(quote)
                 invoice = result.invoice

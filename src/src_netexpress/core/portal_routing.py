@@ -6,6 +6,7 @@ Ce module conserve une API stable utilisée par templates/middlewares/tests.
 """
 
 from django.shortcuts import redirect
+from django.urls import NoReverseMatch, reverse
 
 from accounts.portal import (
     get_user_role,
@@ -90,6 +91,28 @@ def handle_portal_redirect(request):
     return None
 
 
+def get_portal_messages_namespace(user):
+    """Retourne le namespace de messagerie aligné sur le portail métier."""
+    role = get_user_role(user)
+    if role in {'admin_business', 'admin_technical'}:
+        return 'admin_messaging'
+    if role == 'worker':
+        return 'worker_messaging'
+    return 'client_messaging'
+
+
+def get_portal_messages_route(user, route_name='thread_list', *args, **kwargs):
+    """Résout une route de messagerie dans le namespace du portail courant."""
+    namespace = get_portal_messages_namespace(user)
+    reverse_args = args or None
+    reverse_kwargs = kwargs or None
+
+    try:
+        return reverse(f'{namespace}:{route_name}', args=reverse_args, kwargs=reverse_kwargs)
+    except NoReverseMatch:
+        return reverse(f'messaging:{route_name}', args=reverse_args, kwargs=reverse_kwargs)
+
+
 class PortalRouter:
     """
     Class-based portal routing utility for more complex routing logic.
@@ -105,21 +128,12 @@ class PortalRouter:
     
     def get_messages_url(self):
         """Get the messages URL for the user's portal."""
-        if self.user_role == 'admin_business':
-            return '/admin-dashboard/messages/'
-        elif self.user_role == 'admin_technical':
-            return '/gestion/'
-        elif self.user_role == 'worker':
-            return '/worker/messages/'
-        else:  # client
-            return '/client/messages/'
+        return get_portal_messages_route(self.user, 'thread_list')
     
     def get_notifications_url(self):
         """Get the notifications URL for the user's portal."""
-        if self.user_role == 'admin_business':
-            return '/admin-dashboard/notifications/'
-        elif self.user_role == 'admin_technical':
-            return '/gestion/'
+        if self.user_role in {'admin_business', 'admin_technical'}:
+            return '/admin-dashboard/'
         elif self.user_role == 'worker':
             return '/worker/notifications/'
         else:  # client

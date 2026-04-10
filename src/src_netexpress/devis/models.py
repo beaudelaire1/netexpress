@@ -28,25 +28,12 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from services.models import Service
+from core.mixins import SoftDeleteMixin
+from core.utils import num2words_fr as _num2words_fr
 from typing import List
 
 
-def _num2words_fr(v: Decimal) -> str:
-    """Convertit un montant en toutes lettres (fr).
-
-    Utilise num2words (dépendance déjà présente dans requirements/dev.txt).
-    En cas d'absence de la lib, renvoie une valeur simple.
-    """
-    try:
-        from num2words import num2words
-        # num2words gère les décimales avec to='currency' mais on préfère
-        # une sortie simple : "cent vingt-trois".
-        return num2words(v, lang='fr')
-    except Exception:
-        return str(v)
-
-
-class Client(models.Model):
+class Client(SoftDeleteMixin, models.Model):
     """Informations de contact pour une demande de devis."""
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
@@ -61,6 +48,10 @@ class Client(models.Model):
         ordering = ["-created_at"]
         verbose_name = _("client")
         verbose_name_plural = _("clients")
+        indexes = [
+            models.Index(fields=["email"]),
+            models.Index(fields=["full_name"]),
+        ]
 
     def __str__(self) -> str:
         return self.full_name
@@ -117,7 +108,7 @@ class QuoteRequest(models.Model):
 
 
 
-class Quote(models.Model):
+class Quote(SoftDeleteMixin, models.Model):
     """Demande de devis.
 
     Un numéro de devis est généré automatiquement à partir de l'année et de
@@ -175,12 +166,24 @@ class Quote(models.Model):
     tva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     total_ttc = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
 
+    MAX_AMOUNT = Decimal("99999999.99")  # Plafond de sécurité
+
     # PDF file attached to the quote.  When a quote is generated the
     # associated PDF is stored here.  The file is saved under
     # ``media/devis/`` and named after the quote number.  This field
     # allows automated emailing of professional quotes and a central
     # repository of generated documents.
     pdf = models.FileField(upload_to="devis", blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("devis")
+        verbose_name_plural = _("devis")
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["number"]),
+            models.Index(fields=["issue_date"]),
+        ]
 
     def amount_letter(self):
         """Montant TTC en toutes lettres (affiché sur le PDF devis)."""
@@ -262,6 +265,8 @@ class Quote(models.Model):
         self.total_ht = total_ht
         self.tva = total_tva
         self.total_ttc = total_ht + total_tva
+        if self.total_ttc > self.MAX_AMOUNT:
+            raise ValueError(f"Le montant TTC ({self.total_ttc}) dépasse le plafond autorisé ({self.MAX_AMOUNT}).")
         self.save(update_fields=["total_ht", "tva", "total_ttc"])
 
     def amount_letter(self):

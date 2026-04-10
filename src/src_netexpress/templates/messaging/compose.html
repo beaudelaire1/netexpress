@@ -1,4 +1,4 @@
-{% load static %}
+{% load static portal_navigation %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -16,13 +16,10 @@
   <aside class="bo-sidebar">
     <div class="bo-brand">Nettoyage Express</div>
     <nav class="bo-nav">
-      {% if user.is_staff %}
-        <a href="{% url 'core:admin_dashboard' %}">Retour dashboard</a>
-      {% else %}
-        <a href="{% url 'core:client_portal_dashboard' %}">Retour dashboard</a>
-      {% endif %}
-      <a class="is-primary" href="{% url 'messaging:compose' %}">Nouveau message</a>
-      <a href="{% url 'messaging:list' %}">Historique</a>
+      {% portal_home_url user as dashboard_url %}
+      <a href="{{ dashboard_url }}">Retour dashboard</a>
+      <a class="is-primary" href="{% portal_messages_route user 'compose' %}">Nouveau message</a>
+      <a href="{% portal_messages_route user 'list' %}">Historique</a>
     </nav>
   </aside>
 
@@ -80,7 +77,7 @@
 
           <div style="margin-top:18px; display:flex; gap:10px;">
             <button class="bo-btn" type="submit">Envoyer</button>
-            <a class="bo-btn is-ghost" href="{% url 'messaging:list' %}">Annuler</a>
+            <a class="bo-btn is-ghost" href="{% portal_messages_route user 'list' %}">Annuler</a>
           </div>
         </div>
       </form>

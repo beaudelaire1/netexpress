@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Gestion des Ouvriers — NetExpress{% endblock %}
 
@@ -13,7 +13,7 @@
   <a href="{% url 'core:admin_workers_list' %}" class="portal-nav-item bg-white/10 rounded-md">
     <i class="fas fa-users mr-2"></i>Ouvriers
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}

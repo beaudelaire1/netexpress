@@ -3,6 +3,7 @@ Template tags pour le dashboard admin personnalisé.
 """
 
 from django import template
+from django.urls import reverse
 from django.db.models import Sum
 from decimal import Decimal
 from django.utils import timezone
@@ -67,31 +68,31 @@ def dashboard_quick_actions():
         'quick_actions': [
             {
                 'title': 'Nouveau Devis',
-                'url': '/gestion/devis/quote/add/',
+                'url': reverse('core:admin_create_quote'),
                 'icon': 'fas fa-file-alt',
                 'color': 'primary'
             },
             {
                 'title': 'Nouvelle Facture',
-                'url': '/gestion/factures/invoice/add/',
+                'url': reverse('core:admin_create_invoice'),
                 'icon': 'fas fa-receipt',
                 'color': 'success'
             },
             {
                 'title': 'Nouvelle Tâche',
-                'url': '/gestion/tasks/task/add/',
+                'url': reverse('core:admin_create_task'),
                 'icon': 'fas fa-tasks',
                 'color': 'info'
             },
             {
                 'title': 'Nouveau Client',
-                'url': '/gestion/devis/client/add/',
+                'url': reverse('core:admin_create_client'),
                 'icon': 'fas fa-user-plus',
                 'color': 'warning'
             },
             {
                 'title': 'Dashboard Business',
-                'url': '/admin-dashboard/',
+                'url': reverse('core:admin_dashboard'),
                 'icon': 'fas fa-chart-line',
                 'color': 'dark'
             },

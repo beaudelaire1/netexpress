@@ -40,6 +40,39 @@ class NotificationService:
             notification_type=notification_type,
             link_url=link_url
         )
+
+    @staticmethod
+    def _build_portal_link(path: str) -> str:
+        """Build an absolute portal URL when SITE_URL is configured."""
+        base_url = (getattr(settings, 'SITE_URL', '') or '').rstrip('/')
+        return f"{base_url}{path}" if base_url else path
+
+    @staticmethod
+    def _get_client_portal_user_by_email(email: str) -> Optional[User]:
+        """Resolve the active client portal user from a client email."""
+        normalized_email = (email or '').strip()
+        if not normalized_email:
+            return None
+
+        portal_user = (
+            User.objects.filter(
+                email__iexact=normalized_email,
+                is_active=True,
+                is_staff=False,
+                is_superuser=False,
+            )
+            .select_related('profile')
+            .first()
+        )
+
+        if portal_user is None:
+            return None
+
+        profile = getattr(portal_user, 'profile', None)
+        if profile is not None and getattr(profile, 'role', 'client') != 'client':
+            return None
+
+        return portal_user
     
     def send_email_notification(
         self,
@@ -174,6 +207,70 @@ class NotificationService:
                 template_name='task_assignment',
                 context=context
             )
+
+    def notify_client_task_status_update(self, task, previous_status: Optional[str] = None) -> None:
+        """Notify the client when a linked task moves to in-progress or completed."""
+        client = getattr(task, 'client', None)
+        client_email = getattr(client, 'email', '') if client else ''
+        if not client_email:
+            return
+
+        in_progress_status = getattr(task, 'STATUS_IN_PROGRESS', 'in_progress')
+        completed_status = getattr(task, 'STATUS_COMPLETED', 'completed')
+        if task.status not in {in_progress_status, completed_status}:
+            return
+
+        if previous_status == task.status:
+            return
+
+        client_portal_path = reverse('core:client_tasks')
+        client_portal_url = self._build_portal_link(client_portal_path)
+        current_status_label = task.get_status_display()
+        previous_status_label = dict(getattr(task, 'STATUS_CHOICES', [])).get(previous_status, previous_status or 'Mise à jour')
+
+        if task.status == completed_status:
+            title = f"Intervention terminée: {task.title}"
+            message = f"L'intervention '{task.title}' est maintenant terminée."
+            notification_type = 'task_completed'
+            subject = f"Intervention terminée: {task.title}"
+            intro = (
+                f"L'intervention <strong>{task.title}</strong> liée à votre dossier est terminée. "
+                f"Vous pouvez consulter le détail de l'avancement dans votre portail client."
+            )
+        else:
+            title = f"Intervention en cours: {task.title}"
+            message = f"L'intervention '{task.title}' est désormais en cours."
+            notification_type = 'task_updated'
+            subject = f"Intervention en cours: {task.title}"
+            intro = (
+                f"L'intervention <strong>{task.title}</strong> liée à votre dossier vient de passer en cours d'exécution."
+            )
+
+        portal_user = self._get_client_portal_user_by_email(client_email)
+        if portal_user is not None:
+            self.create_ui_notification(
+                user=portal_user,
+                title=title,
+                message=message,
+                notification_type=notification_type,
+                link_url=client_portal_path,
+            )
+
+        context = {
+            'task': task,
+            'client': client,
+            'company_name': 'NetExpress',
+            'previous_status_label': previous_status_label,
+            'current_status_label': current_status_label,
+            'client_portal_url': client_portal_url,
+            'intro': intro,
+        }
+        self.send_email_notification(
+            to_emails=[client_email],
+            subject=subject,
+            template_name='task_client_status',
+            context=context,
+        )
     
     def notify_quote_validation(self, quote) -> None:
         """Send notifications when a quote is validated.

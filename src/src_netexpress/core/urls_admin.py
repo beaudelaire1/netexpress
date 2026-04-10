@@ -14,6 +14,7 @@ from . import views
 urlpatterns = [
     # Admin Portal Dashboard
     path("", views.admin_dashboard, name="admin_dashboard"),
+    path("email-health/", views.admin_email_health, name="admin_email_health"),
     
     # Global Planning and Management
     path("planning/", views.admin_global_planning, name="admin_global_planning"),
@@ -25,6 +26,7 @@ urlpatterns = [
     # Client Management
     path("clients/", views.admin_clients_list, name="admin_clients_list"),
     path("clients/create/", views.admin_create_client, name="admin_create_client"),
+    path("clients/import/", views.admin_import_clients, name="admin_import_clients"),
     
     # Quote Management
     path("quotes/", views.admin_quotes_list, name="admin_quotes_list"),

@@ -44,6 +44,20 @@
           
           <div class="space-y-4">
             <div>
+              <label class="text-xs text-gray-500 uppercase">Client concerné</label>
+              {% if task.client %}
+                <p class="text-gray-800">
+                  <a href="{% url 'core:admin_client_detail' task.client.pk %}" class="font-medium text-ne-primary-700 hover:text-ne-primary-800 hover:underline">
+                    {{ task.client.full_name }}
+                  </a>
+                </p>
+                <p class="mt-1 text-sm text-gray-500">{{ task.client.company|default:task.client.email }}</p>
+              {% else %}
+                <p class="text-gray-500 italic">Tâche interne ou non rattachée</p>
+              {% endif %}
+            </div>
+
+            <div>
               <label class="text-xs text-gray-500 uppercase">Ouvriers assignés</label>
               {% if task.assigned_to.all %}
                 <div class="flex flex-wrap gap-2 mt-1">

@@ -1,4 +1,4 @@
-{% load static %}
+{% load static portal_navigation %}
 <!DOCTYPE html>
 <html lang="fr" class="h-full">
 <head>
@@ -11,16 +11,61 @@
   <meta property="og:url" content="{{ request.build_absolute_uri }}">
   <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
-  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
+  <meta name="description" content="{% block meta_description %}Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.{% endblock %}">
   <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
   
   <title>{% block title %}Nettoyage Express{% endblock %}</title>
   <link rel="canonical" href="{{ request.build_absolute_uri }}">
   
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Nettoyage Express",
+    "description": "Services de nettoyage, espaces verts, peinture et bricolage en Guyane française.",
+    "url": "https://www.nettoyageexpresse.fr",
+    "telephone": "+594-594-302368",
+    "email": "contact@nettoyageexpresse.fr",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "753, Chemin de la Désirée",
+      "addressLocality": "Matoury",
+      "postalCode": "97351",
+      "addressRegion": "Guyane",
+      "addressCountry": "FR"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 4.8499,
+      "longitude": -52.3260
+    },
+    "openingHours": "Mo-Fr 07:00-18:00, Sa 08:00-13:00",
+    "priceRange": "$$",
+    "image": "https://www.nettoyageexpresse.fr/static/img/logo.png",
+    "areaServed": {
+      "@type": "GeoCircle",
+      "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 4.9372, "longitude": -52.3264 },
+      "geoRadius": "50000"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Services",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Nettoyage" }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Espaces verts" }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Peinture" }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Bricolage" }}
+      ]
+    }
+  }
+  </script>
+  {% block extra_jsonld %}{% endblock %}
+  
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- TailwindCSS CDN -->
@@ -69,18 +114,17 @@
   
   <!-- Navigation -->
   <nav class="portal-nav bg-ne-primary-600" role="navigation" aria-label="Navigation principale">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center">
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10">
+      <div class="nav-shell flex justify-between h-20">
+        <div class="flex items-center min-w-0">
           <!-- Logo -->
-          <a href="{% url 'core:home' %}" class="flex items-center space-x-2">
-            <img src="{% static 'img/logo.svg' %}" alt="Logo" class="h-8 w-8">
-            <span class="text-xl font-bold text-white">Nettoyage Express</span>
+          <a href="{% url 'core:home' %}" class="brand-lockup flex items-center" aria-label="Nettoyage Express — Accueil">
+            <img src="{% static 'img/logo.png' %}" alt="Nettoyage Express" class="brand-logo-v2">
           </a>
         </div>
 
         <!-- Desktop Navigation -->
-        <div class="hidden md:flex items-center space-x-4">
+        <div class="hidden md:flex items-center space-x-2 lg:space-x-3">
           {% block nav_items %}
           {% if user.is_authenticated %}
             {% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' %}
@@ -143,16 +187,16 @@
                 </div>
               </div>
               
-              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
+              <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% elif user.profile.role == 'worker' %}
               <a href="/worker/" class="portal-nav-item"><i class="fas fa-tasks mr-1"></i> Mes Tâches</a>
               <a href="/worker/schedule/" class="portal-nav-item"><i class="fas fa-calendar mr-1"></i> Planning</a>
-              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
+              <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% else %}
               <a href="/client/" class="portal-nav-item"><i class="fas fa-home mr-1"></i> Dashboard</a>
               <a href="/client/quotes/" class="portal-nav-item"><i class="fas fa-file-alt mr-1"></i> Devis</a>
               <a href="/client/invoices/" class="portal-nav-item"><i class="fas fa-file-invoice mr-1"></i> Factures</a>
-              <a href="/messages/threads/" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
+              <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% endif %}
           {% else %}
             <a href="{% url 'core:home' %}" class="portal-nav-item">Accueil</a>
@@ -160,7 +204,10 @@
             <a href="{% url 'core:excellence' %}" class="portal-nav-item">L'Excellence</a>
             <a href="{% url 'core:realisations' %}" class="portal-nav-item">Réalisations</a>
             <a href="{% url 'contact:contact' %}" class="portal-nav-item">Contact</a>
-            <a href="{% url 'devis:request_quote' %}" class="btn btn-primary">Devis Express</a>
+            <a href="{% url 'devis:request_quote' %}" class="btn btn-primary nav-cta" aria-label="Demander un devis express">
+              <i class="fas fa-bolt" aria-hidden="true"></i>
+              <span>Devis Express</span>
+            </a>
           {% endif %}
           {% endblock %}
           
@@ -183,8 +230,8 @@
               </div>
             </div>
           {% else %}
-            <a href="{% url 'login' %}" class="portal-nav-item">Connexion</a>
-            <a href="{% url 'accounts:signup' %}" class="btn btn-outline">Créer un compte</a>
+            <a href="{% url 'login' %}" class="portal-nav-item nav-login">Connexion</a>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-outline nav-signup">Créer un compte</a>
           {% endif %}
         </div>
 
@@ -199,7 +246,7 @@
     </div>
 
     <!-- Mobile Navigation -->
-    <div id="mobile-menu" class="hidden md:hidden bg-ne-primary-700">
+    <div id="mobile-menu" class="hidden md:hidden bg-ne-primary-700/95 backdrop-blur-md border-t border-white/10">
       <div class="px-2 pt-2 pb-3 space-y-1">
         {% block mobile_nav_items %}
         {% if user.is_authenticated %}
@@ -221,16 +268,16 @@
             <a href="/admin-dashboard/campaigns/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-bullhorn mr-2"></i>Campagnes</a>
             <a href="/admin-dashboard/reports/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-file-export mr-2"></i>Rapports</a>
             <div class="border-t border-ne-primary-500 my-2"></div>
-            <a href="/messages/threads/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
           {% elif user.profile.role == 'worker' %}
             <a href="/worker/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-tasks mr-2"></i>Mes Tâches</a>
             <a href="/worker/schedule/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-calendar mr-2"></i>Planning</a>
-            <a href="/messages/threads/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
           {% else %}
             <a href="/client/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-home mr-2"></i>Dashboard</a>
             <a href="/client/quotes/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-file-alt mr-2"></i>Devis</a>
             <a href="/client/invoices/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-file-invoice mr-2"></i>Factures</a>
-            <a href="/messages/threads/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
+            <a href="{% portal_messages_route user 'thread_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
           {% endif %}
         {% else %}
           <a href="{% url 'core:home' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md">Accueil</a>
@@ -293,44 +340,7 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-ne-secondary-800 text-white mt-auto" role="contentinfo">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <div class="flex items-center space-x-2 mb-4">
-            <img src="{% static 'img/logo.svg' %}" alt="Logo" class="h-8 w-8">
-            <span class="text-xl font-bold">Nettoyage Express</span>
-          </div>
-          <p class="text-gray-300">Votre partenaire local pour l'entretien de la maison et du bureau en Guyane.</p>
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-4">Contact</h3>
-          <div class="space-y-2 text-gray-300">
-            <p><i class="fas fa-phone mr-2"></i>05 94 30 23 68</p>
-            <p><i class="fas fa-mobile-alt mr-2"></i>06 94 46 20 12</p>
-            <p><i class="fas fa-envelope mr-2"></i>contact@nettoyageexpresse.fr</p>
-            <p><i class="fas fa-map-marker-alt mr-2"></i>753, Chemin de la Désirée<br>97351 Matoury</p>
-          </div>
-        </div>
-        
-        <div>
-          <h3 class="text-lg font-semibold mb-4">Services</h3>
-          <div class="space-y-2 text-gray-300">
-            <p>• Nettoyage professionnel</p>
-            <p>• Entretien espaces verts</p>
-            <p>• Peinture et bricolage</p>
-            <p>• Maintenance générale</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-        <p>© {% now "Y" %} Nettoyage Express — Tous droits réservés.</p>
-      </div>
-    </div>
-  </footer>
+  {% include "includes/site_footer.html" %}
 
   <!-- JavaScript - Menu Navigation -->
   <script>

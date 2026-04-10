@@ -9,8 +9,10 @@ import pytest
 from decimal import Decimal
 from datetime import date, timedelta
 from unittest.mock import Mock, patch
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client as DjangoClient
 from django.contrib.auth.models import User, Group
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Profile
@@ -276,6 +278,247 @@ class TestAdminDashboardKPIs(TestCase):
         # The redirect might go to different places depending on middleware
         # Just check that access is denied (302 redirect)
         self.assertTrue(response.url is not None)
+
+
+class TestAdminClientImportTools(TestCase):
+    """Tests ciblés pour les outils d'import client côté admin."""
+
+    def setUp(self):
+        self.client = DjangoClient()
+        self.admin_user = User.objects.create_user(
+            username='admin_import',
+            email='admin-import@example.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
+        )
+
+    def test_admin_import_clients_page_renders_with_guide(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('core:admin_import_clients'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/admin_import_clients.html')
+        self.assertIn('accepted_extensions_text', response.context)
+        self.assertIn('import_column_guide', response.context)
+        self.assertTrue(response.context['import_column_guide'])
+
+    def test_admin_import_template_downloads_file(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('core:admin_client_import_template'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(response.content), 0)
+        self.assertIn(
+            response['Content-Type'],
+            {
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/csv; charset=utf-8',
+            },
+        )
+        self.assertTrue(
+            response['Content-Disposition'].startswith(
+                'attachment; filename="modele-import-clients-netexpress.'
+            )
+        )
+
+
+class TestAdminTaskCreationFlow(TestCase):
+    """Tests ciblés pour la création de tâche côté portail métier."""
+
+    def setUp(self):
+        self.client = DjangoClient()
+        self.admin_user = User.objects.create_user(
+            username='admin_tasks',
+            email='admin-tasks@example.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
+        )
+
+    def test_admin_create_task_page_includes_company_siret(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('core:admin_create_task'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/admin_create_task.html')
+        self.assertIn('company_siret', response.context)
+        self.assertTrue(response.context['company_siret'])
+
+    def test_admin_create_task_redirects_to_admin_task_detail(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(reverse('core:admin_create_task'), {
+            'title': 'Contrôle qualité chantier',
+            'description': 'Passage de validation après intervention.',
+            'location': 'Matoury',
+            'team': 'Equipe inspection',
+            'start_date': '2026-04-09',
+            'due_date': '2026-04-10',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        created_task = Task.objects.get(title='Contrôle qualité chantier')
+        self.assertEqual(response.url, reverse('core:admin_task_detail', args=[created_task.pk]))
+
+    def test_admin_create_task_persists_client_link(self):
+        self.client.force_login(self.admin_user)
+        client_record = Client.objects.create(
+            full_name='Client Tache',
+            email='client-task@example.com',
+            phone='0594111111',
+            company='Client Tache SARL',
+        )
+
+        response = self.client.post(reverse('core:admin_create_task'), {
+            'title': 'Suivi intervention client',
+            'description': 'Visite de contrôle',
+            'client': client_record.pk,
+            'location': 'Rémire-Montjoly',
+            'team': 'Equipe terrain',
+            'start_date': '2026-04-10',
+            'due_date': '2026-04-11',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        created_task = Task.objects.get(title='Suivi intervention client')
+        self.assertEqual(created_task.client, client_record)
+
+
+class TestAdminClientsListRegression(TestCase):
+    """Régression pour la liste clients admin."""
+
+    def setUp(self):
+        self.client = DjangoClient()
+        self.admin_user = User.objects.create_user(
+            username='admin_clients',
+            email='admin-clients@example.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client_record = Client.objects.create(
+            full_name='Client Liste',
+            email='client-liste@example.com',
+            phone='0594000000',
+        )
+
+    def test_admin_clients_list_renders(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('core:admin_clients_list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/admin_clients_list.html')
+        self.assertIn('total_clients', response.context)
+
+    def test_admin_clients_list_active_filter_renders(self):
+        Quote.objects.create(
+            client=self.client_record,
+            status=Quote.QuoteStatus.SENT,
+            total_ttc=Decimal('250.00'),
+            issue_date=date.today(),
+        )
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('core:admin_clients_list'), {'filter': 'active'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Client Liste')
+
+
+class TestAdminClientManagementDepth(TestCase):
+    """Régressions métier sur la profondeur de gestion d'un dossier client."""
+
+    def setUp(self):
+        self.client = DjangoClient()
+        self.admin_user = User.objects.create_user(
+            username='admin_client_depth',
+            email='admin-client-depth@example.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client_record = Client.objects.create(
+            full_name='Société Horizon',
+            email='contact@horizon.example',
+            phone='0594123456',
+            company='Horizon Propreté',
+            address_line='12 rue des Palmiers',
+            city='Matoury',
+            zip_code='97351',
+        )
+        self.ready_quote = Quote.objects.create(
+            client=self.client_record,
+            status=Quote.QuoteStatus.ACCEPTED,
+            total_ttc=Decimal('840.00'),
+            issue_date=date.today(),
+        )
+        overdue_quote = Quote.objects.create(
+            client=self.client_record,
+            status=Quote.QuoteStatus.INVOICED,
+            total_ttc=Decimal('1200.00'),
+            issue_date=date.today() - timedelta(days=40),
+        )
+        self.overdue_invoice = Invoice.objects.create(
+            quote=overdue_quote,
+            status=Invoice.InvoiceStatus.OVERDUE,
+            total_ttc=Decimal('1200.00'),
+            issue_date=date.today() - timedelta(days=35),
+            due_date=date.today() - timedelta(days=5),
+        )
+        Quote.objects.create(
+            client=self.client_record,
+            status=Quote.QuoteStatus.SENT,
+            total_ttc=Decimal('490.00'),
+            issue_date=date.today() - timedelta(days=3),
+            valid_until=date.today() + timedelta(days=3),
+        )
+        self.client_record.portal_documents.create(
+            title='Rapport mensuel',
+            category='report',
+            description='Rapport de suivi opérationnel',
+            file=SimpleUploadedFile('rapport.txt', b'rapport client'),
+            expires_at=date.today() - timedelta(days=1),
+            published_by=self.admin_user,
+        )
+
+    def test_admin_client_detail_exposes_operational_cockpit(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('core:admin_client_detail', args=[self.client_record.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'core/admin_client_detail.html')
+        self.assertIn('client_actions', response.context)
+        self.assertIn('client_alerts', response.context)
+        self.assertEqual(response.context['stats']['relationship_stage'], 'Recouvrement')
+        self.assertEqual(response.context['stats']['ready_to_invoice_quotes'], 1)
+        self.assertTrue(any(action['url'].endswith(f'?client={self.client_record.pk}') for action in response.context['client_actions']))
+        self.assertTrue(any(f'quote={self.ready_quote.pk}' in action['url'] for action in response.context['client_actions']))
+        self.assertTrue(any(self.overdue_invoice.number in alert['title'] for alert in response.context['client_alerts']))
+        self.assertContains(response, 'Synthèse opérationnelle')
+        self.assertContains(response, 'Signaux de suivi')
+
+    def test_client_record_prefills_quote_invoice_and_task_flows(self):
+        self.client.force_login(self.admin_user)
+
+        quote_response = self.client.get(reverse('core:admin_create_quote'), {'client': self.client_record.pk})
+        invoice_response = self.client.get(
+            reverse('core:admin_create_invoice'),
+            {'client': self.client_record.pk, 'quote': self.ready_quote.pk},
+        )
+        task_response = self.client.get(reverse('core:admin_create_task'), {'client': self.client_record.pk})
+
+        self.assertEqual(quote_response.context['prefilled_client'], self.client_record)
+        self.assertEqual(invoice_response.context['prefilled_client'], self.client_record)
+        self.assertEqual(task_response.context['prefilled_client'], self.client_record)
+        self.assertIn(self.ready_quote, list(invoice_response.context['form'].fields['quote'].queryset))
+        self.assertContains(task_response, 'Horizon Propreté')
+        self.assertContains(task_response, '12 rue des Palmiers')
 
 
 class TestAdminGlobalPlanningView(TestCase):

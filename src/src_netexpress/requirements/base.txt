@@ -4,6 +4,7 @@ Django>=5.2,<6.0
 
 # Paramètres facultatifs pour la configuration de la base de données et le déploiement.
 django-environ>=0.11
+python-dotenv>=1.0
 dj-database-url>=2.2
 whitenoise>=6.6
 psycopg2-binary>=2.9
@@ -31,3 +32,12 @@ sib-api-v3-sdk>=7.6.0
 # Cloud storage for media files (Cloudinary - free tier)
 cloudinary>=1.36.0
 django-cloudinary-storage>=0.3.0
+
+# Security: brute-force protection on login
+django-axes>=7.0.0
+
+# Security: HTML sanitization for user-generated content (TinyMCE)
+bleach>=6.1.0
+
+# Excel import for client data
+openpyxl>=3.1.0

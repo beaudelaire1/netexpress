@@ -78,6 +78,14 @@ class ClientAccountCreationServiceTests(TestCase):
         
         self.assertFalse(created, "Account should not be created for existing user")
         self.assertEqual(user, existing_user)
+
+    def test_create_from_client_success(self):
+        """Test direct portal account activation from a client record."""
+        user, created = ClientAccountCreationService.create_from_client(self.test_client)
+
+        self.assertTrue(created)
+        self.assertEqual(user.email, self.test_client.email)
+        self.assertEqual(user.profile.role, Profile.ROLE_CLIENT)
     
     def test_create_from_quote_validation_no_quote(self):
         """Test error handling when quote is None."""
@@ -178,8 +186,22 @@ class EmailInvitationTests(TestCase):
         
         email = mail.outbox[0]
         self.assertIn("Bienvenue", email.subject)
-        self.assertEqual(email.to, [self.test_user.email])
-        self.assertIn("Configurer mon mot de passe", email.body)
+
+    @override_settings(TESTING=True)
+    def test_send_client_portal_invitation_success(self):
+        """Test generic portal invitation email sending from a client record."""
+        mail.outbox = []
+
+        result = EmailService.send_client_portal_invitation(self.test_user, self.test_client)
+
+        self.assertTrue(result)
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertIn(self.test_user.email, sent_email.to)
+        self.assertEqual(sent_email.to, [self.test_user.email])
+        self.assertIn("Configurer mon mot de passe", sent_email.alternatives[0][0])
+        self.assertIn("Identifiant de connexion", sent_email.alternatives[0][0])
+        self.assertIn(self.test_user.email, sent_email.alternatives[0][0])
     
     def test_send_client_invitation_no_email(self):
         """Test invitation sending fails gracefully for user without email."""
@@ -262,7 +284,7 @@ class PasswordSetupWorkflowTests(TestCase):
         
         # Should redirect to client dashboard after successful setup
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('core:client_dashboard'))
+        self.assertRedirects(response, reverse('core:client_portal_dashboard'))
         
         # User should be logged in and password should be set
         self.test_user.refresh_from_db()
@@ -287,6 +309,40 @@ class PasswordSetupWorkflowTests(TestCase):
         # Should stay on the same page with error
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Configuration du mot de passe")
+
+
+class PortalAuthenticationTests(TestCase):
+    """Unit tests for portal authentication identifiers."""
+
+    def setUp(self):
+        self.portal_user = User.objects.create_user(
+            username="client_portal_login",
+            email="client.portal@example.com",
+            password="SecurePass123!",
+        )
+        profile, _ = Profile.objects.get_or_create(user=self.portal_user)
+        profile.role = Profile.ROLE_CLIENT
+        profile.save()
+
+    def test_custom_login_accepts_email_identifier(self):
+        """Clients can authenticate with their email address."""
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'client.portal@example.com',
+            'password': 'SecurePass123!',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('core:client_portal_dashboard'))
+
+    def test_custom_login_accepts_username_identifier(self):
+        """Existing username-based authentication still works."""
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'client_portal_login',
+            'password': 'SecurePass123!',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('core:client_portal_dashboard'))
 
 
 class SignalIntegrationTests(TestCase):

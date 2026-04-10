@@ -1,0 +1,210 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}Devis {{ quote.number }} — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="portal-premium-shell">
+  <div class="portal-premium-wrap space-y-8">
+    <section class="portal-premium-hero p-8 lg:p-10">
+      <div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <a href="{% url 'core:client_quotes' %}" class="inline-flex items-center text-sm font-semibold text-white/80 hover:text-white">
+            <i class="fas fa-arrow-left mr-2"></i>Retour aux devis
+          </a>
+          <p class="mt-6 portal-premium-kicker">Détail devis</p>
+          <h1 class="mt-4 portal-premium-title">{{ quote.number }}</h1>
+          <p class="mt-4 portal-premium-subtitle">Une fiche complète pour contrôler les prestations, les montants et décider rapidement si le devis doit être validé.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="portal-premium-chip"><i class="fas fa-calendar-days"></i>Émis le {{ quote.issue_date|date:"d/m/Y" }}</span>
+            {% if quote.valid_until %}
+              <span class="portal-premium-chip"><i class="fas fa-hourglass-half"></i>Valable jusqu'au {{ quote.valid_until|date:"d/m/Y" }}</span>
+            {% endif %}
+            <span class="portal-premium-chip"><i class="fas fa-badge-check"></i>{{ quote.get_status_display }}</span>
+          </div>
+        </div>
+        <div class="flex w-full flex-col gap-3 xl:w-80">
+          {% if quote.pdf %}
+            <a href="{% url 'devis:quote_public_pdf' token=quote.public_token %}" target="_blank" class="portal-premium-action primary">
+              <i class="fas fa-download"></i>Télécharger le PDF
+            </a>
+          {% endif %}
+          {% if quote.status == 'sent' %}
+            <a href="{% url 'core:client_quote_validate_start' pk=quote.pk %}" class="portal-premium-action secondary">
+              <i class="fas fa-check"></i>Valider le devis
+            </a>
+          {% endif %}
+          <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action ghost">
+            <i class="fas fa-headset"></i>Contacter l'équipe
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <div class="space-y-6">
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Vue d'ensemble</p>
+          <h2 class="mt-3 portal-premium-heading">Les informations essentielles du devis</h2>
+          <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <div class="portal-premium-card p-5">
+              <span class="portal-premium-label">Numéro</span>
+              <p class="mt-3 text-xl font-semibold text-slate-900">{{ quote.number }}</p>
+            </div>
+            <div class="portal-premium-card p-5">
+              <span class="portal-premium-label">Statut</span>
+              <p class="mt-3 text-xl font-semibold text-slate-900">{{ quote.get_status_display }}</p>
+            </div>
+            <div class="portal-premium-card p-5">
+              <span class="portal-premium-label">Date d'émission</span>
+              <p class="mt-3 text-xl font-semibold text-slate-900">{{ quote.issue_date|date:"d/m/Y" }}</p>
+            </div>
+            <div class="portal-premium-card p-5">
+              <span class="portal-premium-label">Validité</span>
+              <p class="mt-3 text-xl font-semibold text-slate-900">{% if quote.valid_until %}{{ quote.valid_until|date:"d/m/Y" }}{% else %}Sans limite précisée{% endif %}</p>
+            </div>
+          </div>
+          {% if quote.service or quote.message %}
+            <div class="mt-6 space-y-4">
+              {% if quote.service %}
+                <div class="portal-premium-note">
+                  <span class="font-semibold text-slate-800">Service principal :</span> {{ quote.service.name }}
+                </div>
+              {% endif %}
+              {% if quote.message %}
+                <div class="portal-premium-note">
+                  <span class="font-semibold text-slate-800">Description :</span> {{ quote.message }}
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+        </section>
+
+        {% if quote.quote_items.all %}
+          <section class="portal-premium-surface p-6 lg:p-7">
+            <p class="portal-premium-kicker text-ne-primary-700">Prestations</p>
+            <h2 class="mt-3 portal-premium-heading">Détail des lignes du devis</h2>
+            <div class="mt-6 overflow-x-auto">
+              <table class="portal-premium-table min-w-full">
+                <thead>
+                  <tr>
+                    <th class="text-left">Description</th>
+                    <th class="text-left">Quantité</th>
+                    <th class="text-left">Prix HT</th>
+                    <th class="text-left">TVA</th>
+                    <th class="text-right">Total TTC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in quote.quote_items.all %}
+                    <tr>
+                      <td>{{ item.description }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>{{ item.unit_price|floatformat:2 }} €</td>
+                      <td>{{ item.tax_rate|floatformat:2 }}%</td>
+                      <td class="text-right font-semibold text-slate-900">{{ item.total_ttc|floatformat:2 }} €</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        {% endif %}
+
+        {% if quote.notes %}
+          <section class="portal-premium-surface p-6 lg:p-7">
+            <p class="portal-premium-kicker text-ne-primary-700">Notes complémentaires</p>
+            <h2 class="mt-3 portal-premium-heading">Informations transmises par l'équipe</h2>
+            <div class="mt-6 portal-premium-note whitespace-pre-wrap">{{ quote.notes }}</div>
+          </section>
+        {% endif %}
+      </div>
+
+      <div class="space-y-6">
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Récapitulatif</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Montants du devis</h2>
+          <dl class="mt-6 space-y-4 text-sm">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-slate-500">Total HT</dt>
+              <dd class="font-semibold text-slate-900">{{ quote.total_ht|floatformat:2 }} €</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-slate-500">TVA</dt>
+              <dd class="font-semibold text-slate-900">{{ quote.tva|floatformat:2 }} €</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+              <dt class="text-base font-semibold text-slate-900">Total TTC</dt>
+              <dd class="text-2xl font-semibold text-slate-900">{{ quote.total_ttc|floatformat:2 }} €</dd>
+            </div>
+          </dl>
+          {% if quote.amount_letter %}
+            <div class="mt-5 portal-premium-note">Montant en toutes lettres : {{ quote.amount_letter }}</div>
+          {% endif %}
+        </section>
+
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Coordonnées</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Informations client</h2>
+          <div class="mt-6 space-y-4 text-sm text-slate-600">
+            <div>
+              <p class="portal-premium-label">Nom</p>
+              <p class="mt-2 text-base font-semibold text-slate-900">{{ quote.client.full_name }}</p>
+            </div>
+            <div>
+              <p class="portal-premium-label">Email</p>
+              <p class="mt-2"><a href="mailto:{{ quote.client.email }}" class="font-medium text-ne-primary-700 hover:underline">{{ quote.client.email }}</a></p>
+            </div>
+            {% if quote.client.phone %}
+              <div>
+                <p class="portal-premium-label">Téléphone</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">{{ quote.client.phone }}</p>
+              </div>
+            {% endif %}
+            {% if quote.client.address_line %}
+              <div>
+                <p class="portal-premium-label">Adresse</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">{{ quote.client.address_line }}{% if quote.client.zip_code or quote.client.city %}<br>{{ quote.client.zip_code }} {{ quote.client.city }}{% endif %}</p>
+              </div>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="portal-premium-surface p-6 lg:p-7">
+          <p class="portal-premium-kicker text-ne-primary-700">Accompagnement</p>
+          <h2 class="mt-3 text-2xl font-semibold text-slate-900">Besoin d'un arbitrage ?</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-600">Le devis conserve toutes les informations nécessaires pour une validation rapide. Si un point reste à clarifier, ouvrez la messagerie et la conversation repart immédiatement avec le bon contexte.</p>
+          <div class="mt-6 flex flex-col gap-3">
+            {% if quote.status == 'sent' %}
+              <a href="{% url 'core:client_quote_validate_start' pk=quote.pk %}" class="portal-premium-action primary">
+                <i class="fas fa-check"></i>Valider ce devis
+              </a>
+            {% endif %}
+            <a href="{% portal_messages_route user 'thread_list' %}" class="portal-premium-action ghost">
+              <i class="fas fa-envelope"></i>Contacter l'équipe
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

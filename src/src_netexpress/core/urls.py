@@ -28,18 +28,22 @@ urlpatterns = [
     # Les clients utilisent /client/
     # Les ouvriers utilisent /worker/
     # Les admins business utilisent /admin-dashboard/
-    # Les admins techniques utilisent /gestion/ (Django Admin)
+    # /admin-dashboard/ reste l'interface métier principale ; /gestion/ est une interface technique secondaire.
     
     # Client Portal URLs
     path("client/", views.client_dashboard, name="client_portal_dashboard"),
+    path("client/tasks/", views.client_tasks, name="client_tasks"),
     path("client/quotes/", views.client_quotes, name="client_quotes"),
     path("client/invoices/", views.client_invoices, name="client_invoices"),
+    path("client/documents/", views.client_documents, name="client_documents"),
     path("client/quotes/<int:pk>/", views.client_quote_detail, name="client_quote_detail"),
     path("client/invoices/<int:pk>/", views.client_invoice_detail, name="client_invoice_detail"),
+    path("client/documents/<int:pk>/", views.client_document_detail, name="client_document_detail"),
     
     # Client Portal PDF Downloads
     path("client/invoices/<int:pk>/download/", views.client_invoice_download, name="client_invoice_download"),
     path("client/quotes/<int:pk>/download/", views.client_quote_download, name="client_quote_download"),
+    path("client/documents/<int:pk>/download/", views.client_document_download, name="client_document_download"),
     
     # Client Portal Signature Workflow
     path("client/quotes/<int:pk>/validate/", views.client_quote_validate_start, name="client_quote_validate_start"),
@@ -47,6 +51,7 @@ urlpatterns = [
     
     # Admin Portal URLs (moved from urls_admin.py to avoid namespace conflicts)
     path("admin-dashboard/", views.admin_dashboard, name="admin_dashboard"),
+    path("admin-dashboard/email-health/", views.admin_email_health, name="admin_email_health"),
     path("admin-dashboard/planning/", views.admin_global_planning, name="admin_global_planning"),
     
     # Workers
@@ -56,8 +61,12 @@ urlpatterns = [
     
     # Clients
     path("admin-dashboard/clients/", views.admin_clients_list, name="admin_clients_list"),
+    path("admin-dashboard/clients/import/", views.admin_import_clients, name="admin_import_clients"),
+    path("admin-dashboard/clients/import/template/", views.admin_client_import_template, name="admin_client_import_template"),
     path("admin-dashboard/clients/<int:pk>/", views.admin_client_detail, name="admin_client_detail"),
     path("admin-dashboard/clients/create/", views.admin_create_client, name="admin_create_client"),
+    path("admin-dashboard/clients/<int:pk>/activate-portal/", views.admin_client_activate_portal_access, name="admin_client_activate_portal_access"),
+    path("admin-dashboard/clients/<int:pk>/publish-document/", views.admin_client_publish_document, name="admin_client_publish_document"),
     
     # Quotes
     path("admin-dashboard/quotes/", views.admin_quotes_list, name="admin_quotes_list"),

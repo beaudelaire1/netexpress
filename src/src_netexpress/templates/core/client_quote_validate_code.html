@@ -1,5 +1,5 @@
 {% extends "base_v2.html" %}
-{% load static %}
+{% load static portal_navigation %}
 
 {% block title %}Validation du devis {{ quote.number }} — NetExpress{% endblock %}
 
@@ -13,7 +13,7 @@
   <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
     <i class="fas fa-receipt mr-2"></i>Mes Factures
   </a>
-  <a href="{% url 'messaging:thread_list' %}" class="portal-nav-item">
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
     <i class="fas fa-envelope mr-2"></i>Messages
   </a>
 {% endblock %}
@@ -158,7 +158,7 @@
             <p>• Vérifiez votre boîte de réception et vos spams</p>
             <p>• Le code expire dans 15 minutes</p>
             <p>• Vous avez {{ validation.attempts }}/5 tentatives utilisées</p>
-            <p>• <a href="{% url 'messaging:thread_list' %}" class="text-ne-primary-600 hover:text-ne-primary-500">Contactez notre équipe</a> en cas de problème</p>
+            <p>• <a href="{% portal_messages_route user 'thread_list' %}" class="text-ne-primary-600 hover:text-ne-primary-500">Contactez notre équipe</a> en cas de problème</p>
           </div>
         </div>
       </div>

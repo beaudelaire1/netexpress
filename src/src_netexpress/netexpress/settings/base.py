@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'whitenoise.runserver_nostatic',
     'tinymce',
+    'axes',
 
     # Project apps
     'core.apps.CoreConfig',
@@ -238,6 +239,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',  # Doit être avant RoleBasedAccessMiddleware
     'accounts.middleware.RoleBasedAccessMiddleware',  # Add role-based access control
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',  # Brute-force protection (must be last auth-related)
 ]
 
 # ============================================================
@@ -382,6 +384,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+SITE_URL = (os.getenv('SITE_URL', '') or '').rstrip('/')
 
 # ============================================================
 # 📧 BREVO API CONFIGURATION
@@ -471,5 +474,62 @@ CELERY_TASK_ROUTES = {
 # Task time limits
 CELERY_TASK_SOFT_TIME_LIMIT = 60  # 1 minute
 CELERY_TASK_TIME_LIMIT = 120      # 2 minutes
+
+# ============================================================
+# 🛡️ DJANGO-AXES (brute-force protection)
+# ============================================================
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AXES_FAILURE_LIMIT = 5          # Lock after 5 failed attempts
+AXES_COOLOFF_TIME = 1           # 1 hour cooloff
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
+AXES_RESET_ON_SUCCESS = True
+
+# ============================================================
+# 🧹 BLEACH — HTML sanitization (TinyMCE content)
+# ============================================================
+
+BLEACH_ALLOWED_TAGS = [
+    'p', 'br', 'strong', 'em', 'u', 's', 'ul', 'ol', 'li',
+    'a', 'span', 'h1', 'h2', 'h3', 'h4', 'table', 'thead',
+    'tbody', 'tr', 'td', 'th',
+]
+BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title', 'target'],
+    'span': ['style'],
+    'td': ['colspan', 'rowspan'],
+    'th': ['colspan', 'rowspan'],
+}
+BLEACH_STRIP_TAGS = True
+
+# ============================================================
+# 🗄️ CACHE (Redis en prod, mémoire locale en dev)
+# ============================================================
+
+REDIS_CACHE_URL = os.getenv('REDIS_CACHE_URL') or os.getenv('REDIS_URL')
+USE_REDIS_CACHE = os.getenv('USE_REDIS_CACHE', '').lower() in ('1', 'true', 'yes', 'on')
+
+if REDIS_CACHE_URL and USE_REDIS_CACHE:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_CACHE_URL,
+        }
+    }
+else:
+    # Fallback local pour éviter toute dépendance Redis en dev.
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'netexpress-local-cache',
+        }
+    }
+
+# Session engine backed by cache for performance
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 

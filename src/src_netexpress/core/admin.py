@@ -3,7 +3,7 @@ Configuration personnalisée pour Django Admin avec dashboard intégré.
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, reverse
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
@@ -120,37 +120,37 @@ class CustomAdminSite(admin.AdminSite):
         quick_actions = [
             {
                 'title': 'Nouveau Devis',
-                'url': '/gestion/devis/quote/add/',
+                'url': reverse('core:admin_create_quote'),
                 'icon': 'fas fa-file-alt',
                 'color': 'primary'
             },
             {
                 'title': 'Nouvelle Facture',
-                'url': '/gestion/factures/invoice/add/',
+                'url': reverse('core:admin_create_invoice'),
                 'icon': 'fas fa-receipt',
                 'color': 'success'
             },
             {
                 'title': 'Nouvelle Tâche',
-                'url': '/gestion/tasks/task/add/',
+                'url': reverse('core:admin_create_task'),
                 'icon': 'fas fa-tasks',
                 'color': 'info'
             },
             {
                 'title': 'Nouveau Client',
-                'url': '/gestion/devis/client/add/',
+                'url': reverse('core:admin_create_client'),
                 'icon': 'fas fa-user-plus',
                 'color': 'warning'
             },
             {
                 'title': 'Nouveau Message',
-                'url': '/gestion/messaging/emailmessage/add/',
+                'url': reverse('admin_messaging:thread_list'),
                 'icon': 'fas fa-envelope',
                 'color': 'secondary'
             },
             {
                 'title': 'Dashboard Business',
-                'url': '/admin-dashboard/',
+                'url': reverse('core:admin_dashboard'),
                 'icon': 'fas fa-chart-line',
                 'color': 'dark'
             },

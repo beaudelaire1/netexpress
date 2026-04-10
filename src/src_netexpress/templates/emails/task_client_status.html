@@ -1,0 +1,41 @@
+{% extends "emails/base_email.html" %}
+
+{% block subject %}{{ subject|default:"Mise à jour d'intervention" }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0b0f19;">Avancement de votre intervention</h2>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  Bonjour {{ client.full_name|default:"Client" }},
+</p>
+
+<p style="margin:0 0 16px 0;line-height:1.6;color:#374151;">
+  {{ intro|safe }}
+</p>
+
+<div style="background:#f8fafc;border:1px solid #e2e8f0;padding:16px;margin:16px 0;border-radius:8px;">
+  <p style="margin:0 0 8px 0;line-height:1.6;color:#0f172a;"><strong>Intervention :</strong> {{ task.title }}</p>
+  <p style="margin:0 0 8px 0;line-height:1.6;color:#475569;"><strong>Ancien statut :</strong> {{ previous_status_label }}</p>
+  <p style="margin:0 0 8px 0;line-height:1.6;color:#475569;"><strong>Nouveau statut :</strong> {{ current_status_label }}</p>
+  {% if task.location %}<p style="margin:0 0 8px 0;line-height:1.6;color:#475569;"><strong>Lieu :</strong> {{ task.location }}</p>{% endif %}
+  <p style="margin:0;line-height:1.6;color:#475569;"><strong>Échéance :</strong> {{ task.due_date|date:"d/m/Y" }}</p>
+</div>
+
+{% if client_portal_url %}
+<div style="text-align:center;margin:24px 0;">
+  <a href="{{ client_portal_url }}"
+     style="display:inline-block;background:#0f6b4c;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">
+    Voir mes interventions
+  </a>
+</div>
+{% endif %}
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#6b7280;font-size:14px;">
+  Si vous avez une question sur l'avancement, vous pouvez nous écrire directement depuis votre portail client.
+</p>
+
+<p style="margin:16px 0 0 0;line-height:1.6;color:#6b7280;font-size:14px;">
+  Cordialement,<br>
+  L'équipe {{ company_name|default:"NetExpress" }}
+</p>
+{% endblock %}

@@ -319,6 +319,38 @@ class MessagingViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Message')
         self.assertContains(response, 'Messages internes')
+
+    def test_email_message_list_returns_to_admin_dashboard_for_superuser(self):
+        admin_user = User.objects.create_user(
+            username='admin_messages',
+            email='admin-messages@example.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse('messaging:list'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], reverse('admin_messaging:list'))
+        self.assertContains(response, 'href="/admin-dashboard/"')
+        self.assertNotContains(response, 'href="/gestion/"')
+
+    def test_legacy_thread_route_redirects_superuser_to_admin_portal_prefix(self):
+        admin_user = User.objects.create_user(
+            username='admin_threads',
+            email='admin-threads@example.com',
+            password='testpass123',
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse('messaging:thread_list'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('admin_messaging:thread_list'))
     
     def test_internal_message_compose_get(self):
         """Test message compose view GET request."""

@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.conf import settings
 
+from core.portal_routing import get_portal_messages_route
 from .models import EmailMessage, Message, MessageThread
 from .forms import MessageComposeForm, InternalMessageForm, MessageReplyForm, EMAIL_TEMPLATE_CHOICES
 
@@ -39,19 +40,52 @@ TEMPLATE_CONFIG = {
 }
 
 
-class MessageListView(LoginRequiredMixin, ListView):
+def _redirect_legacy_messages_request(request, route_name, *args, **kwargs):
+    """Redirige les anciennes URLs /messages/ vers le préfixe portail approprié."""
+    if not request.user.is_authenticated or not request.path.startswith('/messages/'):
+        return None
+
+    target_url = get_portal_messages_route(request.user, route_name, *args, **kwargs)
+    query_string = request.META.get('QUERY_STRING')
+    if query_string:
+        target_url = f'{target_url}?{query_string}'
+
+    if target_url != request.get_full_path():
+        return redirect(target_url)
+    return None
+
+
+class PortalMessagesRedirectMixin:
+    """Assure la cohérence ERP en réécrivant les anciennes routes legacy."""
+
+    portal_route_name = None
+
+    def dispatch(self, request, *args, **kwargs):
+        legacy_redirect = _redirect_legacy_messages_request(
+            request,
+            self.portal_route_name,
+            **kwargs,
+        )
+        if legacy_redirect is not None:
+            return legacy_redirect
+        return super().dispatch(request, *args, **kwargs)
+
+
+class MessageListView(PortalMessagesRedirectMixin, LoginRequiredMixin, ListView):
     """Afficher la liste des messages envoyés."""
     model = EmailMessage
     template_name = "messaging/message_list.html"
     context_object_name = "email_messages"
     ordering = ["-created_at"]
+    portal_route_name = 'list'
 
 
-class MessageDetailView(LoginRequiredMixin, DetailView):
+class MessageDetailView(PortalMessagesRedirectMixin, LoginRequiredMixin, DetailView):
     """Afficher le détail d'un message spécifique."""
     model = EmailMessage
     template_name = "messaging/message_detail.html"
     context_object_name = "message"
+    portal_route_name = 'detail'
 
 
 def compose(request):
@@ -61,6 +95,10 @@ def compose(request):
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return redirect("admin:login")
+
+    legacy_redirect = _redirect_legacy_messages_request(request, 'compose')
+    if legacy_redirect is not None:
+        return legacy_redirect
 
     if request.method == "POST":
         form = MessageComposeForm(request.POST, request.FILES)
@@ -94,7 +132,7 @@ def compose(request):
                 messages.success(request, f"Message envoyé avec succès à {recipient_email}.")
             except Exception as e:
                 messages.error(request, f"Erreur lors de l'envoi du message: {str(e)}")
-            return redirect("messaging:list")
+            return redirect(get_portal_messages_route(request.user, 'list'))
     else:
         form = MessageComposeForm()
 
@@ -103,12 +141,13 @@ def compose(request):
 
 # Internal Messaging System Views
 
-class InternalMessageListView(LoginRequiredMixin, ListView):
+class InternalMessageListView(PortalMessagesRedirectMixin, LoginRequiredMixin, ListView):
     """Display list of internal messages for the current user."""
     model = Message
     template_name = "messaging/internal_message_list.html"
     context_object_name = "messages"
     paginate_by = 20
+    portal_route_name = 'internal_list'
     
     def get_queryset(self):
         """Return messages where user is sender or recipient."""
@@ -126,11 +165,12 @@ class InternalMessageListView(LoginRequiredMixin, ListView):
         return context
 
 
-class InternalMessageDetailView(LoginRequiredMixin, DetailView):
+class InternalMessageDetailView(PortalMessagesRedirectMixin, LoginRequiredMixin, DetailView):
     """Display detail of an internal message."""
     model = Message
     template_name = "messaging/internal_message_detail.html"
     context_object_name = "message"
+    portal_route_name = 'internal_detail'
     
     def get_queryset(self):
         """Only allow access to messages where user is sender or recipient."""
@@ -177,29 +217,33 @@ class InternalMessageDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class InternalMessageComposeView(LoginRequiredMixin, CreateView):
+class InternalMessageComposeView(PortalMessagesRedirectMixin, LoginRequiredMixin, CreateView):
     """Compose a new internal message."""
     model = Message
     form_class = InternalMessageForm
     template_name = "messaging/internal_message_compose.html"
-    success_url = reverse_lazy('messaging:internal_list')
+    portal_route_name = 'internal_compose'
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['sender'] = self.request.user
         return kwargs
+
+    def get_success_url(self):
+        return get_portal_messages_route(self.request.user, 'internal_list')
     
     def form_valid(self, form):
         messages.success(self.request, "Message envoyé avec succès.")
         return super().form_valid(form)
 
 
-class MessageThreadListView(LoginRequiredMixin, ListView):
+class MessageThreadListView(PortalMessagesRedirectMixin, LoginRequiredMixin, ListView):
     """Display list of message threads for the current user."""
     model = MessageThread
     template_name = "messaging/thread_list.html"
     context_object_name = "threads"
     paginate_by = 20
+    portal_route_name = 'thread_list'
     
     def get_queryset(self):
         """Return threads where user is a participant."""
