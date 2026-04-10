@@ -14,10 +14,14 @@ from core.sitemaps import StaticViewSitemap
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 
 sitemaps = {"static": StaticViewSitemap}
 
 urlpatterns = [
+    # Health check — no DB, no auth, returns 200 instantly
+    path("healthz/", lambda request: JsonResponse({"status": "ok"})),
+
     # Expose the admin under a custom path as defined in the cahier des charges
     # Le dashboard personnalisé est intégré via admin.site.index_template
     path("gestion/", admin.site.urls),
