@@ -24,19 +24,20 @@ if not SECRET_KEY:
 # 🌍 HÔTES AUTORISÉS (CRITIQUE)
 # ============================================================
 
-# Récupérer les hôtes depuis la variable d'environnement
+# Écraser les hôtes de base.py — prod uniquement, pas de localhost
+ALLOWED_HOSTS = [
+    'www.nettoyageexpresse.fr',
+    'nettoyageexpresse.fr',
+    'netexpress.onrender.com',
+]
+
 env_hosts_raw = os.getenv("ALLOWED_HOSTS", "")
 
 if env_hosts_raw:
-    # Si la variable d'environnement existe, parser et nettoyer
     env_hosts = [host.strip() for host in env_hosts_raw.split(",") if host.strip()]
-    
-    # Fusionner avec les hôtes de base.py (éviter les doublons)
     ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + env_hosts))
-    print(f"[OK] ALLOWED_HOSTS complete depuis ENV: {ALLOWED_HOSTS}")
-else:
-    # Garder les valeurs de base.py
-    print(f"[OK] ALLOWED_HOSTS depuis base.py: {ALLOWED_HOSTS}")
+
+print(f"[OK] ALLOWED_HOSTS (prod): {ALLOWED_HOSTS}")
 
 # ============================================================
 # 🔐 CSRF TRUSTED ORIGINS (CRITIQUE)
