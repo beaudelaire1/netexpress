@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import logging
+
 from django import forms
 from django.contrib.auth import authenticate
+from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.db.utils import OperationalError, ProgrammingError
 
 from .models import Profile
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class SignUpForm(UserCreationForm):
@@ -75,11 +80,25 @@ class PortalAuthenticationForm(AuthenticationForm):
 
         if identifier and password:
             resolved_identifier = self._resolve_login_identifier(identifier)
-            self.user_cache = authenticate(
-                self.request,
-                username=resolved_identifier,
-                password=password,
-            )
+            try:
+                self.user_cache = authenticate(
+                    self.request,
+                    username=resolved_identifier,
+                    password=password,
+                )
+            except (ProgrammingError, OperationalError):
+                logger.exception(
+                    "Authentication backend unavailable during login for '%s'. "
+                    "Falling back to ModelBackend. Apply django-axes migrations in production.",
+                    resolved_identifier,
+                )
+                self.user_cache = ModelBackend().authenticate(
+                    self.request,
+                    username=resolved_identifier,
+                    password=password,
+                )
+                if self.user_cache is not None:
+                    self.user_cache.backend = "django.contrib.auth.backends.ModelBackend"
             if self.user_cache is None:
                 raise self.get_invalid_login_error()
             self.confirm_login_allowed(self.user_cache)

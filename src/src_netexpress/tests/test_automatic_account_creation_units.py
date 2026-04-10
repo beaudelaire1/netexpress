@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core import mail
 from django.core.exceptions import ValidationError
+from django.db.utils import ProgrammingError
 from django.urls import reverse
 
 from devis.models import Client, Quote
@@ -343,6 +344,18 @@ class PortalAuthenticationTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('core:client_portal_dashboard'))
+
+    @patch('accounts.forms.authenticate', side_effect=ProgrammingError('relation "axes_accessattempt" does not exist'))
+    def test_custom_login_falls_back_when_axes_storage_is_missing(self, mock_authenticate):
+        """Login should not crash if django-axes tables are missing in production."""
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'client.portal@example.com',
+            'password': 'SecurePass123!',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('core:client_portal_dashboard'))
+        mock_authenticate.assert_called_once()
 
 
 class SignalIntegrationTests(TestCase):
