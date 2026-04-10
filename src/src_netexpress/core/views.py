@@ -583,7 +583,6 @@ def admin_dashboard(request):
     from django.contrib.auth.models import User
     from django.core.cache import cache
     import json
-    from .services.email_health_service import EmailHealthService
     
     # Cache key for dashboard data (5 minutes cache)
     cache_key = 'admin_dashboard_data'
@@ -808,7 +807,6 @@ def admin_dashboard(request):
             # Revenue Trend for Charts (as JSON string for template)
             'revenue_trend': cached_data['revenue_trend'],
             'revenue_trend_json': revenue_trend_json,
-            'email_health_summary': EmailHealthService.get_configuration_report(),
         },
     )
 
