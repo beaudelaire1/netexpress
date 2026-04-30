@@ -1647,7 +1647,23 @@ def admin_client_publish_document(request, pk):
                 notification_type='document_updated',
                 link_url=reverse('core:client_document_detail', args=[document.pk]),
             )
-            messages.success(request, f"Document publié pour {client.full_name} et notification portail créée.")
+            # Envoyer un email au client
+            if portal_user.email:
+                notification_service.send_email_notification(
+                    to_emails=[portal_user.email],
+                    subject=f"Nouveau document disponible : {document.title}",
+                    template_name='notification_generic',
+                    context={
+                        'headline': 'Nouveau document dans votre espace',
+                        'intro': f'Bonjour {portal_user.get_full_name() or portal_user.username},<br><br>Un nouveau document a été publié dans votre espace client : <strong>{document.title}</strong>.',
+                        'rows': [
+                            {'label': 'Document', 'value': document.title},
+                            {'label': 'Type', 'value': document.get_category_display()},
+                        ],
+                        'action_label': 'Consulter le document',
+                    },
+                )
+            messages.success(request, f"Document publié pour {client.full_name}, notification et email envoyés.")
         else:
             messages.success(request, f"Document publié pour {client.full_name}.")
             messages.warning(request, "Aucun compte portail n'est actif pour ce client. Le document sera visible dès activation de son accès.")
