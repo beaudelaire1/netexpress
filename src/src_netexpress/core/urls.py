@@ -36,6 +36,7 @@ urlpatterns = [
     path("client/quotes/", views.client_quotes, name="client_quotes"),
     path("client/invoices/", views.client_invoices, name="client_invoices"),
     path("client/documents/", views.client_documents, name="client_documents"),
+    path("client/documents/submit/", views.client_submit_document, name="client_submit_document"),
     path("client/quotes/<int:pk>/", views.client_quote_detail, name="client_quote_detail"),
     path("client/invoices/<int:pk>/", views.client_invoice_detail, name="client_invoice_detail"),
     path("client/documents/<int:pk>/", views.client_document_detail, name="client_document_detail"),

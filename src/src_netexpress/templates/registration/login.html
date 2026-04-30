@@ -18,9 +18,12 @@
           {{ form.username }}
           <label style="margin-top:12px;">Mot de passe</label>
           {{ form.password }}
-          <div style="margin-top:16px; display:flex; gap:10px; align-items:center;">
-            <button class="bo-btn" type="submit">Se connecter</button>
-            <a class="bo-btn is-ghost" href="{% url 'core:home' %}">Retour</a>
+          <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px; align-items:flex-start;">
+            {% include "core/partials/turnstile_widget.html" %}
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button class="bo-btn" type="submit">Se connecter</button>
+              <a class="bo-btn is-ghost" href="{% url 'core:home' %}">Retour</a>
+            </div>
           </div>
         </div>
       </form>

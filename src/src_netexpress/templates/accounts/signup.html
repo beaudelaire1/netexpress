@@ -56,6 +56,7 @@
         {% endfor %}
 
         <div>
+          {% include "core/partials/turnstile_widget.html" %}
           <button type="submit"
                   class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-ne-primary-600 hover:bg-ne-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ne-primary-500 transition-colors">
             <i class="fas fa-user-plus mr-2"></i>

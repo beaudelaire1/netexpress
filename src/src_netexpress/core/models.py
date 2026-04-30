@@ -165,7 +165,62 @@ class ClientPortalDocument(models.Model):
         self.save(update_fields=update_fields)
 
 
-__all__ = ['ClientDocument', 'ClientPortalDocument', 'UINotification', 'PortalSession']
+class ClientSubmittedDocument(models.Model):
+    """Document soumis par un client depuis son portail.
+    
+    Permet aux clients d'envoyer des pièces justificatives, photos avant/après,
+    contrats signés, etc. L'admin peut ensuite les consulter et les traiter.
+    """
+
+    STATUS_PENDING = 'pending'
+    STATUS_REVIEWED = 'reviewed'
+    STATUS_REJECTED = 'rejected'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'En attente de traitement'),
+        (STATUS_REVIEWED, 'Traité'),
+        (STATUS_REJECTED, 'Rejeté'),
+    ]
+
+    CATEGORY_CHOICES = [
+        ('justificatif', 'Pièce justificative'),
+        ('photo', 'Photo (avant/après travaux)'),
+        ('contrat_signe', 'Contrat signé'),
+        ('autre', 'Autre document'),
+    ]
+
+    client_user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='submitted_documents',
+        help_text="Client ayant soumis le document",
+    )
+    title = models.CharField(max_length=200, help_text="Titre ou objet du document")
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='autre')
+    description = models.TextField(blank=True, help_text="Commentaire ou précision du client")
+    file = models.FileField(upload_to='client_submissions/%Y/%m')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    admin_notes = models.TextField(blank=True, help_text="Notes internes de l'admin")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='reviewed_client_documents',
+    )
+
+    class Meta:
+        verbose_name = 'Document soumis par client'
+        verbose_name_plural = 'Documents soumis par clients'
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.client_user.get_full_name()} - {self.title}"
+
+    @property
+    def filename(self):
+        return self.file.name.rsplit('/', 1)[-1] if self.file else ''
+
+
+__all__ = ['ClientDocument', 'ClientPortalDocument', 'ClientSubmittedDocument', 'UINotification', 'PortalSession']
 
 
 class PortalSession(models.Model):

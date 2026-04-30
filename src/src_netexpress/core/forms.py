@@ -8,7 +8,7 @@ from devis.models import Quote, QuoteItem, Client
 from factures.models import Invoice
 from tasks.models import Task
 from services.models import Service
-from .models import ClientPortalDocument
+from .models import ClientPortalDocument, ClientSubmittedDocument
 
 
 class WorkerCreationForm(forms.Form):
@@ -137,6 +137,38 @@ class ClientPortalDocumentForm(forms.ModelForm):
             'expires_at': forms.DateInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
                 'type': 'date'
+            }),
+        }
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data.get('file')
+        if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:
+            raise forms.ValidationError("Le fichier est trop volumineux (10 Mo max).")
+        return uploaded_file
+
+
+class ClientDocumentUploadForm(forms.ModelForm):
+    """Formulaire pour la soumission de documents par les clients."""
+
+    class Meta:
+        model = ClientSubmittedDocument
+        fields = ['title', 'category', 'description', 'file']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'placeholder': 'Ex. Contrat signé, Photo avant travaux...'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ne-primary-500',
+                'rows': 3,
+                'placeholder': 'Précisions sur le document...'
+            }),
+            'file': forms.ClearableFileInput(attrs={
+                'class': 'block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-ne-primary-600 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-ne-primary-700',
+                'accept': '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx'
             }),
         }
 

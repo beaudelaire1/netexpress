@@ -1,0 +1,131 @@
+{% extends "base_v2.html" %}
+{% load static portal_navigation %}
+
+{% block title %}Soumettre un document — NetExpress{% endblock %}
+
+{% block nav_items %}
+  <a href="{% url 'core:client_portal_dashboard' %}" class="portal-nav-item">
+    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+  </a>
+  <a href="{% url 'core:client_quotes' %}" class="portal-nav-item">
+    <i class="fas fa-file-alt mr-2"></i>Mes Devis
+  </a>
+  <a href="{% url 'core:client_invoices' %}" class="portal-nav-item">
+    <i class="fas fa-receipt mr-2"></i>Mes Factures
+  </a>
+  <a href="{% url 'core:client_documents' %}" class="portal-nav-item bg-white/10 rounded-md">
+    <i class="fas fa-folder-open mr-2"></i>Mes Documents
+  </a>
+  <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item">
+    <i class="fas fa-envelope mr-2"></i>Messages
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <a href="{% url 'core:client_documents' %}" class="inline-flex items-center text-sm font-semibold text-ne-primary-700 hover:text-ne-primary-800 mb-4">
+        <i class="fas fa-arrow-left mr-2"></i>Retour aux documents
+      </a>
+      <h1 class="text-2xl font-bold text-gray-900">Soumettre un document</h1>
+      <p class="text-gray-600">Envoyez un fichier à l'équipe NetExpress (contrat signé, photo, justificatif...).</p>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {% if messages %}
+      <div class="mb-6 space-y-3">
+        {% for message in messages %}
+          <div class="rounded-xl border px-4 py-3 text-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-800{% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Formulaire -->
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Nouveau document</h2>
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+          {% csrf_token %}
+
+          {% if form.errors %}
+            <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                  <p>{{ error }}</p>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div>
+            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+            {{ form.title }}
+          </div>
+
+          <div>
+            <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Type de document</label>
+            {{ form.category }}
+          </div>
+
+          <div>
+            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Commentaire (optionnel)</label>
+            {{ form.description }}
+          </div>
+
+          <div class="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5">
+            <label for="{{ form.file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Fichier</label>
+            {{ form.file }}
+            <p class="mt-2 text-xs text-gray-500">PDF, images, Word, Excel — 10 Mo max.</p>
+          </div>
+
+          <button type="submit" class="w-full inline-flex items-center justify-center rounded-xl bg-ne-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-ne-primary-700">
+            <i class="fas fa-paper-plane mr-2"></i>Envoyer le document
+          </button>
+        </form>
+      </div>
+
+      <!-- Historique -->
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Mes documents envoyés</h2>
+        {% if submitted_documents %}
+          <div class="space-y-4">
+            {% for doc in submitted_documents %}
+              <div class="rounded-xl border border-gray-200 p-4">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <p class="text-sm font-semibold text-gray-900">{{ doc.title }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ doc.get_category_display }} · {{ doc.submitted_at|date:"d/m/Y à H:i" }}</p>
+                    {% if doc.description %}
+                      <p class="text-sm text-gray-600 mt-2">{{ doc.description|truncatewords:20 }}</p>
+                    {% endif %}
+                  </div>
+                  <span class="rounded-full px-2.5 py-1 text-xs font-semibold
+                    {% if doc.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% elif doc.status == 'reviewed' %}bg-green-100 text-green-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ doc.get_status_display }}
+                  </span>
+                </div>
+                {% if doc.admin_notes %}
+                  <div class="mt-3 rounded-lg bg-blue-50 border border-blue-100 p-3 text-sm text-blue-800">
+                    <i class="fas fa-comment-dots mr-1"></i>{{ doc.admin_notes }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-inbox text-gray-300 text-4xl mb-4"></i>
+            <p class="text-gray-500">Aucun document envoyé pour le moment.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

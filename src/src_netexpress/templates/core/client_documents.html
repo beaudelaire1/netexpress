@@ -30,9 +30,14 @@
           <h1 class="text-2xl font-bold text-gray-900">Mes Documents</h1>
           <p class="text-gray-600">Contrats, rapports, attestations et fichiers partagés par votre interlocuteur NetExpress.</p>
         </div>
-        <a href="{% portal_messages_route user 'thread_list' %}" class="inline-flex items-center rounded-xl border border-ne-primary-200 bg-ne-primary-50 px-4 py-3 text-sm font-semibold text-ne-primary-700 hover:bg-ne-primary-100">
-          <i class="fas fa-headset mr-2"></i>Contacter l'équipe
-        </a>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="{% url 'core:client_submit_document' %}" class="inline-flex items-center rounded-xl bg-ne-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-ne-primary-600/20 hover:bg-ne-primary-700">
+            <i class="fas fa-upload mr-2"></i>Soumettre un document
+          </a>
+          <a href="{% portal_messages_route user 'thread_list' %}" class="inline-flex items-center rounded-xl border border-ne-primary-200 bg-ne-primary-50 px-4 py-3 text-sm font-semibold text-ne-primary-700 hover:bg-ne-primary-100">
+            <i class="fas fa-headset mr-2"></i>Contacter l'équipe
+          </a>
+        </div>
       </div>
     </div>
   </div>

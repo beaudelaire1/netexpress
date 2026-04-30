@@ -41,3 +41,6 @@ bleach>=6.1.0
 
 # Excel import for client data
 openpyxl>=3.1.0
+
+# HTTP client for Cloudflare Turnstile verification
+requests>=2.31.0

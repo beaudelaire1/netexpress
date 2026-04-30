@@ -30,6 +30,14 @@ logger = logging.getLogger(__name__)
 def public_devis(request):
     """Formulaire public : création d'une QuoteRequest."""
     if request.method == "POST":
+        # Vérification Cloudflare Turnstile
+        from core.turnstile import verify_turnstile
+        if not verify_turnstile(request):
+            from django.contrib import messages as msg
+            msg.error(request, "Vérification de sécurité échouée. Veuillez réessayer.")
+            form = QuoteRequestForm(request.POST, request.FILES)
+            return render(request, "devis/request_quote.html", {"form": form})
+
         form = QuoteRequestForm(request.POST, request.FILES)
         if form.is_valid():
             qr: QuoteRequest = form.save()

@@ -300,6 +300,33 @@ def client_documents(request):
 
 
 @client_portal_required
+def client_submit_document(request):
+    """Client Portal: soumettre un document à l'équipe NetExpress."""
+    from .forms import ClientDocumentUploadForm
+    from .models import ClientSubmittedDocument
+
+    if request.method == 'POST':
+        form = ClientDocumentUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            doc = form.save(commit=False)
+            doc.client_user = request.user
+            doc.save()
+            messages.success(request, f"Document « {doc.title} » envoyé avec succès. Notre équipe le traitera rapidement.")
+            return redirect('core:client_documents')
+    else:
+        form = ClientDocumentUploadForm()
+
+    # Historique des documents soumis par ce client
+    submitted = ClientSubmittedDocument.objects.filter(client_user=request.user).order_by('-submitted_at')[:20]
+
+    return TemplateResponse(
+        request,
+        "core/client_submit_document.html",
+        {"form": form, "submitted_documents": submitted},
+    )
+
+
+@client_portal_required
 def client_document_detail(request, pk):
     """Client Portal document detail view."""
     from .models import ClientPortalDocument

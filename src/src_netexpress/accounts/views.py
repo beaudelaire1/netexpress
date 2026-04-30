@@ -20,6 +20,13 @@ User = get_user_model()
 def signup(request):
     """Création de compte + connexion immédiate."""
     if request.method == "POST":
+        # Vérification Cloudflare Turnstile
+        from core.turnstile import verify_turnstile
+        if not verify_turnstile(request):
+            messages.error(request, "Vérification de sécurité échouée. Veuillez réessayer.")
+            form = SignUpForm(request.POST)
+            return render(request, "accounts/signup.html", {"form": form})
+
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
@@ -41,6 +48,13 @@ def custom_login(request):
         return redirect(redirect_url)
     
     if request.method == "POST":
+        # Vérification Cloudflare Turnstile
+        from core.turnstile import verify_turnstile
+        if not verify_turnstile(request):
+            messages.error(request, "Vérification de sécurité échouée. Veuillez réessayer.")
+            form = PortalAuthenticationForm()
+            return render(request, "registration/login.html", {"form": form})
+
         form = PortalAuthenticationForm(request, data=request.POST)
         if form.is_valid():
             # AuthenticationForm valide deja les credentials avec le request.

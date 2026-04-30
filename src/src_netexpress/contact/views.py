@@ -44,6 +44,13 @@ GUYANE_COMMUNES = {
 
 def contact_view(request):
     if request.method == "POST":
+        # Vérification Cloudflare Turnstile
+        from core.turnstile import verify_turnstile
+        if not verify_turnstile(request):
+            messages.error(request, "Vérification de sécurité échouée. Veuillez réessayer.")
+            form = ContactForm(request.POST)
+            return render(request, "contact/contact.html", {"form": form, "communes": GUYANE_COMMUNES})
+
         form = ContactForm(request.POST)
         if form.is_valid():
             msg = form.save()

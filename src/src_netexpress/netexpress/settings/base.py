@@ -395,6 +395,13 @@ BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
 USE_BREVO_API = bool(BREVO_API_KEY)
 
 # ============================================================
+# 🛡️ CLOUDFLARE TURNSTILE (anti-bot)
+# ============================================================
+
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "")
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
+
+# ============================================================
 # 🏢 BRANDING FACTURES/DEVIS
 # ============================================================
 
