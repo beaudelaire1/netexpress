@@ -193,8 +193,16 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         'API_SECRET': CLOUDINARY_API_SECRET,
     }
     
-    # Utiliser Cloudinary pour les fichiers média
+    # Utiliser Cloudinary pour les fichiers média (compatible Django 5.x)
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
     
     print(f"[OK] Media storage: Cloudinary ({CLOUDINARY_CLOUD_NAME})")
 else:
