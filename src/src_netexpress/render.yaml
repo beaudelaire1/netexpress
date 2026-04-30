@@ -27,7 +27,7 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
       
-      # === REDIS (optionnel - configurer manuellement si besoin) ===
+      # === REDIS (pour Celery async) ===
       - key: REDIS_URL
         sync: false
       
@@ -50,3 +50,31 @@ services:
         value: noreply@nettoyageexpresse.fr
       - key: TASK_NOTIFICATION_EMAIL
         value: noreply@nettoyageexpresse.fr
+
+  # === WORKER CELERY (tâches asynchrones) ===
+  - type: worker
+    name: netexpress-worker
+    env: docker
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    dockerCommand: celery -A netexpress worker --loglevel=info --concurrency=2
+    
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DJANGO_SETTINGS_MODULE
+        value: netexpress.settings.prod
+      - key: ALLOWED_HOSTS
+        value: www.nettoyageexpresse.fr,nettoyageexpresse.fr,netexpress.onrender.com,.onrender.com

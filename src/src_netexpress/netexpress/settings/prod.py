@@ -213,9 +213,21 @@ else:
 REDIS_URL = os.getenv('REDIS_URL', '')
 
 if REDIS_URL:
+    # Celery async avec Redis
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
-    print(f"[OK] Celery broker: Redis configuré")
+    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+    
+    # Cache Django avec Redis
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'TIMEOUT': 300,
+        }
+    }
+    print(f"[OK] Celery broker: Redis")
+    print(f"[OK] Cache: Redis")
 else:
     # Sans Redis, Celery ne fonctionnera pas - les tâches seront synchrones
     CELERY_TASK_ALWAYS_EAGER = True  # Exécute les tâches de manière synchrone
