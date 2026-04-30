@@ -31,15 +31,50 @@
           </tr>
 
           <tr>
-            <td style="padding:16px 22px 22px 22px;color:#6b7280;font-size:12px;line-height:1.5;">
-              <div style="border-top:1px solid #e6e8ee;padding-top:14px;">
-                <div>Site : <a href="{{ branding.site_url|default:'#' }}" style="color:#0f6b4c;text-decoration:none;">{{ branding.site_url|default:"NetExpress" }}</a></div>
-                <div style="margin-top:6px;">
-                  {% if branding.facebook_url %}<a href="{{ branding.facebook_url }}" style="color:#0f6b4c;text-decoration:none;">Facebook</a>{% endif %}
-                  {% if branding.instagram_url %}{% if branding.facebook_url %} • {% endif %}<a href="{{ branding.instagram_url }}" style="color:#0f6b4c;text-decoration:none;">Instagram</a>{% endif %}
-                </div>
-                <div style="margin-top:10px;">© {{ branding.name|default:"NetExpress" }} — Tous droits réservés.</div>
-              </div>
+            <td style="padding:0;">
+              <!-- Signature -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0f1b2d;border-collapse:collapse;">
+                <tr>
+                  <td style="padding:30px 28px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                      <tr>
+                        <td style="vertical-align:top;width:45%;padding-right:20px;">
+                          <div style="font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:22px;color:#e8e0d0;letter-spacing:.02em;margin-bottom:12px;">Nettoyage Express</div>
+                          <p style="color:#94a3b8;font-size:13px;line-height:1.6;margin:0;">Votre partenaire local pour l'entretien de la maison et du bureau en Guyane.</p>
+                        </td>
+                        <td style="vertical-align:top;width:55%;padding-left:20px;border-left:1px solid #1e3a5f;">
+                          <div style="font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:700;color:#e8e0d0;margin-bottom:14px;">Contact</div>
+                          <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                            <tr>
+                              <td style="padding:0 8px 10px 0;vertical-align:middle;color:#0f6b4c;font-size:14px;">&#9742;</td>
+                              <td style="padding:0 0 10px 0;color:#cbd5e1;font-size:13px;">05 94 30 23 68</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:0 8px 10px 0;vertical-align:middle;color:#0f6b4c;font-size:14px;">&#9743;</td>
+                              <td style="padding:0 0 10px 0;color:#cbd5e1;font-size:13px;">06 94 46 20 12</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:0 8px 10px 0;vertical-align:middle;color:#0f6b4c;font-size:14px;">&#9993;</td>
+                              <td style="padding:0 0 10px 0;"><a href="mailto:contact@nettoyageexpresse.fr" style="color:#cbd5e1;font-size:13px;text-decoration:none;">contact@nettoyageexpresse.fr</a></td>
+                            </tr>
+                            <tr>
+                              <td style="padding:0 8px 0 0;vertical-align:top;color:#0f6b4c;font-size:14px;">&#9906;</td>
+                              <td style="padding:0;color:#cbd5e1;font-size:13px;line-height:1.5;">753, Chemin de la Desirée<br>97351 Matoury</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 28px 16px 28px;">
+                    <div style="border-top:1px solid #1e3a5f;padding-top:12px;text-align:center;color:#64748b;font-size:11px;">
+                      &copy; {% now "Y" %} Nettoyage Express Services — Tous droits réservés.
+                    </div>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
