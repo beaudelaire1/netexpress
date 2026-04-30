@@ -30,21 +30,15 @@
   <div class="gallery-grid" id="gallery">
     {% for image in images %}
       <div class="gallery-item" data-category="{{ image.category }}">
-        <img src="{% static image.path %}" alt="{{ image.title }}">
+        <img src="{{ image.image.url }}" alt="{{ image.title }}">
         <div class="gallery-overlay">
-          <span class="gallery-cat">
-            {% if image.category == 'nettoyage' %}
-              Nettoyage
-            {% elif image.category == 'espaces_verts' %}
-              Espaces verts
-            {% elif image.category == 'renovation' %}
-              Rénovation
-            {% else %}
-              {{ image.category }}
-            {% endif %}
-          </span>
+          <span class="gallery-cat">{{ image.get_category_display }}</span>
           <h3 class="title">{{ image.title }}</h3>
         </div>
+      </div>
+    {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+        <p class="muted">Aucune réalisation pour le moment.</p>
       </div>
     {% endfor %}
   </div>

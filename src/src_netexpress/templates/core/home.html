@@ -152,6 +152,15 @@
       </div>
 
       <div class="portfolio-grid">
+          {% for real in featured_realisations %}
+          <div class="portfolio-item">
+              <img src="{{ real.image.url }}" alt="{{ real.title }}">
+              <div class="overlay-info">
+                  <span class="category">{{ real.get_category_display }}</span>
+                  <h3 class="title">{{ real.title }}</h3>
+              </div>
+          </div>
+          {% empty %}
           <div class="portfolio-item">
               <img src="{% static 'img/hero_bg.png' %}" alt="Jardin Villa">
               <div class="overlay-info">
@@ -159,30 +168,14 @@
                   <h3 class="title">Villa Montjoly</h3>
               </div>
           </div>
-
           <div class="portfolio-item">
-              <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage Vitres">
+              <img src="{% static 'img/default_service.jpg' %}" alt="Nettoyage">
               <div class="overlay-info">
                   <span class="category">Nettoyage</span>
                   <h3 class="title">Résidence Kourou</h3>
               </div>
           </div>
-
-          <div class="portfolio-item">
-              <img src="{% static 'img/default_category.jpg' %}" alt="Rénovation Salon">
-              <div class="overlay-info">
-                  <span class="category">Rénovation</span>
-                  <h3 class="title">Appartement Cayenne</h3>
-              </div>
-          </div>
-
-          <div class="portfolio-item">
-              <img src="{% static 'img/default_service.jpg' %}" alt="Entretien Palmier">
-              <div class="overlay-info">
-                  <span class="category">Espaces Verts</span>
-                  <h3 class="title">Jardin Tropical Remire</h3>
-              </div>
-          </div>
+          {% endfor %}
       </div>
 
       <div class="portfolio-footer">

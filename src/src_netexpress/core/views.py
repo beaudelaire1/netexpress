@@ -106,17 +106,21 @@ def _build_document_summary(documents):
 
 def home(request):
     """Page d'accueil publique."""
+    from .models import Realisation
+
     categories = Category.objects.all().order_by("name")
     featured_services = (
         Service.objects.filter(is_active=True)
         .order_by("-created_at")[:6]
     )
+    featured_realisations = Realisation.objects.filter(is_published=True)[:4]
     return render(
         request,
         "core/home.html",
         {
             "categories": categories,
             "featured_services": featured_services,
+            "featured_realisations": featured_realisations,
         },
     )
 
@@ -138,30 +142,21 @@ def excellence(request):
 
 
 def realisations(request):
-    """
-    Galerie des réalisations.  Les images sont définies statiquement
-    car aucune base de données n'est prévue pour cette page dans le
-    cahier des charges.  Chaque entrée contient une URL distante
-    hébergée par Unsplash, un titre et une catégorie pour le filtrage
-    côté client.
-    """
-    # Images locales (pas d'URL externes) pour éviter les liens morts et
-    # améliorer la fiabilité/perf.  Ce jeu d'images est provisoire :
-    # l'utilisateur pourra remplacer les fichiers dans static/img/realisations/.
-    images = [
-        {"path": "img/realisations/espaces_verts_1.jpg", "title": "Villa Montjoly", "category": "espaces_verts"},
-        {"path": "img/realisations/nettoyage_1.jpg", "title": "Résidence Kourou", "category": "nettoyage"},
-        {"path": "img/realisations/renovation_1.png", "title": "Appartement Cayenne", "category": "renovation"},
-        {"path": "img/realisations/espaces_verts_2.jpg", "title": "Jardin Tropical Remire", "category": "espaces_verts"},
-        {"path": "img/realisations/nettoyage_2.jpg", "title": "Bureaux Centre-ville", "category": "nettoyage"},
-        {"path": "img/realisations/renovation_2.png", "title": "Rafraîchissement Peinture", "category": "renovation"},
+    """Galerie des réalisations, alimentée depuis la base de données."""
+    from .models import Realisation
+
+    images = Realisation.objects.filter(is_published=True)
+
+    # Construire la liste des catégories dynamiquement
+    used_categories = set(images.values_list('category', flat=True))
+    all_categories = [
+        ('nettoyage', 'Nettoyage'),
+        ('espaces_verts', 'Espaces verts'),
+        ('renovation', 'Rénovation'),
+        ('autre', 'Autre'),
     ]
-    categories = [
-        ("all", "Toutes"),
-        ("nettoyage", "Nettoyage"),
-        ("espaces_verts", "Espaces verts"),
-        ("renovation", "Rénovation"),
-    ]
+    categories = [("all", "Toutes")] + [(slug, name) for slug, name in all_categories if slug in used_categories]
+
     return render(
         request,
         "core/realisations.html",

@@ -220,7 +220,34 @@ class ClientSubmittedDocument(models.Model):
         return self.file.name.rsplit('/', 1)[-1] if self.file else ''
 
 
-__all__ = ['ClientDocument', 'ClientPortalDocument', 'ClientSubmittedDocument', 'UINotification', 'PortalSession']
+class Realisation(models.Model):
+    """Photo de realisation affichee dans la galerie publique."""
+
+    CATEGORY_CHOICES = [
+        ('nettoyage', 'Nettoyage'),
+        ('espaces_verts', 'Espaces verts'),
+        ('renovation', 'Renovation'),
+        ('autre', 'Autre'),
+    ]
+
+    title = models.CharField(max_length=200, help_text="Titre affiche sous la photo")
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='nettoyage')
+    image = models.ImageField(upload_to='realisations/%Y')
+    description = models.TextField(blank=True, help_text="Description courte (optionnel)")
+    is_published = models.BooleanField(default=True, help_text="Afficher dans la galerie")
+    order = models.PositiveIntegerField(default=0, help_text="Ordre d'affichage (0 = premier)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Realisation'
+        verbose_name_plural = 'Realisations'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.get_category_display()})"
+
+
+__all__ = ['ClientDocument', 'ClientPortalDocument', 'ClientSubmittedDocument', 'Realisation', 'UINotification', 'PortalSession']
 
 
 class PortalSession(models.Model):

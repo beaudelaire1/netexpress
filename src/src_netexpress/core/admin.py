@@ -205,3 +205,18 @@ class CustomAdminSite(admin.AdminSite):
 # Django Admin utilisera automatiquement ce template pour la page d'accueil
 admin.site.index_template = 'admin/dashboard.html'
 admin.site.index_title = 'Dashboard Administrateur'
+
+
+# ============================================================
+# Realisation (galerie publique)
+# ============================================================
+from .models import Realisation
+
+
+@admin.register(Realisation)
+class RealisationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'is_published', 'order', 'created_at')
+    list_filter = ('category', 'is_published')
+    list_editable = ('is_published', 'order')
+    search_fields = ('title', 'description')
+    ordering = ('order', '-created_at')
