@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\admin.py
-# hypothesis_version: 6.148.7
-
-['description', 'due_date', 'get_status_display', 'location', 'mark_completed', 'start_date', 'status', 'team', 'title']

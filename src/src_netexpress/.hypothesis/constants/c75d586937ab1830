@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\devis\migrations\0001_initial.py
-# hypothesis_version: 6.148.7
-
-[100, 200, 254, 255, '-created_at', '0.00', '0001_initial', '20.00', 'Accepté', 'Brouillon', 'Client', 'Envoyé', 'ID', 'Quote', 'QuoteItem', 'Rejeté', 'accepted', 'address_line', 'city', 'client', 'clients', 'company', 'created_at', 'description', 'devis.client', 'devis.quote', 'draft', 'email', 'full_name', 'id', 'issue_date', 'ligne de devis', 'lignes de devis', 'message', 'notes', 'number', 'ordering', 'phone', 'quantity', 'quote', 'quote_items', 'quotes', 'rejected', 'sent', 'service', 'services', 'services.service', 'status', 'tax_rate', 'total_ht', 'total_ttc', 'tva', 'unit_price', 'valid_until', 'verbose_name', 'verbose_name_plural', 'zip_code']

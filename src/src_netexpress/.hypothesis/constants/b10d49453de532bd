@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\migrations\0001_initial.py
-# hypothesis_version: 6.148.7
-
-[255, '-issue_date', '-number', '0.00', '20.00', 'Brouillon', 'En retard', 'Envoyée', 'ID', 'Invoice', 'InvoiceItem', 'Partiellement payée', 'Payée', '__first__', 'amount', 'created_at', 'description', 'devis', 'devis.quote', 'discount', 'draft', 'due_date', 'facture', 'factures', 'factures.invoice', 'id', 'invoice', 'invoice_items', 'invoices', 'issue_date', 'ligne de facture', 'lignes de facture', 'number', 'ordering', 'overdue', 'paid', 'partial', 'pdf', 'quantity', 'quote', 'sent', 'status', 'tax_rate', 'total_ht', 'total_ttc', 'tva', 'unit_price', 'verbose_name', 'verbose_name_plural']

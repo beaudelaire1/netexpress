@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\devis\urls.py
-# hypothesis_version: 6.148.7
-
-['admin/<int:pk>/', 'admin_quote_edit', 'devis', 'download', 'nouveau/', 'pdf/<str:token>/', 'quote-generate-pdf', 'quote_public_pdf', 'quote_success', 'quote_validate_code', 'quote_validate_start', 'request_quote', 'service/<int:pk>/', 'service_info', 'succes/', 'valider/<str:token>/']

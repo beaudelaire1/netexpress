@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\factures\signals.py
-# hypothesis_version: 6.148.7
-
-['DEFAULT_FROM_EMAIL', 'N/A', 'Numéro', 'Total TTC', 'headline', 'html', 'intro', 'label', 'rows', 'total', 'total_ttc', 'value']

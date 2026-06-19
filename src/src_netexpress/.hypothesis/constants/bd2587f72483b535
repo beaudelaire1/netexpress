@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\services\pdf_service.py
-# hypothesis_version: 6.148.7
-
-[100, 'BASE_DIR', 'INVOICE_BRANDING', 'address', 'address_line', 'application/pdf', 'branding', 'city', 'client', 'client_address', 'client_email', 'client_name', 'client_phone', 'client_reference', 'css', 'description', 'email', 'full_name', 'invoice', 'invoice_items', 'number', 'pdf.css', 'phone', 'quantity', 'quote', 'reference', 'rows', 'static', 'total_ht', 'tva', 'tva_rate', 'unit_price', 'zip_code']

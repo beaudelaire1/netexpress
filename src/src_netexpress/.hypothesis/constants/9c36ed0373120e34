@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\tasks\views.py
-# hypothesis_version: 6.148.7
-
-['#16a34a', '#2563eb', '#dc2626', '#f59e0b', '#facc15', '#ffffff', '-created_at', 'HX-Request', 'almost_overdue_tasks', 'assigned_to', 'backgroundColor', 'borderColor', 'completed_tasks', 'completion_notes', 'description', 'dispatch', 'due_date', 'end', 'extendedProps', 'id', 'in_progress_tasks', 'location', 'message', 'overdue_tasks', 'overdue_tasks_count', 'pending_tasks', 'pk', 'start', 'start_date', 'status', 'success', 'task', 'tasks', 'tasks/task_list.html', 'team', 'textColor', 'title', 'total_assigned', 'upcoming_tasks', 'upcoming_tasks_count', 'url', 'user_tasks']

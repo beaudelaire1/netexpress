@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\contact\migrations\0006_alter_message_city_alter_message_street.py
-# hypothesis_version: 6.148.7
-
-[200, '0005_message_street', 'Rue (optionnel)', 'Ville (optionnel)', 'city', 'contact', 'message', 'street']

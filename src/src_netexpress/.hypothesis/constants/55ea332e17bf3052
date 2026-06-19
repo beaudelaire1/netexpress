@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\messaging\views.py
-# hypothesis_version: 6.148.7
-
-[400, 401, 405, '-created_at', '-last_message_at', 'Message envoyé.', 'Method not allowed', 'POST', 'admin:login', 'attachment', 'body', 'created_at', 'email_messages', 'error', 'errors', 'form', 'message', 'messages', 'messaging:list', 'participants', 'read_at', 'recipient', 'reply_form', 'reply_id', 'sender', 'subject', 'success', 'thread', 'thread_messages', 'threads', 'unread_count']

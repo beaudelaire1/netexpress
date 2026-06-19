@@ -1,4 +1,0 @@
-# file: C:\Users\vilme\OneDrive\Bureau\netexpress\src\src_netexpress\core\decorators.py
-# hypothesis_version: 6.148.7
-
-['*', '/', '/admin-dashboard/', '/client/', '/gestion/', '/worker/', 'Workers', 'admin_business', 'admin_technical', 'client', 'invoices.create', 'invoices.edit', 'invoices.view', 'profile', 'quotes.create', 'quotes.edit', 'quotes.view', 'tasks.assign', 'tasks.complete', 'tasks.create', 'tasks.view', 'users.create', 'users.edit', 'users.view', 'worker']

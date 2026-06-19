@@ -3,7 +3,7 @@ Décorateurs d'accès pour NetExpress - Contrôle par rôles et permissions.
 """
 
 from functools import wraps
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 
@@ -27,17 +27,16 @@ def technical_admin_required(view_func):
     return wrapper
 
 
-def business_admin_required(view_func):
-    """Accès réservé aux administrateurs business."""
-    @wraps(view_func)
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        if get_user_role(request.user) == 'admin_business':
-            return view_func(request, *args, **kwargs)
-        
-        messages.error(request, "Accès réservé aux administrateurs business.")
-        return redirect_to_appropriate_portal(request.user)
-    return wrapper
+def is_business_admin(user):
+    """Vérifie si l'utilisateur est staff ou appartient au groupe admin_business."""
+    if not user.is_authenticated:
+        return False
+    if user.is_staff:
+        return True
+    return user.groups.filter(name='admin_business').exists()
+
+
+business_admin_required = user_passes_test(is_business_admin, login_url='/admin/login/')
 
 
 def client_portal_required(view_func):
