@@ -10,11 +10,43 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.views.decorators.http import require_http_methods
+from django.core.mail import send_mail
+from django.core import signing
+from django.conf import settings
+from django.urls import reverse
 
 from .forms import PortalAuthenticationForm, ProfileForm, SignUpForm
 from core.portal_routing import redirect_after_login
 
 User = get_user_model()
+
+# Vérification d'e-mail : jeton signé indépendant de l'état de connexion
+# (contrairement à default_token_generator qui dépend de last_login/password).
+EMAIL_VERIFY_SALT = "accounts.email-verify"
+EMAIL_VERIFY_MAX_AGE = 60 * 60 * 24 * 3  # 3 jours
+
+
+def _send_email_verification(request, user) -> None:
+    """Envoie un e-mail de confirmation d'adresse à un compte auto-inscrit."""
+    if not user.email:
+        return
+    token = signing.dumps({"uid": user.pk}, salt=EMAIL_VERIFY_SALT)
+    path = reverse("accounts:verify_email", kwargs={"token": token})
+    verify_url = request.build_absolute_uri(path)
+    subject = "Confirmez votre adresse e-mail — Nettoyage Express"
+    body = (
+        f"Bonjour {user.get_username()},\n\n"
+        "Merci pour votre inscription. Pour accéder à vos devis et factures, "
+        "confirmez votre adresse e-mail en cliquant sur le lien ci-dessous :\n\n"
+        f"{verify_url}\n\n"
+        "Si vous n'êtes pas à l'origine de cette inscription, ignorez cet e-mail.\n"
+    )
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    try:
+        send_mail(subject, body, from_email, [user.email], fail_silently=True)
+    except Exception:
+        # Ne jamais bloquer l'inscription si l'envoi échoue.
+        pass
 
 
 def signup(request):
@@ -30,14 +62,44 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Envoi du lien de confirmation d'adresse e-mail (accès documents
+            # bloqué tant que l'e-mail n'est pas vérifié — anti-usurpation).
+            _send_email_verification(request, user)
             login(request, user)
-            messages.success(request, "Votre compte a été créé.")
+            messages.success(
+                request,
+                "Votre compte a été créé. Un e-mail de confirmation vous a été "
+                "envoyé : confirmez votre adresse pour accéder à vos devis et factures.",
+            )
             # Use portal routing logic for redirect
             redirect_url = redirect_after_login(user)
             return redirect(redirect_url)
     else:
         form = SignUpForm()
     return render(request, "accounts/signup.html", {"form": form})
+
+
+@require_http_methods(["GET"])
+def verify_email(request, token):
+    """Confirme l'adresse e-mail d'un compte auto-inscrit via un jeton signé."""
+    try:
+        data = signing.loads(token, salt=EMAIL_VERIFY_SALT, max_age=EMAIL_VERIFY_MAX_AGE)
+        user = get_object_or_404(User, pk=data.get("uid"))
+    except (signing.BadSignature, signing.SignatureExpired, ValueError, TypeError):
+        user = None
+
+    if user is not None:
+        profile = getattr(user, "profile", None)
+        if profile is not None and not profile.email_verified:
+            profile.email_verified = True
+            profile.save(update_fields=["email_verified"])
+        messages.success(request, "Votre adresse e-mail a été confirmée. Merci !")
+        if request.user.is_authenticated:
+            return redirect(redirect_after_login(user))
+        return redirect("accounts:login")
+
+    messages.error(request, "Lien de confirmation invalide ou expiré.")
+    return redirect("accounts:login")
 
 
 def custom_login(request):
@@ -110,6 +172,11 @@ def password_setup(request, uidb64, token):
             form = SetPasswordForm(user, request.POST)
             if form.is_valid():
                 form.save()
+                # Le clic sur le lien d'invitation prouve la possession de l'e-mail.
+                profile = getattr(user, "profile", None)
+                if profile is not None and not profile.email_verified:
+                    profile.email_verified = True
+                    profile.save(update_fields=["email_verified"])
                 # Log the user in automatically after password setup
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.success(request, 'Votre mot de passe a été configuré avec succès. Bienvenue !')

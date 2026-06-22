@@ -20,6 +20,17 @@ class ClientDocumentService:
         return (getattr(user, 'email', '') or '').strip()
 
     @staticmethod
+    def _email_verified(user: User) -> bool:
+        """L'e-mail du client est-il vérifié ?
+
+        Par défaut ``True`` si le profil ou l'attribut est absent (compat
+        ascendante). Empêche un compte auto-inscrit non confirmé d'accéder aux
+        documents d'un client dont il aurait usurpé l'adresse e-mail.
+        """
+        profile = getattr(user, 'profile', None)
+        return bool(getattr(profile, 'email_verified', True))
+
+    @staticmethod
     def get_accessible_portal_documents(user: User) -> QuerySet[ClientPortalDocument]:
         """Get manually published portal documents accessible to a client user."""
         if not user.is_authenticated:
@@ -30,7 +41,7 @@ class ClientDocumentService:
             return queryset
 
         user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        if not user_email or not ClientDocumentService._email_verified(user):
             return ClientPortalDocument.objects.none()
 
         today = timezone.localdate()
@@ -53,9 +64,9 @@ class ClientDocumentService:
         
         # For client users, filter by email
         user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        if not user_email or not ClientDocumentService._email_verified(user):
             return Quote.objects.none()
-        
+
         return Quote.objects.filter(client__email__iexact=user_email)
     
     @staticmethod
@@ -70,9 +81,9 @@ class ClientDocumentService:
         
         # For client users, filter by email through quote relationship
         user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        if not user_email or not ClientDocumentService._email_verified(user):
             return Invoice.objects.none()
-        
+
         return Invoice.objects.filter(quote__client__email__iexact=user_email)
     
     @staticmethod
@@ -88,9 +99,9 @@ class ClientDocumentService:
         # Client users can only access their own quotes
         # Use case-insensitive comparison consistently
         user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        if not user_email or not ClientDocumentService._email_verified(user):
             return False
-        
+
         quote_email = getattr(quote.client, 'email', '') or ''
         return quote_email.lower() == user_email.lower()
     

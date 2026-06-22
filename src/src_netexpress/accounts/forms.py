@@ -42,6 +42,8 @@ class SignUpForm(UserCreationForm):
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.role = Profile.ROLE_CLIENT
             profile.phone = self.cleaned_data.get("phone", "")
+            # Inscription publique : e-mail non encore vérifié.
+            profile.email_verified = False
             profile.save()
         return user
 
