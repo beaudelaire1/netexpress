@@ -33,7 +33,17 @@ class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CLIENT)
     phone = models.CharField(max_length=50, blank=True)
-    
+
+    # Vérification de l'adresse e-mail.
+    # Par défaut True afin de ne PAS verrouiller les comptes existants ni ceux
+    # créés par l'administration. Seule l'inscription publique (self-signup) le
+    # passe à False jusqu'à confirmation via le lien envoyé par e-mail.
+    # L'accès aux documents du portail est conditionné à ce drapeau.
+    email_verified = models.BooleanField(
+        default=True,
+        help_text="L'adresse e-mail a été confirmée (requis pour l'accès aux documents pour les comptes auto-inscrits).",
+    )
+
     # Force password change on first login
     force_password_change = models.BooleanField(
         default=False,

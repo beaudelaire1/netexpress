@@ -24,6 +24,9 @@ urlpatterns = [
     path("excellence/", views.excellence, name="excellence"),
     # Galerie de réalisations avec filtrage et lightbox
     path("realisations/", views.realisations, name="realisations"),
+    # Pages légales (RGPD / LCEN)
+    path("mentions-legales/", views.mentions_legales, name="mentions_legales"),
+    path("confidentialite/", views.confidentialite, name="confidentialite"),
     # Dashboard technique supprimé - Migration vers /admin-dashboard/
     # Les clients utilisent /client/
     # Les ouvriers utilisent /worker/

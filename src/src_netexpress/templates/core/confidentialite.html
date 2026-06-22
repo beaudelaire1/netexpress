@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Politique de confidentialité — Nettoyage Express{% endblock %}
+
+{% block content %}
+<section class="section legal" style="max-width:820px;margin:0 auto;line-height:1.6;">
+  <h1>Politique de confidentialité</h1>
+  <p class="muted">Dernière mise à jour : {% now "d/m/Y" %}.</p>
+
+  <h2>Responsable du traitement</h2>
+  <p>
+    {{ branding.name|default:"Nettoyage Express" }}, joignable à
+    <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>, est
+    responsable du traitement des données collectées sur ce site.
+  </p>
+
+  <h2>Données collectées</h2>
+  <ul>
+    <li><strong>Formulaire de contact</strong> : nom, e-mail, téléphone, adresse, message.</li>
+    <li><strong>Demande de devis</strong> : nom, e-mail, téléphone, adresse, description du besoin, photos éventuelles.</li>
+    <li><strong>Compte client</strong> : identifiant, e-mail, téléphone, documents associés (devis, factures).</li>
+  </ul>
+
+  <h2>Finalités et base légale</h2>
+  <ul>
+    <li>Répondre aux demandes et établir des devis — consentement / mesures précontractuelles.</li>
+    <li>Gérer la relation client, l'accès au portail et le suivi des prestations — exécution du contrat.</li>
+  </ul>
+  <p>Vos données ne sont ni vendues ni utilisées à des fins de prospection non sollicitée.</p>
+
+  <h2>Destinataires</h2>
+  <p>
+    Les données sont destinées à {{ branding.name|default:"Nettoyage Express" }} et à ses
+    prestataires techniques (hébergement, envoi d'e-mails, stockage des médias),
+    tenus à la confidentialité.
+  </p>
+
+  <h2>Durée de conservation</h2>
+  <ul>
+    <li>Messages de contact : 3 ans après le dernier échange.</li>
+    <li>Documents commerciaux (devis, factures) : durée de la relation puis archivage légal.</li>
+    <li>Comptes clients : durée d'activité du compte.</li>
+  </ul>
+
+  <h2>Cookies</h2>
+  <p>
+    Le site utilise des cookies strictement nécessaires (session, protection
+    anti-CSRF), exemptés de consentement. Un service tiers de protection
+    anti-robots (Cloudflare Turnstile) peut être chargé sur les formulaires.
+  </p>
+
+  <h2>Vos droits</h2>
+  <p>
+    Conformément au RGPD et à la loi « Informatique et Libertés », vous disposez
+    d'un droit d'accès, de rectification, d'effacement, de limitation et
+    d'opposition. Pour les exercer, écrivez à
+    <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>.
+    Vous pouvez aussi saisir la CNIL
+    (<a href="https://www.cnil.fr" rel="noopener" target="_blank">www.cnil.fr</a>).
+  </p>
+</section>
+{% endblock %}
