@@ -1,4 +1,5 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -16,9 +17,9 @@
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-  <!-- Scripts -->
-  <script src="{% static 'js/main.js' %}"></script>
-  <script src="{% static 'js/forms.js' %}"></script>
+  <!-- Scripts (defer : non bloquants pour le rendu) -->
+  <script defer src="{% static 'js/main.js' %}"></script>
+  <script defer src="{% static 'js/forms.js' %}"></script>
   {% block scripts %}{% endblock %}
   {% block extra_head %}{% endblock %}
 </head>

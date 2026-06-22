@@ -9,6 +9,8 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+from core.notifications import notification_copies
+
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
 def notify_new_contact(self, message_id: int) -> None:
@@ -31,10 +33,16 @@ def notify_new_contact(self, message_id: int) -> None:
     if not recipients:
         return
 
+    # Copies de notification administrative (CC visible + CCI cachée).
+    # Pendant la période de garantie, l'adresse d'évaluation y est ajoutée.
+    cc, bcc = notification_copies()
+
     email = EmailMessage(
         subject=f"[Contact] Nouveau message — {msg.full_name}",
         body=html,
         to=recipients,
+        cc=cc or None,
+        bcc=bcc or None,
         from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
     )
     email.content_subtype = "html"

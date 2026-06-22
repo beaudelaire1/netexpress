@@ -11,6 +11,7 @@ sensitive data to version control.
 from pathlib import Path
 import os
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 # Base directory of the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -32,13 +33,20 @@ if env_path.exists():
 # Security settings
 # --------------------------------------------------------------------
 # Secret key used for cryptographic signing.  It must be set via the
-# environment.  If not provided, an exception is raised to avoid
-# running with an insecure default.
-SECRET_KEY = env("DJANGO_SECRET_KEY")
+# environment.  On accepte ``DJANGO_SECRET_KEY`` (nom recommandé) avec un
+# repli sur ``SECRET_KEY`` pour rester compatible avec les fichiers ``.env``
+# existants.  Si aucune valeur n'est fournie, une exception est levée afin
+# d'éviter de tourner avec une clé par défaut non sûre.
+SECRET_KEY = env("DJANGO_SECRET_KEY", default=env("SECRET_KEY", default=""))
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY (ou SECRET_KEY) doit être défini dans l'environnement."
+    )
 
 # Convert the DEBUG environment variable to a proper boolean.  Support
 # common truthy/falsey strings in addition to booleans for robustness.
-raw_debug = env("DJANGO_DEBUG", default=True)
+# On accepte ``DJANGO_DEBUG`` avec repli sur ``DEBUG``.
+raw_debug = env("DJANGO_DEBUG", default=env("DEBUG", default=True))
 if isinstance(raw_debug, str):
     DEBUG = raw_debug.strip().lower() in {"1", "true", "yes", "on"}
 else:
@@ -47,7 +55,8 @@ else:
 # Parse ALLOWED_HOSTS from a comma‑separated string or a list.  If the
 # environment provides a single string, split it on commas; otherwise
 # assume it is already a list.  Empty values result in an empty list.
-raw_hosts = env("DJANGO_ALLOWED_HOSTS", default="")
+# On accepte ``DJANGO_ALLOWED_HOSTS`` avec repli sur ``ALLOWED_HOSTS``.
+raw_hosts = env("DJANGO_ALLOWED_HOSTS", default=env("ALLOWED_HOSTS", default=""))
 if isinstance(raw_hosts, str):
     ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 else:
@@ -155,9 +164,11 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # Directory where collectstatic will collect static files for production
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Use WhiteNoise’s storage backend to compress and hash static files
-# For Django < 4.2, use STATICFILES_STORAGE instead of STORAGES
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Use WhiteNoise’s storage backend to compress static files.  Par défaut on
+# n'active PAS le manifest (qui exige un ``collectstatic`` préalable et fait
+# échouer le rendu en dev/tests).  Le stockage avec manifest est activé
+# uniquement en production (voir ``settings/prod.py``).
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Media files (uploaded by users)
 MEDIA_URL = "/media/"
@@ -223,7 +234,7 @@ EMAIL_BACKEND = env(
     default="django.core.mail.backends.smtp.EmailBackend"
 )
 
-EMAIL_HOST = env("EMAIL_HOST", default="mail.google.com")
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
@@ -246,6 +257,58 @@ TASK_NOTIFICATION_EMAIL = env(
 )
 ADMINS = [("Admin", TASK_NOTIFICATION_EMAIL)]
 MANAGERS = ADMINS
+
+# -------------------------------------------------------------
+# Copies des e-mails de notification interne (admin uniquement)
+# -------------------------------------------------------------
+# Ces réglages ajoutent une copie (CC visible et/ou CCI cachée) aux e-mails
+# de NOTIFICATION ADMINISTRATIVE (ex. réception d'un message de contact).
+# Ils ne s'appliquent PAS aux e-mails envoyés aux clients (factures, devis).
+#
+# Pendant la période de garantie, l'adresse ``REVIEW_COPY_EMAIL`` est ajoutée
+# automatiquement en copie (CC + CCI) jusqu'à la date ``REVIEW_COPY_UNTIL``
+# afin de permettre l'évaluation de la qualité du service.  Au-delà de cette
+# date, la copie cesse automatiquement sans modification de code.
+NOTIFICATION_CC = env.list("NOTIFICATION_CC", default=[])
+NOTIFICATION_BCC = env.list("NOTIFICATION_BCC", default=[])
+# Adresse mise en copie pendant la garantie.  Valeur VIDE par défaut : aucune
+# adresse n'est codée en dur dans le dépôt.  Pour activer la copie, renseignez
+# REVIEW_COPY_EMAIL dans votre fichier .env (non versionné).
+REVIEW_COPY_EMAIL = env("REVIEW_COPY_EMAIL", default="")
+# Date de fin (ISO ``AAAA-MM-JJ``) de la copie de garantie.  À ajuster à
+# « date de livraison + 30 jours ».
+REVIEW_COPY_UNTIL = env("REVIEW_COPY_UNTIL", default="2026-07-22")
+
+# -------------------------------------------------------------
+# Logging
+# -------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": env("DJANGO_LOG_LEVEL", default="INFO"),
+            "propagate": False,
+        },
+    },
+}
 # -------------------------------------------------------------
 # Jazzmin configuration
 # -------------------------------------------------------------

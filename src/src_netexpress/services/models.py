@@ -117,7 +117,10 @@ class Category(models.Model):
 
 
 class Service(models.Model):
-    title = models.CharField(max_length=200, unique=True)
+    # ``title`` n'est volontairement PAS unique : l'unicité fonctionnelle est
+    # portée par ``slug`` (généré et dédupliqué dans ``save``).  Deux services
+    # peuvent donc partager le même intitulé (ex. dans deux catégories).
+    title = models.CharField(max_length=200)
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
