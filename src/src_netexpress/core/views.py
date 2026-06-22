@@ -130,6 +130,24 @@ def about(request):
     return render(request, "core/about.html")
 
 
+def mentions_legales(request):
+    """Page de mentions légales (RGPD / LCEN)."""
+    return render(
+        request,
+        "core/mentions_legales.html",
+        {"branding": getattr(settings, "INVOICE_BRANDING", {}) or {}},
+    )
+
+
+def confidentialite(request):
+    """Page de politique de confidentialité (RGPD)."""
+    return render(
+        request,
+        "core/confidentialite.html",
+        {"branding": getattr(settings, "INVOICE_BRANDING", {}) or {}},
+    )
+
+
 def excellence(request):
     """
     Page de mise en avant des engagements de l'entreprise.

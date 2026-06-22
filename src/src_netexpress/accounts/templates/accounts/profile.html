@@ -14,7 +14,8 @@
         <div style="display:grid;gap:12px;">
           <div>
             <label>Rôle</label>
-            {{ form.role }}
+            {# Lecture seule : le rôle ne peut être modifié que par un administrateur. #}
+            <p style="margin:4px 0 0;font-weight:600;">{{ request.user.profile.get_role_display }}</p>
           </div>
           <div>
             <label>Téléphone</label>
