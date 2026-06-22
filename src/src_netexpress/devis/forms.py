@@ -6,6 +6,7 @@ from typing import Optional
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
+from core.forms import HoneypotMixin, validate_uploaded_images
 from services.models import Service
 from .models import Client, Quote, QuoteRequest, QuoteRequestPhoto, QuoteItem
 
@@ -13,7 +14,7 @@ class MultiFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 
-class DevisForm(forms.Form):
+class DevisForm(HoneypotMixin, forms.Form):
     """Formulaire simple pour demander un devis."""
 
     full_name = forms.CharField(
@@ -150,6 +151,10 @@ class DevisForm(forms.Form):
         widget=forms.ClearableFileInput(attrs={"multiple": False}),
     )
 
+    def clean_images(self):
+        validate_uploaded_images(self.files.getlist("images"))
+        return self.cleaned_data.get("images")
+
     def save(self) -> Quote:
         """Crée un ``Client`` et un ``Quote`` à partir des données du formulaire."""
         cleaned = self.cleaned_data
@@ -216,7 +221,7 @@ class DevisForm(forms.Form):
         return quote
 
 
-class QuoteRequestForm(forms.ModelForm):
+class QuoteRequestForm(HoneypotMixin, forms.ModelForm):
     """Formulaire public pour déposer une demande de devis."""
 
     photos = forms.FileField(
@@ -224,6 +229,10 @@ class QuoteRequestForm(forms.ModelForm):
         required=False,
         widget=MultiFileInput(attrs={"multiple": True}),
     )
+
+    def clean_photos(self):
+        validate_uploaded_images(self.files.getlist("photos"))
+        return self.cleaned_data.get("photos")
 
     class Meta:
         model = QuoteRequest

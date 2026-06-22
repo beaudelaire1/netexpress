@@ -23,6 +23,9 @@ urlpatterns = [
     path("excellence/", views.excellence, name="excellence"),
     # Galerie de réalisations avec filtrage et lightbox
     path("realisations/", views.realisations, name="realisations"),
+    # Pages légales (RGPD / LCEN)
+    path("mentions-legales/", views.mentions_legales, name="mentions_legales"),
+    path("confidentialite/", views.confidentialite, name="confidentialite"),
     # Tableau de bord agrégé
     path("dashboard/", views.dashboard, name="dashboard"),
 ]

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Politique de confidentialité — Nettoyage Express{% endblock %}
+{% block meta_description %}Politique de confidentialité de Nettoyage Express : données collectées, finalités, durée de conservation et vos droits (RGPD).{% endblock %}
+
+{% block content %}
+<section class="section legal">
+  <h1>Politique de confidentialité</h1>
+  <p class="muted">Dernière mise à jour : {% now "d/m/Y" %}.</p>
+
+  <h2>Responsable du traitement</h2>
+  <p>
+    {{ branding.name|default:"Nettoyage Express" }}, joignable à l'adresse
+    <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>, est
+    responsable du traitement des données collectées sur ce site.
+  </p>
+
+  <h2>Données collectées</h2>
+  <p>Nous collectons uniquement les données que vous nous transmettez via nos formulaires :</p>
+  <ul>
+    <li><strong>Formulaire de contact</strong> : nom, e-mail, téléphone, adresse (rue, commune, code postal) et contenu de votre message.</li>
+    <li><strong>Demande de devis</strong> : nom, e-mail, téléphone, adresse, description du besoin et éventuelles photos.</li>
+  </ul>
+
+  <h2>Finalités et base légale</h2>
+  <ul>
+    <li>Répondre à vos demandes de contact et établir des devis — base légale : votre consentement et l'exécution de mesures précontractuelles.</li>
+    <li>Gérer la relation client et le suivi des prestations — base légale : exécution du contrat.</li>
+  </ul>
+  <p>Vos données ne sont jamais vendues ni utilisées à des fins de prospection non sollicitée.</p>
+
+  <h2>Destinataires</h2>
+  <p>
+    Les données sont destinées exclusivement à {{ branding.name|default:"Nettoyage Express" }}
+    et, le cas échéant, à ses prestataires techniques (hébergement, envoi
+    d'e-mails), tenus à une obligation de confidentialité.
+  </p>
+
+  <h2>Durée de conservation</h2>
+  <ul>
+    <li>Messages de contact : 3 ans à compter du dernier échange.</li>
+    <li>Demandes de devis et documents associés : durée nécessaire à la relation commerciale, puis archivage légal.</li>
+  </ul>
+
+  <h2>Cookies</h2>
+  <p>
+    Ce site n'utilise que des cookies strictement nécessaires à son
+    fonctionnement (session et protection anti-CSRF). Ces cookies ne
+    requièrent pas votre consentement. Aucun cookie publicitaire ou de
+    mesure d'audience tierce n'est déposé.
+  </p>
+  <p>
+    Les polices et icônes peuvent être chargées depuis des services tiers
+    (Google Fonts, Cloudflare). Cela peut entraîner la transmission de votre
+    adresse IP à ces fournisseurs lors du chargement de ces ressources.
+  </p>
+
+  <h2>Vos droits</h2>
+  <p>
+    Conformément au Règlement général sur la protection des données (RGPD) et
+    à la loi « Informatique et Libertés », vous disposez d'un droit d'accès,
+    de rectification, d'effacement, de limitation et d'opposition au
+    traitement de vos données. Pour exercer ces droits, écrivez à
+    <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>.
+  </p>
+  <p>
+    Vous pouvez également introduire une réclamation auprès de la CNIL
+    (<a href="https://www.cnil.fr" rel="noopener" target="_blank">www.cnil.fr</a>).
+  </p>
+</section>
+{% endblock %}

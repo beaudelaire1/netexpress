@@ -8,8 +8,10 @@ Ces vues fournissent :
 """
 
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_GET
 
 from services.models import Service, Category
 from devis.models import Quote
@@ -84,6 +86,41 @@ def realisations(request):
             "categories": categories,
         },
     )
+
+
+def mentions_legales(request):
+    """Page de mentions légales (RGPD / LCEN)."""
+    return render(
+        request,
+        "core/mentions_legales.html",
+        {"branding": getattr(settings, "INVOICE_BRANDING", {}) or {}},
+    )
+
+
+def confidentialite(request):
+    """Page de politique de confidentialité (RGPD)."""
+    return render(
+        request,
+        "core/confidentialite.html",
+        {"branding": getattr(settings, "INVOICE_BRANDING", {}) or {}},
+    )
+
+
+@require_GET
+def robots_txt(request):
+    """Sert ``robots.txt`` en pointant vers le sitemap."""
+    sitemap_url = request.build_absolute_uri("/sitemap.xml")
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /gestion/",
+        "Disallow: /dashboard/",
+        "Disallow: /factures/",
+        "Disallow: /taches/",
+        "Disallow: /messages/",
+        f"Sitemap: {sitemap_url}",
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
 
 
 def health(request):

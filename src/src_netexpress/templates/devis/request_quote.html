@@ -15,6 +15,8 @@
     <form method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
       {{ form.non_field_errors }}
+      {# Champ piège anti-spam (invisible pour les humains) #}
+      {{ form.website }}
       <div class="row row-2">
         <div>
           {{ form.client_name.errors }}
@@ -53,6 +55,12 @@
         </div>
       </div>
       <button type="submit" class="btn btn-primary">Envoyer ma demande</button>
+      <p class="form-rgpd muted">
+        Vos données ne servent qu'au traitement de votre demande de devis.
+        Conformément au RGPD, vous pouvez exercer vos droits d'accès, de
+        rectification et de suppression. Voir notre
+        <a href="{% url 'core:confidentialite' %}">politique de confidentialité</a>.
+      </p>
     </form>
   </div>
 </section>

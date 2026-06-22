@@ -9,11 +9,12 @@ peut être ajoutée via un champ caché si nécessaire.
 
 from django import forms
 
+from core.forms import HoneypotMixin
 from .models import Message
 
 
 
-class ContactForm(forms.ModelForm):
+class ContactForm(HoneypotMixin, forms.ModelForm):
     class Meta:
         model = Message
         fields = ["topic", "full_name", "email", "phone","street","city", "zip_code", "body"]
