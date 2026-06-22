@@ -128,6 +128,7 @@ class RoleBasedAccessMiddleware:
             '/accounts/login/',
             '/accounts/logout/',
             '/accounts/signup/',
+            '/accounts/verify-email/',
             '/accounts/password-setup/',
             '/gestion/logout/',  # Django Admin logout
             '/contact/',
