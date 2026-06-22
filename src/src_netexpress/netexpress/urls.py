@@ -11,10 +11,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
+
+from core.sitemaps import sitemaps
+from core.views import robots_txt
 
 urlpatterns = [
     # Expose the admin under a custom path as defined in the cahier des charges
     path("gestion/", admin.site.urls),
+
+    # SEO : sitemap et robots.txt
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
+    path("robots.txt", robots_txt, name="robots_txt"),
 
     path("", include("core.urls")),
     path("services/", include("services.urls")),

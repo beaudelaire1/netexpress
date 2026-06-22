@@ -28,9 +28,9 @@
         <article class="service-card">
           <div class="service-media">
             {% if service.image %}
-              <img src="{{ service.image.url }}" alt="{{ service.title }}">
+              <img src="{{ service.image.url }}" alt="{{ service.title }}" loading="lazy" decoding="async">
             {% else %}
-              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }}">
+              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.title }}" loading="lazy" decoding="async">
             {% endif %}
           </div>
           <div class="service-body">

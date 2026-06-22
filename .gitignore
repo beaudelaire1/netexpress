@@ -1,0 +1,21 @@
+# Artefacts lourds non nécessaires au dépôt (médias / archives source)
+*.mp4
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+
+# Environnements et secrets
+.env
+venv/
+env/
+
+# Django
+staticfiles/
+media/
+
+# Node
+node_modules/

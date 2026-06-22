@@ -14,6 +14,8 @@
     <form method="post" novalidate class="contact-form">
       {% csrf_token %}
       {{ form.non_field_errors }}
+      {# Champ piège anti-spam (invisible pour les humains) #}
+      {{ form.website }}
 
       <div class="contact-grid">
         <div class="field">
@@ -71,6 +73,13 @@
         <button class="btn" type="submit">Envoyer</button>
         <small class="muted">Nous vous contacterons au plus vite.</small>
       </div>
+      <p class="form-rgpd muted">
+        Les informations recueillies via ce formulaire sont utilisées
+        uniquement pour traiter votre demande et n'ont aucune autre finalité.
+        Conformément au RGPD, vous disposez d'un droit d'accès, de
+        rectification et de suppression de vos données. Pour en savoir plus,
+        consultez notre <a href="{% url 'core:confidentialite' %}">politique de confidentialité</a>.
+      </p>
     </form>
   </div>
 </section>

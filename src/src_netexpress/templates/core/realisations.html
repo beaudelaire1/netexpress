@@ -30,7 +30,7 @@
   <div class="gallery-grid" id="gallery">
     {% for image in images %}
       <div class="gallery-item" data-category="{{ image.category }}">
-        <img src="{% static image.path %}" alt="{{ image.title }}">
+        <img src="{% static image.path %}" alt="{{ image.title }}" loading="lazy" decoding="async">
         <div class="gallery-overlay">
           <span class="gallery-cat">
             {% if image.category == 'nettoyage' %}
