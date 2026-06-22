@@ -8,6 +8,19 @@ dj-database-url>=2.2
 whitenoise>=6.6
 psycopg2-binary>=2.9
 
+# Chargement du fichier .env via manage.py (load_dotenv).
+python-dotenv>=1.0
+
+# Traitement des images : requis par les champs ImageField (services, devis).
+Pillow>=10.0
+
+# Tâches asynchrones (e-mails, notifications) : Celery + broker Redis.
+celery>=5.3
+redis>=5.0
+
+# Génération des PDF (factures premium, devis) via WeasyPrint.
+weasyprint>=60.0
+
 # Dépendances nécessaires pour le thème d'administration Jazzmin et la
 # génération de documents PDF professionnels.  ReportLab est utilisé à
 # la fois pour les factures et les devis afin de produire des PDF

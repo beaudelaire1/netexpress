@@ -161,4 +161,6 @@ class Task(models.Model):
         if self.status == self.STATUS_COMPLETED or not self.due_date:
             return False
         remaining = (self.due_date - date.today()).days
-        return remaining <= days_threshold
+        # Une tâche déjà en retard (``remaining`` négatif) n'est pas « bientôt
+        # due » : elle est en retard.  On borne donc l'intervalle à [0, seuil].
+        return 0 <= remaining <= days_threshold
