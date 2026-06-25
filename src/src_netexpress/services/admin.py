@@ -11,6 +11,7 @@ s’affichent dans l’interface d’administration.  En 2025, nous avons
     sinon, le thème par défaut reste propre et fonctionnel.
 """
 
+from django import forms
 from django.contrib import admin
 from .models import Category, Service, ServiceTask
 
@@ -20,11 +21,32 @@ class ServiceTaskInline(admin.TabularInline):
     extra = 1
 
 
+class ServiceAdminForm(forms.ModelForm):
+    """Formulaire d'administration des services.
+
+    Rend le texte alternatif (``image_alt``) obligatoire dans l'interface
+    d'administration afin de garantir que chaque service publié dispose d'une
+    description d'image accessible et optimisée pour le référencement, tout en
+    conservant un champ non contraignant au niveau de la base de données pour
+    les enregistrements historiques.
+    """
+
+    class Meta:
+        model = Service
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "image_alt" in self.fields:
+            self.fields["image_alt"].required = True
+
+
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ("title", "unit_type", "description")
+    form = ServiceAdminForm
+    list_display = ("title", "unit_type", "image_alt", "description")
     list_filter = ("category", "is_active")
-    search_fields = ("title", "description", "short_description")
+    search_fields = ("title", "description", "short_description", "image_alt")
     prepopulated_fields = {"slug": ("title",)}
     inlines = [ServiceTaskInline]
 
