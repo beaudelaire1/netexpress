@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}{{ service.title }} — NetExpress{% endblock %}
+{% block meta_description %}{{ service.short_description|default:service.description|striptags|truncatewords:25 }}{% endblock %}
 
 {% block content %}
 <section class="section">

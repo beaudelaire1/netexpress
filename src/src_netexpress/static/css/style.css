@@ -97,7 +97,14 @@ body {
 /* --- Hero --- */
 .hero {
     height: 75vh;
+    /* Fallback PNG puis WebP (95 Ko au lieu de 2,2 Mo) via image-set. */
     background: url('/static/img/hero_bg.png') center/cover;
+    background-image: image-set(
+        url('/static/img/hero_bg.webp') type('image/webp'),
+        url('/static/img/hero_bg.png') type('image/png')
+    );
+    background-position: center;
+    background-size: cover;
     position: relative;
     display: flex;
     align-items: center;
@@ -543,8 +550,12 @@ body {
     text-align: center;
     color: white;
     position: relative;
-    /* Image de fond subtile et sombre par défaut */
+    /* Image de fond subtile et sombre par défaut (fallback PNG puis WebP) */
     background-image: linear-gradient(rgba(16, 65, 48, 0.8), rgba(16, 65, 48, 0.8)), url('/static/img/hero_bg.png');
+    background-image: linear-gradient(rgba(16, 65, 48, 0.8), rgba(16, 65, 48, 0.8)), image-set(
+        url('/static/img/hero_bg.webp') type('image/webp'),
+        url('/static/img/hero_bg.png') type('image/png')
+    );
     background-size: cover;
     background-position: center;
 }

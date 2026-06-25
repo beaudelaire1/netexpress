@@ -1,4 +1,4 @@
-{% load static portal_navigation %}
+{% load static portal_navigation %}<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
@@ -6,14 +6,16 @@
   <!-- Provide a concise description of the site for search engines -->
   <meta property="og:site_name" content="Nettoyage Express">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
   <meta property="og:title" content="{% block og_title %}Nettoyage Express{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Nettoyage Express — services de nettoyage premium en Guyane.{% endblock %}">
 
-  <meta name="description" content="Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.">
+  {# Description par page : surcharger {% block meta_description %} dans chaque template pour un snippet unique (SEO). #}
+  <meta name="description" content="{% block meta_description %}Nettoyage Express propose des services d'entretien, espaces verts, peinture et bricolage en Guyane. Demandez votre devis en ligne et découvrez nos offres.{% endblock %}">
   <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
   <title>{% block title %}Nettoyage Express{% endblock %}</title>
-  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  {# Canonique normalisée : sans query string pour éviter le contenu dupliqué (ex. /services/?category=...). #}
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
   <!-- Polices et icônes : centralisées ici pour éviter duplication/FOUT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,42 +30,27 @@
   <script src="{% static 'js/main.js' %}" defer></script>
   <script src="{% static 'js/forms.js' %}" defer></script>
 
-  <!-- SEO avancé : Schema.org LocalBusiness -->
+  <!-- SEO avancé : Schema.org LocalBusiness (bloc unique) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Nettoyage Express",
-    "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}/",
     "telephone": "05 94 30 23 68",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "753, Chemin de la Désirée",
       "postalCode": "97351",
       "addressLocality": "Matoury",
-      "addressCountry": "FR"
+      "addressRegion": "Guyane",
+      "addressCountry": "GF"
     }
   }
   </script>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Nettoyage Express",
-      "url": "{{ request.build_absolute_uri|cut:request.get_full_path }}",
-      "telephone": "05 94 30 23 68",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "753, Chemin de la Désirée",
-        "postalCode": "97351",
-        "addressLocality": "Matoury",
-        "addressCountry": "GF"
-      }
-    }
-  </script>
   <!--
     Barre de navigation principale.
     Les liens sont identiques sur toutes les pages pour respecter le

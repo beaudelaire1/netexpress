@@ -10,13 +10,13 @@ Django when ``DEBUG`` is True.
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
-from core.sitemaps import StaticViewSitemap
+from core.sitemaps import StaticViewSitemap, ServiceSitemap
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 
-sitemaps = {"static": StaticViewSitemap}
+sitemaps = {"static": StaticViewSitemap, "services": ServiceSitemap}
 
 urlpatterns = [
     # Health check — no DB, no auth, returns 200 instantly

@@ -141,6 +141,16 @@ def excellence(request):
     return render(request, "core/excellence.html")
 
 
+def legal_notice(request):
+    """Mentions légales (obligation LCEN art. 6-III)."""
+    return render(request, "core/legal_notice.html", {"branding": getattr(settings, "INVOICE_BRANDING", {})})
+
+
+def privacy_policy(request):
+    """Politique de confidentialité (information des personnes, RGPD art. 13-14)."""
+    return render(request, "core/privacy_policy.html", {"branding": getattr(settings, "INVOICE_BRANDING", {})})
+
+
 def realisations(request):
     """Galerie des réalisations, alimentée depuis la base de données."""
     from .models import Realisation

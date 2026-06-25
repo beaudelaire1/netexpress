@@ -16,7 +16,12 @@ from .models import Message
 class ContactForm(forms.ModelForm):
     class Meta:
         model = Message
-        fields = ["topic", "full_name", "email", "phone","street","city", "zip_code", "body"]
+        # Minimisation des données (RGPD art. 5.1.c) : on ne collecte que les
+        # informations réellement exploitées pour traiter la demande. Le champ
+        # « rue » (street) a été retiré car il était demandé — et même requis —
+        # sans jamais être utilisé (absent de l'email de notification comme du
+        # back-office).
+        fields = ["topic", "full_name", "email", "phone", "city", "zip_code", "body"]
         widgets = {
             "topic": forms.Select(attrs={"class": "select"}),
             "full_name": forms.TextInput(
@@ -40,14 +45,6 @@ class ContactForm(forms.ModelForm):
                 attrs={
                     "class": "input",
                     "placeholder": "Téléphone",
-                    "required": True,
-                    "aria-required": "true",
-                }
-            ),
-            "street": forms.TextInput(
-                attrs={
-                    "class": "input",
-                    "placeholder": "Adresse",
                     "required": True,
                     "aria-required": "true",
                 }

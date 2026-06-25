@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Contact — NetExpress{% endblock %}
+{% block meta_description %}Contactez Nettoyage Express à Matoury (Guyane) : téléphone, email et formulaire en ligne pour toute demande d'information ou de prestation.{% endblock %}
 
 {% block content %}
 <section class="section contact-section">
@@ -38,12 +39,6 @@
           {{ form.phone.errors }}
           <label for="{{ form.phone.id_for_label }}">Téléphone</label>
           {{ form.phone }}
-        </div>
-
-        <div class="field">
-          {{ form.street.errors }}
-          <label for="{{ form.phone.id_for_label }}">Rue</label>
-          {{ form.street }}
         </div>
 
         <div class="field">

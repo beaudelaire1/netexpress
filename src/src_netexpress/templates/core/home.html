@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Accueil — Nettoyage Express{% endblock %}
+{% block meta_description %}Nettoyage Express, votre partenaire local en Guyane pour l'entretien, les espaces verts, la peinture et le bricolage. Devis express en ligne.{% endblock %}
 
 {% block content %}
   <!-- En‑tête immersif -->
@@ -70,7 +71,10 @@
           <div id="renovation" class="tab-content" role="tabpanel" hidden>
               <div class="content-card">
                   <div class="card-image">
-                      <img src="{% static 'img/hero_bg.png' %}" alt="Rénovation">
+                      <picture>
+                        <source srcset="{% static 'img/hero_bg.webp' %}" type="image/webp">
+                        <img src="{% static 'img/hero_bg.jpg' %}" alt="Rénovation express : peinture et petits travaux" width="1536" height="1024" loading="lazy" decoding="async">
+                      </picture>
                   </div>
                   <div class="card-text">
                       <h3>Rénovation express</h3>
@@ -162,7 +166,10 @@
           </div>
           {% empty %}
           <div class="portfolio-item">
-              <img src="{% static 'img/hero_bg.png' %}" alt="Jardin Villa">
+              <picture>
+                <source srcset="{% static 'img/hero_bg.webp' %}" type="image/webp">
+                <img src="{% static 'img/hero_bg.jpg' %}" alt="Jardin de villa entretenu" width="1536" height="1024" loading="lazy" decoding="async">
+              </picture>
               <div class="overlay-info">
                   <span class="category">Espaces Verts</span>
                   <h3 class="title">Villa Montjoly</h3>
