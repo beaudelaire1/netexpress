@@ -146,6 +146,16 @@ class Service(models.Model):
         null=True,
         help_text="Image illustrative du service."
     )
+    image_alt = models.CharField(
+        _("Texte alternatif (alt)"),
+        max_length=255,
+        blank=True,
+        help_text=_(
+            "Description courte de l'image pour l'accessibilité et le "
+            "référencement (attribut alt). À défaut, le titre du service "
+            "est utilisé."
+        ),
+    )
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(
         max_length=200,
@@ -153,6 +163,16 @@ class Service(models.Model):
         help_text="Identifiant d'URL généré automatiquement."
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def display_alt(self) -> str:
+        """Texte alternatif à utiliser dans les gabarits.
+
+        Retourne le texte alternatif descriptif saisi par l'administrateur
+        (``image_alt``) lorsqu'il est renseigné ; à défaut, on retombe sur le
+        titre du service afin de ne jamais produire d'attribut ``alt`` vide.
+        """
+        return self.image_alt.strip() or self.title
 
     def get_absolute_url(self) -> str:
         """
