@@ -55,9 +55,11 @@ services:
       - key: DEFAULT_FROM_NAME
         value: Nettoyage Express
       - key: CONTACT_RECEIVER_EMAIL
-        value: noreply@nettoyageexpresse.fr
+        value: n.express@nettoyageexpresse.fr
+      - key: CONTACT_CC_EMAIL
+        value: vilmebeaudelaire5@gmail.com
       - key: TASK_NOTIFICATION_EMAIL
-        value: noreply@nettoyageexpresse.fr
+        value: n.express@nettoyageexpresse.fr
 
   # === WORKER CELERY (tâches asynchrones) ===
   - type: worker

@@ -388,6 +388,14 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
 SITE_URL = (os.getenv('SITE_URL', '') or '').rstrip('/')
 
+# Destinataires des notifications internes (chargés depuis l'environnement)
+# - CONTACT_RECEIVER_EMAIL : destinataire principal des messages de contact
+# - CONTACT_CC_EMAIL       : copie (CC), plusieurs adresses possibles (séparées par des virgules)
+# - TASK_NOTIFICATION_EMAIL: notifications devis / tâches / factures
+CONTACT_RECEIVER_EMAIL = os.getenv('CONTACT_RECEIVER_EMAIL', '')
+CONTACT_CC_EMAIL = os.getenv('CONTACT_CC_EMAIL', '')
+TASK_NOTIFICATION_EMAIL = os.getenv('TASK_NOTIFICATION_EMAIL', '')
+
 # ============================================================
 # 📧 BREVO API CONFIGURATION
 # ============================================================

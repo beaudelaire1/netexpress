@@ -48,23 +48,30 @@ def send_contact_notification(message_id: int) -> None:
         <p>{getattr(msg, 'body', 'Aucun message')}</p>
         """
 
-    # recipients
-    recipients = []
-    if getattr(settings, "ADMINS", None):
-        recipients.extend([email for _, email in settings.ADMINS if email])
+    # Destinataire principal : CONTACT_RECEIVER_EMAIL, sinon DEFAULT_FROM_EMAIL.
+    primary = (
+        getattr(settings, "CONTACT_RECEIVER_EMAIL", "")
+        or getattr(settings, "DEFAULT_FROM_EMAIL", "")
+    )
+    recipients = [primary] if primary else []
+
+    # Copie (CC) éventuelle : CONTACT_CC_EMAIL (peut contenir plusieurs adresses
+    # séparées par des virgules).
+    cc_raw = getattr(settings, "CONTACT_CC_EMAIL", "") or ""
+    cc = [addr.strip() for addr in cc_raw.split(",") if addr.strip()]
+
     if not recipients:
-        fallback = getattr(settings, "TASK_NOTIFICATION_EMAIL", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
-        if fallback:
-            recipients.append(fallback)
-    if not recipients:
-        # Utiliser l'email de test comme fallback
-        recipients.append("vilmebeaudelaire5@gmail.com")
+        # Sans destinataire configuré, on n'envoie rien plutôt que d'utiliser
+        # une adresse arbitraire.
+        return
 
     email = EmailMessage(
         subject=f"[Contact] Nouveau message — {msg.full_name}",
         body=html,
         to=recipients,
-        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "vilmebeaudelaire5@gmail.com"),
+        cc=cc or None,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+        reply_to=[msg.email] if getattr(msg, "email", None) else None,
     )
     email.content_subtype = "html"
     email.send(fail_silently=False)
