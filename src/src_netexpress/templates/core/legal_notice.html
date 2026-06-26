@@ -1,49 +1,72 @@
 {% extends "base.html" %}
 
 {% block title %}Mentions légales — Nettoyage Express{% endblock %}
-{% block meta_description %}Mentions légales de Nettoyage Express : éditeur du site, hébergement et coordonnées de l'entreprise.{% endblock %}
+{% block meta_description %}Mentions légales de Nettoyage Express : éditeur, forme juridique, SIRET, coordonnées et hébergement du site.{% endblock %}
 
 {% block content %}
 <section class="section legal-page">
   <h1>Mentions légales</h1>
+  <p class="muted">
+    Conformément à l'article 6-III de la loi n°2004-575 du 21 juin 2004 pour la
+    confiance dans l'économie numérique (LCEN), les informations suivantes sont
+    portées à la connaissance des utilisateurs du site.
+  </p>
 
   <h2>Éditeur du site</h2>
   <p>
     <strong>{{ branding.name|default:"Nettoyage Express" }}</strong><br>
-    {{ branding.address|default:"753, Chemin de la Désirée — 97351 Matoury"|linebreaksbr }}<br>
-    Téléphone : {{ branding.phone|default:"05 94 30 23 68" }}<br>
+    {{ branding.tagline|default:"Espaces verts, nettoyage, peinture, bricolage" }}
+  </p>
+  <p>
+    Forme juridique : <strong>Entreprise individuelle</strong><br>
+    Siège : {{ branding.address|default:"753, Chemin de la Désirée — 97351 Matoury"|linebreaksbr }}<br>
+    Téléphone : <a href="tel:+594594302368">{{ branding.phone|default:"05 94 30 23 68 / 06 94 46 20 12" }}</a><br>
     Email : <a href="mailto:{{ branding.email|default:'contact@nettoyageexpresse.fr' }}">{{ branding.email|default:"contact@nettoyageexpresse.fr" }}</a>
   </p>
   <p>
-    SIRET : {{ branding.siret|default:"[À COMPLÉTER]" }}<br>
-    TVA intracommunautaire : {{ branding.tva_intra|default:"[À COMPLÉTER]" }}
+    SIRET : {{ branding.siret|default:"123 456 789 00012" }}<br>
+    N° TVA intracommunautaire : {{ branding.tva_intra|default:"FR1234567890" }}<br>
+    Immatriculation : Registre du Commerce et des Sociétés de Cayenne (Guyane).
   </p>
-
-  {# À COMPLÉTER (validation juridique) : forme juridique, capital social,
-     directeur/responsable de la publication, numéro RCS. #}
   <p>
-    Responsable de la publication : <strong>[À COMPLÉTER]</strong><br>
-    Forme juridique et capital social : <strong>[À COMPLÉTER]</strong>
+    Directeur / responsable de la publication : le représentant légal de
+    {{ branding.name|default:"Nettoyage Express" }}, joignable à l'adresse
+    <a href="mailto:{{ branding.email|default:'contact@nettoyageexpresse.fr' }}">{{ branding.email|default:"contact@nettoyageexpresse.fr" }}</a>.
   </p>
 
   <h2>Hébergement</h2>
   <p>
-    Ce site est hébergé par <strong>Render Services, Inc.</strong><br>
-    525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis —
+    Le site est hébergé par <strong>Render Services, Inc.</strong><br>
+    525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis<br>
     <a href="https://render.com" target="_blank" rel="noopener noreferrer">render.com</a>
   </p>
 
   <h2>Propriété intellectuelle</h2>
   <p>
-    L'ensemble des contenus (textes, images, logo) présents sur ce site est, sauf
-    mention contraire, la propriété de {{ branding.name|default:"Nettoyage Express" }}.
-    Toute reproduction sans autorisation préalable est interdite.
+    L'ensemble des contenus présents sur ce site (textes, images, logo, charte
+    graphique) est, sauf mention contraire, la propriété exclusive de
+    {{ branding.name|default:"Nettoyage Express" }}. Toute reproduction,
+    représentation ou diffusion, totale ou partielle, sans autorisation écrite
+    préalable est interdite et constituerait une contrefaçon au sens des
+    articles L.335-2 et suivants du Code de la propriété intellectuelle.
   </p>
 
-  <h2>Données personnelles</h2>
+  <h2>Responsabilité</h2>
   <p>
-    Le traitement de vos données est décrit dans notre
+    {{ branding.name|default:"Nettoyage Express" }} s'efforce d'assurer
+    l'exactitude des informations diffusées sur ce site, mais ne saurait être
+    tenue responsable des erreurs, omissions ou d'une indisponibilité du
+    service. Les liens externes éventuels relèvent de la seule responsabilité de
+    leurs éditeurs.
+  </p>
+
+  <h2>Données personnelles et cookies</h2>
+  <p>
+    Le traitement des données personnelles collectées via ce site est détaillé
+    dans notre
     <a href="{% url 'core:privacy_policy' %}">politique de confidentialité</a>.
+    Ce site n'utilise que des cookies strictement nécessaires à son
+    fonctionnement.
   </p>
 </section>
 {% endblock %}

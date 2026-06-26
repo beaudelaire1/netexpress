@@ -48,8 +48,62 @@ def public_devis(request):
             messages.success(request, "Votre demande de devis a bien été envoyée.")
             return redirect("devis:quote_success")
     else:
-        form = QuoteRequestForm()
+        # Pré-remplissage depuis l'estimation rapide (accueil) ou les liens
+        # « Devis Express » des pages services. Sans cela, le type de service,
+        # la surface et l'urgence saisis en amont étaient perdus à l'arrivée
+        # sur ce formulaire (la QuoteRequest n'a pas ces champs dédiés).
+        form = QuoteRequestForm(initial=_quote_prefill_initial(request.GET))
     return render(request, "devis/request_quote.html", {"form": form})
+
+
+# Libellés lisibles pour reconstituer le contexte transmis en query string.
+_SERVICE_TYPE_LABELS = {
+    "nettoyage": "Nettoyage",
+    "espaces_verts": "Espaces verts",
+    "espaces-verts": "Espaces verts",
+    "renovation": "Rénovation",
+    "peinture": "Peinture",
+    "bricolage": "Bricolage",
+}
+_URGENCY_LABELS = {
+    "standard": "Standard (sous 1 semaine)",
+    "express": "Express (48 h)",
+    "immediat": "Immédiat (24 h)",
+}
+
+
+def _quote_prefill_initial(params) -> dict:
+    """Construit les valeurs initiales du formulaire à partir de la query string.
+
+    Le récapitulatif (service, surface, urgence) est injecté dans le champ
+    ``message`` afin d'être conservé jusqu'à l'enregistrement et la
+    notification, le modèle ``QuoteRequest`` ne disposant pas de ces champs.
+    """
+    lines = []
+
+    service_slug = (params.get("service") or "").strip()
+    service_obj = None
+    if service_slug:
+        service_obj = Service.objects.filter(slug=service_slug, is_active=True).first()
+        if service_obj:
+            lines.append(f"Service souhaité : {service_obj.title}")
+
+    service_type = (params.get("service_type") or "").strip()
+    if service_type and not service_obj:
+        label = _SERVICE_TYPE_LABELS.get(service_type, service_type.replace("-", " ").replace("_", " ").capitalize())
+        lines.append(f"Type de service : {label}")
+
+    surface = (params.get("surface") or "").strip()
+    if surface.isdigit() and int(surface) > 0:
+        lines.append(f"Surface approximative : {surface} m²")
+
+    urgency = (params.get("urgency") or "").strip()
+    if urgency:
+        lines.append(f"Urgence : {_URGENCY_LABELS.get(urgency, urgency)}")
+
+    if not lines:
+        return {}
+    return {"message": "\n".join(lines) + "\n\n"}
 
 
 def quote_success(request):
