@@ -26,6 +26,14 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+
+      # === CLOUDFLARE TURNSTILE (anti-bot sur tous les formulaires) ===
+      # ⚠️ À renseigner dans le Dashboard Render, sinon la protection
+      # anti-bot reste DÉSACTIVÉE (verify_turnstile laisse passer).
+      - key: TURNSTILE_SITE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
       
       # === REDIS (pour Celery async) ===
       - key: REDIS_URL

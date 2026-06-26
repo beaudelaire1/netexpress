@@ -26,11 +26,18 @@
     <div class="services-grid">
       {% for service in services %}
         <article class="service-card">
-          <div class="service-media">
+          <div class="service-media{% if not service.image %} service-media--placeholder{% endif %}">
             {% if service.image %}
               <img src="{{ service.image.url }}" alt="{{ service.display_alt }}" loading="lazy">
             {% else %}
-              <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.display_alt }}" loading="lazy">
+              {% if service.category.slug == 'espaces-verts' %}
+                <i class="fa-solid fa-tree" aria-hidden="true"></i>
+              {% elif service.category.slug == 'peinture' or service.category.slug == 'renovation' %}
+                <i class="fa-solid fa-paint-roller" aria-hidden="true"></i>
+              {% else %}
+                <i class="fa-solid fa-broom" aria-hidden="true"></i>
+              {% endif %}
+              <span class="sr-only">{{ service.display_alt }}</span>
             {% endif %}
           </div>
           <div class="service-body">
