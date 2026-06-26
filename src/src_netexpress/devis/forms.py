@@ -204,11 +204,27 @@ class DevisForm(forms.Form):
 class QuoteRequestForm(forms.ModelForm):
     """Formulaire public pour déposer une demande de devis."""
 
+    MAX_MESSAGE_LENGTH = 5000
+
     photos = forms.FileField(
         label=_("Photos (optionnel)"),
         required=False,
         widget=MultiFileInput(attrs={"multiple": True, "class": "input"}),
     )
+
+    def clean_message(self):
+        message = self.cleaned_data.get("message", "") or ""
+        if len(message) > self.MAX_MESSAGE_LENGTH:
+            raise forms.ValidationError(
+                f"Votre message est trop long (maximum {self.MAX_MESSAGE_LENGTH} caractères)."
+            )
+        return message
+
+    def clean_surface(self):
+        surface = self.cleaned_data.get("surface")
+        if surface is not None and surface > 1_000_000:
+            raise forms.ValidationError("Surface invalide.")
+        return surface
 
     def clean_photos(self):
         files = self.files.getlist("photos")
@@ -274,6 +290,7 @@ class QuoteRequestForm(forms.ModelForm):
                     "class": "textarea",
                     "placeholder": "Décrivez votre besoin (fréquence, contraintes, détails...)",
                     "rows": 6,
+                    "maxlength": 5000,
                 }
             ),
             "preferred_date": forms.DateInput(

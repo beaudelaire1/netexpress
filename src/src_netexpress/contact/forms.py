@@ -12,8 +12,18 @@ from django import forms
 from .models import Message
 
 
+MAX_MESSAGE_LENGTH = 5000
+
 
 class ContactForm(forms.ModelForm):
+    def clean_body(self):
+        body = self.cleaned_data.get("body", "") or ""
+        if len(body) > MAX_MESSAGE_LENGTH:
+            raise forms.ValidationError(
+                f"Votre message est trop long (maximum {MAX_MESSAGE_LENGTH} caractères)."
+            )
+        return body
+
     class Meta:
         model = Message
         fields = ["topic", "full_name", "email", "phone","street","city", "zip_code", "body"]
@@ -73,6 +83,7 @@ class ContactForm(forms.ModelForm):
                     "class": "textarea",
                     "placeholder": "Votre message",
                     "rows": 4,
+                    "maxlength": MAX_MESSAGE_LENGTH,
                 }
             ),
         }
