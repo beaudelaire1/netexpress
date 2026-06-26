@@ -130,6 +130,16 @@ def about(request):
     return render(request, "core/about.html")
 
 
+def legal_notice(request):
+    """Mentions légales (obligation LCEN art. 6-III)."""
+    return render(request, "core/legal_notice.html", {"branding": getattr(settings, "INVOICE_BRANDING", {})})
+
+
+def privacy_policy(request):
+    """Politique de confidentialité (RGPD art. 13-14)."""
+    return render(request, "core/privacy_policy.html", {"branding": getattr(settings, "INVOICE_BRANDING", {})})
+
+
 def excellence(request):
     """
     Page de mise en avant des engagements de l'entreprise.

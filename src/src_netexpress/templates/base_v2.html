@@ -15,7 +15,7 @@
   <meta name="keywords" content="nettoyage Guyane, entretien, espaces verts, jardinage, peinture, bricolage, Matoury, Cayenne, devis nettoyage">
   
   <title>{% block title %}Nettoyage Express{% endblock %}</title>
-  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
   
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -62,34 +62,12 @@
   </script>
   {% block extra_jsonld %}{% endblock %}
   
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Fonts & icônes : auto-hébergés (RGPD/CNIL, pas de CDN tiers) -->
+  <link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
 
-  <!-- TailwindCSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'ne-primary': {
-              50: '#e6f5f0', 100: '#cceae1', 200: '#99d5c3', 300: '#66c0a5',
-              400: '#33ab87', 500: '#0e6b4c', 600: '#0c5a40', 700: '#0a4934',
-              800: '#083828', 900: '#06271c',
-            },
-            'ne-secondary': {
-              50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
-              400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
-              800: '#1e293b', 900: '#0f172a',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- TailwindCSS compilé localement (build de production, purgé) -->
+  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 
   <!-- Styles -->
   <link rel="stylesheet" href="{% static 'css/style_v2.css' %}">

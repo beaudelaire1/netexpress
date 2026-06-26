@@ -37,6 +37,21 @@
           {{ form.address }}
         </div>
         <div>
+          {{ form.service_type.errors }}
+          {{ form.service_type.label_tag }}
+          {{ form.service_type }}
+        </div>
+        <div>
+          {{ form.surface.errors }}
+          {{ form.surface.label_tag }}
+          {{ form.surface }}
+        </div>
+        <div>
+          {{ form.deadline.errors }}
+          {{ form.deadline.label_tag }}
+          {{ form.deadline }}
+        </div>
+        <div>
           {{ form.preferred_date.errors }}
           {{ form.preferred_date.label_tag }}
           {{ form.preferred_date }}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mentions légales — Nettoyage Express{% endblock %}
+{% block meta_description %}Mentions légales du site Nettoyage Express : éditeur, hébergeur, propriété intellectuelle et contact.{% endblock %}
+
+{% block content %}
+<section class="legal-page" style="max-width:880px;margin:0 auto;padding:2.5rem 1.25rem;line-height:1.7;">
+  <h1>Mentions légales</h1>
+  <p class="muted">Dernière mise à jour : {% now "d/m/Y" %}</p>
+
+  <h2>Éditeur du site</h2>
+  <p>
+    <strong>{{ branding.name|default:"Nettoyage Express" }}</strong><br>
+    {% for line in branding.address_lines %}{{ line }}<br>{% endfor %}
+    {% if branding.phone %}Téléphone : {{ branding.phone }}<br>{% endif %}
+    {% if branding.email %}Email : <a href="mailto:{{ branding.email }}">{{ branding.email }}</a><br>{% endif %}
+    {% if branding.siret %}SIRET : {{ branding.siret }}<br>{% endif %}
+    {% if branding.tva_intra %}N° TVA intracommunautaire : {{ branding.tva_intra }}<br>{% endif %}
+  </p>
+  <p>Directeur de la publication : le représentant légal de {{ branding.name|default:"Nettoyage Express" }}.</p>
+
+  <h2>Hébergement</h2>
+  <p>
+    Le site est hébergé par <strong>Render Services, Inc.</strong><br>
+    525 Brannan Street Suite 300, San Francisco, CA 94107, États-Unis<br>
+    Site web : <a href="https://render.com" target="_blank" rel="noopener noreferrer">render.com</a>
+  </p>
+
+  <h2>Conception et réalisation</h2>
+  <p>
+    Site conçu et réalisé par <a href="https://www.traitdunion.it" target="_blank" rel="noopener noreferrer">Trait d'Union Studio</a>.
+  </p>
+
+  <h2>Propriété intellectuelle</h2>
+  <p>
+    L'ensemble des contenus présents sur ce site (textes, images, logo, charte
+    graphique, structure) sont, sauf mention contraire, la propriété exclusive
+    de {{ branding.name|default:"Nettoyage Express" }}. Toute reproduction,
+    représentation, modification ou exploitation, totale ou partielle, sans
+    autorisation écrite préalable est interdite et constitue une contrefaçon
+    sanctionnée par le Code de la propriété intellectuelle.
+  </p>
+
+  <h2>Responsabilité</h2>
+  <p>
+    Les informations diffusées sur ce site sont fournies à titre indicatif et
+    peuvent être modifiées à tout moment. {{ branding.name|default:"Nettoyage Express" }}
+    s'efforce d'assurer l'exactitude des informations publiées mais ne saurait
+    être tenue responsable des erreurs, omissions ou indisponibilités du service.
+  </p>
+
+  <h2>Données personnelles</h2>
+  <p>
+    Le traitement de vos données personnelles est décrit dans notre
+    <a href="{% url 'core:privacy_policy' %}">politique de confidentialité</a>.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Pour toute question relative aux présentes mentions légales, vous pouvez
+    nous écrire via la page <a href="{% url 'contact:contact' %}">Contact</a>
+    {% if branding.email %}ou par email à <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>{% endif %}.
+  </p>
+</section>
+{% endblock %}

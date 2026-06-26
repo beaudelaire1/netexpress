@@ -1,5 +1,5 @@
-# Cadre Django minimal requis.  La version 3.2 LTS est sélectionnée afin
-# d'augmenter les chances qu'elle soit déjà disponible dans l'environnement.
+# Cadre Django. Version 5.2 LTS (support long terme). La contrainte majeure
+# est verrouillée (<6.0) pour éviter une montée de version non maîtrisée.
 Django>=5.2,<6.0
 
 # Paramètres facultatifs pour la configuration de la base de données et le déploiement.

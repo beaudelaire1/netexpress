@@ -147,6 +147,8 @@ class RoleBasedAccessMiddleware:
             re.compile(r'^/a-propos/$'),
             re.compile(r'^/excellence/$'),
             re.compile(r'^/realisations/$'),
+            re.compile(r'^/mentions-legales/$'),
+            re.compile(r'^/politique-confidentialite/$'),
         ]
     
     def __call__(self, request):
@@ -238,11 +240,19 @@ class RoleBasedAccessMiddleware:
         return None
     
     def _update_user_activity(self, request):
-        """Mettre à jour la date de dernière activité."""
+        """Mettre à jour la date de dernière activité (au plus une fois par 5 min)."""
         try:
+            # Throttle : éviter une écriture en base à chaque requête.
+            throttle_key = f'last_activity_update_{request.user.pk}'
+            if request.session.get(throttle_key):
+                last = request.session.get(throttle_key, 0)
+                if (timezone.now().timestamp() - last) < 300:  # 5 minutes
+                    return
+
             if hasattr(request.user, 'profile') and request.user.profile:
                 request.user.profile.last_portal_access = timezone.now()
                 request.user.profile.save(update_fields=['last_portal_access'])
+                request.session[throttle_key] = timezone.now().timestamp()
         except Exception:
             pass
 

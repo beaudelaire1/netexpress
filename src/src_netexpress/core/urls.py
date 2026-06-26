@@ -20,6 +20,9 @@ urlpatterns = [
     path("health/", views.health, name="health"),
     # Page "À propos" selon le cahier des charges
     path("a-propos/", views.about, name="about"),
+    # Pages légales (obligations LCEN / RGPD)
+    path("mentions-legales/", views.legal_notice, name="legal_notice"),
+    path("politique-confidentialite/", views.privacy_policy, name="privacy_policy"),
     # Page "L’Excellence" dédiée aux valeurs de l'entreprise
     path("excellence/", views.excellence, name="excellence"),
     # Galerie de réalisations avec filtrage et lightbox

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Politique de confidentialité — Nettoyage Express{% endblock %}
+{% block meta_description %}Politique de confidentialité de Nettoyage Express : données collectées, finalités, durées de conservation et exercice de vos droits RGPD.{% endblock %}
+
+{% block content %}
+<section class="legal-page" style="max-width:880px;margin:0 auto;padding:2.5rem 1.25rem;line-height:1.7;">
+  <h1>Politique de confidentialité</h1>
+  <p class="muted">Dernière mise à jour : {% now "d/m/Y" %}</p>
+
+  <p>
+    La présente politique décrit la manière dont
+    {{ branding.name|default:"Nettoyage Express" }} (« nous ») collecte et
+    traite vos données personnelles, conformément au Règlement général sur la
+    protection des données (RGPD) et à la loi Informatique et Libertés.
+  </p>
+
+  <h2>Responsable du traitement</h2>
+  <p>
+    {{ branding.name|default:"Nettoyage Express" }}
+    {% if branding.email %}— <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>{% endif %}
+    {% if branding.siret %}— SIRET {{ branding.siret }}{% endif %}.
+  </p>
+
+  <h2>Données collectées</h2>
+  <ul>
+    <li><strong>Formulaire de contact / devis :</strong> nom, email, téléphone, adresse postale, message.</li>
+    <li><strong>Compte client / espace personnel :</strong> identifiants de connexion, documents (devis, factures), historique des interventions.</li>
+    <li><strong>Données techniques :</strong> données strictement nécessaires au fonctionnement du site (session, sécurité anti-fraude).</li>
+  </ul>
+
+  <h2>Finalités et bases légales</h2>
+  <ul>
+    <li>Répondre à vos demandes de contact et de devis — <em>mesures précontractuelles / intérêt légitime</em>.</li>
+    <li>Gérer la relation commerciale, les devis et la facturation — <em>exécution du contrat</em>.</li>
+    <li>Assurer la sécurité du site et prévenir les abus — <em>intérêt légitime</em>.</li>
+    <li>Respecter nos obligations légales et comptables — <em>obligation légale</em>.</li>
+  </ul>
+
+  <h2>Durées de conservation</h2>
+  <ul>
+    <li>Demandes de contact sans suite : 3 ans à compter du dernier contact.</li>
+    <li>Données clients et documents commerciaux : durée de la relation puis archivage légal (jusqu'à 10 ans pour les pièces comptables).</li>
+    <li>Données de compte : jusqu'à la suppression du compte, puis purge.</li>
+  </ul>
+
+  <h2>Destinataires</h2>
+  <p>
+    Vos données sont destinées aux seuls services habilités de
+    {{ branding.name|default:"Nettoyage Express" }}. Certains sous-traitants
+    techniques peuvent y accéder dans la stricte mesure nécessaire :
+    hébergement (Render), envoi d'emails transactionnels (Brevo) et stockage des
+    fichiers (Cloudinary). Ces prestataires agissent sur instruction et dans le
+    cadre d'engagements de confidentialité.
+  </p>
+
+  <h2>Cookies</h2>
+  <p>
+    Ce site n'utilise que des cookies strictement nécessaires à son
+    fonctionnement (session de connexion, protection CSRF, sécurité). Ces
+    cookies sont exemptés de consentement au sens des recommandations de la
+    CNIL. Aucun cookie publicitaire ou de mesure d'audience tiers n'est déposé.
+  </p>
+
+  <h2>Vos droits</h2>
+  <p>
+    Conformément au RGPD, vous disposez d'un droit d'accès, de rectification,
+    d'effacement, de limitation, d'opposition et de portabilité de vos données.
+    Vous pouvez exercer ces droits
+    {% if branding.email %}en écrivant à <a href="mailto:{{ branding.email }}">{{ branding.email }}</a>{% else %}via la page <a href="{% url 'contact:contact' %}">Contact</a>{% endif %}.
+    Vous pouvez également introduire une réclamation auprès de la
+    <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">CNIL</a>.
+  </p>
+</section>
+{% endblock %}

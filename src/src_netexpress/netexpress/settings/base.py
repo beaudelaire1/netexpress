@@ -183,7 +183,7 @@ JAZZMIN_SETTINGS = {
     "related_modal_active": True,
     "custom_css": "css/jazzmin_overrides.css",
     "custom_js": "js/jazzmin_logout_fix.js",
-    "use_google_fonts_cdn": True,
+    "use_google_fonts_cdn": False,  # RGPD/CNIL : pas de chargement de polices depuis un CDN tiers
     "show_ui_builder": False,
     
     # Changement de langue
@@ -229,6 +229,7 @@ JAZZMIN_UI_TWEAKS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'core.middleware.security_headers.SecurityHeadersMiddleware',  # CSP + Permissions-Policy
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -405,25 +406,37 @@ TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
 # ============================================================
 # 🏢 BRANDING FACTURES/DEVIS
 # ============================================================
+#
+# ⚠️ Les informations légales et bancaires (SIRET, TVA, IBAN, BIC) sont
+# OBLIGATOIRES et doivent provenir de l'environnement (Dashboard Render),
+# JAMAIS de valeurs codées en dur. Elles apparaissent sur les factures et
+# devis PDF réels. En l'absence de variable d'environnement, les champs
+# sensibles restent vides (aucune donnée factice n'est affichée).
+# Variables attendues : COMPANY_NAME, COMPANY_EMAIL, COMPANY_PHONE,
+# COMPANY_ADDRESS_LINE1, COMPANY_ADDRESS_LINE2, COMPANY_SIRET, COMPANY_TVA,
+# BANK_ACCOUNT_NUMBER (IBAN), COMPANY_BIC, BANK_ACCOUNT_NAME.
+
+_company_address_line1 = os.getenv("COMPANY_ADDRESS_LINE1", "753, Chemin de la Désirée")
+_company_address_line2 = os.getenv("COMPANY_ADDRESS_LINE2", "97351 Matoury")
+_company_address_lines = [line for line in (_company_address_line1, _company_address_line2) if line]
 
 INVOICE_BRANDING = {
-    "name": "Nettoyage Express",
-    "tagline": "Espaces verts, nettoyage, peinture, bricolage",
-    "email": "contact@nettoyageexpresse.fr",
+    "name": os.getenv("COMPANY_NAME", "Nettoyage Express"),
+    "tagline": os.getenv("COMPANY_TAGLINE", "Espaces verts, nettoyage, peinture, bricolage"),
+    "email": os.getenv("COMPANY_EMAIL", "contact@nettoyageexpresse.fr"),
     "logo_path": "static:img/logo.png",
-    "address": "753, Chemin de la Désirée\n97351 Matoury",
-    "phone": "05 94 30 23 68 / 06 94 46 20 12",
-    "siret": "123 456 789 00012",
-    "tva_intra": "FR1234567890",
-    "iban": "FR76 3000 4000 1234 5678 9012 345",
-    "bic": "NETEEXFRXXX",
-    "payment_terms": "Paiement comptant à réception de facture",
+    "address": "\n".join(_company_address_lines),
+    "phone": os.getenv("COMPANY_PHONE", "05 94 30 23 68 / 06 94 46 20 12"),
+    # Champs légaux / bancaires : aucune valeur factice par défaut.
+    "siret": os.getenv("COMPANY_SIRET", ""),
+    "tva_intra": os.getenv("COMPANY_TVA", ""),
+    "iban": os.getenv("BANK_ACCOUNT_NUMBER", ""),
+    "bic": os.getenv("COMPANY_BIC", ""),
+    "bank_account_name": os.getenv("BANK_ACCOUNT_NAME", ""),
+    "payment_terms": os.getenv("COMPANY_PAYMENT_TERMS", "Paiement comptant à réception de facture"),
     "default_notes": "Nous vous remercions de votre confiance.",
-    "penalty_rate": "10%",
-    "address_lines": [
-        "753, Chemin de la Désirée",
-        "97351 Matoury",
-    ],
+    "penalty_rate": os.getenv("COMPANY_PENALTY_RATE", "10%"),
+    "address_lines": _company_address_lines,
 }
 
 # ============================================================

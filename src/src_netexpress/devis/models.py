@@ -78,10 +78,37 @@ class QuoteRequest(models.Model):
         PROCESSED = "processed", _("Traité")
         REJECTED = "rejected", _("Rejeté")
 
+    class ServiceType(models.TextChoices):
+        NETTOYAGE = "nettoyage", _("Nettoyage")
+        ESPACES_VERTS = "espaces_verts", _("Espaces verts")
+        RENOVATION = "renovation", _("Rénovation")
+
+    class Deadline(models.TextChoices):
+        STANDARD = "standard", _("Standard (sous 1 semaine)")
+        EXPRESS = "express", _("Express (48 h)")
+        IMMEDIAT = "immediat", _("Immédiat (24 h)")
+
     client_name = models.CharField(_("Nom du client"), max_length=200)
     email = models.EmailField(_("Email"))
     phone = models.CharField(_("Téléphone"), max_length=50)
     address = models.CharField(_("Adresse"), max_length=255)
+    service_type = models.CharField(
+        _("Type de service"),
+        max_length=20,
+        choices=ServiceType.choices,
+        blank=True,
+    )
+    surface = models.PositiveIntegerField(
+        _("Surface (m²)"),
+        null=True,
+        blank=True,
+    )
+    deadline = models.CharField(
+        _("Délai souhaité"),
+        max_length=20,
+        choices=Deadline.choices,
+        blank=True,
+    )
     message = models.TextField(_("Message"), blank=True)
     preferred_date = models.DateField(_("Date souhaitée"), null=True, blank=True)
     status = models.CharField(

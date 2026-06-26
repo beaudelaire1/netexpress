@@ -49,6 +49,11 @@
 
     <div class="site-footer-bottom">
       <p class="site-footer-legal">© {% now "Y" %} Nettoyage Express — Tous droits réservés.</p>
+      <nav class="site-footer-links" aria-label="Liens légaux">
+        <a href="{% url 'core:legal_notice' %}" class="site-footer-link">Mentions légales</a>
+        <span aria-hidden="true">·</span>
+        <a href="{% url 'core:privacy_policy' %}" class="site-footer-link">Politique de confidentialité</a>
+      </nav>
       <p class="site-footer-credit">Développé par <a href="https://www.traitdunion.it" target="_blank" rel="noopener noreferrer">Trait d'Union Studio</a></p>
     </div>
   </div>

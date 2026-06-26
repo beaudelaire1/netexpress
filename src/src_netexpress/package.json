@@ -3,8 +3,8 @@
   "version": "2.0.0",
   "description": "NetExpress v2 Transformation - Multi-portal business management system",
   "scripts": {
-    "build-css": "tailwindcss -i ./static/css/input.css -o ./static/css/style.css --watch",
-    "build-css-prod": "tailwindcss -i ./static/css/input.css -o ./static/css/style.css --minify"
+    "build-css": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --watch",
+    "build-css-prod": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --minify"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
@@ -12,6 +12,11 @@
     "tailwindcss": "^3.4.0"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.2.11",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/manrope": "^5.2.8",
+    "@fontsource/playfair-display": "^5.2.8",
+    "@fortawesome/fontawesome-free": "^7.3.0",
     "htmx.org": "^1.9.10"
   }
 }

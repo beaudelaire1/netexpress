@@ -48,7 +48,28 @@ def public_devis(request):
             messages.success(request, "Votre demande de devis a bien été envoyée.")
             return redirect("devis:quote_success")
     else:
-        form = QuoteRequestForm()
+        # Pré-remplissage depuis le formulaire rapide de l'accueil
+        # (paramètres GET : service_type, surface, urgency) pour ne pas perdre
+        # les informations déjà saisies par le visiteur.
+        valid_services = dict(QuoteRequest.ServiceType.choices)
+        valid_deadlines = dict(QuoteRequest.Deadline.choices)
+
+        initial = {}
+
+        service_type = request.GET.get("service_type")
+        if service_type in valid_services:
+            initial["service_type"] = service_type
+
+        surface = request.GET.get("surface")
+        if surface and surface.isdigit():
+            initial["surface"] = int(surface)
+
+        # Le formulaire rapide envoie le délai sous le nom "urgency".
+        urgency = request.GET.get("urgency") or request.GET.get("deadline")
+        if urgency in valid_deadlines:
+            initial["deadline"] = urgency
+
+        form = QuoteRequestForm(initial=initial)
     return render(request, "devis/request_quote.html", {"form": form})
 
 

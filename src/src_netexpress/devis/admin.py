@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django import forms
 from tinymce.widgets import TinyMCE
 from core.utils import sanitize_html
-from .models import Quote, QuoteItem, Client
+from .models import Quote, QuoteItem, Client, QuoteRequest
 
 
 class QuoteAdminForm(forms.ModelForm):
@@ -162,5 +162,35 @@ class QuoteAdmin(admin.ModelAdmin):
             self.message_user(request, f"{sent_count} devis envoyé(s) par email.", level=messages.SUCCESS)
         elif not failed_count:
             self.message_user(request, "Aucun devis sélectionné pour l'envoi.", level=messages.WARNING)
+
+@admin.register(QuoteRequest)
+class QuoteRequestAdmin(admin.ModelAdmin):
+    """Demandes de devis reçues depuis le site public."""
+
+    list_display = (
+        "client_name",
+        "service_type",
+        "surface",
+        "deadline",
+        "status",
+        "created_at",
+    )
+    list_filter = ("status", "service_type", "deadline", "created_at")
+    search_fields = ("client_name", "email", "phone", "address", "message")
+    readonly_fields = ("created_at",)
+    filter_horizontal = ("photos",)
+
+    fieldsets = (
+        ("Contact", {
+            "fields": ("client_name", "email", "phone", "address")
+        }),
+        ("Demande", {
+            "fields": ("service_type", "surface", "deadline", "preferred_date", "message", "photos")
+        }),
+        ("Suivi", {
+            "fields": ("status", "created_at")
+        }),
+    )
+
 
 # NOTE : on ne register pas QuoteItem pour éviter un menu séparé en admin.

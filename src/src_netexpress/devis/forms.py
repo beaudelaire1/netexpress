@@ -207,7 +207,7 @@ class QuoteRequestForm(forms.ModelForm):
     photos = forms.FileField(
         label=_("Photos (optionnel)"),
         required=False,
-        widget=MultiFileInput(attrs={"multiple": True}),
+        widget=MultiFileInput(attrs={"multiple": True, "class": "input"}),
     )
 
     def clean_photos(self):
@@ -228,7 +228,58 @@ class QuoteRequestForm(forms.ModelForm):
 
     class Meta:
         model = QuoteRequest
-        fields = ["client_name", "email", "phone", "address", "message", "preferred_date"]
+        fields = ["client_name", "email", "phone", "address", "service_type", "surface", "deadline", "message", "preferred_date"]
+        widgets = {
+            "client_name": forms.TextInput(
+                attrs={
+                    "class": "input",
+                    "placeholder": "Nom complet",
+                    "required": True,
+                    "aria-required": "true",
+                }
+            ),
+            "email": forms.EmailInput(
+                attrs={
+                    "class": "input",
+                    "placeholder": "votre@email.com",
+                    "required": True,
+                    "aria-required": "true",
+                }
+            ),
+            "phone": forms.TextInput(
+                attrs={
+                    "class": "input",
+                    "placeholder": "0694 ...",
+                    "required": True,
+                    "aria-required": "true",
+                }
+            ),
+            "address": forms.TextInput(
+                attrs={
+                    "class": "input",
+                    "placeholder": "Adresse (quartier, rue, ville...)",
+                }
+            ),
+            "service_type": forms.Select(attrs={"class": "select"}),
+            "surface": forms.NumberInput(
+                attrs={
+                    "class": "input",
+                    "placeholder": "Surface approximative en m²",
+                    "min": 1,
+                }
+            ),
+            "deadline": forms.Select(attrs={"class": "select"}),
+            "message": forms.Textarea(
+                attrs={
+                    "class": "textarea",
+                    "placeholder": "Décrivez votre besoin (fréquence, contraintes, détails...)",
+                    "rows": 6,
+                }
+            ),
+            "preferred_date": forms.DateInput(
+                attrs={"class": "input", "type": "date"}
+            ),
+        }
 
 
 class QuoteAdminForm(forms.ModelForm):
