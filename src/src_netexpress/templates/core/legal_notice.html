@@ -14,23 +14,28 @@
 
   <h2>Éditeur du site</h2>
   <p>
-    <strong>{{ branding.name|default:"Nettoyage Express" }}</strong><br>
-    {{ branding.tagline|default:"Espaces verts, nettoyage, peinture, bricolage" }}
+    <strong>{{ branding.name|default:"Nettoyage Express" }}</strong>
+    — {{ branding.tagline|default:"Espaces verts, nettoyage, peinture, bricolage" }}
   </p>
   <p>
-    Forme juridique : <strong>Entreprise individuelle</strong><br>
-    Siège : {{ branding.address|default:"753, Chemin de la Désirée — 97351 Matoury"|linebreaksbr }}<br>
+    Dénomination sociale : <strong>{{ branding.name|default:"Nettoyage Express" }}</strong><br>
+    Forme juridique : <strong>{{ branding.legal_form|default:"SARL" }}</strong>
+    (société à responsabilité limitée){% if branding.capital %}<br>
+    Capital social : {{ branding.capital }}{% endif %}<br>
+    Siège social : {{ branding.address|default:"753, Chemin de la Désirée — 97351 Matoury"|linebreaksbr }}<br>
     Téléphone : <a href="tel:+594594302368">{{ branding.phone|default:"05 94 30 23 68 / 06 94 46 20 12" }}</a><br>
     Email : <a href="mailto:{{ branding.email|default:'contact@nettoyageexpresse.fr' }}">{{ branding.email|default:"contact@nettoyageexpresse.fr" }}</a>
   </p>
   <p>
     SIRET : {{ branding.siret|default:"123 456 789 00012" }}<br>
     N° TVA intracommunautaire : {{ branding.tva_intra|default:"FR1234567890" }}<br>
-    Immatriculation : Registre du Commerce et des Sociétés de Cayenne (Guyane).
+    Immatriculation : RCS de {{ branding.rcs_city|default:"Cayenne" }}{% if siren %} sous le n° {{ siren }}{% endif %} (Guyane).
   </p>
   <p>
-    Directeur / responsable de la publication : le représentant légal de
-    {{ branding.name|default:"Nettoyage Express" }}, joignable à l'adresse
+    {% if branding.manager %}Gérant(e) : {{ branding.manager }}<br>{% endif %}
+    Directeur / responsable de la publication :
+    {% if branding.manager %}{{ branding.manager }}{% else %}le représentant légal de
+    {{ branding.name|default:"Nettoyage Express" }}{% endif %}, joignable à l'adresse
     <a href="mailto:{{ branding.email|default:'contact@nettoyageexpresse.fr' }}">{{ branding.email|default:"contact@nettoyageexpresse.fr" }}</a>.
   </p>
 

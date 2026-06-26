@@ -415,6 +415,15 @@ INVOICE_BRANDING = {
     "phone": "05 94 30 23 68 / 06 94 46 20 12",
     "siret": "123 456 789 00012",
     "tva_intra": "FR1234567890",
+    # --- Informations légales (mentions légales) ---
+    # Forme juridique de la société éditrice du site.
+    "legal_form": "SARL",
+    # Greffe d'immatriculation au RCS (la Guyane dépend du greffe de Cayenne).
+    "rcs_city": "Cayenne",
+    # À renseigner avec les valeurs réelles de la société (laisser vide tant
+    # qu'inconnu : la ligne correspondante ne s'affiche alors pas).
+    "capital": "",   # ex. "5 000 €"
+    "manager": "",   # nom du/des gérant(s), ex. "Mme/M. ..."
     "iban": "FR76 3000 4000 1234 5678 9012 345",
     "bic": "NETEEXFRXXX",
     "payment_terms": "Paiement comptant à réception de facture",

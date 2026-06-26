@@ -143,7 +143,12 @@ def excellence(request):
 
 def legal_notice(request):
     """Mentions légales (obligation LCEN art. 6-III)."""
-    return render(request, "core/legal_notice.html", {"branding": getattr(settings, "INVOICE_BRANDING", {})})
+    branding = getattr(settings, "INVOICE_BRANDING", {})
+    # Le numéro RCS d'une société correspond à son SIREN, soit les 9 premiers
+    # chiffres du SIRET.
+    siret_digits = "".join(c for c in str(branding.get("siret", "")) if c.isdigit())
+    siren = siret_digits[:9] if len(siret_digits) >= 9 else ""
+    return render(request, "core/legal_notice.html", {"branding": branding, "siren": siren})
 
 
 def privacy_policy(request):

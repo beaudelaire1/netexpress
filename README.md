@@ -87,5 +87,8 @@ HTTPS, cookies `Secure`, `X-Content-Type-Options`, `X-Frame-Options: DENY`,
 ## Pages légales
 
 Mentions légales (`/mentions-legales/`) et politique de confidentialité
-(`/politique-de-confidentialite/`). Certaines informations juridiques sont marquées
-`[À COMPLÉTER]` dans les gabarits et doivent être validées avant mise en production.
+(`/politique-de-confidentialite/`). Les informations de la société (forme juridique
+SARL, SIRET, TVA, capital social, RCS, gérant) proviennent de `INVOICE_BRANDING`
+dans `netexpress/settings/base.py` — source unique partagée avec les devis et
+factures. Renseigner `capital` et `manager` avec les valeurs réelles : laissés vides,
+les champs correspondants ne s'affichent pas (le numéro RCS est dérivé du SIRET).
