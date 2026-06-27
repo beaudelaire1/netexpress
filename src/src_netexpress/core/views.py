@@ -2090,8 +2090,9 @@ def admin_edit_invoice(request, pk):
     class InvoiceEditForm(forms.ModelForm):
         class Meta:
             model = Invoice
-            fields = ['status', 'issue_date', 'due_date', 'discount', 'notes', 'payment_terms']
+            fields = ['command_ref', 'status', 'issue_date', 'due_date', 'discount', 'notes', 'payment_terms']
             widgets = {
+                'command_ref': forms.TextInput(attrs={'maxlength': 100, 'placeholder': 'Référence bon de commande (optionnel)', 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
                 'status': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
                 'issue_date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
                 'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ne-primary-500'}),
@@ -2349,8 +2350,9 @@ def admin_convert_quote_to_invoice(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
     
     if request.method == 'POST':
+        command_ref = (request.POST.get('command_ref') or '').strip()
         try:
-            result = create_invoice_from_quote(quote)
+            result = create_invoice_from_quote(quote, command_ref=command_ref)
             messages.success(request, f"Facture {result.invoice.number} créée avec succès depuis le devis {quote.number}!")
             return redirect('core:admin_invoice_detail', pk=result.invoice.pk)
         except QuoteAlreadyInvoicedError as e:

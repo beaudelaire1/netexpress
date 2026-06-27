@@ -71,6 +71,13 @@
               {% endif %}
               
               <div>
+                <label for="{{ form.command_ref.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Référence Bon de Commande
+                </label>
+                {{ form.command_ref }}
+              </div>
+
+              <div>
                 <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                   Statut
                 </label>

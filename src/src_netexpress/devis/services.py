@@ -38,7 +38,7 @@ class QuoteStatusError(Exception):
 
 
 @transaction.atomic
-def create_invoice_from_quote(quote: Union[int, Quote]) -> InvoiceCreationResult:
+def create_invoice_from_quote(quote: Union[int, Quote], command_ref: str = "") -> InvoiceCreationResult:
     """
     Crée une facture à partir d'un devis accepté.
 
@@ -46,6 +46,9 @@ def create_invoice_from_quote(quote: Union[int, Quote]) -> InvoiceCreationResult
     ----------
     quote :
         Instance de :class:`Quote` ou identifiant primaire du devis.
+    command_ref :
+        Référence du bon de commande client à reporter sur la facture
+        (optionnelle).
 
     Règles métier
     -------------
@@ -84,6 +87,7 @@ def create_invoice_from_quote(quote: Union[int, Quote]) -> InvoiceCreationResult
     # Créer la facture
     invoice = Invoice.objects.create(
         quote=q,
+        command_ref=(command_ref or "").strip(),
         issue_date=date.today(),
         total_ht=q.total_ht,
         tva=q.tva,
