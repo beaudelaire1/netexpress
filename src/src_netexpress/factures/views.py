@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from django.conf import settings
+from django.views.decorators.http import require_POST
 from devis.models import Quote
 from devis.services import create_invoice_from_quote, QuoteAlreadyInvoicedError, QuoteStatusError
 from . models import Invoice
@@ -20,6 +21,7 @@ from core.decorators import admin_portal_required
 
 
 @admin_portal_required
+@require_POST
 def create_invoice(request, quote_id:  int):
     """
     Crée une facture à partir d'un devis existant. 
@@ -39,10 +41,10 @@ def create_invoice(request, quote_id:  int):
         return redirect(reverse("factures:archive"))
     except QuoteStatusError as e:
         messages.error(request, f"Erreur lors de la création de la facture :  {str(e)}")
-        return redirect(reverse("factures: archive"))
+        return redirect(reverse("factures:archive"))
     except Exception as e:
         messages. error(request, f"Erreur lors de la création de la facture :  {str(e)}")
-        return redirect(reverse("factures: archive"))
+        return redirect(reverse("factures:archive"))
 
     # Générer et attacher le PDF premium à partir du modèle Django. 
     # Recalculer les totaux avant la génération pour s'assurer que le
@@ -51,7 +53,8 @@ def create_invoice(request, quote_id:  int):
         invoice.compute_totals()
         invoice.generate_pdf(attach=True)
         # Envoi immédiat de la facture au client (PDF en pièce jointe)
-        PremiumEmailService().send_invoice_notification(invoice)
+        if not PremiumEmailService().send_invoice_notification(invoice):
+            raise RuntimeError("Envoi non confirmé par le service email.")
         # Marquer la facture comme envoyée
         if hasattr(invoice, "status"):
             invoice.status = Invoice. InvoiceStatus.SENT
@@ -66,7 +69,7 @@ def create_invoice(request, quote_id:  int):
     if not invoice.invoice_items.exists():
         messages.warning(request, "La facture a été créée mais elle ne contient aucune ligne.")
     
-    return redirect(reverse("factures: archive"))
+    return redirect(reverse("factures:archive"))
 
 
 @admin_portal_required
@@ -87,4 +90,4 @@ def archive(request):
     Affiche toutes les factures avec lien vers téléchargement PDF.
     """
     invoices = Invoice.objects.exclude(pdf="").order_by("-issue_date", "-number")
-    return render(request, "factures/archive. html", {"invoices": invoices})
+    return render(request, "factures/archive.html", {"invoices": invoices})

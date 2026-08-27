@@ -27,6 +27,10 @@
         {% endfor %}
       {% endif %}
 
+      {% if not user.profile.has_verified_email %}
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg"><p>Vérifiez votre adresse email pour activer l’accès aux documents.</p>
+      <form method="post" action="{% url 'accounts:resend_activation' %}">{% csrf_token %}<button type="submit" class="text-blue-700">Recevoir un lien d’activation</button></form></div>
+      {% endif %}
       <form method="post" class="space-y-6">
         {% csrf_token %}
         

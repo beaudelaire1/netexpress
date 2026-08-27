@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'tasks.apps.TasksConfig',
     'messaging.apps.MessagingConfig',
     'accounts.apps.AccountsConfig',
+    'accounting.apps.AccountingConfig',
 ]
 
 # ============================================================
@@ -236,9 +237,9 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'accounts.middleware.PermissionSyncMiddleware',  # Auto-sync permissions (must be after auth)
-    'accounts.middleware.ForcePasswordChangeMiddleware',  # Force password change on first login
     'core.middleware.session_tracking.PortalSessionTrackingMiddleware',  # Analytics sessions portail
-    'django.contrib.messages.middleware.MessageMiddleware',  # Doit être avant RoleBasedAccessMiddleware
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'accounts.middleware.ForcePasswordChangeMiddleware',
     'accounts.middleware.RoleBasedAccessMiddleware',  # Add role-based access control
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',  # Brute-force protection (must be last auth-related)
@@ -562,3 +563,6 @@ else:
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 
+
+PRIVATE_MEDIA_ROOT = Path(os.getenv("PRIVATE_MEDIA_ROOT", str(BASE_DIR / "private_media")))
+PASSWORD_RESET_TIMEOUT = 3600 * 24

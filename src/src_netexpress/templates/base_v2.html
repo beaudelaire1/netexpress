@@ -106,6 +106,7 @@
           {% block nav_items %}
           {% if user.is_authenticated %}
             {% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' %}
+              <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
               <a href="/admin-dashboard/" class="portal-nav-item"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
               
               <!-- Menu Gestion -->
@@ -166,7 +167,9 @@
               </div>
               
               <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
-            {% elif user.profile.role == 'worker' %}
+            {% elif user.profile.role == 'accountant' %}
+                <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
+          {% elif user.profile.role == 'worker' %}
               <a href="/worker/" class="portal-nav-item"><i class="fas fa-tasks mr-1"></i> Mes Tâches</a>
               <a href="/worker/schedule/" class="portal-nav-item"><i class="fas fa-calendar mr-1"></i> Planning</a>
               <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
@@ -202,9 +205,9 @@
                   <i class="fas fa-user mr-2"></i>Mon Profil
                 </a>
                 <div class="border-t border-gray-100"></div>
-                <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">{% csrf_token %}<button type="submit" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                   <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                </a>
+                </button></form>
               </div>
             </div>
           {% else %}
@@ -229,6 +232,7 @@
         {% block mobile_nav_items %}
         {% if user.is_authenticated %}
           {% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' %}
+              <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
             <a href="/admin-dashboard/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</a>
             <div class="border-t border-ne-primary-500 my-2"></div>
             <p class="px-3 py-1 text-ne-primary-200 text-xs uppercase">Gestion</p>
@@ -247,6 +251,8 @@
             <a href="/admin-dashboard/reports/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-file-export mr-2"></i>Rapports</a>
             <div class="border-t border-ne-primary-500 my-2"></div>
             <a href="{% portal_messages_route user 'thread_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
+          {% elif user.profile.role == 'accountant' %}
+                <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
           {% elif user.profile.role == 'worker' %}
             <a href="/worker/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-tasks mr-2"></i>Mes Tâches</a>
             <a href="/worker/schedule/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-calendar mr-2"></i>Planning</a>
@@ -272,9 +278,9 @@
             <a href="/accounts/profile/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md">
               <i class="fas fa-user mr-2"></i>Mon Profil
             </a>
-            <a href="{% url 'accounts:logout' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md">
+            <form method="post" action="{% url 'accounts:logout' %}" style="display:inline">{% csrf_token %}<button type="submit" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md">
               <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-            </a>
+            </button></form>
           </div>
         {% else %}
           <div class="border-t border-ne-primary-500 pt-2 mt-2">

@@ -126,8 +126,7 @@ class EmailService:
                 logger.warning(f"Could not attach invoice PDF: {e}")
         
         try:
-            email.send()
-            return True
+            return email.send() == 1
         except Exception as e:
             logger.error(f"Failed to send invoice email: {e}")
             return False
@@ -208,8 +207,7 @@ class EmailService:
             logger.warning(f"Could not attach quote PDF: {e}")
         
         try:
-            email.send()
-            return True
+            return email.send() == 1
         except Exception as e:
             logger.error(f"Failed to send quote email: {e}")
             return False
@@ -267,8 +265,7 @@ class EmailService:
         email.attach_alternative(html_content, "text/html")
         
         try:
-            email.send()
-            return True
+            return email.send() == 1
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
@@ -278,6 +275,8 @@ class EmailService:
     @staticmethod
     def _get_base_url(request=None):
         """Get base URL for building absolute links."""
+        if not settings.DEBUG and getattr(settings, "SITE_URL", ""):
+            return settings.SITE_URL.rstrip("/")
         if request is not None:
             try:
                 return request.build_absolute_uri('/').rstrip('/')

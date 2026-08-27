@@ -7,7 +7,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render, get_object_or_404
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, url_has_allowed_host_and_scheme
 from django.utils.encoding import force_str
 from django.views.decorators.http import require_http_methods
 
@@ -30,8 +30,10 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            messages.success(request, "Votre compte a été créé.")
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            from core.services.email_service import EmailService
+            sent = EmailService.send_client_portal_invitation(user, request=request)
+            messages.info(request, "Compte créé. Vérifiez votre adresse grâce au lien envoyé par email pour accéder aux documents." if sent else "Compte créé. L’envoi de l’activation a échoué ; demandez un nouveau lien depuis votre profil.")
             # Use portal routing logic for redirect
             redirect_url = redirect_after_login(user)
             return redirect(redirect_url)
@@ -65,7 +67,7 @@ def custom_login(request):
                 
                 # Check if there's a 'next' parameter for redirect
                 next_url = request.GET.get('next')
-                if next_url:
+                if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
                     return redirect(next_url)
                 
                 # Use portal routing logic for redirect
@@ -105,17 +107,19 @@ def password_setup(request, uidb64, token):
     except (TypeError, ValueError, OverflowError):
         user = None
     
-    if user is not None and default_token_generator.check_token(user, token):
+    if user is not None and user.is_active and default_token_generator.check_token(user, token):
         if request.method == 'POST':
             form = SetPasswordForm(user, request.POST)
             if form.is_valid():
                 form.save()
+                from .access import confirm_email
+                confirm_email(user)
                 # Log the user in automatically after password setup
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.success(request, 'Votre mot de passe a été configuré avec succès. Bienvenue !')
                 
                 # Redirect to client portal
-                return redirect('core:client_portal_dashboard')
+                return redirect(redirect_after_login(user))
         else:
             form = SetPasswordForm(user)
         
@@ -132,6 +136,7 @@ def password_setup(request, uidb64, token):
         return render(request, 'accounts/password_setup.html', context)
 
 
+@require_http_methods(["POST"])
 def custom_logout(request):
     """Custom logout view with success message."""
     if request.user.is_authenticated:
@@ -198,3 +203,17 @@ def password_change(request):
 def password_change_done(request):
     """Vue de confirmation après changement de mot de passe."""
     return redirect(redirect_after_login(request.user))
+
+
+@login_required
+@require_http_methods(["POST"])
+def resend_activation(request):
+    from django.core.cache import cache
+    from core.services.email_service import EmailService
+    if not cache.add(f"activation:{request.user.pk}", True, timeout=300):
+        messages.info(request, "Un lien a déjà été demandé. Patientez cinq minutes.")
+    elif EmailService.send_client_portal_invitation(request.user, request=request):
+        messages.success(request, "Un lien d’activation a été envoyé à votre adresse.")
+    else:
+        messages.error(request, "Envoi impossible pour le moment. Contactez l’administrateur.")
+    return redirect("accounts:profile")

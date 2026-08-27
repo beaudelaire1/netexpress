@@ -6,6 +6,8 @@ et le contrôle d'accès aux documents.
 """
 
 from django.db import models
+from core.storage import private_storage
+from core.file_validation import validate_document
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -114,7 +116,7 @@ class ClientPortalDocument(models.Model):
     title = models.CharField(max_length=180, help_text="Titre affiché dans le portail client")
     description = models.TextField(blank=True, help_text="Résumé ou consignes associées au document")
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default=CATEGORY_GENERAL)
-    file = models.FileField(upload_to='client_portal_documents/%Y/%m')
+    file = models.FileField(upload_to='client_portal_documents/%Y/%m', storage=private_storage, validators=[validate_document])
     is_pinned = models.BooleanField(default=False, help_text="Met en avant le document dans le portail")
     is_published = models.BooleanField(default=True, help_text="Masque ou affiche le document côté client")
     expires_at = models.DateField(null=True, blank=True, help_text="Date limite d'accès optionnelle")
@@ -197,7 +199,7 @@ class ClientSubmittedDocument(models.Model):
     title = models.CharField(max_length=200, help_text="Titre ou objet du document")
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='autre')
     description = models.TextField(blank=True, help_text="Commentaire ou précision du client")
-    file = models.FileField(upload_to='client_submissions/%Y/%m')
+    file = models.FileField(upload_to='client_submissions/%Y/%m', storage=private_storage, validators=[validate_document])
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     admin_notes = models.TextField(blank=True, help_text="Notes internes de l'admin")
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -515,3 +517,7 @@ class UINotification(models.Model):
     def get_recent_notifications(cls, user, limit=10):
         """Get recent notifications for a user."""
         return cls.objects.filter(user=user).order_by('-created_at')[:limit]
+
+class DocumentSequence(models.Model):
+    series = models.CharField(max_length=16, unique=True)
+    value = models.PositiveBigIntegerField(default=0)

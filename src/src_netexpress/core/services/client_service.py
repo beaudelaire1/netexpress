@@ -11,6 +11,7 @@ from django.utils import timezone
 from decimal import Decimal
 
 from devis.models import Client, Quote
+from accounts.access import portal_user_for_client
 from factures.models import Invoice
 from core.models import ClientPortalDocument
 
@@ -84,10 +85,11 @@ class ClientService:
         if client.email.lower() != user.email.lower():
             raise ValidationError("L'email du client ne correspond pas à l'email de l'utilisateur.")
         
-        # Le lien se fait via l'email, pas de relation directe
-        # On peut ajouter une logique supplémentaire si nécessaire
-        # Pour l'instant, on considère que le lien est établi via l'email
-    
+        from accounts.services import ClientAccountCreationService
+        linked, _ = ClientAccountCreationService.create_from_client(client)
+        if linked.pk != user.pk:
+            raise ValidationError("Le compte ne correspond pas au client.")
+
     @staticmethod
     def get_client_statistics(client: Client) -> Dict[str, Any]:
         """
@@ -102,7 +104,7 @@ class ClientService:
         quotes = Quote.objects.filter(client=client)
         invoices = Invoice.objects.filter(quote__client=client)
         portal_documents = ClientPortalDocument.objects.filter(client=client, is_published=True)
-        portal_user = User.objects.filter(email__iexact=client.email).select_related('profile').first()
+        portal_user = portal_user_for_client(client)
         
         # Statistiques devis
         total_quotes = quotes.count()
@@ -301,7 +303,7 @@ class ClientService:
                 'amount': None,
             })
 
-        portal_user = User.objects.filter(email__iexact=client.email).select_related('profile').first()
+        portal_user = portal_user_for_client(client)
         last_portal_access = getattr(getattr(portal_user, 'profile', None), 'last_portal_access', None)
         if last_portal_access:
             history.append({

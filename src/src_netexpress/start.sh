@@ -1,13 +1,4 @@
-#!/bin/bash
-
-echo "Running migrations..."
-python manage.py migrate --noinput
-
-echo "Ensuring superuser exists..."
-python manage.py ensure_superuser
-
-echo "Collecting static files..."
-python manage.py collectstatic --noinput 2>/dev/null || true
-
-echo "Starting Gunicorn..."
-exec gunicorn netexpress.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+#!/bin/sh
+set -eu
+# Migrations run once in the separate migrate service, never in each web worker.
+exec gunicorn netexpress.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers "${WEB_CONCURRENCY:-2}" --threads 4 --timeout 120 --access-logfile - --error-logfile -

@@ -25,6 +25,7 @@ dépendances à Unsplash ont été supprimées pour garantir un rendu fiable.
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import date
 from django.db import models
+from core.storage import private_storage
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from services.models import Service
@@ -60,7 +61,7 @@ class Client(SoftDeleteMixin, models.Model):
 class QuoteRequestPhoto(models.Model):
     """Fichier (photo ou document) joint à une demande de devis."""
 
-    image = models.ImageField(_("Fichier"), upload_to="devis/requests/photos")
+    image = models.ImageField(_("Fichier"), upload_to="devis/requests/photos", storage=private_storage)
 
     class Meta:
         verbose_name = _("photo de demande de devis")
@@ -200,7 +201,7 @@ class Quote(SoftDeleteMixin, models.Model):
     # ``media/devis/`` and named after the quote number.  This field
     # allows automated emailing of professional quotes and a central
     # repository of generated documents.
-    pdf = models.FileField(upload_to="devis", blank=True, null=True)
+    pdf = models.FileField(upload_to="devis", storage=private_storage, blank=True, null=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -227,34 +228,9 @@ class Quote(SoftDeleteMixin, models.Model):
             # Generate unique public token
             while True:
                 token = secrets.token_urlsafe(32)
-                if not Quote.objects.filter(public_token=token).exists():
+                if not Quote.all_objects.filter(public_token=token).exists():
                     self.public_token = token
                     break
-        
-        # Attribution d'un numéro de devis si nécessaire : DEV-AAAA-XXX
-        # Use atomic transaction with select_for_update to avoid race conditions
-        if not self.pk and not self.number:
-            # l'année est celle de la date d'émission
-            year = self.issue_date.year if getattr(self, "issue_date", None) else date.today().year
-            prefix = f"DEV-{year}-"
-            
-            # Use atomic block to avoid race conditions
-            with transaction.atomic():
-                last = (
-                    Quote.objects
-                    .select_for_update()
-                    .filter(number__startswith=prefix)
-                    .order_by("number")
-                    .last()
-                )
-                counter = 0
-                if last:
-                    try:
-                        counter = int(str(last.number).split("-")[-1])
-                    except ValueError:
-                        counter = 0
-                # Use a three‑digit counter (000–999)
-                self.number = f"{prefix}{counter + 1:03d}"
         
         # Définir une date de validité par défaut (30 jours) si non
         # renseignée.  Cette logique est placée dans ``save`` afin
@@ -263,7 +239,8 @@ class Quote(SoftDeleteMixin, models.Model):
         if not self.valid_until and getattr(self, "issue_date", None):
             from datetime import timedelta
             self.valid_until = self.issue_date + timedelta(days=30)
-        super().save(*args, **kwargs)
+        from core.numbering import save_numbered_document
+        return save_numbered_document(self, "DEV", super().save, args, kwargs)
 
     @property
     def items(self) -> List["QuoteItem"]:
@@ -284,8 +261,9 @@ class Quote(SoftDeleteMixin, models.Model):
             qty = Decimal(str(getattr(item, "quantity", 0) or 0))
             unit = Decimal(str(getattr(item, "unit_price", 0) or 0))
             rate = Decimal(str(getattr(item, "tax_rate", 0) or 0))
-            line_ht = qty * unit
-            line_tva = (line_ht * rate) / Decimal("100")
+            from decimal import ROUND_HALF_UP
+            line_ht = (qty * unit).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            line_tva = (line_ht * rate / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             total_ht += line_ht
             total_tva += line_tva
 
@@ -313,11 +291,7 @@ class Quote(SoftDeleteMixin, models.Model):
             Le contenu binaire du PDF.
         """
         # Toujours recalculer les totaux avant génération
-        try:
-            self.compute_totals()
-        except Exception:
-            # ne bloque pas la génération si un item est mal formé
-            pass
+        self.compute_totals()
 
         from django.core.files.base import ContentFile
         from core.services.document_generator import DocumentGenerator
@@ -406,7 +380,7 @@ class QuotePhoto(models.Model):
     Les images sont stockées dans ``media/devis/photos``.
     """
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="photos")
-    image = models.ImageField(upload_to="devis/photos")
+    image = models.ImageField(upload_to="devis/photos", storage=private_storage)
 
     class Meta:
         verbose_name = _("photo du devis")

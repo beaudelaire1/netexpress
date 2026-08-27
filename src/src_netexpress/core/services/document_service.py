@@ -3,6 +3,7 @@ Services for Client Portal document access control and filtering.
 """
 
 from typing import List, Optional
+from accounts.access import verified_client_id
 from django.contrib.auth.models import User
 from django.db.models import QuerySet, Q
 from django.utils import timezone
@@ -29,13 +30,13 @@ class ClientDocumentService:
         if user.is_staff or user.is_superuser:
             return queryset
 
-        user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        client_id = verified_client_id(user)
+        if not client_id:
             return ClientPortalDocument.objects.none()
 
         today = timezone.localdate()
         return queryset.filter(
-            client__email__iexact=user_email,
+            client_id=client_id,
             is_published=True,
         ).filter(
             Q(expires_at__isnull=True) | Q(expires_at__gte=today)
@@ -52,11 +53,11 @@ class ClientDocumentService:
             return Quote.objects.all()
         
         # For client users, filter by email
-        user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        client_id = verified_client_id(user)
+        if not client_id:
             return Quote.objects.none()
         
-        return Quote.objects.filter(client__email__iexact=user_email)
+        return Quote.objects.filter(client_id=client_id)
     
     @staticmethod
     def get_accessible_invoices(user: User) -> QuerySet[Invoice]:
@@ -69,11 +70,11 @@ class ClientDocumentService:
             return Invoice.objects.all()
         
         # For client users, filter by email through quote relationship
-        user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        client_id = verified_client_id(user)
+        if not client_id:
             return Invoice.objects.none()
         
-        return Invoice.objects.filter(quote__client__email__iexact=user_email)
+        return Invoice.objects.filter(quote__client_id=client_id, issued_at__isnull=False)
     
     @staticmethod
     def can_access_quote(user: User, quote: Quote) -> bool:
@@ -87,12 +88,11 @@ class ClientDocumentService:
         
         # Client users can only access their own quotes
         # Use case-insensitive comparison consistently
-        user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        client_id = verified_client_id(user)
+        if not client_id:
             return False
         
-        quote_email = getattr(quote.client, 'email', '') or ''
-        return quote_email.lower() == user_email.lower()
+        return quote.client_id == client_id
     
     @staticmethod
     def can_access_invoice(user: User, invoice: Invoice) -> bool:
@@ -105,7 +105,7 @@ class ClientDocumentService:
             return True
         
         # Client users can only access invoices linked to their quotes
-        if not invoice.quote:
+        if not invoice.quote or not invoice.issued_at:
             return False
         
         return ClientDocumentService.can_access_quote(user, invoice.quote)
@@ -119,14 +119,14 @@ class ClientDocumentService:
         if user.is_staff or user.is_superuser:
             return True
 
-        user_email = ClientDocumentService._get_user_email(user)
-        if not user_email:
+        client_id = verified_client_id(user)
+        if not client_id:
             return False
 
         if not document.is_published or document.is_expired:
             return False
 
-        return (getattr(document.client, 'email', '') or '').lower() == user_email.lower()
+        return document.client_id == client_id
     
     @staticmethod
     def track_document_access(user: User, quote: Optional[Quote] = None, invoice: Optional[Invoice] = None):

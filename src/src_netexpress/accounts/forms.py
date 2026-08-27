@@ -19,12 +19,17 @@ class SignUpForm(UserCreationForm):
     """Création de compte avec choix du rôle."""
 
     email = forms.EmailField(required=True)
-    role = forms.ChoiceField(choices=Profile.ROLE_CHOICES, initial=Profile.ROLE_CLIENT)
     phone = forms.CharField(required=False)
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "email", "role", "phone", "password1", "password2")
+        fields = ("username", "email", "phone", "password1", "password2")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Cette adresse ne peut pas être utilisée. Connectez-vous ou demandez un lien d’activation.")
+        return email
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -33,7 +38,7 @@ class SignUpForm(UserCreationForm):
             user.save()
             # profil
             profile, _ = Profile.objects.get_or_create(user=user)
-            profile.role = self.cleaned_data.get("role", Profile.ROLE_CLIENT)
+            profile.role = Profile.ROLE_CLIENT
             profile.phone = self.cleaned_data.get("phone", "")
             profile.save()
         return user
@@ -87,18 +92,8 @@ class PortalAuthenticationForm(AuthenticationForm):
                     password=password,
                 )
             except (ProgrammingError, OperationalError):
-                logger.exception(
-                    "Authentication backend unavailable during login for '%s'. "
-                    "Falling back to ModelBackend. Apply django-axes migrations in production.",
-                    resolved_identifier,
-                )
-                self.user_cache = ModelBackend().authenticate(
-                    self.request,
-                    username=resolved_identifier,
-                    password=password,
-                )
-                if self.user_cache is not None:
-                    self.user_cache.backend = "django.contrib.auth.backends.ModelBackend"
+                logger.exception("Authentication unavailable")
+                raise forms.ValidationError("Connexion temporairement indisponible. Réessayez plus tard.")
             if self.user_cache is None:
                 raise self.get_invalid_login_error()
             self.confirm_login_allowed(self.user_cache)
@@ -109,7 +104,7 @@ class PortalAuthenticationForm(AuthenticationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ("role", "phone")
+        fields = ("phone",)
         widgets = {
             "role": forms.Select(attrs={"class": "form-control"}),
             "phone": forms.TextInput(attrs={"class": "form-control"}),

@@ -34,7 +34,7 @@ def verify_turnstile(request) -> bool:
     """
     secret_key = getattr(settings, 'TURNSTILE_SECRET_KEY', '')
     if not secret_key:
-        return True  # Skip if not configured
+        return not getattr(settings, "TURNSTILE_REQUIRED", False)
 
     token = request.POST.get('cf-turnstile-response', '')
     if not token:
@@ -47,6 +47,7 @@ def verify_turnstile(request) -> bool:
             'response': token,
             'remoteip': _get_client_ip(request),
         }, timeout=5)
+        response.raise_for_status()
         result = response.json()
         success = result.get('success', False)
         if not success:
@@ -54,7 +55,7 @@ def verify_turnstile(request) -> bool:
         return success
     except Exception as e:
         logger.error(f"[TURNSTILE] Error during verification: {e}")
-        return True  # Fail open to not block users if Cloudflare is down
+        return False  # Verification failure must never authorize a submission.
 
 
 def _get_client_ip(request):

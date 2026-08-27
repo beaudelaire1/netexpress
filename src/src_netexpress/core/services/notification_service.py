@@ -69,7 +69,7 @@ class NotificationService:
             return None
 
         profile = getattr(portal_user, 'profile', None)
-        if profile is not None and getattr(profile, 'role', 'client') != 'client':
+        if not profile or profile.role != 'client' or not profile.client_id or not profile.has_verified_email:
             return None
 
         return portal_user

@@ -94,7 +94,7 @@ class PermissionSyncMiddleware:
             return not user.is_staff
         
         # Worker et client ne doivent pas être staff
-        if role in [Profile.ROLE_WORKER, Profile.ROLE_CLIENT]:
+        if role in [Profile.ROLE_WORKER, Profile.ROLE_CLIENT, Profile.ROLE_ACCOUNTANT]:
             return user.is_staff or user.is_superuser
         
         return False
@@ -139,6 +139,8 @@ class RoleBasedAccessMiddleware:
             '/sitemap.xml',
             '/robots.txt',
             '/health/',
+            '/healthz/',
+            '/readyz/',
         ]
         
         # Patterns d'URLs publiques (racine du site)
@@ -202,6 +204,16 @@ class RoleBasedAccessMiddleware:
         user = request.user
         user_role = get_user_role(user)
         
+        # Account settings and protected downloads enforce their own access rules.
+        if path.startswith(("/accounts/", "/documents/prives/")):
+            return None
+        if path.startswith('/comptabilite/'):
+            if user_role in ('accountant', 'admin_business', 'admin_technical'):
+                return None
+            return HttpResponseForbidden("Accès réservé au cabinet comptable et aux administrateurs.")
+        if user_role == 'accountant':
+            return redirect(get_portal_home_url(user))
+
         # 1. Superuser ou Admin technical -> accès à /gestion/ ET /admin-dashboard/
         if user.is_superuser or user_role == 'admin_technical':
             # Permettre l'accès à /gestion/ et /admin-dashboard/

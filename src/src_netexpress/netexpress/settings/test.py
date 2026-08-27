@@ -38,7 +38,7 @@ DATABASES = {
 # 📧 EMAIL (TEST - CONSOLE BACKEND)
 # ============================================================
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
 # ============================================================
 # 🔐 SÉCURITÉ (DISABLED FOR TESTS)
@@ -92,3 +92,11 @@ class DisableMigrations:
 # MIGRATION_MODULES = DisableMigrations()
 
 print("[TEST] TEST MODE ACTIVATED - Using SQLite in-memory database")
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BROKER_URL = "memory://"
+CELERY_RESULT_BACKEND = "cache+memory://"
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+if os.getenv("TEST_DATABASE_URL"):
+    import dj_database_url
+    DATABASES = {"default": dj_database_url.parse(os.environ["TEST_DATABASE_URL"])}

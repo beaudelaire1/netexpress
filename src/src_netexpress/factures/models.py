@@ -13,6 +13,9 @@ from typing import List, Optional
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+from django.core.validators import MinValueValidator
+from core.storage import private_storage
 from django.utils.translation import gettext_lazy as _
 from django.core.files.base import ContentFile
 from core.mixins import SoftDeleteMixin
@@ -57,6 +60,9 @@ class Invoice(SoftDeleteMixin, models.Model):
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField( max_length=20, choices=InvoiceStatus.choices, default=InvoiceStatus.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)
+    issued_at = models.DateTimeField(null=True, blank=True, editable=False, db_index=True)
+    is_credit_note = models.BooleanField(default=False, editable=False)
+
 
     # Totaux
     total_ht = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
@@ -70,7 +76,7 @@ class Invoice(SoftDeleteMixin, models.Model):
     # Contenu & sortie
     notes = models.TextField(blank=True, default="")
     payment_terms = models.TextField(blank=True, default="")
-    pdf = models.FileField(upload_to="factures", blank=True, null=True)
+    pdf = models.FileField(upload_to="factures", storage=private_storage, blank=True, null=True)
 
     class Meta:
         ordering = ["-issue_date", "-number"]
@@ -91,30 +97,18 @@ class Invoice(SoftDeleteMixin, models.Model):
     def items(self) -> List["InvoiceItem"]:
         return list(self.invoice_items.all())
 
-    def save(self, *args, **kwargs) -> None:
-        """
-        Assignation automatique du numéro de facture.
-        """
-        if not self.pk and not self.number:
-            year = self.issue_date.year if getattr(self, "issue_date", None) else date.today().year
-            prefix = f"FAC-{year}-"
-            from django.db import transaction
-            with transaction.atomic():
-                last = (
-                    Invoice.objects
-                    .select_for_update()
-                    .filter(number__startswith=prefix)
-                    .order_by("number")
-                    .last()
-                )
-                counter = 0
-                if last:
-                    try:
-                        counter = int(str(last.number).split("-")[-1])
-                    except Exception:
-                        counter = 0
-                self.number = f"{prefix}{counter + 1:03d}"
-        super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        from core.numbering import save_numbered_document
+        changed = []
+        if self.status == self.InvoiceStatus.AVOIR and not self.is_credit_note:
+            self.is_credit_note = True
+            changed.append("is_credit_note")
+        if not self.issued_at and self.status not in {self.InvoiceStatus.DRAFT, self.InvoiceStatus.DEMO}:
+            self.issued_at = timezone.now()
+            changed.append("issued_at")
+        if kwargs.get("update_fields") is not None:
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | set(changed)
+        return save_numbered_document(self, "FAC", super().save, args, kwargs)
 
     def compute_totals(self):
         """
@@ -155,7 +149,7 @@ class InvoiceItem(models.Model):
     """Ligne de facture."""
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="invoice_items")
     description = models.CharField(max_length=255, blank=True)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("1.00"), validators=[MinValueValidator(Decimal("0.01"))])
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.00"))
 

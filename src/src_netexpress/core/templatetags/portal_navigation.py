@@ -107,6 +107,8 @@ def portal_navigation(context):
                 'active_patterns': [messages_base_url]
             }
         ]
+    elif role == 'accountant':
+        nav_items = [{'label': 'Comptabilité', 'url': '/comptabilite/', 'icon': 'fas fa-calculator', 'active_patterns': ['/comptabilite/']}]
     elif role == 'worker':
         nav_items = [
             {
@@ -156,6 +158,9 @@ def portal_navigation(context):
             }
         ]
     
+    if role in {'admin_business', 'admin_technical'}:
+        nav_items.append({'label': 'Comptabilité', 'url': '/comptabilite/', 'icon': 'fas fa-calculator', 'active_patterns': ['/comptabilite/']})
+
     # Add active state to navigation items
     current_path = request.path
     for item in nav_items:
