@@ -113,7 +113,9 @@ class DocumentGenerator:
     @classmethod
     def _get_rows(cls, obj: Any) -> list[Dict[str, Any]]:
         """Normalise les lignes de devis/facture pour les templates PDF."""
-        items_manager = getattr(obj, "quote_items", None) or getattr(obj, "invoice_items", None)
+        items_manager = getattr(obj, "quote_items", None)
+        if items_manager is None:
+            items_manager = getattr(obj, "invoice_items", None)
         items = items_manager.all() if items_manager is not None else []
 
         rows: list[Dict[str, Any]] = []
