@@ -1,8 +1,8 @@
 """Workflow-oriented views for the accounting portal.
 
-These views deliberately stay separate from the CRUD views in ``views.py``:
-the goal is to improve the day-to-day workspace without changing the accounting
-models or the existing permissions.
+The accounting workspace only presents pieces that the cabinet can act on.
+Operational drafts remain in the NetExpress preparation flow and are never
+mixed with the accountant's review queue or financial indicators.
 """
 from decimal import Decimal
 from urllib.parse import parse_qsl, urlencode
@@ -10,7 +10,6 @@ from urllib.parse import parse_qsl, urlencode
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Sum
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -21,36 +20,61 @@ from factures.models import Invoice
 from .forms import ReviewForm
 from .models import AccountingActivity, AccountingDocument, InvoiceReview, SupplierInvoice
 from .services import (
+    complete_purchases,
     incomplete_purchases,
     invoice_fingerprint,
     is_reviewed,
+    issued_invoices,
     log_activity,
-    period_quotes,
     supporting_documents,
 )
 from .views import accounting_required, filtered, page_context
 
-RETURN_QUERY_KEYS = {"date_from", "date_to", "q", "pending", "incomplete", "kind", "page"}
+RETURN_QUERY_KEYS = {
+    "date_from",
+    "date_to",
+    "q",
+    "pending",
+    "incomplete",
+    "kind",
+    "page",
+}
+
+MONTHS_FR = (
+    "Janv.",
+    "Févr.",
+    "Mars",
+    "Avr.",
+    "Mai",
+    "Juin",
+    "Juil.",
+    "Août",
+    "Sept.",
+    "Oct.",
+    "Nov.",
+    "Déc.",
+)
 
 
 def _share(count, total):
-    """Return a rounded percentage for visual workload indicators."""
     if not total:
         return 0
     return round((count / total) * 100)
 
 
 def _reviewable_purchases(purchases):
-    """Purchases the cabinet can actually process right now."""
-    incomplete_ids = incomplete_purchases(purchases).values("pk")
-    return purchases.filter(reviewed_at__isnull=True).exclude(pk__in=incomplete_ids)
+    """Complete supplier invoices that still await cabinet review."""
+    return complete_purchases(purchases).filter(reviewed_at__isnull=True)
 
 
 def _safe_return_query(raw):
-    """Keep only accounting list filters when returning from a detail review."""
     if not raw:
         return ""
-    pairs = [(key, value) for key, value in parse_qsl(raw, keep_blank_values=False) if key in RETURN_QUERY_KEYS]
+    pairs = [
+        (key, value)
+        for key, value in parse_qsl(raw, keep_blank_values=False)
+        if key in RETURN_QUERY_KEYS
+    ]
     return urlencode(pairs)
 
 
@@ -60,43 +84,154 @@ def _redirect_detail(route_name, pk, request):
     return redirect(f"{url}?{query}" if query else url)
 
 
+def _financial_series(sales, purchases, date_from, date_to):
+    """Build chart-ready monthly data, switching to annual buckets for long ranges."""
+    month_span = (date_to.year - date_from.year) * 12 + date_to.month - date_from.month + 1
+    annual = month_span > 24
+    buckets = {}
+
+    if annual:
+        for year in range(date_from.year, date_to.year + 1):
+            buckets[year] = {
+                "label": str(year),
+                "sales": Decimal("0.00"),
+                "purchases": Decimal("0.00"),
+                "sales_vat": Decimal("0.00"),
+                "purchase_vat": Decimal("0.00"),
+            }
+    else:
+        year, month = date_from.year, date_from.month
+        while (year, month) <= (date_to.year, date_to.month):
+            key = (year, month)
+            buckets[key] = {
+                "label": f"{MONTHS_FR[month - 1]} {year}",
+                "sales": Decimal("0.00"),
+                "purchases": Decimal("0.00"),
+                "sales_vat": Decimal("0.00"),
+                "purchase_vat": Decimal("0.00"),
+            }
+            month += 1
+            if month == 13:
+                month = 1
+                year += 1
+
+    for invoice in sales:
+        key = invoice.issue_date.year if annual else (invoice.issue_date.year, invoice.issue_date.month)
+        if key not in buckets:
+            continue
+        sign = Decimal("-1") if invoice.is_credit_note else Decimal("1")
+        buckets[key]["sales"] += sign * invoice.total_ht
+        buckets[key]["sales_vat"] += sign * invoice.tva
+
+    for purchase in purchases:
+        if not purchase.issue_date:
+            continue
+        key = purchase.issue_date.year if annual else (purchase.issue_date.year, purchase.issue_date.month)
+        if key not in buckets:
+            continue
+        buckets[key]["purchases"] += purchase.total_ht or Decimal("0.00")
+        buckets[key]["purchase_vat"] += purchase.vat_amount or Decimal("0.00")
+
+    return [
+        {
+            "label": row["label"],
+            "sales": float(row["sales"]),
+            "purchases": float(row["purchases"]),
+            "sales_vat": float(row["sales_vat"]),
+            "purchase_vat": float(row["purchase_vat"]),
+        }
+        for row in buckets.values()
+    ]
+
+
 @accounting_required
 def dashboard(request):
-    form, sales, purchases = filtered(request)
-    documents = supporting_documents(form.cleaned_data) if form.is_valid() else AccountingDocument.objects.none()
-    quotes = period_quotes(form.cleaned_data) if form.is_valid() else period_quotes({
-        "date_from": timezone.localdate(),
-        "date_to": timezone.localdate(),
-        "q": "",
-    }).none()
+    form, sales_qs, purchases_qs = filtered(request)
+    documents = (
+        supporting_documents(form.cleaned_data)
+        if form.is_valid()
+        else AccountingDocument.objects.none()
+    )
+
+    if not form.is_valid():
+        return render(
+            request,
+            "accounting/dashboard.html",
+            page_context(
+                request,
+                form=form,
+                totals={},
+                workload=[],
+                financial_series=[],
+                recent_sales=[],
+                recent_purchases=[],
+                recent_documents=[],
+                activities=[],
+            ),
+        )
+
+    # Financial indicators never include preparation drafts, even for a company
+    # administrator viewing the shared accounting workspace.
+    ready_purchases_qs = complete_purchases(purchases_qs)
+    sales = list(sales_qs)
+    ready_purchases = list(ready_purchases_qs)
 
     totals = {
-        "sales": Decimal(0),
-        "credits": Decimal(0),
-        "sales_vat": Decimal(0),
+        "sales_ttc": Decimal("0.00"),
+        "credits_ttc": Decimal("0.00"),
+        "sales_ht": Decimal("0.00"),
+        "credits_ht": Decimal("0.00"),
+        "sales_vat": Decimal("0.00"),
+        "purchases_ttc": Decimal("0.00"),
+        "purchases_ht": Decimal("0.00"),
+        "purchase_vat": Decimal("0.00"),
         "pending_sales": 0,
+        "pending_purchases": 0,
     }
-    for invoice in sales.iterator(chunk_size=200):
-        totals["credits" if invoice.is_credit_note else "sales"] += invoice.total_ttc
-        totals["sales_vat"] += invoice.tva * (-1 if invoice.is_credit_note else 1)
-        totals["pending_sales"] += not is_reviewed(invoice)
 
-    totals["net_sales"] = totals["sales"] - totals["credits"]
-    totals["purchases"] = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal(0)
-    totals["incomplete_purchases"] = incomplete_purchases(purchases).count()
-    totals["pending_purchases"] = _reviewable_purchases(purchases).count()
+    for invoice in sales:
+        if invoice.is_credit_note:
+            totals["credits_ttc"] += invoice.total_ttc
+            totals["credits_ht"] += invoice.total_ht
+            totals["sales_vat"] -= invoice.tva
+        else:
+            totals["sales_ttc"] += invoice.total_ttc
+            totals["sales_ht"] += invoice.total_ht
+            totals["sales_vat"] += invoice.tva
+        totals["pending_sales"] += int(not is_reviewed(invoice))
+
+    for purchase in ready_purchases:
+        totals["purchases_ttc"] += purchase.total_ttc or Decimal("0.00")
+        totals["purchases_ht"] += purchase.total_ht or Decimal("0.00")
+        totals["purchase_vat"] += purchase.vat_amount or Decimal("0.00")
+        totals["pending_purchases"] += int(purchase.reviewed_at is None)
+
+    totals["net_sales"] = totals["sales_ttc"] - totals["credits_ttc"]
+    totals["net_sales_ht"] = totals["sales_ht"] - totals["credits_ht"]
+    # Compatibility alias used by older templates/tests outside this workspace.
+    totals["purchases"] = totals["purchases_ttc"]
+    totals["credits"] = totals["credits_ttc"]
+
+    totals["incomplete_purchases"] = (
+        incomplete_purchases(purchases_qs).count() if request.accounting_admin else 0
+    )
     totals["documents"] = documents.count()
-    totals["quotes"] = quotes.count()
     totals["pending_documents"] = documents.filter(reviewed_at__isnull=True).count()
-    totals["pending"] = totals["pending_sales"] + totals["pending_purchases"] + totals["pending_documents"]
-    totals["unresolved"] = totals["pending"] + totals["incomplete_purchases"]
-    totals["count"] = sales.count() + purchases.count() + totals["documents"]
-    totals["reviewed"] = max(totals["count"] - totals["unresolved"], 0)
-    totals["progress"] = round((totals["reviewed"] / totals["count"]) * 100) if totals["count"] else 0
-    totals["overdue_purchases"] = purchases.filter(
-        paid_on__isnull=True,
-        due_date__lt=timezone.localdate(),
-    ).count()
+    totals["pending"] = (
+        totals["pending_sales"]
+        + totals["pending_purchases"]
+        + totals["pending_documents"]
+    )
+    totals["count"] = len(sales) + len(ready_purchases) + totals["documents"]
+    totals["reviewed"] = max(totals["count"] - totals["pending"], 0)
+    totals["progress"] = (
+        round((totals["reviewed"] / totals["count"]) * 100)
+        if totals["count"]
+        else 0
+    )
+    totals["overdue_purchases"] = sum(
+        1 for purchase in ready_purchases if purchase.is_overdue
+    )
 
     workload = [
         {
@@ -105,7 +240,7 @@ def dashboard(request):
             "share": _share(totals["pending_sales"], totals["pending"]),
         },
         {
-            "label": "Factures fournisseurs prêtes",
+            "label": "Factures fournisseurs",
             "count": totals["pending_purchases"],
             "share": _share(totals["pending_purchases"], totals["pending"]),
         },
@@ -116,11 +251,22 @@ def dashboard(request):
         },
     ]
 
+    financial_series = _financial_series(
+        sales,
+        ready_purchases,
+        form.cleaned_data["date_from"],
+        form.cleaned_data["date_to"],
+    )
+
     activities = AccountingActivity.objects.select_related("actor")
     if not request.accounting_admin:
         activities = activities.exclude(action__startswith="Accès cabinet").exclude(
             action__startswith="Invitation cabinet"
         )
+
+    # Company administrators may need to complete a recent draft. The external
+    # accountant only receives complete supplier invoices through ``filtered``.
+    recent_purchase_source = list(purchases_qs[:5]) if request.accounting_admin else ready_purchases[:5]
 
     return render(
         request,
@@ -130,10 +276,10 @@ def dashboard(request):
             form=form,
             totals=totals,
             workload=workload,
+            financial_series=financial_series,
             recent_sales=sales[:5],
-            recent_purchases=purchases[:5],
+            recent_purchases=recent_purchase_source,
             recent_documents=documents[:4],
-            recent_quotes=quotes[:4],
             activities=activities[:8],
         ),
     )
@@ -141,14 +287,11 @@ def dashboard(request):
 
 @accounting_required
 def sales(request):
-    """Invoice list with a real review queue for the external accountant."""
+    """Client invoices visible only after accounting publication criteria are met."""
     form, invoices, _ = filtered(request)
     pending_only = request.GET.get("pending") == "1"
 
     if pending_only:
-        # A stored review can become stale when an issued invoice changes. The
-        # fingerprint check is therefore intentionally kept instead of relying
-        # only on ``accounting_review__isnull``.
         invoices = [invoice for invoice in invoices if not is_reviewed(invoice)]
 
     page = Paginator(invoices, 40).get_page(request.GET.get("page"))
@@ -169,18 +312,22 @@ def sales(request):
 
 @accounting_required
 def suppliers(request):
-    """Purchase list with mutually exclusive 'reviewable' and 'incomplete' queues."""
+    """Supplier preparation for NetExpress; complete review queue for the cabinet."""
     form, _, purchases = filtered(request)
     pending_only = request.GET.get("pending") == "1"
-    incomplete_only = request.GET.get("incomplete") == "1"
+    incomplete_only = request.accounting_admin and request.GET.get("incomplete") == "1"
 
     if incomplete_only:
         purchases = incomplete_purchases(purchases)
     elif pending_only:
         purchases = _reviewable_purchases(purchases)
+    elif not request.accounting_admin:
+        purchases = complete_purchases(purchases)
 
-    total = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal(0)
-    incomplete_count = incomplete_purchases(purchases).count()
+    total = sum((purchase.total_ttc or Decimal("0.00")) for purchase in purchases)
+    incomplete_count = (
+        incomplete_purchases(purchases).count() if request.accounting_admin else 0
+    )
 
     return render(
         request,
@@ -192,7 +339,9 @@ def suppliers(request):
             incomplete_count=incomplete_count,
             pending_only=pending_only,
             incomplete_only=incomplete_only,
-            page=Paginator(purchases.select_related("created_by"), 40).get_page(request.GET.get("page")),
+            page=Paginator(
+                purchases.select_related("created_by"), 40
+            ).get_page(request.GET.get("page")),
         ),
     )
 
@@ -203,13 +352,20 @@ def suppliers(request):
 def review_invoice(request, pk):
     if request.accounting_admin:
         return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
-    invoice = get_object_or_404(Invoice.all_objects.select_for_update(), pk=pk, issued_at__isnull=False)
+
+    if not issued_invoices().filter(pk=pk).exists():
+        return HttpResponseForbidden("Cette facture n’est pas disponible au contrôle comptable.")
+    invoice = get_object_or_404(Invoice.all_objects.select_for_update(), pk=pk)
+
     form = ReviewForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest("Note de contrôle invalide.")
     fingerprint = invoice_fingerprint(invoice)
     if form.cleaned_data["fingerprint"] != fingerprint:
-        messages.error(request, "La facture a changé depuis l’ouverture. Relisez-la avant de la contrôler.")
+        messages.error(
+            request,
+            "La facture a changé depuis l’ouverture. Relisez-la avant de la contrôler.",
+        )
     else:
         InvoiceReview.objects.update_or_create(
             invoice=invoice,
@@ -221,7 +377,10 @@ def review_invoice(request, pk):
             },
         )
         log_activity(request.user, "Facture client contrôlée", invoice.number)
-        messages.success(request, "Facture marquée comme contrôlée dans le portail.")
+        messages.success(
+            request,
+            "Facture marquée comme contrôlée dans le portail.",
+        )
     return _redirect_detail("accounting:invoice_detail", pk, request)
 
 
@@ -231,21 +390,34 @@ def review_invoice(request, pk):
 def review_supplier(request, pk):
     if request.accounting_admin:
         return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
-    purchase = get_object_or_404(SupplierInvoice.objects.select_for_update(), pk=pk)
+
+    complete = complete_purchases(SupplierInvoice.objects.select_for_update())
+    purchase = get_object_or_404(complete, pk=pk)
     form = ReviewForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest("Note de contrôle invalide.")
-    if not purchase.is_complete:
-        messages.error(request, "Complétez le fournisseur, le numéro, la date, le TTC et la TVA avant le contrôle.")
-    elif form.cleaned_data["fingerprint"] != purchase.updated_at.isoformat():
-        messages.error(request, "La facture a changé. Relisez-la avant de la contrôler.")
+    if form.cleaned_data["fingerprint"] != purchase.updated_at.isoformat():
+        messages.error(
+            request,
+            "La facture a changé. Relisez-la avant de la contrôler.",
+        )
     else:
         purchase.reviewed_at = timezone.now()
         purchase.reviewed_by = request.user
         purchase.review_note = form.cleaned_data["note"]
-        purchase.save(update_fields=["reviewed_at", "reviewed_by", "review_note", "updated_at"])
+        purchase.save(
+            update_fields=[
+                "reviewed_at",
+                "reviewed_by",
+                "review_note",
+                "updated_at",
+            ]
+        )
         log_activity(request.user, "Facture fournisseur contrôlée", purchase)
-        messages.success(request, "Facture marquée comme contrôlée dans le portail.")
+        messages.success(
+            request,
+            "Facture marquée comme contrôlée dans le portail.",
+        )
     return _redirect_detail("accounting:supplier_detail", pk, request)
 
 
@@ -255,17 +427,29 @@ def review_supplier(request, pk):
 def review_document(request, pk):
     if request.accounting_admin:
         return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
-    document = get_object_or_404(AccountingDocument.objects.select_for_update(), pk=pk)
+    document = get_object_or_404(
+        AccountingDocument.objects.select_for_update(), pk=pk
+    )
     form = ReviewForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest("Note de contrôle invalide.")
     if form.cleaned_data["fingerprint"] != document.updated_at.isoformat():
-        messages.error(request, "Le document a changé. Relisez-le avant de le vérifier.")
+        messages.error(
+            request,
+            "Le document a changé. Relisez-le avant de le vérifier.",
+        )
     else:
         document.reviewed_at = timezone.now()
         document.reviewed_by = request.user
         document.review_note = form.cleaned_data["note"]
-        document.save(update_fields=["reviewed_at", "reviewed_by", "review_note", "updated_at"])
+        document.save(
+            update_fields=[
+                "reviewed_at",
+                "reviewed_by",
+                "review_note",
+                "updated_at",
+            ]
+        )
         log_activity(request.user, "Document vérifié", document)
         messages.success(request, "Document marqué comme vérifié dans le portail.")
     return _redirect_detail("accounting:document_detail", pk, request)

@@ -1,39 +1,67 @@
 {% load static %}<!doctype html>
-<html lang="fr"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
-<title>{% block title %}Portail comptable{% endblock %} · NetExpress</title>
-<link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}"><link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/accounting.css' %}"><link rel="stylesheet" href="{% static 'css/accounting-workspace.css' %}"><link rel="stylesheet" href="{% static 'css/accounting-enhancements.css' %}">
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>{% block title %}Espace comptable{% endblock %} · NetExpress</title>
+<link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting-workspace.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting-enhancements.css' %}">
 <script src="{% static 'js/accounting.js' %}" defer></script>
-</head><body><a class="skip" href="#content">Aller au contenu</a>
+</head>
+<body>
+<a class="skip" href="#content">Aller au contenu</a>
 <header class="portal-topbar">
-  <a class="portal-brand" href="{% if accounting_admin %}{% url 'core:admin_dashboard' %}{% else %}{% url 'accounting:dashboard' %}{% endif %}" aria-label="NetExpress — {% if accounting_admin %}Tableau de bord{% else %}Portail comptable{% endif %}">
+  <a class="portal-brand" href="{% if accounting_admin %}{% url 'core:admin_dashboard' %}{% else %}{% url 'accounting:dashboard' %}{% endif %}" aria-label="NetExpress — {% if accounting_admin %}Tableau de bord{% else %}Espace comptable{% endif %}">
     <img src="{% static 'img/logo.png' %}" alt="" width="54" height="34">
     <span>NETEXPRESS<small>ESPACE PROFESSIONNEL</small></span>
   </a>
-  <div class="portal-title"><span class="portal-title-icon" aria-hidden="true"><i class="fa-solid fa-folder-open"></i></span><div><span class="portal-title-overline">VOTRE LIEN AVEC LE CABINET</span><strong>Portail comptable</strong></div></div>
+  <div class="portal-title">
+    <span class="portal-title-icon" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span>
+    <div><span class="portal-title-overline">SUIVI COMPTABLE PARTAGÉ</span><strong>Espace comptable</strong></div>
+  </div>
   <nav class="portal-tools" aria-label="Navigation du compte">
     {% if accounting_admin %}<a class="back-dashboard" href="{% url 'core:admin_dashboard' %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Tableau de bord</span></a>{% endif %}
     <details class="account-menu">
-      <summary aria-label="Menu du compte de {{ user.get_full_name|default:user.username }}"><span class="account-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span><span class="account-identity"><strong>{{ user.get_full_name|default:user.username }}</strong><small>{% if accounting_admin %}Espace entreprise{% else %}Cabinet externe{% endif %}</small></span><i class="fa-solid fa-chevron-down account-chevron" aria-hidden="true"></i></summary>
-      <div class="account-menu-panel"><div class="account-menu-caption"><strong>{{ user.get_full_name|default:user.username }}</strong><span>{% if accounting_admin %}NetExpress · Espace entreprise{% else %}{{ user.profile.accounting_firm|default:'Cabinet externe' }}{% endif %}</span></div><a href="{% url 'accounts:profile' %}"><i class="fa-regular fa-user" aria-hidden="true"></i> Mon compte</a><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Déconnexion</button></form></div>
+      <summary aria-label="Menu du compte de {{ user.get_full_name|default:user.username }}">
+        <span class="account-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span>
+        <span class="account-identity"><strong>{{ user.get_full_name|default:user.username }}</strong><small>{% if accounting_admin %}Espace entreprise{% else %}Cabinet externe{% endif %}</small></span>
+        <i class="fa-solid fa-chevron-down account-chevron" aria-hidden="true"></i>
+      </summary>
+      <div class="account-menu-panel">
+        <div class="account-menu-caption"><strong>{{ user.get_full_name|default:user.username }}</strong><span>{% if accounting_admin %}NetExpress · Espace entreprise{% else %}{{ user.profile.accounting_firm|default:'Cabinet externe' }}{% endif %}</span></div>
+        <a href="{% url 'accounts:profile' %}"><i class="fa-regular fa-user" aria-hidden="true"></i> Mon compte</a>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Déconnexion</button></form>
+      </div>
     </details>
   </nav>
-</header><div class="acc-shell"><aside class="acc-sidebar">
-<p class="eyebrow">VOTRE DOSSIER PARTAGÉ</p>
-<nav aria-label="Comptabilité">
-<a href="{% url 'accounting:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Vue d’ensemble</a>
-<a href="{% url 'accounting:sales' %}" {% if '/ventes/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-file-invoice" aria-hidden="true"></i> Factures clients</a>
-<a href="{% url 'accounting:quotes' %}" {% if '/devis/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Devis</a>
-<a href="{% url 'accounting:suppliers' %}" {% if '/achats/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-receipt" aria-hidden="true"></i> Factures fournisseurs</a>
-<a href="{% url 'accounting:documents' %}" {% if '/documents/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Autres documents</a>
-{% if accounting_admin %}<a href="{% url 'accounting:accountants' %}" {% if '/acces/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Accès du cabinet</a>{% endif %}
-</nav>
-<div class="sidebar-note"><i class="fa-solid fa-link" aria-hidden="true"></i><strong>Un lien direct<br>avec votre cabinet.</strong><p>NetExpress transmet ses pièces. Le cabinet les retrouve, les contrôle et les récupère ici.</p></div>
-<div class="sidebar-signature"><span>Outil métier conçu par</span><strong>Trait d’Union Studio</strong><small>Architecture digitale sur mesure</small></div>
-<small class="confidential"><i class="fa-solid fa-lock" aria-hidden="true"></i> Espace privé · Accès nominatif</small>
-</aside><main id="content" class="acc-main">
+</header>
+<div class="acc-shell">
+<aside class="acc-sidebar">
+  <p class="eyebrow">COMPTABILITÉ</p>
+  <nav aria-label="Comptabilité">
+    <a href="{% url 'accounting:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Vue d’ensemble</a>
+    <a href="{% url 'accounting:sales' %}" {% if '/ventes/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-file-invoice" aria-hidden="true"></i> Factures clients</a>
+    <a href="{% url 'accounting:suppliers' %}" {% if '/achats/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-receipt" aria-hidden="true"></i> Factures fournisseurs</a>
+    <a href="{% url 'accounting:documents' %}" {% if '/documents/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Autres documents</a>
+    {% if accounting_admin %}<a href="{% url 'accounting:accountants' %}" {% if '/acces/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Accès du cabinet</a>{% endif %}
+  </nav>
+  <div class="sidebar-note">
+    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+    <strong>Des pièces prêtes,<br>pas des brouillons.</strong>
+    <p>Le cabinet accède uniquement aux factures et documents suffisamment finalisés pour être contrôlés.</p>
+  </div>
+  <div class="sidebar-signature"><span>Outil métier conçu par</span><strong>Trait d’Union Studio</strong><small>Architecture digitale sur mesure</small></div>
+  <small class="confidential"><i class="fa-solid fa-lock" aria-hidden="true"></i> Espace privé · Accès nominatif</small>
+</aside>
+<main id="content" class="acc-main">
 {% for message in messages %}<div class="notice {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}
 {% block content %}{% endblock %}
-<footer class="acc-footer"><p>Préparation comptable · EUR. Les montants affichés ne constituent ni un bilan, ni un FEC, ni une déclaration de TVA.</p><span>NetExpress · Portail comptable</span></footer>
-</main></div></body></html>
+<footer class="acc-footer"><p>Préparation comptable · EUR. Les montants affichés ne constituent ni un bilan, ni un FEC, ni une déclaration de TVA.</p><span>NetExpress · Espace comptable</span></footer>
+</main>
+</div>
+</body>
+</html>

@@ -1,10 +1,12 @@
 from django.urls import path
+
 from . import views, workspace
 
 app_name = "accounting"
+
 urlpatterns = [
     path("", workspace.dashboard, name="dashboard"),
-    path("devis/", views.quotes, name="quotes"),
+    # Devis are accounting context only: no standalone collection is exposed.
     path("devis/<int:pk>/", views.quote_detail, name="quote_detail"),
     path("devis/<int:pk>/pdf/", views.quote_pdf, name="quote_pdf"),
     path("ventes/", workspace.sales, name="sales"),

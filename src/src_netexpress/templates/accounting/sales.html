@@ -1,5 +1,36 @@
-{% extends 'accounting/base.html' %}{% block title %}Factures clients{% endblock %}{% block content %}
-<div class="page-heading"><div><p class="eyebrow">VENTES</p><h1>Factures clients</h1><p class="subtitle">Toutes les factures émises, y compris les avoirs et les documents archivés. Le cabinet peut isoler les pièces qui attendent encore son contrôle.</p></div></div>
+{% extends 'accounting/base.html' %}
+{% block title %}Factures clients{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">VENTES</p>
+    <h1>Factures clients</h1>
+    <p class="subtitle">Cette liste contient uniquement les factures publiées pour la comptabilité : statut finalisable, client identifié, lignes valides et montant TTC positif. Les brouillons et factures incomplètes restent hors de l’espace cabinet.</p>
+  </div>
+</div>
 {% include 'accounting/period.html' %}
-<nav class="queue-filter" aria-label="Filtrer les factures clients"><a href="{% querystring pending=None page=None %}" {% if not pending_only %}aria-current="page"{% endif %}>Toutes les factures</a><a href="{% querystring pending='1' page=None %}" {% if pending_only %}aria-current="page"{% endif %}>À vérifier{% if pending_only %} · {{ page.paginator.count }}{% endif %}</a></nav>
-<section class="panel table-wrap"><table><thead><tr><th>Facture</th><th>Client</th><th>Émission</th><th>TTC</th><th>Statut</th><th>Contrôle</th></tr></thead><tbody>{% for invoice in page %}<tr><td><a href="{% url 'accounting:invoice_detail' invoice.pk %}{% querystring %}">{{ invoice.number }}</a>{% if invoice.is_credit_note %}<small>Avoir</small>{% endif %}</td><td>{{ invoice.quote.client.full_name|default:'Client non lié' }}</td><td>{{ invoice.issue_date|date:'d/m/Y' }}</td><td class="money">{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €</td><td>{{ invoice.get_status_display }}</td><td><span class="badge {% if invoice.accounting_checked %}done{% else %}pending{% endif %}">{% if invoice.accounting_checked %}Contrôlé{% else %}À vérifier{% endif %}</span></td></tr>{% empty %}<tr><td colspan="6" class="empty"><h3>{% if pending_only %}Aucune facture n’attend de contrôle{% else %}Aucune facture émise pour cette période{% endif %}</h3>{% if pending_only %}<p>La file cabinet est à jour pour cette sélection.</p>{% endif %}</td></tr>{% endfor %}</tbody></table></section>{% include 'accounting/pagination.html' %}{% endblock %}
+<nav class="queue-filter" aria-label="Filtrer les factures clients">
+  <a href="{% querystring pending=None page=None %}" {% if not pending_only %}aria-current="page"{% endif %}>Toutes les factures</a>
+  <a href="{% querystring pending='1' page=None %}" {% if pending_only %}aria-current="page"{% endif %}>À contrôler{% if pending_only %} · {{ page.paginator.count }}{% endif %}</a>
+</nav>
+<section class="panel table-wrap modern-panel">
+<table>
+  <thead><tr><th>Facture</th><th>Client</th><th>Émission</th><th>TTC</th><th>Statut</th><th>Contrôle</th></tr></thead>
+  <tbody>
+  {% for invoice in page %}
+    <tr>
+      <td><a href="{% url 'accounting:invoice_detail' invoice.pk %}{% querystring %}">{{ invoice.number }}</a>{% if invoice.is_credit_note %}<small>Avoir</small>{% endif %}</td>
+      <td>{{ invoice.quote.client.full_name }}</td>
+      <td>{{ invoice.issue_date|date:'d/m/Y' }}</td>
+      <td class="money">{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €</td>
+      <td>{{ invoice.get_status_display }}</td>
+      <td><span class="badge {% if invoice.accounting_checked %}done{% else %}pending{% endif %}">{% if invoice.accounting_checked %}Contrôlé{% else %}À contrôler{% endif %}</span></td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6" class="empty"><h3>{% if pending_only %}Aucune facture n’attend de contrôle{% else %}Aucune facture publiée pour cette période{% endif %}</h3><p>{% if pending_only %}La file du cabinet est à jour.{% else %}Les brouillons et documents non finalisés ne sont pas exposés ici.{% endif %}</p></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</section>
+{% include 'accounting/pagination.html' %}
+{% endblock %}
