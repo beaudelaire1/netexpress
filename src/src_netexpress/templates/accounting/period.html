@@ -1,1 +1,23 @@
-<form method="get" class="filters"><div class="filter-fields">{{ form.as_div }}</div><button class="button secondary" type="submit">Appliquer</button><a href="{{ request.path }}" class="subtle">Cette année</a></form>
+<form method="get" class="accounting-filterbar" role="search" aria-label="Rechercher et filtrer cette liste">
+  {% if request.GET.pending %}<input type="hidden" name="pending" value="{{ request.GET.pending }}">{% endif %}
+  {% if request.GET.incomplete %}<input type="hidden" name="incomplete" value="{{ request.GET.incomplete }}">{% endif %}
+  {% if request.GET.kind %}<input type="hidden" name="kind" value="{{ request.GET.kind }}">{% endif %}
+  <div class="accounting-filter-search">
+    <label for="accounting-list-search">Rechercher</label>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input id="accounting-list-search" type="search" name="q" value="{{ form.q.value|default:'' }}" maxlength="100" placeholder="Numéro, client, fournisseur, référence…">
+  </div>
+  <div>
+    <label for="accounting-date-from">Du</label>
+    <input id="accounting-date-from" type="date" name="date_from" value="{{ form.date_from.value|default:'' }}">
+  </div>
+  <div>
+    <label for="accounting-date-to">Au</label>
+    <input id="accounting-date-to" type="date" name="date_to" value="{{ form.date_to.value|default:'' }}">
+  </div>
+  <div class="accounting-filter-actions">
+    <button class="button secondary" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrer</button>
+    {% if request.GET.q or request.GET.date_from or request.GET.date_to %}<a href="{{ request.path }}" class="accounting-filter-reset">Réinitialiser</a>{% endif %}
+  </div>
+  {% if form.non_field_errors %}<p class="accounting-filter-error">{{ form.non_field_errors|striptags }}</p>{% endif %}
+</form>
