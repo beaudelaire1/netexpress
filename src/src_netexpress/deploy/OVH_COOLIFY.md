@@ -43,7 +43,7 @@ Configurer `Ports Exposes` sur `8000` et associer le domaine HTTPS public choisi
 
 Le conteneur exécute avant Gunicorn :
 
-1. `python manage.py check --deploy --fail-level ERROR` ;
+1. `python manage.py check --deploy --fail-level WARNING` ;
 2. `python manage.py deploy_migrate` ;
 3. Gunicorn uniquement si les deux étapes précédentes réussissent.
 
