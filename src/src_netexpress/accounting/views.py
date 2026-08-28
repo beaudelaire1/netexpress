@@ -20,9 +20,11 @@ from accounts.models import Profile
 from accounts.portal import get_user_role
 from core.services.email_service import EmailService
 from factures.models import Invoice
-from .forms import AccountantInvitationForm, PeriodForm, ReviewForm, SupplierInvoiceForm
-from .models import AccountingActivity, InvoiceReview, SupplierInvoice
-from .services import csv_content, invoice_fingerprint, is_reviewed, issued_invoices, log_activity, period_documents
+from .forms import AccountantInvitationForm, AccountingDocumentForm, PeriodForm, ReviewForm, SupplierInvoiceForm
+from .models import AccountingActivity, AccountingDocument, InvoiceReview, SupplierInvoice
+from .services import (csv_content, incomplete_purchases, invoice_fingerprint, is_reviewed, issued_invoices,
+                       log_activity, period_documents, supporting_documents, shared_quotes, period_quotes,
+                       invoice_pdf_content, quote_pdf_content, quotes_csv_content)
 
 ADMIN_ROLES = {Profile.ROLE_ADMIN_BUSINESS, Profile.ROLE_ADMIN_TECHNICAL}
 
@@ -45,7 +47,7 @@ def accounting_required(view):
 
 
 def page_context(request, **kwargs):
-    return {"accounting_admin": request.accounting_admin, **kwargs}
+    return {"accounting_admin": request.accounting_admin, "accounting_reviewer": not request.accounting_admin, **kwargs}
 
 
 def filtered(request):
@@ -58,6 +60,8 @@ def filtered(request):
 @accounting_required
 def dashboard(request):
     form, sales, purchases = filtered(request)
+    documents = supporting_documents(form.cleaned_data) if form.is_valid() else AccountingDocument.objects.none()
+    quotes = period_quotes(form.cleaned_data) if form.is_valid() else shared_quotes().none()
     totals = {"sales": Decimal(0), "credits": Decimal(0), "sales_vat": Decimal(0), "pending_sales": 0}
     for invoice in sales.iterator(chunk_size=200):
         totals["credits" if invoice.is_credit_note else "sales"] += invoice.total_ttc
@@ -66,9 +70,20 @@ def dashboard(request):
     totals["net_sales"] = totals["sales"] - totals["credits"]
     totals["purchases"] = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal(0)
     totals["pending_purchases"] = purchases.filter(reviewed_at__isnull=True).count()
+    totals["incomplete_purchases"] = incomplete_purchases(purchases).count()
+    totals["documents"] = documents.count()
+    totals["quotes"] = quotes.count()
+    totals["pending_documents"] = documents.filter(reviewed_at__isnull=True).count()
+    totals["pending"] = totals["pending_sales"] + totals["pending_purchases"] + totals["pending_documents"]
+    totals["count"] = sales.count() + purchases.count() + totals["documents"]
+    totals["reviewed"] = totals["count"] - totals["pending"]
     totals["overdue_purchases"] = purchases.filter(paid_on__isnull=True, due_date__lt=timezone.localdate()).count()
+    activities = AccountingActivity.objects.select_related("actor")
+    if not request.accounting_admin:
+        activities = activities.exclude(action__startswith="Accès cabinet").exclude(action__startswith="Invitation cabinet")
     return render(request, "accounting/dashboard.html", page_context(request, form=form, totals=totals,
-        recent_sales=sales[:5], recent_purchases=purchases[:5], activities=AccountingActivity.objects.select_related("actor")[:12]))
+        recent_sales=sales[:5], recent_purchases=purchases[:5], recent_documents=documents[:4], recent_quotes=quotes[:4],
+        activities=activities[:8]))
 
 
 @accounting_required
@@ -92,6 +107,8 @@ def invoice_detail(request, pk):
 @require_POST
 @transaction.atomic
 def review_invoice(request, pk):
+    if request.accounting_admin:
+        return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
     # Lock the invoice alone: PostgreSQL cannot lock the nullable side of the quote join.
     invoice = get_object_or_404(Invoice.all_objects.select_for_update(), pk=pk, issued_at__isnull=False)
     form = ReviewForm(request.POST)
@@ -111,7 +128,11 @@ def review_invoice(request, pk):
 @accounting_required
 def invoice_pdf(request, pk):
     invoice = get_object_or_404(issued_invoices(), pk=pk)
-    content = invoice.generate_pdf(attach=False)
+    try:
+        content = invoice_pdf_content(invoice)
+    except (OSError, ValueError):
+        messages.error(request, "Le PDF original est indisponible. Demandez à NetExpress de vérifier la reprise des anciennes factures.")
+        return redirect("accounting:invoice_detail", pk=pk)
     response = HttpResponse(content, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{slugify(invoice.number)}.pdf"'
     log_activity(request.user, "Téléchargement facture client", invoice.number)
@@ -123,13 +144,18 @@ def suppliers(request):
     form, _, purchases = filtered(request)
     if request.GET.get("pending") == "1":
         purchases = purchases.filter(reviewed_at__isnull=True)
+    if request.GET.get("incomplete") == "1":
+        purchases = incomplete_purchases(purchases)
     total = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal(0)
     return render(request, "accounting/suppliers.html", page_context(request, form=form, total=total,
+        incomplete_count=incomplete_purchases(purchases).count(),
         page=Paginator(purchases.select_related("created_by"), 40).get_page(request.GET.get("page"))))
 
 
 @accounting_required
 def supplier_edit(request, pk=None):
+    if not request.accounting_admin:
+        return HttpResponseForbidden("Le dépôt et la modification des pièces sont réservés à NetExpress.")
     instance = get_object_or_404(SupplierInvoice, pk=pk) if pk else SupplierInvoice()
     form = SupplierInvoiceForm(request.POST or None, request.FILES or None, instance=instance)
     if request.method == "POST" and form.is_valid():
@@ -142,12 +168,14 @@ def supplier_edit(request, pk=None):
                     else:
                         instance.reviewed_at = None
                         instance.reviewed_by = None
+                        instance.review_note = ""
                 else:
                     instance.created_by = request.user
                 if not form.errors:
                     form.save()
                     log_activity(request.user, "Facture fournisseur modifiée" if pk else "Facture fournisseur ajoutée", instance)
-                    messages.success(request, "Facture enregistrée et disponible pour le cabinet. Elle est à vérifier.")
+                    messages.success(request, "Facture disponible pour le cabinet. " +
+                        ("Elle est à vérifier." if instance.is_complete else "Vous pourrez compléter les informations plus tard."))
                     return redirect("accounting:supplier_detail", pk=instance.pk)
         except IntegrityError:
             form.add_error(None, "Cette facture ou cette pièce existe déjà.")
@@ -165,11 +193,15 @@ def supplier_detail(request, pk):
 @require_POST
 @transaction.atomic
 def review_supplier(request, pk):
+    if request.accounting_admin:
+        return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
     purchase = get_object_or_404(SupplierInvoice.objects.select_for_update(), pk=pk)
     form = ReviewForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest("Note de contrôle invalide.")
-    if form.cleaned_data["fingerprint"] != purchase.updated_at.isoformat():
+    if not purchase.is_complete:
+        messages.error(request, "Complétez le fournisseur, le numéro, la date, le TTC et la TVA avant de comptabiliser la facture.")
+    elif form.cleaned_data["fingerprint"] != purchase.updated_at.isoformat():
         messages.error(request, "La facture a changé. Relisez-la avant de la comptabiliser.")
     else:
         purchase.reviewed_at = timezone.now()
@@ -182,17 +214,98 @@ def review_supplier(request, pk):
 
 
 @accounting_required
+def documents(request):
+    form = PeriodForm(request.GET)
+    pieces = supporting_documents(form.cleaned_data) if form.is_valid() else AccountingDocument.objects.none()
+    kind = request.GET.get("kind", "")
+    if kind:
+        pieces = pieces.filter(kind=kind)
+    if request.GET.get("pending") == "1":
+        pieces = pieces.filter(reviewed_at__isnull=True)
+    return render(request, "accounting/documents.html", page_context(request, form=form,
+        kinds=AccountingDocument.Kind.choices, selected_kind=kind,
+        page=Paginator(pieces.select_related("created_by"), 40).get_page(request.GET.get("page"))))
+
+
+@accounting_required
+def document_edit(request, pk=None):
+    if not request.accounting_admin:
+        return HttpResponseForbidden("Le dépôt et la modification des pièces sont réservés à NetExpress.")
+    instance = get_object_or_404(AccountingDocument, pk=pk) if pk else AccountingDocument()
+    form = AccountingDocumentForm(request.POST or None, request.FILES or None, instance=instance)
+    if request.method == "POST" and form.is_valid():
+        try:
+            with transaction.atomic():
+                if pk:
+                    locked = AccountingDocument.objects.select_for_update().get(pk=pk)
+                    if request.POST.get("version") != locked.updated_at.isoformat():
+                        form.add_error(None, "Ce document a été modifié. Rechargez la page avant de réessayer.")
+                    else:
+                        instance.reviewed_at = None
+                        instance.reviewed_by = None
+                        instance.review_note = ""
+                else:
+                    instance.created_by = request.user
+                if not form.errors:
+                    form.save()
+                    log_activity(request.user, "Document modifié" if pk else "Document ajouté", instance)
+                    messages.success(request, "Document enregistré et disponible pour le cabinet.")
+                    return redirect("accounting:document_detail", pk=instance.pk)
+        except IntegrityError:
+            form.add_error(None, "Cette pièce existe déjà.")
+    return render(request, "accounting/document_form.html", page_context(request, form=form, document=instance))
+
+
+@accounting_required
+def document_detail(request, pk):
+    document = get_object_or_404(AccountingDocument.objects.select_related("created_by", "reviewed_by"), pk=pk)
+    return render(request, "accounting/document_detail.html", page_context(request, document=document,
+        form=ReviewForm(initial={"fingerprint": document.updated_at.isoformat()})))
+
+
+@accounting_required
+@require_POST
+@transaction.atomic
+def review_document(request, pk):
+    if request.accounting_admin:
+        return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
+    document = get_object_or_404(AccountingDocument.objects.select_for_update(), pk=pk)
+    form = ReviewForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Note de contrôle invalide.")
+    if form.cleaned_data["fingerprint"] != document.updated_at.isoformat():
+        messages.error(request, "Le document a changé. Relisez-le avant de le vérifier.")
+    else:
+        document.reviewed_at = timezone.now()
+        document.reviewed_by = request.user
+        document.review_note = form.cleaned_data["note"]
+        document.save(update_fields=["reviewed_at", "reviewed_by", "review_note", "updated_at"])
+        log_activity(request.user, "Document vérifié", document)
+        messages.success(request, "Document marqué comme vérifié.")
+    return redirect("accounting:document_detail", pk=pk)
+
+
+@accounting_required
 def export_documents(request):
     form, sales, purchases = filtered(request)
     if not form.is_valid():
         return HttpResponseBadRequest("Période invalide.")
+    documents = supporting_documents(form.cleaned_data)
+    quotes = period_quotes(form.cleaned_data)
     is_zip = request.GET.get("format") == "zip"
+    only_quotes = request.GET.get("format") == "quotes"
     limit = 100 if is_zip else 10000
-    if sales.count() + purchases.count() > limit:
+    count = quotes.count() if only_quotes else sales.count() + purchases.count() + documents.count() + (quotes.count() if is_zip else 0)
+    if count > limit:
         return HttpResponseBadRequest(f"Limite de {limit} pièces par export. Réduisez la période.")
-    sales, purchases = list(sales), list(purchases)
-    csv = csv_content(sales, purchases)
     name = f"comptabilite-{form.cleaned_data['date_from']}-{form.cleaned_data['date_to']}"
+    if only_quotes:
+        response = HttpResponse(quotes_csv_content(quotes), content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="devis-{name}.csv"'
+        log_activity(request.user, "Export devis CSV", name)
+        return response
+    sales, purchases, documents = list(sales), list(purchases), list(documents)
+    csv = csv_content(sales, purchases, documents)
     if not is_zip:
         response = HttpResponse(csv, content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = f'attachment; filename="{name}.csv"'
@@ -202,20 +315,30 @@ def export_documents(request):
             size = 0
             with ZipFile(archive, "w", ZIP_DEFLATED) as zipfile:
                 zipfile.writestr("journal.csv", csv)
+                if quotes.exists():
+                    zipfile.writestr("devis.csv", quotes_csv_content(quotes))
+                for quote in quotes:
+                    content = quote_pdf_content(quote)
+                    size += len(content)
+                    if size > 100 * 1024 * 1024:
+                        raise ValueError("Archive trop volumineuse : réduisez la période (100 Mo maximum).")
+                    zipfile.writestr(f"devis/{quote.pk}-{slugify(quote.number)}.pdf", content)
                 for invoice in sales:
-                    content = invoice.generate_pdf(attach=False)
+                    content = invoice_pdf_content(invoice)
                     size += len(content)
                     if size > 100 * 1024 * 1024:
                         raise ValueError("Archive trop volumineuse : réduisez la période (100 Mo maximum).")
                     zipfile.writestr(f"ventes/{invoice.pk}-{slugify(invoice.number)}.pdf", content)
-                for purchase in purchases:
-                    with purchase.file.open("rb") as source:
+                for piece in purchases + documents:
+                    with piece.file.open("rb") as source:
                         content = source.read(10 * 1024 * 1024 + 1)
                     size += len(content)
                     if len(content) > 10 * 1024 * 1024 or size > 100 * 1024 * 1024:
                         raise ValueError("Archive trop volumineuse : réduisez la période (100 Mo maximum).")
-                    extension = purchase.file.name.rsplit(".", 1)[-1]
-                    zipfile.writestr(f"achats/{purchase.pk}-{slugify(purchase.supplier_name)[:60]}.{extension}", content)
+                    extension = piece.file.name.rsplit(".", 1)[-1]
+                    folder = "achats" if isinstance(piece, SupplierInvoice) else "documents"
+                    label = piece.display_name if isinstance(piece, SupplierInvoice) else piece.title
+                    zipfile.writestr(f"{folder}/{piece.pk}-{slugify(label)[:60]}.{extension}", content)
             archive.seek(0)
             response = FileResponse(archive, as_attachment=True, filename=name + ".zip")
         except (OSError, ValueError) as exc:
@@ -226,6 +349,29 @@ def export_documents(request):
             archive.close()
             raise
     log_activity(request.user, "Export ZIP" if is_zip else "Export CSV", name)
+    return response
+
+
+@accounting_required
+def quotes(request):
+    form = PeriodForm(request.GET)
+    pieces = period_quotes(form.cleaned_data) if form.is_valid() else shared_quotes().none()
+    return render(request, "accounting/quotes.html", page_context(request, form=form,
+        page=Paginator(pieces, 40).get_page(request.GET.get("page"))))
+
+
+@accounting_required
+def quote_detail(request, pk):
+    return render(request, "accounting/quote_detail.html", page_context(request,
+        quote=get_object_or_404(shared_quotes(), pk=pk)))
+
+
+@accounting_required
+def quote_pdf(request, pk):
+    quote = get_object_or_404(shared_quotes(), pk=pk)
+    response = HttpResponse(quote_pdf_content(quote), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{slugify(quote.number)}.pdf"'
+    log_activity(request.user, "Téléchargement devis", quote.number)
     return response
 
 

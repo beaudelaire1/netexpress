@@ -1,0 +1,3 @@
+{% if user.is_authenticated %}{% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' or user.profile.role == 'accountant' %}
+<a href="{% url 'accounting:dashboard' %}" class="{% if mobile %}block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md{% else %}portal-nav-item{% endif %}"><i class="fas fa-calculator mr-2" aria-hidden="true"></i>Comptabilité</a>
+{% endif %}{% endif %}

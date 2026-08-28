@@ -103,10 +103,10 @@
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-2 lg:space-x-3">
+          {% include 'accounting/nav_link.html' %}
           {% block nav_items %}
           {% if user.is_authenticated %}
             {% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' %}
-              <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
               <a href="/admin-dashboard/" class="portal-nav-item"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a>
               
               <!-- Menu Gestion -->
@@ -168,7 +168,7 @@
               
               <a href="{% portal_messages_route user 'thread_list' %}" class="portal-nav-item"><i class="fas fa-envelope mr-1"></i> Messages</a>
             {% elif user.profile.role == 'accountant' %}
-                <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
+              {# The accounting link is outside the overridable navigation block. #}
           {% elif user.profile.role == 'worker' %}
               <a href="/worker/" class="portal-nav-item"><i class="fas fa-tasks mr-1"></i> Mes Tâches</a>
               <a href="/worker/schedule/" class="portal-nav-item"><i class="fas fa-calendar mr-1"></i> Planning</a>
@@ -229,10 +229,10 @@
     <!-- Mobile Navigation -->
     <div id="mobile-menu" class="hidden md:hidden bg-ne-primary-700/95 backdrop-blur-md border-t border-white/10">
       <div class="px-2 pt-2 pb-3 space-y-1">
+        {% include 'accounting/nav_link.html' with mobile=True %}
         {% block mobile_nav_items %}
         {% if user.is_authenticated %}
           {% if user.is_superuser or user.profile.role == 'admin_technical' or user.profile.role == 'admin_business' %}
-              <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
             <a href="/admin-dashboard/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</a>
             <div class="border-t border-ne-primary-500 my-2"></div>
             <p class="px-3 py-1 text-ne-primary-200 text-xs uppercase">Gestion</p>
@@ -252,7 +252,7 @@
             <div class="border-t border-ne-primary-500 my-2"></div>
             <a href="{% portal_messages_route user 'thread_list' %}" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-envelope mr-2"></i>Messages</a>
           {% elif user.profile.role == 'accountant' %}
-                <a href="{% url 'accounting:dashboard' %}" class="text-white px-3 py-2">Comptabilité</a>
+            {# The accounting link is outside the overridable navigation block. #}
           {% elif user.profile.role == 'worker' %}
             <a href="/worker/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-tasks mr-2"></i>Mes Tâches</a>
             <a href="/worker/schedule/" class="block px-3 py-2 text-white hover:bg-ne-primary-800 rounded-md"><i class="fas fa-calendar mr-2"></i>Planning</a>

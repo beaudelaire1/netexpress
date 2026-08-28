@@ -121,6 +121,7 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
         {"name": "Site public", "url": "/", "new_window": True},
         {"name": "Dashboard Admin", "url": "/admin-dashboard/", "new_window": False},
+        {"name": "Comptabilité", "url": "/comptabilite/", "new_window": False},
         {"model": "auth.User"},
     ],
     
