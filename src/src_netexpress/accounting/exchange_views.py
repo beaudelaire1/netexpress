@@ -17,12 +17,13 @@ from .exchange_services import (
     add_exchange_document,
     context_meta,
     create_exchange,
-    exchange_search_query,
     mark_exchange_read,
     promote_exchange_document,
     reply_to_exchange,
     set_exchange_state,
+    unread_exchange_queryset,
 )
+from .filters import filtered_exchanges
 from .models import (
     AccountingDocument,
     AccountingExchange,
@@ -79,6 +80,7 @@ def _visible_documents(request, exchange):
 
 @accounting_required
 def exchange_list(request):
+    """List collaboration threads with role-aware métier filters."""
     queryset = AccountingExchange.objects.select_related(
         "created_by",
         "invoice__quote__client",
@@ -86,27 +88,9 @@ def exchange_list(request):
         "supplier_invoice",
         "accounting_document",
     )
-
-    status = (request.GET.get("status") or "").strip()
-    kind = (request.GET.get("kind") or "").strip()
-    query = (request.GET.get("q") or "").strip()
-    with_documents = request.GET.get("documents") == "1"
-
-    valid_statuses = {value for value, _ in AccountingExchange.Status.choices}
-    valid_kinds = {value for value, _ in AccountingExchange.Kind.choices}
-    if status in valid_statuses:
-        queryset = queryset.filter(status=status)
-    if kind in valid_kinds:
-        queryset = queryset.filter(kind=kind)
-    queryset = exchange_search_query(queryset, query)
-    if with_documents:
-        if request.accounting_admin:
-            queryset = queryset.filter(documents__isnull=False)
-        else:
-            queryset = queryset.filter(
-                documents__visibility=AccountingExchangeDocument.Visibility.SHARED
-            )
-        queryset = queryset.distinct()
+    form, queryset = filtered_exchanges(request, queryset)
+    if form.is_valid() and form.cleaned_data.get("unread"):
+        queryset = unread_exchange_queryset(request.user, queryset)
 
     read_state = AccountingExchangeReadState.objects.filter(
         exchange_id=OuterRef("pk"),
@@ -124,7 +108,6 @@ def exchange_list(request):
         document_count=Count("documents", filter=document_filter, distinct=True),
         message_count=Count("messages", distinct=True),
     )
-
     page = Paginator(queryset, 30).get_page(request.GET.get("page"))
     for exchange in page.object_list:
         exchange.context_meta = context_meta(exchange)
@@ -134,13 +117,12 @@ def exchange_list(request):
         "accounting/exchanges.html",
         page_context(
             request,
+            form=form,
             page=page,
-            selected_status=status,
-            selected_kind=kind,
-            query=query,
-            with_documents=with_documents,
-            status_choices=AccountingExchange.Status.choices,
-            kind_choices=AccountingExchange.Kind.choices,
+            result_count=page.paginator.count,
+            filter_kind="exchanges",
+            active_filters=form.active_filter_chips(request),
+            advanced_filter_count=form.active_advanced_count(request),
         ),
     )
 
@@ -148,7 +130,9 @@ def exchange_list(request):
 @accounting_required
 def exchange_create(request):
     context_field, context_object, context_information = _context_from_request(request)
-    mode = (request.POST.get("mode") if request.method == "POST" else request.GET.get("mode")) or "message"
+    mode = (
+        request.POST.get("mode") if request.method == "POST" else request.GET.get("mode")
+    ) or "message"
 
     initial = {}
     if context_information:
@@ -174,7 +158,8 @@ def exchange_create(request):
                 content=data.get("message", ""),
                 file=data.get("file"),
                 document_title=data.get("document_title", ""),
-                document_type=data.get("document_type") or AccountingExchangeDocument.Type.OTHER,
+                document_type=data.get("document_type")
+                or AccountingExchangeDocument.Type.OTHER,
                 visibility=form.document_visibility(),
                 context_field=context_field,
                 context_object=context_object,
@@ -249,7 +234,10 @@ def exchange_reply(request, pk):
     exchange = get_object_or_404(AccountingExchange, pk=pk)
     form = ExchangeReplyForm(request.POST, request.FILES, user=request.user)
     if not form.is_valid():
-        messages.error(request, "Réponse non envoyée. Vérifiez le message ou le document joint.")
+        messages.error(
+            request,
+            "Réponse non envoyée. Vérifiez le message ou le document joint.",
+        )
         return redirect("accounting:exchange_detail", pk=pk)
 
     data = form.cleaned_data
@@ -260,7 +248,8 @@ def exchange_reply(request, pk):
             content=data.get("content", ""),
             file=data.get("file"),
             document_title=data.get("document_title", ""),
-            document_type=data.get("document_type") or AccountingExchangeDocument.Type.OTHER,
+            document_type=data.get("document_type")
+            or AccountingExchangeDocument.Type.OTHER,
             visibility=form.document_visibility(),
         )
     except IntegrityError:

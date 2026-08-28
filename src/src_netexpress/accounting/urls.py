@@ -19,7 +19,7 @@ urlpatterns = [
         exchange_views.exchange_document_promote,
         name="exchange_document_promote",
     ),
-    # Devis are accounting context only: no standalone collection is exposed.
+    # Les devis restent un contexte de facture : aucune collection comptable autonome.
     path("devis/<int:pk>/", views.quote_detail, name="quote_detail"),
     path("devis/<int:pk>/pdf/", views.quote_pdf, name="quote_pdf"),
     path("ventes/", workspace.sales, name="sales"),

@@ -231,17 +231,21 @@ def test_exports_period_formulas_zip_and_totals(client):
     invoice = make_invoice()
     client.post(reverse("accounting:supplier_add"), {**purchase_data(supplier_name="=CMD()"), "file": upload()})
     client.force_login(make_user())
-    response = client.get(reverse("accounting:export"), {"date_from": "2026-01-01", "date_to": "2026-12-31"})
+    selection = {"date_from": "2026-01-01", "date_to": "2026-12-31"}
+    response = client.get(reverse("accounting:export"), selection)
     assert response.status_code == 200
     assert "'=CMD()" in response.content.decode("utf-8-sig")
     assert "120.00" in response.content.decode("utf-8-sig")
-    with patch.object(Invoice, "generate_pdf", return_value=b"%PDF-1.4 test"), patch("accounting.views.quote_pdf_content", return_value=b"%PDF-1.4 quote"):
-        response = client.get(reverse("accounting:export"), {"format": "zip", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    with patch.object(Invoice, "generate_pdf", return_value=b"%PDF-1.4 test"):
+        response = client.get(reverse("accounting:export"), {**selection, "format": "zip"})
         with zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content))) as archive:
-            assert len(archive.namelist()) == 5
-            assert "journal.csv" in archive.namelist()
-            assert "devis.csv" in archive.namelist()
-    response = client.get(reverse("accounting:dashboard"), {"date_from": "2026-01-01", "date_to": "2026-12-31"})
+            names = archive.namelist()
+            assert len(names) == 3
+            assert "journal.csv" in names
+            assert any(name.startswith("ventes/") for name in names)
+            assert any(name.startswith("achats/") for name in names)
+            assert "devis.csv" not in names
+    response = client.get(reverse("accounting:dashboard"), selection)
     assert response.context["totals"]["purchases"] == Decimal(120)
     assert response.context["totals"]["net_sales"] == Decimal(60)
     assert client.get(reverse("accounting:export"), {"date_from": "2027-12-31", "date_to": "2026-01-01"}).status_code == 400
@@ -270,8 +274,8 @@ def test_admin_dashboard_has_accounting_navigation_and_kpis_before_actions(clien
     assert reverse("accounting:document_add") not in html
     portal = client.get(reverse("accounting:dashboard")).content.decode()
     assert 'class="back-dashboard" href="/admin-dashboard/"' in portal
-    assert "Portail comptable" in portal and "NetExpress · Espace entreprise" in portal
-    assert portal.index('aria-label="Synthèse de la période"') < portal.index('aria-label="Transmettre des pièces"')
+    assert "Espace comptable" in portal and "NetExpress · Espace entreprise" in portal
+    assert portal.index('aria-label="Synthèse de la période"') < portal.index('aria-label="Préparer des pièces"')
 
 
 @pytest.mark.parametrize("role,allowed", [("admin_business", True), ("admin_technical", True), ("accountant", False), ("client", False), ("worker", False)])
@@ -293,17 +297,20 @@ def test_supplier_file_only_preserves_unknowns_and_blocks_review(client):
     assert not purchase.is_complete and purchase.total_ht is None
     assert client.post(reverse("accounting:supplier_add"), {"file": upload(b"%PDF-1.4 Another invoice")}).status_code == 302
     assert SupplierInvoice.objects.count() == 2  # Blank references are not duplicates.
+
     client.force_login(make_user())
     response = client.get(reverse("accounting:dashboard"))
-    assert response.context["totals"]["incomplete_purchases"] == 2
+    assert response.context["totals"]["incomplete_purchases"] == 0
     assert response.context["totals"]["purchases"] == 0
-    assert "À renseigner" in client.get(reverse("accounting:supplier_detail", args=[purchase.pk])).content.decode()
-    client.post(reverse("accounting:review_supplier", args=[purchase.pk]), {"fingerprint": purchase.updated_at.isoformat()})
+    assert client.get(reverse("accounting:suppliers")).context["page"].paginator.count == 0
+    assert client.get(reverse("accounting:supplier_detail", args=[purchase.pk])).status_code == 404
+    assert client.post(reverse("accounting:review_supplier", args=[purchase.pk]), {"fingerprint": purchase.updated_at.isoformat()}).status_code == 404
     purchase.refresh_from_db()
     assert purchase.reviewed_at is None
-    rows = list(csv.DictReader(io.StringIO(csv_content([], [purchase]).decode("utf-8-sig")), delimiter=";"))
-    assert rows[0]["HT EUR"] == rows[0]["TTC EUR"] == rows[0]["TVA EUR"] == rows[0]["Date"] == ""
-    assert rows[0]["Contrôle"] == "À compléter"
+
+    export = client.get(reverse("accounting:export"), {"date_from": "2026-01-01", "date_to": "2026-12-31"})
+    assert export.status_code == 200
+    assert "À compléter" not in export.content.decode("utf-8-sig")
 
 
 def test_supplier_optional_metadata_validation_and_completion(client):
@@ -344,7 +351,7 @@ def test_company_document_then_cabinet_review_and_download(client, kind):
     assert client.post(url, {"fingerprint": document.updated_at.isoformat(), "note": "Pièce lisible"}).status_code == 302
     document.refresh_from_db()
     assert document.reviewed_by == cabinet and document.review_note == "Pièce lisible"
-    assert client.get(reverse("accounting:documents"), {"pending": "1"}).context["page"].paginator.count == 0
+    assert client.get(reverse("accounting:documents"), {"review": "pending"}).context["page"].paginator.count == 0
 
 
 def test_document_security_duplicates_and_stale_changes(client):
@@ -420,26 +427,30 @@ def test_document_filters_exports_and_no_effect_on_sales(client):
         assert "'=SUM(1)" in archive.read("journal.csv").decode("utf-8-sig")
 
 
-def test_quotes_shared_automatically_readonly_and_draft_private(client):
+def test_quotes_are_readonly_context_only_and_draft_private(client):
     invoice = make_invoice()
     quote = invoice.quote
     draft = Quote.objects.create(client=quote.client, status="draft")
     client.force_login(make_user())
-    page = client.get(reverse("accounting:quotes"))
-    assert page.status_code == 200 and page.context["page"].paginator.count == 1
+
     assert client.get(reverse("accounting:quote_detail", args=[quote.pk])).status_code == 200
     assert client.get(reverse("accounting:quote_detail", args=[draft.pk])).status_code == 404
     assert client.get(reverse("accounting:quote_pdf", args=[draft.pk])).status_code == 404
+
     before = (quote.total_ttc, quote.status, quote.pdf.name)
     with patch("core.services.document_generator.DocumentGenerator.generate_quote_pdf", return_value=b"%PDF-1.4 quote") as generate:
         assert client.get(reverse("accounting:quote_pdf", args=[quote.pk])).status_code == 200
         assert generate.call_args.kwargs == {"attach": False}
     quote.refresh_from_db()
     assert (quote.total_ttc, quote.status, quote.pdf.name) == before
-    response = client.get(reverse("accounting:export"), {"format": "quotes"})
-    assert quote.number in response.content.decode("utf-8-sig") and draft.number not in response.content.decode("utf-8-sig")
-    totals = client.get(reverse("accounting:dashboard")).context["totals"]
-    assert totals["net_sales"] == Decimal(60) and totals["quotes"] == 1
+
+    selection = {"date_from": "2026-01-01", "date_to": "2026-12-31"}
+    journal = client.get(reverse("accounting:export"), selection).content.decode("utf-8-sig")
+    assert invoice.number in journal
+    assert quote.number not in journal and draft.number not in journal
+    totals = client.get(reverse("accounting:dashboard"), selection).context["totals"]
+    assert totals["net_sales"] == Decimal(60)
+    assert "quotes" not in totals
 
 
 def test_demo_account_local_only_and_login(client, settings):

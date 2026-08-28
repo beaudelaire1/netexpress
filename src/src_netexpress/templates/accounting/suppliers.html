@@ -5,24 +5,18 @@
   <div>
     <p class="eyebrow">ACHATS</p>
     <h1>Factures fournisseurs</h1>
-    <p class="subtitle">{{ page.paginator.count }} facture{{ page.paginator.count|pluralize }} · <strong>{{ total|floatformat:2 }} € TTC</strong>.{% if accounting_admin and incomplete_count %} {{ incomplete_count }} brouillon{{ incomplete_count|pluralize }} à compléter.{% endif %}</p>
+    <p class="subtitle">{{ result_count }} facture{{ result_count|pluralize }} · <strong>{{ total|floatformat:2 }} € TTC</strong>. Recherchez par fournisseur ou référence, puis affinez par catégorie, paiement, contrôle, montant et état de préparation.</p>
   </div>
   {% if accounting_admin %}<a class="button" href="{% url 'accounting:supplier_add' %}">+ Déposer une facture</a>{% endif %}
 </div>
 
 {% if accounting_admin %}
-<p class="readonly-note">Les pièces peuvent être déposées avant d’être complètes. Tant que le fournisseur, la référence, la date, le TTC ou la TVA manquent, elles restent strictement dans l’espace NetExpress.</p>
+<p class="readonly-note">Les brouillons à compléter restent visibles uniquement côté NetExpress. Le filtre « Préparation » permet de séparer les pièces complètes des dépôts encore incomplets.</p>
 {% else %}
-<p class="readonly-note"><strong>File comptable propre.</strong> Cette liste ne contient que les factures fournisseurs suffisamment renseignées pour être contrôlées. Les brouillons de NetExpress ne sont ni visibles ni téléchargeables depuis votre compte.</p>
+<p class="readonly-note"><strong>File comptable propre.</strong> Le cabinet ne peut rechercher et filtrer que les factures suffisamment renseignées pour être contrôlées.</p>
 {% endif %}
 
-{% include 'accounting/period.html' %}
-<nav class="queue-filter" aria-label="Filtrer les factures fournisseurs">
-  <a href="{% querystring pending=None incomplete=None page=None %}" {% if not pending_only and not incomplete_only %}aria-current="page"{% endif %}>{% if accounting_admin %}Toutes les pièces{% else %}Toutes les factures{% endif %}</a>
-  <a href="{% querystring pending='1' incomplete=None page=None %}" {% if pending_only and not incomplete_only %}aria-current="page"{% endif %}>À contrôler{% if pending_only %} · {{ page.paginator.count }}{% endif %}</a>
-  {% if accounting_admin %}<a href="{% querystring incomplete='1' pending=None page=None %}" {% if incomplete_only %}aria-current="page"{% endif %}>Brouillons à compléter</a>{% endif %}
-</nav>
-
+{% include 'accounting/_list_filters.html' %}
 <section class="panel table-wrap modern-panel">
 <table>
   <thead><tr><th>Fournisseur / référence</th><th>Date</th><th>Catégorie</th><th>TTC</th><th>Paiement</th><th>Contrôle</th></tr></thead>
@@ -37,7 +31,7 @@
       <td><span class="badge {% if purchase.reviewed_at %}done{% else %}pending{% endif %}">{% if purchase.reviewed_at %}Contrôlé{% elif purchase.is_complete %}À contrôler{% else %}Brouillon{% endif %}</span></td>
     </tr>
   {% empty %}
-    <tr><td colspan="6" class="empty"><h3>{% if pending_only %}Aucune facture n’attend de contrôle{% elif incomplete_only %}Aucun brouillon à compléter{% else %}Aucune facture pour cette sélection{% endif %}</h3>{% if accounting_admin and not pending_only %}<p>Déposez une pièce maintenant ; elle ne sera transmise au cabinet qu’une fois complète.</p>{% elif not accounting_admin %}<p>Seules les pièces prêtes au contrôle apparaissent dans votre espace.</p>{% endif %}</td></tr>
+    <tr><td colspan="6" class="empty"><h3>Aucune facture dans cette sélection</h3><p>Modifiez ou réinitialisez les critères de recherche et de filtrage.</p>{% if accounting_admin %}<a href="{% url 'accounting:supplier_add' %}">Ajouter une facture →</a>{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table>

@@ -5,29 +5,54 @@
   <div>
     <p class="eyebrow">SYNTHÈSE COMPTABLE</p>
     <h1>Vue d’ensemble</h1>
-    <p class="subtitle">{% if accounting_admin %}Préparez les pièces à transmettre et suivez ce que le cabinet a déjà contrôlé.{% else %}Les indicateurs, graphiques et files ci-dessous ne contiennent que les pièces suffisamment finalisées pour être traitées.{% endif %}</p>
+    <p class="subtitle">
+      {% if accounting_admin %}
+        Préparez les pièces à transmettre et suivez ce que le cabinet a déjà contrôlé.
+      {% else %}
+        Les indicateurs, graphiques et files ci-dessous ne contiennent que les pièces suffisamment finalisées pour être traitées.
+      {% endif %}
+    </p>
   </div>
-  <span class="access-chip"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>{% if accounting_admin %}Vue entreprise{% else %}Vue cabinet{% endif %}</span>
+  <span class="access-chip">
+    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+    {% if accounting_admin %}Vue entreprise{% else %}Vue cabinet{% endif %}
+  </span>
 </div>
 
 {% include 'accounting/period.html' %}
 
 <section class="accounting-kpis" aria-label="Indicateurs comptables de la période">
-  <a href="{% url 'accounting:sales' %}{% querystring pending=None page=None %}" class="accounting-kpi">
+  <a href="{% url 'accounting:sales' %}{% querystring page=None %}" class="accounting-kpi">
     <span class="kpi-icon"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></span>
-    <span class="kpi-copy"><small>Ventes HT</small><strong>{{ totals.net_sales_ht|default:0|floatformat:2 }} €</strong><em>{{ totals.net_sales|default:0|floatformat:2 }} € TTC · avoirs déduits</em></span>
+    <span class="kpi-copy">
+      <small>Ventes HT</small>
+      <strong>{{ totals.net_sales_ht|default:0|floatformat:2 }} €</strong>
+      <em>{{ totals.net_sales|default:0|floatformat:2 }} € TTC · avoirs déduits</em>
+    </span>
   </a>
   <article class="accounting-kpi">
     <span class="kpi-icon"><i class="fa-solid fa-percent" aria-hidden="true"></i></span>
-    <span class="kpi-copy"><small>TVA collectée</small><strong>{{ totals.sales_vat|default:0|floatformat:2 }} €</strong><em>Factures clients et avoirs de la sélection</em></span>
+    <span class="kpi-copy">
+      <small>TVA collectée</small>
+      <strong>{{ totals.sales_vat|default:0|floatformat:2 }} €</strong>
+      <em>Factures clients et avoirs de la sélection</em>
+    </span>
   </article>
-  <a href="{% url 'accounting:suppliers' %}{% querystring pending=None incomplete=None page=None %}" class="accounting-kpi">
+  <a href="{% url 'accounting:suppliers' %}{% querystring page=None %}" class="accounting-kpi">
     <span class="kpi-icon"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i></span>
-    <span class="kpi-copy"><small>Achats HT</small><strong>{{ totals.purchases_ht|default:0|floatformat:2 }} €</strong><em>{{ totals.purchases_ttc|default:0|floatformat:2 }} € TTC · pièces complètes</em></span>
+    <span class="kpi-copy">
+      <small>Achats HT</small>
+      <strong>{{ totals.purchases_ht|default:0|floatformat:2 }} €</strong>
+      <em>{{ totals.purchases_ttc|default:0|floatformat:2 }} € TTC · pièces complètes</em>
+    </span>
   </a>
   <article class="accounting-kpi">
     <span class="kpi-icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
-    <span class="kpi-copy"><small>TVA sur achats</small><strong>{{ totals.purchase_vat|default:0|floatformat:2 }} €</strong><em>Montants renseignés sur les factures fournisseurs</em></span>
+    <span class="kpi-copy">
+      <small>TVA sur achats</small>
+      <strong>{{ totals.purchase_vat|default:0|floatformat:2 }} €</strong>
+      <em>Montants renseignés sur les factures fournisseurs</em>
+    </span>
   </article>
 </section>
 
@@ -35,18 +60,33 @@
 <section class="analytics-grid" aria-label="Évolution comptable">
   <article class="analytics-card analytics-card-wide">
     <div class="analytics-heading">
-      <div><p class="eyebrow">ACTIVITÉ</p><h2>Ventes et achats HT</h2><p>Évolution sur la période sélectionnée.</p></div>
-      <div class="chart-legend" aria-label="Légende"><span><i class="legend-dot sales"></i>Ventes HT</span><span><i class="legend-dot purchases"></i>Achats HT</span></div>
+      <div>
+        <p class="eyebrow">ACTIVITÉ</p>
+        <h2>Ventes et achats HT</h2>
+        <p>Évolution sur la période sélectionnée.</p>
+      </div>
+      <div class="chart-legend" aria-label="Légende">
+        <span><i class="legend-dot sales"></i>Ventes HT</span>
+        <span><i class="legend-dot purchases"></i>Achats HT</span>
+      </div>
     </div>
     <div class="chart-shell">
       <canvas class="accounting-chart" data-accounting-chart data-primary-key="sales" data-primary-label="Ventes HT" data-secondary-key="purchases" data-secondary-label="Achats HT" aria-label="Graphique des ventes et achats hors taxes" role="img"></canvas>
       <p class="chart-fallback">Les données détaillées restent disponibles dans les listes de factures.</p>
     </div>
   </article>
+
   <article class="analytics-card">
     <div class="analytics-heading compact">
-      <div><p class="eyebrow">TVA</p><h2>Collectée / achats</h2><p>Lecture comparative par période.</p></div>
-      <div class="chart-legend"><span><i class="legend-dot vat-sales"></i>Collectée</span><span><i class="legend-dot vat-purchases"></i>Sur achats</span></div>
+      <div>
+        <p class="eyebrow">TVA</p>
+        <h2>Collectée / achats</h2>
+        <p>Lecture comparative par période.</p>
+      </div>
+      <div class="chart-legend">
+        <span><i class="legend-dot vat-sales"></i>Collectée</span>
+        <span><i class="legend-dot vat-purchases"></i>Sur achats</span>
+      </div>
     </div>
     <div class="chart-shell chart-shell-small">
       <canvas class="accounting-chart" data-accounting-chart data-primary-key="sales_vat" data-primary-label="TVA collectée" data-secondary-key="purchase_vat" data-secondary-label="TVA sur achats" aria-label="Graphique comparatif de TVA" role="img"></canvas>
@@ -57,65 +97,229 @@
 
 <section class="workbench-grid" aria-label="Travail à effectuer">
   <article class="workbench-card priority-card">
-    <div class="workbench-heading"><div><p class="eyebrow">À TRAITER</p><h2>{% if accounting_admin %}Préparation NetExpress{% else %}File du cabinet{% endif %}</h2></div><span class="queue-total">{% if accounting_admin %}{{ totals.incomplete_purchases|default:0 }}{% else %}{{ totals.pending|default:0 }}{% endif %}</span></div>
+    <div class="workbench-heading">
+      <div>
+        <p class="eyebrow">À TRAITER</p>
+        <h2>{% if accounting_admin %}Préparation NetExpress{% else %}File du cabinet{% endif %}</h2>
+      </div>
+      <span class="queue-total">
+        {% if accounting_admin %}{{ totals.incomplete_purchases|default:0 }}{% else %}{{ totals.pending|default:0 }}{% endif %}
+      </span>
+    </div>
+
     <div class="task-list">
       {% if accounting_admin %}
-        {% if totals.incomplete_purchases %}<a class="task-row is-alert" href="{% url 'accounting:suppliers' %}{% querystring incomplete='1' pending=None page=None %}"><span class="task-count">{{ totals.incomplete_purchases }}</span><span><strong>Facture{{ totals.incomplete_purchases|pluralize }} fournisseur{{ totals.incomplete_purchases|pluralize }} à compléter</strong><small>Ces brouillons restent invisibles au cabinet tant que les données minimales manquent.</small></span><span class="task-arrow">Compléter →</span></a>{% endif %}
-        {% if totals.overdue_purchases %}<a class="task-row is-danger" href="{% url 'accounting:suppliers' %}{% querystring pending=None incomplete=None page=None %}"><span class="task-count">{{ totals.overdue_purchases }}</span><span><strong>Échéance{{ totals.overdue_purchases|pluralize }} fournisseur dépassée{{ totals.overdue_purchases|pluralize }}</strong><small>Vérifiez le paiement ou renseignez la date de règlement.</small></span><span class="task-arrow">Voir →</span></a>{% endif %}
-        {% if not totals.incomplete_purchases and not totals.overdue_purchases %}<div class="workflow-clear"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><div><strong>Aucune préparation bloquante.</strong><span>Les pièces de la sélection sont suffisamment renseignées.</span></div></div>{% endif %}
+        {% if totals.incomplete_purchases %}
+          <a class="task-row is-alert" href="{% url 'accounting:suppliers' %}{% querystring completeness='incomplete' review=None payment=None page=None %}">
+            <span class="task-count">{{ totals.incomplete_purchases }}</span>
+            <span>
+              <strong>Facture{{ totals.incomplete_purchases|pluralize }} fournisseur{{ totals.incomplete_purchases|pluralize }} à compléter</strong>
+              <small>Ces brouillons restent invisibles au cabinet tant que les données minimales manquent.</small>
+            </span>
+            <span class="task-arrow">Compléter →</span>
+          </a>
+        {% endif %}
+
+        {% if totals.overdue_purchases %}
+          <a class="task-row is-danger" href="{% url 'accounting:suppliers' %}{% querystring payment='overdue' completeness='complete' review=None page=None %}">
+            <span class="task-count">{{ totals.overdue_purchases }}</span>
+            <span>
+              <strong>Échéance{{ totals.overdue_purchases|pluralize }} fournisseur dépassée{{ totals.overdue_purchases|pluralize }}</strong>
+              <small>Vérifiez le paiement ou renseignez la date de règlement.</small>
+            </span>
+            <span class="task-arrow">Voir →</span>
+          </a>
+        {% endif %}
+
+        {% if not totals.incomplete_purchases and not totals.overdue_purchases %}
+          <div class="workflow-clear">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <div>
+              <strong>Aucune préparation bloquante.</strong>
+              <span>Les pièces de la sélection sont suffisamment renseignées.</span>
+            </div>
+          </div>
+        {% endif %}
       {% else %}
-        {% if totals.pending_sales %}<a class="task-row" href="{% url 'accounting:sales' %}{% querystring pending='1' page=None %}"><span class="task-count">{{ totals.pending_sales }}</span><span><strong>Facture{{ totals.pending_sales|pluralize }} client{{ totals.pending_sales|pluralize }} à contrôler</strong><small>Uniquement les factures effectivement publiées pour la comptabilité.</small></span><span class="task-arrow">Contrôler →</span></a>{% endif %}
-        {% if totals.pending_purchases %}<a class="task-row" href="{% url 'accounting:suppliers' %}{% querystring pending='1' page=None %}"><span class="task-count">{{ totals.pending_purchases }}</span><span><strong>Facture{{ totals.pending_purchases|pluralize }} fournisseur{{ totals.pending_purchases|pluralize }} à contrôler</strong><small>Les dépôts incomplets ne sont pas accessibles depuis votre espace.</small></span><span class="task-arrow">Contrôler →</span></a>{% endif %}
-        {% if totals.pending_documents %}<a class="task-row" href="{% url 'accounting:documents' %}{% querystring pending='1' page=None %}"><span class="task-count">{{ totals.pending_documents }}</span><span><strong>Document{{ totals.pending_documents|pluralize }} à vérifier</strong><small>Relevés, pièces fiscales, sociales, contrats ou justificatifs.</small></span><span class="task-arrow">Vérifier →</span></a>{% endif %}
-        {% if not totals.pending %}<div class="workflow-clear"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><div><strong>La file est à jour.</strong><span>Aucune pièce finalisée n’attend votre contrôle sur cette sélection.</span></div></div>{% endif %}
+        {% if totals.pending_sales %}
+          <a class="task-row" href="{% url 'accounting:sales' %}{% querystring review='pending' page=None %}">
+            <span class="task-count">{{ totals.pending_sales }}</span>
+            <span>
+              <strong>Facture{{ totals.pending_sales|pluralize }} client{{ totals.pending_sales|pluralize }} à contrôler</strong>
+              <small>Uniquement les factures effectivement publiées pour la comptabilité.</small>
+            </span>
+            <span class="task-arrow">Contrôler →</span>
+          </a>
+        {% endif %}
+
+        {% if totals.pending_purchases %}
+          <a class="task-row" href="{% url 'accounting:suppliers' %}{% querystring review='pending' page=None %}">
+            <span class="task-count">{{ totals.pending_purchases }}</span>
+            <span>
+              <strong>Facture{{ totals.pending_purchases|pluralize }} fournisseur{{ totals.pending_purchases|pluralize }} à contrôler</strong>
+              <small>Les dépôts incomplets ne sont pas accessibles depuis votre espace.</small>
+            </span>
+            <span class="task-arrow">Contrôler →</span>
+          </a>
+        {% endif %}
+
+        {% if totals.pending_documents %}
+          <a class="task-row" href="{% url 'accounting:documents' %}{% querystring review='pending' page=None %}">
+            <span class="task-count">{{ totals.pending_documents }}</span>
+            <span>
+              <strong>Document{{ totals.pending_documents|pluralize }} à vérifier</strong>
+              <small>Relevés, pièces fiscales, sociales, contrats ou justificatifs.</small>
+            </span>
+            <span class="task-arrow">Vérifier →</span>
+          </a>
+        {% endif %}
+
+        {% if not totals.pending %}
+          <div class="workflow-clear">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <div>
+              <strong>La file est à jour.</strong>
+              <span>Aucune pièce finalisée n’attend votre contrôle sur cette sélection.</span>
+            </div>
+          </div>
+        {% endif %}
       {% endif %}
     </div>
   </article>
 
   <article class="workbench-card progress-card-modern">
-    <div class="progress-head"><div><p class="eyebrow">AVANCEMENT</p><h2>Dossier contrôlé</h2></div><div class="progress-score">{{ totals.progress|default:0 }}<small>%</small></div></div>
+    <div class="progress-head">
+      <div>
+        <p class="eyebrow">AVANCEMENT</p>
+        <h2>Dossier contrôlé</h2>
+      </div>
+      <div class="progress-score">{{ totals.progress|default:0 }}<small>%</small></div>
+    </div>
     <progress value="{{ totals.progress|default:0 }}" max="100" aria-label="{{ totals.progress|default:0 }} % des pièces contrôlées"></progress>
-    <div class="progress-caption"><span>{{ totals.reviewed|default:0 }} contrôlée{{ totals.reviewed|default:0|pluralize }}</span><span>{{ totals.pending|default:0 }} en attente</span></div>
+    <div class="progress-caption">
+      <span>{{ totals.reviewed|default:0 }} contrôlée{{ totals.reviewed|default:0|pluralize }}</span>
+      <span>{{ totals.pending|default:0 }} en attente</span>
+    </div>
     <div class="workload-chart">
-      {% for item in workload %}<div class="workload-row"><div class="workload-label"><span>{{ item.label }}</span><span>{{ item.count }} · {{ item.share }} %</span></div><progress value="{{ item.share }}" max="100" aria-label="{{ item.label }} : {{ item.count }} pièce(s)"></progress></div>{% endfor %}
+      {% for item in workload %}
+        <div class="workload-row">
+          <div class="workload-label"><span>{{ item.label }}</span><span>{{ item.count }} · {{ item.share }} %</span></div>
+          <progress value="{{ item.share }}" max="100" aria-label="{{ item.label }} : {{ item.count }} pièce(s)"></progress>
+        </div>
+      {% endfor %}
     </div>
   </article>
 </section>
 
 {% if accounting_admin %}
 <section class="company-actions" aria-label="Préparer des pièces">
-  <p><strong>Préparer une nouvelle pièce</strong><br><span class="muted">Un dépôt fournisseur incomplet reste privé côté NetExpress jusqu’à sa complétion.</span></p>
-  <div class="actions"><a class="button" href="{% url 'accounting:supplier_add' %}">+ Facture fournisseur</a><a class="button secondary" href="{% url 'accounting:document_add' %}">+ Autre document</a></div>
+  <p>
+    <strong>Préparer une nouvelle pièce</strong><br>
+    <span class="muted">Un dépôt fournisseur incomplet reste privé côté NetExpress jusqu’à sa complétion.</span>
+  </p>
+  <div class="actions">
+    <a class="button" href="{% url 'accounting:supplier_add' %}">+ Facture fournisseur</a>
+    <a class="button secondary" href="{% url 'accounting:document_add' %}">+ Autre document</a>
+  </div>
 </section>
 {% endif %}
 
 <section class="export-panel modern-export">
-  <div><p class="eyebrow">EXPORT COMPTABLE</p><h2>Récupérer uniquement les pièces prêtes.</h2><p>Le CSV contient le journal de la sélection. Le ZIP ajoute les factures clients, factures fournisseurs complètes et autres justificatifs. Les brouillons et les devis ne sont pas inclus.</p></div>
-  <div class="actions"><a class="button secondary" href="{% url 'accounting:export' %}{% querystring format='csv' %}">Exporter le CSV</a><a class="button" href="{% url 'accounting:export' %}{% querystring format='zip' %}"><i class="fa-solid fa-download" aria-hidden="true"></i> Télécharger le dossier</a><small>ZIP : 100 pièces / 100 Mo maximum</small></div>
+  <div>
+    <p class="eyebrow">EXPORT COMPTABLE</p>
+    <h2>Récupérer uniquement les pièces prêtes.</h2>
+    <p>Le CSV contient le journal de la sélection. Le ZIP ajoute les factures clients, factures fournisseurs complètes et autres justificatifs. Les brouillons et les devis ne sont pas inclus.</p>
+  </div>
+  <div class="actions">
+    <a class="button secondary" href="{% url 'accounting:export' %}{% querystring format='csv' %}">Exporter le CSV</a>
+    <a class="button" href="{% url 'accounting:export' %}{% querystring format='zip' %}"><i class="fa-solid fa-download" aria-hidden="true"></i> Télécharger le dossier</a>
+    <small>ZIP : 100 pièces / 100 Mo maximum</small>
+  </div>
 </section>
 
 <div class="two-columns recent-grid">
   <section class="panel modern-panel">
-    <div class="section-heading"><div><p class="eyebrow">VENTES</p><h2>Factures clients récentes</h2></div><a href="{% url 'accounting:sales' %}">Tout voir →</a></div>
+    <div class="section-heading">
+      <div><p class="eyebrow">VENTES</p><h2>Factures clients récentes</h2></div>
+      <a href="{% url 'accounting:sales' %}">Tout voir →</a>
+    </div>
     <p class="section-caption">Seulement les factures publiées et suffisamment finalisées.</p>
-    {% for invoice in recent_sales %}<a class="document-row" href="{% url 'accounting:invoice_detail' invoice.pk %}"><div><strong>{{ invoice.number }}</strong><small>{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }} · {{ invoice.get_status_display }}</small></div><b>{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €</b></a>{% empty %}<div class="empty"><i class="fa-regular fa-file-lines empty-icon" aria-hidden="true"></i><h3>Aucune facture publiée</h3><p>Les brouillons et factures incomplètes n’apparaissent pas ici.</p></div>{% endfor %}
+    {% for invoice in recent_sales %}
+      <a class="document-row" href="{% url 'accounting:invoice_detail' invoice.pk %}">
+        <div>
+          <strong>{{ invoice.number }}</strong>
+          <small>{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }} · {{ invoice.get_status_display }}</small>
+        </div>
+        <b>{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €</b>
+      </a>
+    {% empty %}
+      <div class="empty">
+        <i class="fa-regular fa-file-lines empty-icon" aria-hidden="true"></i>
+        <h3>Aucune facture publiée</h3>
+        <p>Les brouillons et factures incomplètes n’apparaissent pas ici.</p>
+      </div>
+    {% endfor %}
   </section>
 
   <section class="panel modern-panel">
-    <div class="section-heading"><div><p class="eyebrow">ACHATS</p><h2>Factures fournisseurs récentes</h2></div><a href="{% url 'accounting:suppliers' %}">Tout voir →</a></div>
-    <p class="section-caption">{% if accounting_admin %}Les brouillons restent visibles ici pour que NetExpress puisse les terminer.{% else %}Toutes les pièces affichées possèdent les informations minimales de contrôle.{% endif %}</p>
-    {% for purchase in recent_purchases %}<a class="document-row" href="{% url 'accounting:supplier_detail' purchase.pk %}"><div><strong>{{ purchase.display_name }}</strong><small>{% if purchase.is_complete %}{{ purchase.reference }} · {{ purchase.issue_date|date:'d/m/Y' }}{% else %}Brouillon NetExpress · à compléter{% endif %}</small></div><b>{% if purchase.total_ttc != None %}{{ purchase.total_ttc|floatformat:2 }} €{% else %}—{% endif %}</b></a>{% empty %}<div class="empty"><i class="fa-solid fa-receipt empty-icon" aria-hidden="true"></i><h3>Aucune facture fournisseur</h3><p>{% if accounting_admin %}Déposez une pièce pour commencer sa préparation.{% else %}Aucune pièce complète n’est disponible sur cette période.{% endif %}</p></div>{% endfor %}
+    <div class="section-heading">
+      <div><p class="eyebrow">ACHATS</p><h2>Factures fournisseurs récentes</h2></div>
+      <a href="{% url 'accounting:suppliers' %}">Tout voir →</a>
+    </div>
+    <p class="section-caption">
+      {% if accounting_admin %}Les brouillons restent visibles ici pour que NetExpress puisse les terminer.{% else %}Toutes les pièces affichées possèdent les informations minimales de contrôle.{% endif %}
+    </p>
+    {% for purchase in recent_purchases %}
+      <a class="document-row" href="{% url 'accounting:supplier_detail' purchase.pk %}">
+        <div>
+          <strong>{{ purchase.display_name }}</strong>
+          <small>{% if purchase.is_complete %}{{ purchase.reference }} · {{ purchase.issue_date|date:'d/m/Y' }}{% else %}Brouillon NetExpress · à compléter{% endif %}</small>
+        </div>
+        <b>{% if purchase.total_ttc != None %}{{ purchase.total_ttc|floatformat:2 }} €{% else %}—{% endif %}</b>
+      </a>
+    {% empty %}
+      <div class="empty">
+        <i class="fa-solid fa-receipt empty-icon" aria-hidden="true"></i>
+        <h3>Aucune facture fournisseur</h3>
+        <p>{% if accounting_admin %}Déposez une pièce pour commencer sa préparation.{% else %}Aucune pièce complète n’est disponible sur cette période.{% endif %}</p>
+      </div>
+    {% endfor %}
   </section>
 </div>
 
 <div class="two-columns recent-grid">
   <section class="panel modern-panel">
-    <div class="section-heading"><div><p class="eyebrow">JUSTIFICATIFS</p><h2>Autres documents</h2></div><a href="{% url 'accounting:documents' %}">Tout voir →</a></div>
-    {% for document in recent_documents %}<a class="document-row" href="{% url 'accounting:document_detail' document.pk %}"><div><strong>{{ document.title }}</strong><small>{{ document.get_kind_display }} · {{ document.document_date|date:'d/m/Y' }}</small></div><span class="badge {% if document.reviewed_at %}done{% else %}pending{% endif %}">{% if document.reviewed_at %}Vérifié{% else %}À vérifier{% endif %}</span></a>{% empty %}<div class="empty"><h3>Aucun document</h3><p>Relevés, contrats et justificatifs complémentaires apparaîtront ici.</p></div>{% endfor %}
+    <div class="section-heading">
+      <div><p class="eyebrow">JUSTIFICATIFS</p><h2>Autres documents</h2></div>
+      <a href="{% url 'accounting:documents' %}">Tout voir →</a>
+    </div>
+    {% for document in recent_documents %}
+      <a class="document-row" href="{% url 'accounting:document_detail' document.pk %}">
+        <div>
+          <strong>{{ document.title }}</strong>
+          <small>{{ document.get_kind_display }} · {{ document.document_date|date:'d/m/Y' }}</small>
+        </div>
+        <span class="badge {% if document.reviewed_at %}done{% else %}pending{% endif %}">{% if document.reviewed_at %}Vérifié{% else %}À vérifier{% endif %}</span>
+      </a>
+    {% empty %}
+      <div class="empty"><h3>Aucun document</h3><p>Relevés, contrats et justificatifs complémentaires apparaîtront ici.</p></div>
+    {% endfor %}
   </section>
+
   <section class="panel modern-panel activity">
     <div class="section-heading"><div><p class="eyebrow">TRAÇABILITÉ</p><h2>Derniers mouvements</h2></div></div>
-    {% for entry in activities %}<div class="activity-row"><div><strong>{{ entry.action }}</strong><span>{{ entry.target }}</span><small>{{ entry.actor.get_full_name|default:entry.actor.username|default:'Compte supprimé' }}</small></div><time>{{ entry.created_at|date:'d/m H:i' }}</time></div>{% empty %}<div class="empty"><h3>Aucun mouvement récent</h3></div>{% endfor %}
+    {% for entry in activities %}
+      <div class="activity-row">
+        <div>
+          <strong>{{ entry.action }}</strong>
+          <span>{{ entry.target }}</span>
+          <small>{{ entry.actor.get_full_name|default:entry.actor.username|default:'Compte supprimé' }}</small>
+        </div>
+        <time>{{ entry.created_at|date:'d/m H:i' }}</time>
+      </div>
+    {% empty %}
+      <div class="empty"><h3>Aucun mouvement récent</h3></div>
+    {% endfor %}
   </section>
 </div>
 {% endblock %}

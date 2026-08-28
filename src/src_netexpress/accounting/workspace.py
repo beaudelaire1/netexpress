@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl, urlencode
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Sum
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -17,6 +18,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from factures.models import Invoice
+from .filters import filtered_sales, filtered_suppliers
 from .forms import ReviewForm
 from .models import AccountingActivity, AccountingDocument, InvoiceReview, SupplierInvoice
 from .services import (
@@ -34,9 +36,21 @@ RETURN_QUERY_KEYS = {
     "date_from",
     "date_to",
     "q",
-    "pending",
-    "incomplete",
+    "status",
+    "review",
+    "document_type",
+    "category",
+    "payment",
+    "completeness",
+    "amount_min",
+    "amount_max",
+    "exchange",
     "kind",
+    "source",
+    "priority",
+    "documents",
+    "unread",
+    "context",
     "page",
 }
 
@@ -60,11 +74,6 @@ def _share(count, total):
     if not total:
         return 0
     return round((count / total) * 100)
-
-
-def _reviewable_purchases(purchases):
-    """Complete supplier invoices that still await cabinet review."""
-    return complete_purchases(purchases).filter(reviewed_at__isnull=True)
 
 
 def _safe_return_query(raw):
@@ -170,8 +179,9 @@ def dashboard(request):
             ),
         )
 
-    # Financial indicators never include preparation drafts, even for a company
-    # administrator viewing the shared accounting workspace.
+    # Les indicateurs financiers ne mélangent jamais les dépôts fournisseurs
+    # encore en préparation, même quand un administrateur NetExpress consulte
+    # le même espace que le cabinet.
     ready_purchases_qs = complete_purchases(purchases_qs)
     sales = list(sales_qs)
     ready_purchases = list(ready_purchases_qs)
@@ -208,7 +218,6 @@ def dashboard(request):
 
     totals["net_sales"] = totals["sales_ttc"] - totals["credits_ttc"]
     totals["net_sales_ht"] = totals["sales_ht"] - totals["credits_ht"]
-    # Compatibility alias used by older templates/tests outside this workspace.
     totals["purchases"] = totals["purchases_ttc"]
     totals["credits"] = totals["credits_ttc"]
 
@@ -264,9 +273,11 @@ def dashboard(request):
             action__startswith="Invitation cabinet"
         )
 
-    # Company administrators may need to complete a recent draft. The external
-    # accountant only receives complete supplier invoices through ``filtered``.
-    recent_purchase_source = list(purchases_qs[:5]) if request.accounting_admin else ready_purchases[:5]
+    # Un administrateur peut reprendre rapidement un dépôt récent à compléter ;
+    # le cabinet ne reçoit, lui, que des factures fournisseurs complètes.
+    recent_purchase_source = (
+        list(purchases_qs[:5]) if request.accounting_admin else ready_purchases[:5]
+    )
 
     return render(
         request,
@@ -287,13 +298,8 @@ def dashboard(request):
 
 @accounting_required
 def sales(request):
-    """Client invoices visible only after accounting publication criteria are met."""
-    form, invoices, _ = filtered(request)
-    pending_only = request.GET.get("pending") == "1"
-
-    if pending_only:
-        invoices = [invoice for invoice in invoices if not is_reviewed(invoice)]
-
+    """Client invoices with accountant-oriented search and filters."""
+    form, invoices = filtered_sales(request)
     page = Paginator(invoices, 40).get_page(request.GET.get("page"))
     for invoice in page:
         invoice.accounting_checked = is_reviewed(invoice)
@@ -305,29 +311,22 @@ def sales(request):
             request,
             form=form,
             page=page,
-            pending_only=pending_only,
+            result_count=page.paginator.count,
+            filter_kind="sales",
+            active_filters=form.active_filter_chips(request),
+            advanced_filter_count=form.active_advanced_count(request),
         ),
     )
 
 
 @accounting_required
 def suppliers(request):
-    """Supplier preparation for NetExpress; complete review queue for the cabinet."""
-    form, _, purchases = filtered(request)
-    pending_only = request.GET.get("pending") == "1"
-    incomplete_only = request.accounting_admin and request.GET.get("incomplete") == "1"
-
-    if incomplete_only:
-        purchases = incomplete_purchases(purchases)
-    elif pending_only:
-        purchases = _reviewable_purchases(purchases)
-    elif not request.accounting_admin:
-        purchases = complete_purchases(purchases)
-
-    total = sum((purchase.total_ttc or Decimal("0.00")) for purchase in purchases)
-    incomplete_count = (
-        incomplete_purchases(purchases).count() if request.accounting_admin else 0
-    )
+    """Supplier queue with role-aware preparation, payment and review filters."""
+    form, purchases = filtered_suppliers(request)
+    total = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal("0.00")
+    page = Paginator(
+        purchases.select_related("created_by"), 40
+    ).get_page(request.GET.get("page"))
 
     return render(
         request,
@@ -336,12 +335,11 @@ def suppliers(request):
             request,
             form=form,
             total=total,
-            incomplete_count=incomplete_count,
-            pending_only=pending_only,
-            incomplete_only=incomplete_only,
-            page=Paginator(
-                purchases.select_related("created_by"), 40
-            ).get_page(request.GET.get("page")),
+            result_count=page.paginator.count,
+            filter_kind="suppliers",
+            active_filters=form.active_filter_chips(request),
+            advanced_filter_count=form.active_advanced_count(request),
+            page=page,
         ),
     )
 

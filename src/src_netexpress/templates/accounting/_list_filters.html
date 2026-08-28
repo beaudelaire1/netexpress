@@ -1,0 +1,68 @@
+<section class="accounting-filter-system" aria-label="Recherche et filtres de la liste">
+  <form method="get" class="accounting-filter-form" role="search">
+    <div class="accounting-filter-primary">
+      <div class="accounting-filter-search">
+        <label for="accounting-list-q">Rechercher</label>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="accounting-list-q" type="search" name="q" value="{{ form.q.value|default:'' }}" maxlength="100" placeholder="Numéro, tiers, référence, contenu…">
+      </div>
+      <div>
+        <label for="accounting-date-from">Du</label>
+        <input id="accounting-date-from" type="date" name="date_from" value="{{ form.date_from.value|default:'' }}">
+      </div>
+      <div>
+        <label for="accounting-date-to">Au</label>
+        <input id="accounting-date-to" type="date" name="date_to" value="{{ form.date_to.value|default:'' }}">
+      </div>
+      <button class="button secondary accounting-filter-submit" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrer</button>
+      <details class="accounting-advanced-filters" {% if advanced_filter_count %}open{% endif %}>
+        <summary>Plus de filtres{% if advanced_filter_count %}<span>{{ advanced_filter_count }}</span>{% endif %}</summary>
+        <div class="accounting-advanced-panel">
+          {% if filter_kind == 'sales' %}
+            <div><label for="id_status">Statut facture</label>{{ form.status }}</div>
+            <div><label for="id_review">Contrôle</label>{{ form.review }}</div>
+            <div><label for="id_document_type">Nature</label>{{ form.document_type }}</div>
+            <div><label for="id_exchange">Échanges</label>{{ form.exchange }}</div>
+            <div><label for="id_amount_min">TTC minimum</label>{{ form.amount_min }}</div>
+            <div><label for="id_amount_max">TTC maximum</label>{{ form.amount_max }}</div>
+          {% elif filter_kind == 'suppliers' %}
+            <div><label for="id_category">Catégorie</label>{{ form.category }}</div>
+            <div><label for="id_review">Contrôle</label>{{ form.review }}</div>
+            <div><label for="id_payment">Paiement</label>{{ form.payment }}</div>
+            {% if accounting_admin %}<div><label for="id_completeness">Préparation</label>{{ form.completeness }}</div>{% endif %}
+            <div><label for="id_exchange">Échanges</label>{{ form.exchange }}</div>
+            <div><label for="id_amount_min">TTC minimum</label>{{ form.amount_min }}</div>
+            <div><label for="id_amount_max">TTC maximum</label>{{ form.amount_max }}</div>
+          {% elif filter_kind == 'documents' %}
+            <div><label for="id_kind">Type de document</label>{{ form.kind }}</div>
+            <div><label for="id_review">Contrôle</label>{{ form.review }}</div>
+            <div><label for="id_source">Origine</label>{{ form.source }}</div>
+            <div><label for="id_exchange">Échanges</label>{{ form.exchange }}</div>
+          {% elif filter_kind == 'exchanges' %}
+            <div><label for="id_status">Statut</label>{{ form.status }}</div>
+            <div><label for="id_kind">Type de demande</label>{{ form.kind }}</div>
+            <div><label for="id_priority">Priorité</label>{{ form.priority }}</div>
+            <div><label for="id_documents">Pièces jointes</label>{{ form.documents }}</div>
+            <div><label for="id_context">Contexte</label>{{ form.context }}</div>
+            <label class="accounting-filter-check" for="id_unread">{{ form.unread }}<span>Non lus uniquement</span></label>
+          {% endif %}
+          <div class="accounting-advanced-actions">
+            <button class="button secondary" type="submit">Appliquer les critères</button>
+            <a href="{{ request.path }}">Tout réinitialiser</a>
+          </div>
+        </div>
+      </details>
+    </div>
+    {% if form.errors %}<div class="accounting-filter-errors">{% for field in form %}{% for error in field.errors %}<p>{{ field.label }} : {{ error }}</p>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+  </form>
+
+  <div class="accounting-filter-state">
+    <p><strong>{{ result_count }}</strong> résultat{{ result_count|pluralize }} dans cette sélection</p>
+    {% if active_filters %}
+      <div class="accounting-filter-chips" aria-label="Filtres actifs">
+        {% for chip in active_filters %}<a href="{{ chip.remove_url }}" title="Retirer ce filtre">{{ chip.label }} <i class="fa-solid fa-xmark" aria-hidden="true"></i></a>{% endfor %}
+        <a class="accounting-filter-clear" href="{{ request.path }}">Tout effacer</a>
+      </div>
+    {% endif %}
+  </div>
+</section>

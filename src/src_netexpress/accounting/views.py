@@ -13,6 +13,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.http import FileResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,6 +23,7 @@ from django.views.decorators.http import require_POST
 from accounts.models import Profile
 from accounts.portal import get_user_role
 from core.services.email_service import EmailService
+from .filters import filtered_documents
 from .forms import (
     AccountantInvitationForm,
     AccountingDocumentForm,
@@ -202,31 +204,22 @@ def supplier_detail(request, pk):
 
 @accounting_required
 def documents(request):
-    form = PeriodForm(request.GET)
-    pieces = (
-        supporting_documents(form.cleaned_data)
-        if form.is_valid()
-        else AccountingDocument.objects.none()
-    )
-    kind = request.GET.get("kind", "")
-    if kind:
-        pieces = pieces.filter(kind=kind)
-    if request.GET.get("pending") == "1":
-        pieces = pieces.filter(reviewed_at__isnull=True)
-
-    from django.core.paginator import Paginator
-
+    """List supporting documents with a single métier filter system."""
+    form, pieces = filtered_documents(request)
+    page = Paginator(
+        pieces.select_related("created_by"), 40
+    ).get_page(request.GET.get("page"))
     return render(
         request,
         "accounting/documents.html",
         page_context(
             request,
             form=form,
-            kinds=AccountingDocument.Kind.choices,
-            selected_kind=kind,
-            page=Paginator(
-                pieces.select_related("created_by"), 40
-            ).get_page(request.GET.get("page")),
+            page=page,
+            result_count=page.paginator.count,
+            filter_kind="documents",
+            active_filters=form.active_filter_chips(request),
+            advanced_filter_count=form.active_advanced_count(request),
         ),
     )
 

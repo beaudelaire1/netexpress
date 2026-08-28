@@ -38,10 +38,13 @@ def test_accounting_shell_exposes_global_search_and_list_filters(client):
     sales = client.get(reverse("accounting:sales"))
     assert sales.status_code == 200
     html = sales.content.decode("utf-8")
-    assert 'class="accounting-filterbar"' in html
+    assert 'class="accounting-filter-system"' in html
     assert 'type="search" name="q"' in html
     assert 'name="date_from"' in html
     assert 'name="date_to"' in html
+    assert "Plus de filtres" in html
+    assert "Statut facture" in html
+    assert "Contrôle" in html
 
 
 def test_unified_search_finds_accounting_exchange_content(client):
