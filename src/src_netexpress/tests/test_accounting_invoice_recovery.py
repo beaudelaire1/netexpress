@@ -288,4 +288,4 @@ def test_portal_has_one_discreet_studio_credit_without_partnership_signature(cli
     html = client.get(reverse("accounting:dashboard")).content.decode()
     assert "NetExpress ×" not in html
     assert html.count("Trait d’Union Studio") == 1
-    assert "Conçu par" in html
+    assert "Outil métier conçu par" in html
