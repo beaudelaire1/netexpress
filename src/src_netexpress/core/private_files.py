@@ -11,7 +11,11 @@ def private_file_fields():
     from devis.models import Quote, QuotePhoto, QuoteRequestPhoto
     from factures.models import Invoice
     from messaging.models import EmailMessage
-    from accounting.models import AccountingDocument, SupplierInvoice
+    from accounting.models import (
+        AccountingDocument,
+        AccountingExchangeDocument,
+        SupplierInvoice,
+    )
     from .models import ClientPortalDocument, ClientSubmittedDocument
 
     return [
@@ -24,6 +28,7 @@ def private_file_fields():
         (EmailMessage, "attachment"),
         (SupplierInvoice, "file"),
         (AccountingDocument, "file"),
+        (AccountingExchangeDocument, "file"),
     ]
 
 
@@ -57,6 +62,10 @@ def download_private_document(request, name):
             ).exists()
         elif kind == "AccountingDocument":
             allowed |= accountant
+        elif kind == "AccountingExchangeDocument":
+            from accounting.access import can_access_accounting_exchange_document
+
+            allowed |= can_access_accounting_exchange_document(request.user, document)
         elif kind == "Quote":
             from accounting.services import shared_quotes
 
@@ -82,7 +91,9 @@ def download_private_document(request, name):
             response = FileResponse(
                 file.open("rb"),
                 as_attachment=True,
-                filename=Path(name).name,
+                filename=document.original_filename
+                if kind == "AccountingExchangeDocument" and document.original_filename
+                else Path(name).name,
             )
         except (OSError, ValueError):
             raise Http404("Pièce indisponible. Contactez l’administrateur.")
