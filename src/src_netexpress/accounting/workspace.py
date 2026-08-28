@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl, urlencode
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Sum
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -178,6 +179,9 @@ def dashboard(request):
             ),
         )
 
+    # Les indicateurs financiers ne mélangent jamais les dépôts fournisseurs
+    # encore en préparation, même quand un administrateur NetExpress consulte
+    # le même espace que le cabinet.
     ready_purchases_qs = complete_purchases(purchases_qs)
     sales = list(sales_qs)
     ready_purchases = list(ready_purchases_qs)
@@ -269,7 +273,11 @@ def dashboard(request):
             action__startswith="Invitation cabinet"
         )
 
-    recent_purchase_source = list(purchases_qs[:5]) if request.accounting_admin else ready_purchases[:5]
+    # Un administrateur peut reprendre rapidement un dépôt récent à compléter ;
+    # le cabinet ne reçoit, lui, que des factures fournisseurs complètes.
+    recent_purchase_source = (
+        list(purchases_qs[:5]) if request.accounting_admin else ready_purchases[:5]
+    )
 
     return render(
         request,
@@ -315,10 +323,7 @@ def sales(request):
 def suppliers(request):
     """Supplier queue with role-aware preparation, payment and review filters."""
     form, purchases = filtered_suppliers(request)
-    total = sum((purchase.total_ttc or Decimal("0.00")) for purchase in purchases)
-    incomplete_count = (
-        incomplete_purchases(purchases).count() if request.accounting_admin else 0
-    )
+    total = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal("0.00")
     page = Paginator(
         purchases.select_related("created_by"), 40
     ).get_page(request.GET.get("page"))
@@ -330,7 +335,6 @@ def suppliers(request):
             request,
             form=form,
             total=total,
-            incomplete_count=incomplete_count,
             result_count=page.paginator.count,
             filter_kind="suppliers",
             active_filters=form.active_filter_chips(request),
