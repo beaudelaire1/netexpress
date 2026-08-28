@@ -1,0 +1,85 @@
+/* Precision layout corrections for quote and invoice PDFs. */
+
+/* Reserve a real page margin for the legal footer. The footer is positioned
+   into that margin by WeasyPrint, so it stays flush with the physical bottom
+   and can never float halfway up a short page. */
+@page {
+  size: A4;
+  margin: 0 0 18mm 0;
+}
+
+.document-header {
+  min-height: 28mm;
+  padding: 7mm 15mm 6mm;
+  align-items: center;
+}
+
+.brand-block {
+  gap: 4mm;
+}
+
+.brand-logo {
+  width: 29mm;
+  max-height: 13mm;
+}
+
+.brand-fallback {
+  font-size: 13pt;
+}
+
+.brand-tagline {
+  margin-top: 1mm;
+  max-width: 68mm;
+  font-size: 7pt;
+}
+
+.document-type {
+  font-size: 20.5pt;
+}
+
+.document-number {
+  margin-top: 1.4mm;
+  font-size: 9pt;
+}
+
+.meta-strip {
+  padding-top: 3.2mm;
+  padding-bottom: 3.2mm;
+}
+
+.total-chip {
+  min-width: 43mm;
+  padding: 2.5mm 4mm;
+}
+
+.total-chip-value {
+  font-size: 13pt;
+}
+
+@media print {
+  .document-page {
+    min-height: 279mm;
+    padding-bottom: 0;
+  }
+
+  .document-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -18mm;
+    height: 18mm;
+    min-height: 18mm;
+    padding: 3.2mm 15mm;
+  }
+}
+
+@media screen {
+  .document-page {
+    padding-bottom: 22mm;
+  }
+
+  .document-footer {
+    min-height: 18mm;
+    padding: 3.2mm 15mm;
+  }
+}
