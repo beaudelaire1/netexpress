@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -60,13 +60,19 @@ def make_invoice(*, client_name, total_unit, status="sent", issue_date=date(2026
 
 
 def pdf_upload(name):
-    return SimpleUploadedFile(name, b"%PDF-1.4\nfilter-test\n%%EOF", content_type="application/pdf")
+    return SimpleUploadedFile(
+        name,
+        b"%PDF-1.4\nfilter-test\n%%EOF",
+        content_type="application/pdf",
+    )
 
 
 def test_sales_filter_is_métier_oriented_and_excludes_draft_choice(client):
     accountant = make_user()
     reviewed = make_invoice(client_name="Alpha SARL", total_unit="120.00")
-    linked = make_invoice(client_name="Beta SAS", total_unit="280.00", status="paid")
+    linked_open = make_invoice(client_name="Beta SAS", total_unit="280.00", status="paid")
+    linked_resolved = make_invoice(client_name="Gamma SAS", total_unit="320.00")
+
     InvoiceReview.objects.create(
         invoice=reviewed,
         fingerprint=invoice_fingerprint(reviewed),
@@ -77,21 +83,61 @@ def test_sales_filter_is_métier_oriented_and_excludes_draft_choice(client):
         kind=AccountingExchange.Kind.QUESTION,
         status=AccountingExchange.Status.WAITING_ACCOUNTANT,
         created_by=accountant,
-        invoice=linked,
+        invoice=linked_open,
+    )
+    AccountingExchange.objects.create(
+        subject="Question Gamma résolue",
+        kind=AccountingExchange.Kind.QUESTION,
+        status=AccountingExchange.Status.RESOLVED,
+        created_by=accountant,
+        invoice=linked_resolved,
     )
     client.force_login(accountant)
 
-    response = client.get(reverse("accounting:sales"), {"review": "reviewed", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:sales"),
+        {
+            "review": "reviewed",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert response.status_code == 200
     assert reviewed.number in html
-    assert linked.number not in html
-    assert "Statut facture" in html and "TTC minimum" in html and "Avec échange ouvert" in html
+    assert linked_open.number not in html
+    assert linked_resolved.number not in html
+    assert "Statut facture" in html
+    assert "TTC minimum" in html
+    assert "Avec échange ouvert" in html
+    assert "Sans échange ouvert" in html
 
-    response = client.get(reverse("accounting:sales"), {"exchange": "open", "amount_min": "200", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:sales"),
+        {
+            "exchange": "open",
+            "amount_min": "200",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
-    assert linked.number in html
+    assert linked_open.number in html
     assert reviewed.number not in html
+    assert linked_resolved.number not in html
+
+    response = client.get(
+        reverse("accounting:sales"),
+        {
+            "exchange": "no_open",
+            "amount_min": "200",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
+    html = response.content.decode("utf-8")
+    assert linked_resolved.number in html
+    assert linked_open.number not in html
 
     choices = dict(SalesFilterForm().fields["status"].choices)
     assert "draft" not in choices
@@ -127,7 +173,14 @@ def test_supplier_filters_keep_drafts_private_from_accountant(client):
     )
 
     client.force_login(admin)
-    response = client.get(reverse("accounting:suppliers"), {"completeness": "incomplete", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:suppliers"),
+        {
+            "completeness": "incomplete",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert draft.display_name in html
     assert complete.display_name not in html
@@ -135,7 +188,14 @@ def test_supplier_filters_keep_drafts_private_from_accountant(client):
 
     accountant = make_user(username="filter-accountant")
     client.force_login(accountant)
-    response = client.get(reverse("accounting:suppliers"), {"q": "Fournisseur", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:suppliers"),
+        {
+            "q": "Fournisseur",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert complete.display_name in html
     assert draft.display_name not in html
@@ -173,19 +233,34 @@ def test_document_filters_cover_type_review_source_and_exchange(client):
     )
 
     client.force_login(admin)
-    response = client.get(reverse("accounting:documents"), {"kind": AccountingDocument.Kind.BANK, "review": "reviewed", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:documents"),
+        {
+            "kind": AccountingDocument.Kind.BANK,
+            "review": "reviewed",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert bank.title in html
     assert contract.title not in html
 
-    response = client.get(reverse("accounting:documents"), {"exchange": "open", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:documents"),
+        {
+            "exchange": "open",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert contract.title in html
     assert bank.title not in html
     assert "Type de document" in html and "Origine" in html
 
 
-def test_exchange_filters_cover_status_priority_context_and_unread(client):
+def test_exchange_filters_cover_status_priority_context_unread_and_history(client):
     accountant = make_user(username="exchange-filter-accountant")
     first = AccountingExchange.objects.create(
         subject="TVA août",
@@ -201,6 +276,16 @@ def test_exchange_filters_cover_status_priority_context_and_unread(client):
         priority=AccountingExchange.Priority.NORMAL,
         created_by=accountant,
     )
+    old = AccountingExchange.objects.create(
+        subject="Question ancienne encore ouverte",
+        kind=AccountingExchange.Kind.QUESTION,
+        status=AccountingExchange.Status.OPEN,
+        priority=AccountingExchange.Priority.NORMAL,
+        created_by=accountant,
+    )
+    old_activity = timezone.make_aware(datetime(2025, 12, 15, 10, 0))
+    AccountingExchange.objects.filter(pk=old.pk).update(last_activity_at=old_activity)
+
     AccountingExchangeReadState.objects.create(
         exchange=second,
         user=accountant,
@@ -208,32 +293,56 @@ def test_exchange_filters_cover_status_priority_context_and_unread(client):
     )
     client.force_login(accountant)
 
-    response = client.get(reverse("accounting:exchanges"), {
-        "status": AccountingExchange.Status.WAITING_ACCOUNTANT,
-        "priority": AccountingExchange.Priority.HIGH,
-        "context": "general",
-        "date_from": "2026-01-01",
-        "date_to": "2026-12-31",
-    })
+    response = client.get(
+        reverse("accounting:exchanges"),
+        {
+            "status": AccountingExchange.Status.WAITING_ACCOUNTANT,
+            "priority": AccountingExchange.Priority.HIGH,
+            "context": "general",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert first.subject in html
     assert second.subject not in html
+    assert old.subject not in html
     assert "Type de demande" in html and "Pièces jointes" in html and "Contexte" in html
 
-    response = client.get(reverse("accounting:exchanges"), {"unread": "on", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    response = client.get(
+        reverse("accounting:exchanges"),
+        {
+            "unread": "on",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     html = response.content.decode("utf-8")
     assert first.subject in html
     assert second.subject not in html
+    assert old.subject not in html
+
+    # Sans période explicite, une conversation ouverte d'un exercice antérieur
+    # reste retrouvable : le changement d'année ne doit pas masquer le travail.
+    response = client.get(reverse("accounting:exchanges"))
+    html = response.content.decode("utf-8")
+    assert old.subject in html
 
 
 def test_filter_validation_rejects_inverted_amount_range(client):
     accountant = make_user(username="amount-filter-accountant")
     client.force_login(accountant)
-    response = client.get(reverse("accounting:sales"), {
-        "amount_min": "500",
-        "amount_max": "100",
-        "date_from": "2026-01-01",
-        "date_to": "2026-12-31",
-    })
+    response = client.get(
+        reverse("accounting:sales"),
+        {
+            "amount_min": "500",
+            "amount_max": "100",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+        },
+    )
     assert response.status_code == 200
-    assert "Le montant minimum ne peut pas dépasser le montant maximum." in response.content.decode("utf-8")
+    assert (
+        "Le montant minimum ne peut pas dépasser le montant maximum."
+        in response.content.decode("utf-8")
+    )
