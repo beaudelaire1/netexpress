@@ -25,7 +25,7 @@ from django.conf import settings
 
 DEFAULT_CSP = (
     "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; "
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://cdn.jsdelivr.net; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
     "img-src 'self' data: https:; "
