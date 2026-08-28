@@ -1,11 +1,12 @@
 from django.urls import path
 
-from . import communication, exchange_views, views, workspace
+from . import communication, exchange_views, search_views, views, workspace
 
 app_name = "accounting"
 
 urlpatterns = [
     path("", workspace.dashboard, name="dashboard"),
+    path("recherche/", search_views.search, name="search"),
     path("message-netexpress/", communication.send_message_to_netexpress, name="message_netexpress"),
     path("echanges/", exchange_views.exchange_list, name="exchanges"),
     path("echanges/nouveau/", exchange_views.exchange_create, name="exchange_create"),
