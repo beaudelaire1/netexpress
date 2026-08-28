@@ -1,15 +1,11 @@
-// quote_admin.js — logique d'édition des devis (back-office)
-// Module ES6 chargé sur la page d'édition des devis.
-//
-// Responsabilités :
-// - Calculer les totaux HT / TVA / TTC en temps réel.
-// - Gérer l'ajout / suppression de lignes de devis.
-// - Pré-remplir la description lorsqu'un service est sélectionné via fetch JSON.
+// Éditeur de lignes de devis NetExpress.
+// Le DOM est construit à partir de formset.empty_form : aucun clonage de ligne
+// existante, donc les identifiants Django et les index restent cohérents.
 
 function parseNumber(value) {
-  const v = String(value || "").replace(/\s/g, "").replace(",", ".");
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+  const normalized = String(value ?? "").replace(/\s/g, "").replace(",", ".");
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
 }
 
 function formatCurrency(value) {
@@ -20,177 +16,153 @@ function formatCurrency(value) {
   }).format(value);
 }
 
+function field(row, suffix) {
+  return row.querySelector(`[name$='-${suffix}']`);
+}
+
+function isDeleted(row) {
+  const deleteInput = field(row, "DELETE");
+  return Boolean(deleteInput && deleteInput.checked);
+}
+
 function recalcTotals() {
-  const rows = document.querySelectorAll("tr.quote-item-row");
   let totalHt = 0;
   let totalTva = 0;
 
-  rows.forEach((row) => {
-    const qtyInput = row.querySelector(".js-quantity");
-    const unitInput = row.querySelector(".js-unit-price");
-    const taxInput = row.querySelector(".js-tax-rate");
-    const cellTotalHt = row.querySelector(".cell-total-ht");
+  document.querySelectorAll("tr.quote-item-row").forEach((row) => {
+    if (isDeleted(row)) return;
 
-    if (!qtyInput || !unitInput || !taxInput || !cellTotalHt) return;
+    const quantityInput = field(row, "quantity");
+    const unitPriceInput = field(row, "unit_price");
+    const taxRateInput = field(row, "tax_rate");
+    const lineTotalCell = row.querySelector(".cell-total-ht");
+    if (!quantityInput || !unitPriceInput || !taxRateInput || !lineTotalCell) return;
 
-    const qty = parseNumber(qtyInput.value);
-    const unit = parseNumber(unitInput.value);
-    const tax = parseNumber(taxInput.value);
-
-    const lineHt = qty * unit;
-    const lineTva = lineHt * (tax / 100);
+    const quantity = parseNumber(quantityInput.value);
+    const unitPrice = parseNumber(unitPriceInput.value);
+    const taxRate = parseNumber(taxRateInput.value);
+    const lineHt = quantity * unitPrice;
+    const lineTva = lineHt * (taxRate / 100);
 
     totalHt += lineHt;
     totalTva += lineTva;
-
-    cellTotalHt.textContent = formatCurrency(lineHt);
+    lineTotalCell.textContent = formatCurrency(lineHt);
   });
 
-  const totalTtc = totalHt + totalTva;
+  const ht = document.getElementById("total-ht-display");
+  const tva = document.getElementById("total-tva-display");
+  const ttc = document.getElementById("total-ttc-display");
+  if (ht) ht.textContent = formatCurrency(totalHt);
+  if (tva) tva.textContent = formatCurrency(totalTva);
+  if (ttc) ttc.textContent = formatCurrency(totalHt + totalTva);
+}
 
-  const htDisplay = document.getElementById("total-ht-display");
-  const tvaDisplay = document.getElementById("total-tva-display");
-  const ttcDisplay = document.getElementById("total-ttc-display");
+function showNotification(message, type = "warning") {
+  if (window.NetExpress?.showNotification) {
+    window.NetExpress.showNotification(message, type, 3000);
+    return;
+  }
+  if (type === "error") console.error(message);
+  else console.warn(message);
+}
 
-  if (htDisplay) htDisplay.textContent = formatCurrency(totalHt);
-  if (tvaDisplay) tvaDisplay.textContent = formatCurrency(totalTva);
-  if (ttcDisplay) ttcDisplay.textContent = formatCurrency(totalTtc);
+function attachServiceLookup(row) {
+  const serviceSelect = field(row, "service");
+  const descriptionInput = field(row, "description");
+  if (!serviceSelect || !descriptionInput) return;
+
+  serviceSelect.addEventListener("change", async () => {
+    const serviceId = serviceSelect.value;
+    if (!serviceId) return;
+
+    const table = document.getElementById("quote-items-table");
+    const baseUrl = table?.dataset.serviceInfoUrl;
+    if (!baseUrl) return;
+
+    const url = baseUrl.replace(/0\/?$/, `${serviceId}/`);
+    try {
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        credentials: "same-origin",
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+
+      if (!descriptionInput.value.trim()) {
+        descriptionInput.value = data.title || data.description || "";
+      }
+
+      const taxInput = field(row, "tax_rate");
+      if (taxInput && !String(taxInput.value).trim() && data.tax_rate !== "") {
+        taxInput.value = data.tax_rate;
+      }
+
+      const unitInput = field(row, "unit_price");
+      if (unitInput && !String(unitInput.value).trim() && data.base_price !== "") {
+        unitInput.value = data.base_price;
+      }
+      recalcTotals();
+    } catch (error) {
+      console.warn("Chargement du service impossible", error);
+      showNotification("Impossible de charger les informations du service.");
+    }
+  });
 }
 
 function attachRowEvents(row) {
-  const qtyInput = row.querySelector(".js-quantity");
-  const unitInput = row.querySelector(".js-unit-price");
-  const taxInput = row.querySelector(".js-tax-rate");
-  const removeBtn = row.querySelector(".js-remove-row");
-  const serviceSelect = row.querySelector(".js-service");
-  const descriptionInput = row.querySelector(".js-description");
-
-  [qtyInput, unitInput, taxInput].forEach((input) => {
+  ["quantity", "unit_price", "tax_rate"].forEach((suffix) => {
+    const input = field(row, suffix);
     if (!input) return;
-    ["input", "change"].forEach((evt) => {
-      input.addEventListener(evt, recalcTotals);
-    });
+    input.addEventListener("input", recalcTotals);
+    input.addEventListener("change", recalcTotals);
   });
 
-  if (removeBtn) {
-    removeBtn.addEventListener("click", () => {
-      const deleteField = row.querySelector("input[type='checkbox'][name$='-DELETE']");
-      if (deleteField) {
-        deleteField.checked = true;
-        row.style.display = "none";
-      } else {
-        row.remove();
-      }
+  const removeButton = row.querySelector(".js-remove-row");
+  if (removeButton) {
+    removeButton.addEventListener("click", () => {
+      const deleteInput = field(row, "DELETE");
+      if (deleteInput) deleteInput.checked = true;
+      row.classList.add("is-deleted");
       recalcTotals();
     });
   }
 
-  if (serviceSelect && descriptionInput) {
-    serviceSelect.addEventListener("change", () => {
-      const serviceId = serviceSelect.value;
-      if (!serviceId) return;
-
-      const table = document.getElementById("quote-items-table");
-      const baseUrl = table?.getAttribute("data-service-info-url");
-      if (!baseUrl) return;
-
-      // L'URL est de la forme /devis/service/0/ — on remplace 0 par l'id
-      const url = baseUrl.replace(/0\/?$/, String(serviceId) + "/");
-
-      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then((resp) => {
-          if (!resp.ok) {
-            throw new Error(`HTTP error! status: ${resp.status}`);
-          }
-          return resp.json();
-        })
-        .then((data) => {
-          if (!data) return;
-          if (!descriptionInput.value) {
-            descriptionInput.value = data.title || "";
-          }
-        })
-        .catch((error) => {
-          // Log error but don't block user
-          console.warn('Erreur lors de la récupération des informations du service:', error);
-          // Optionally show a subtle notification if NetExpress is available
-          if (typeof window.NetExpress !== 'undefined' && window.NetExpress.showNotification) {
-            window.NetExpress.showNotification('Impossible de charger les informations du service', 'warning', 2000);
-          }
-        });
-    });
-  }
+  attachServiceLookup(row);
 }
 
-function setupAddLineButton() {
-  const addBtn = document.getElementById("add-line-btn");
+function addLine() {
+  const totalFormsInput = document.querySelector("input[name$='-TOTAL_FORMS']");
+  const maxFormsInput = document.querySelector("input[name$='-MAX_NUM_FORMS']");
+  const template = document.getElementById("quote-item-empty-form");
   const tbody = document.getElementById("quote-items-body");
-  const totalFormsInput = tbody?.querySelector("input[name$='-TOTAL_FORMS']");
-  if (!addBtn || !tbody || !totalFormsInput) return;
+  if (!totalFormsInput || !template || !tbody) return;
 
-  const managementPrefix = totalFormsInput.name.replace("-TOTAL_FORMS", "");
+  const index = parseInt(totalFormsInput.value, 10) || 0;
+  const maxForms = maxFormsInput ? parseInt(maxFormsInput.value, 10) : 1000;
+  if (Number.isFinite(maxForms) && index >= maxForms) {
+    showNotification("Nombre maximal de prestations atteint.");
+    return;
+  }
 
-  addBtn.addEventListener("click", () => {
-    const maxFormsInput = document.querySelector(
-      `input[name='${managementPrefix}-MAX_NUM_FORMS']`
-    );
+  const html = template.innerHTML.replaceAll("__prefix__", String(index)).trim();
+  const holder = document.createElement("tbody");
+  holder.innerHTML = html;
+  const row = holder.firstElementChild;
+  if (!row) return;
 
-    const totalForms = parseInt(totalFormsInput.value, 10) || 0;
-    const maxForms = maxFormsInput ? parseInt(maxFormsInput.value, 10) || 1000 : 1000;
+  tbody.appendChild(row);
+  totalFormsInput.value = String(index + 1);
+  attachRowEvents(row);
+  recalcTotals();
 
-    if (totalForms >= maxForms) {
-      // Use modern notification instead of alert
-      if (typeof window.NetExpress !== 'undefined' && window.NetExpress.showNotification) {
-        window.NetExpress.showNotification("Nombre maximal de lignes atteint.", 'warning', 3000);
-      } else {
-        // Fallback to alert if NetExpress is not available
-        alert("Nombre maximal de lignes atteint.");
-      }
-      return;
-    }
-
-    const templateRow = tbody.querySelector("tr.quote-item-row");
-    if (!templateRow) return;
-
-    const newRow = templateRow.cloneNode(true);
-    const regex = new RegExp(`${managementPrefix}-(\\d+)-`, "g");
-
-    newRow.querySelectorAll("input, select").forEach((el) => {
-      if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement)) return;
-      if (el.name) {
-        el.name = el.name.replace(regex, `${managementPrefix}-${totalForms}-`);
-      }
-      if (el.id) {
-        el.id = el.id.replace(regex, `${managementPrefix}-${totalForms}-`);
-      }
-
-      if (el.type === "checkbox") {
-        el.checked = false;
-      } else {
-        el.value = "";
-      }
-    });
-
-    // Les champs cachés DELETE doivent être décochés
-    const deleteField = newRow.querySelector("input[type='checkbox'][name$='-DELETE']");
-    if (deleteField) {
-      deleteField.checked = false;
-    }
-
-    tbody.appendChild(newRow);
-    attachRowEvents(newRow);
-    totalFormsInput.value = String(totalForms + 1);
-    recalcTotals();
-  });
+  const firstField = row.querySelector("select, input:not([type='hidden'])");
+  firstField?.focus();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("tr.quote-item-row").forEach((row) => {
-    attachRowEvents(row);
-  });
-  setupAddLineButton();
+  document.querySelectorAll("tr.quote-item-row").forEach(attachRowEvents);
+  document.getElementById("add-line-btn")?.addEventListener("click", addLine);
   recalcTotals();
 });
 
-// Export vide pour que le fichier soit traité comme module sans polluer le scope global.
 export {};
