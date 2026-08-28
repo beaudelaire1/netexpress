@@ -187,15 +187,18 @@ class DocumentGenerator:
         base_dir = Path(settings.BASE_DIR)
 
         stylesheets = []
-        css_path = finders.find("css/pdf.css")
-        if css_path is None:
-            static_root = getattr(settings, "STATIC_ROOT", None)
-            candidate = Path(static_root) / "css" / "pdf.css" if static_root else None
-            if candidate and candidate.exists():
-                css_path = str(candidate)
+        for stylesheet_name in ("css/pdf.css", "css/pdf-layout-fixes.css"):
+            css_path = finders.find(stylesheet_name)
+            if css_path is None:
+                static_root = getattr(settings, "STATIC_ROOT", None)
+                candidate = Path(static_root) / stylesheet_name if static_root else None
+                if candidate and candidate.exists():
+                    css_path = str(candidate)
 
-        if css_path and CSS is not None:
-            stylesheets.append(CSS(filename=str(css_path), url_fetcher=restricted_fetcher))
+            if css_path and CSS is not None:
+                stylesheets.append(
+                    CSS(filename=str(css_path), url_fetcher=restricted_fetcher)
+                )
 
         pdf_bytes = HTML(
             string=html_string,
