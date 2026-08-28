@@ -1,8 +1,46 @@
-{% extends 'accounting/base.html' %}{% block title %}Factures fournisseurs{% endblock %}{% block content %}
-<div class="page-heading"><div><p class="eyebrow">PIÈCES DÉPOSÉES PAR NETEXPRESS</p><h1>Factures fournisseurs</h1><p class="subtitle">{{ page.paginator.count }} facture{{ page.paginator.count|pluralize }} · <strong>{{ total|floatformat:2 }} € TTC</strong> renseignés.{% if incomplete_count %} {{ incomplete_count }} facture{{ incomplete_count|pluralize }} à compléter.{% endif %}</p></div>{% if accounting_admin %}<a class="button" href="{% url 'accounting:supplier_add' %}">+ Déposer une facture</a>{% endif %}</div>
-{% if not accounting_admin %}<p class="readonly-note">NetExpress dépose les factures et complète les informations. Le cabinet consulte, contrôle et exporte les pièces. Les factures incomplètes sont séparées de votre file « À vérifier ».</p>{% endif %}
+{% extends 'accounting/base.html' %}
+{% block title %}Factures fournisseurs{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">ACHATS</p>
+    <h1>Factures fournisseurs</h1>
+    <p class="subtitle">{{ page.paginator.count }} facture{{ page.paginator.count|pluralize }} · <strong>{{ total|floatformat:2 }} € TTC</strong>.{% if accounting_admin and incomplete_count %} {{ incomplete_count }} brouillon{{ incomplete_count|pluralize }} à compléter.{% endif %}</p>
+  </div>
+  {% if accounting_admin %}<a class="button" href="{% url 'accounting:supplier_add' %}">+ Déposer une facture</a>{% endif %}
+</div>
+
+{% if accounting_admin %}
+<p class="readonly-note">Les pièces peuvent être déposées avant d’être complètes. Tant que le fournisseur, la référence, la date, le TTC ou la TVA manquent, elles restent strictement dans l’espace NetExpress.</p>
+{% else %}
+<p class="readonly-note"><strong>File comptable propre.</strong> Cette liste ne contient que les factures fournisseurs suffisamment renseignées pour être contrôlées. Les brouillons de NetExpress ne sont ni visibles ni téléchargeables depuis votre compte.</p>
+{% endif %}
+
 {% include 'accounting/period.html' %}
-<nav class="queue-filter" aria-label="Filtrer les factures fournisseurs"><a href="{% querystring pending=None incomplete=None page=None %}" {% if not pending_only and not incomplete_only %}aria-current="page"{% endif %}>Toutes les pièces</a><a href="{% querystring pending='1' incomplete=None page=None %}" {% if pending_only and not incomplete_only %}aria-current="page"{% endif %}>Prêtes à vérifier</a><a href="{% querystring incomplete='1' pending=None page=None %}" {% if incomplete_only %}aria-current="page"{% endif %}>À compléter</a></nav>
-<p class="section-caption">Une facture sans date est classée selon sa date de dépôt. Les montants inconnus restent vides, sans être remplacés par zéro.</p>
-<section class="panel table-wrap"><table><thead><tr><th>Fournisseur / référence</th><th>Date</th><th>Catégorie</th><th>TTC</th><th>Paiement</th><th>Contrôle</th></tr></thead><tbody>{% for purchase in page %}<tr><td><a href="{% url 'accounting:supplier_detail' purchase.pk %}{% querystring %}">{{ purchase.display_name }}</a><small>{{ purchase.reference|default:'Référence à compléter' }}</small></td><td>{{ purchase.issue_date|date:'d/m/Y'|default:'À renseigner' }}</td><td>{{ purchase.get_category_display }}</td><td class="money">{% if purchase.total_ttc != None %}{{ purchase.total_ttc|floatformat:2 }} €{% else %}À renseigner{% endif %}</td><td>{% if purchase.paid_on %}Payée le {{ purchase.paid_on|date:'d/m/Y' }}{% elif purchase.is_overdue %}<span class="badge pending">Échéance dépassée</span>{% else %}Non renseigné{% endif %}</td><td><span class="badge {% if purchase.reviewed_at %}done{% else %}pending{% endif %}">{% if purchase.reviewed_at %}Contrôlé{% elif purchase.is_complete %}À vérifier{% else %}À compléter{% endif %}</span></td></tr>{% empty %}<tr><td colspan="6" class="empty"><h3>{% if pending_only %}Aucune facture prête n’attend de contrôle{% elif incomplete_only %}Aucune facture à compléter{% else %}Aucune facture pour cette sélection{% endif %}</h3>{% if accounting_admin and not pending_only %}<p>Un fichier suffit. Les informations pourront être complétées plus tard.</p><a href="{% url 'accounting:supplier_add' %}">Déposer une facture →</a>{% elif not accounting_admin %}<p>{% if pending_only %}Les pièces complètes ont été traitées pour cette sélection.{% elif incomplete_only %}NetExpress n’a aucune pièce fournisseur incomplète dans cette sélection.{% else %}Les factures déposées par NetExpress apparaîtront ici.{% endif %}</p>{% endif %}</td></tr>{% endfor %}</tbody></table></section>
-{% include 'accounting/pagination.html' %}{% endblock %}
+<nav class="queue-filter" aria-label="Filtrer les factures fournisseurs">
+  <a href="{% querystring pending=None incomplete=None page=None %}" {% if not pending_only and not incomplete_only %}aria-current="page"{% endif %}>{% if accounting_admin %}Toutes les pièces{% else %}Toutes les factures{% endif %}</a>
+  <a href="{% querystring pending='1' incomplete=None page=None %}" {% if pending_only and not incomplete_only %}aria-current="page"{% endif %}>À contrôler{% if pending_only %} · {{ page.paginator.count }}{% endif %}</a>
+  {% if accounting_admin %}<a href="{% querystring incomplete='1' pending=None page=None %}" {% if incomplete_only %}aria-current="page"{% endif %}>Brouillons à compléter</a>{% endif %}
+</nav>
+
+<section class="panel table-wrap modern-panel">
+<table>
+  <thead><tr><th>Fournisseur / référence</th><th>Date</th><th>Catégorie</th><th>TTC</th><th>Paiement</th><th>Contrôle</th></tr></thead>
+  <tbody>
+  {% for purchase in page %}
+    <tr>
+      <td><a href="{% url 'accounting:supplier_detail' purchase.pk %}{% querystring %}">{{ purchase.display_name }}</a><small>{{ purchase.reference|default:'Référence à compléter' }}</small></td>
+      <td>{{ purchase.issue_date|date:'d/m/Y'|default:'À renseigner' }}</td>
+      <td>{{ purchase.get_category_display }}</td>
+      <td class="money">{% if purchase.total_ttc != None %}{{ purchase.total_ttc|floatformat:2 }} €{% else %}À renseigner{% endif %}</td>
+      <td>{% if purchase.paid_on %}Payée le {{ purchase.paid_on|date:'d/m/Y' }}{% elif purchase.is_overdue %}<span class="badge pending">Échéance dépassée</span>{% else %}Non renseigné{% endif %}</td>
+      <td><span class="badge {% if purchase.reviewed_at %}done{% else %}pending{% endif %}">{% if purchase.reviewed_at %}Contrôlé{% elif purchase.is_complete %}À contrôler{% else %}Brouillon{% endif %}</span></td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6" class="empty"><h3>{% if pending_only %}Aucune facture n’attend de contrôle{% elif incomplete_only %}Aucun brouillon à compléter{% else %}Aucune facture pour cette sélection{% endif %}</h3>{% if accounting_admin and not pending_only %}<p>Déposez une pièce maintenant ; elle ne sera transmise au cabinet qu’une fois complète.</p>{% elif not accounting_admin %}<p>Seules les pièces prêtes au contrôle apparaissent dans votre espace.</p>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</section>
+{% include 'accounting/pagination.html' %}
+{% endblock %}
