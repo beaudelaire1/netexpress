@@ -1,6 +1,8 @@
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
+from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import render_to_string
 
@@ -74,6 +76,22 @@ def test_invoice_template_renders_complete_bank_details(settings):
     assert "Titulaire de démonstration" in html
     assert VALID_IBAN in html
     assert "DEUTDEFF" in html
+
+
+def test_worker_consumes_every_routed_celery_queue():
+    default_queues = {"celery", "messaging", "documents", "notifications"}
+    routed_queues = {
+        route["queue"] for route in django_settings.CELERY_TASK_ROUTES.values()
+    }
+    start_script = (Path(django_settings.BASE_DIR) / "start.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert routed_queues <= default_queues
+    assert (
+        '--queues="${CELERY_QUEUES:-celery,messaging,documents,notifications}"'
+        in start_script
+    )
 
 
 def test_deploy_migrate_serializes_with_postgresql_advisory_lock(monkeypatch):
