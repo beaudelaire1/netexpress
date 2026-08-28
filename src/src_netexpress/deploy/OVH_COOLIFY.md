@@ -51,6 +51,8 @@ Le conteneur exécute avant Gunicorn :
 
 Les migrations ne reposent pas sur le champ « Pre-deployment command » de Coolify : ce mécanisme n'est pas exécuté lorsqu'il n'existe encore aucun conteneur, notamment au premier déploiement.
 
+Le verrou évite deux exécutions concurrentes, mais il ne rend pas une migration destructive compatible avec un rolling update. Toute migration qui supprime ou renomme immédiatement une colonne/table encore utilisée par l'ancienne version doit être déployée en plusieurs étapes « expand/contract » ou pendant une fenêtre de maintenance contrôlée.
+
 ## 4. Worker Celery
 
 Créer une seconde application avec le même dépôt, la même branche, le même Base Directory et le même Dockerfile.
@@ -121,7 +123,9 @@ Ne pas monter `private_media` sous `/app/media` et ne jamais exposer `/app/priva
 
 Ne pas partager un volume entre le web et le worker par défaut. Le worker actuel n'a pas besoin d'écrire les FileField privés ; si un futur traitement asynchrone le nécessite, choisir un stockage partagé approprié et auditer explicitement les accès concurrents.
 
-Un volume persistant n'est pas une sauvegarde.
+Un volume persistant n'est pas une sauvegarde. Dans Coolify, créer un **Scheduled Backup** du volume `/app/private_media` vers un stockage S3-compatible validé et conserver au moins une copie hors du VPS. Tester la restauration de cette archive dans un environnement séparé : la page de sauvegarde de stockage crée l'archive mais ne constitue pas, à elle seule, une procédure de restauration testée.
+
+Si les médias publics restent en stockage local, sauvegarder également `/app/media`. Si Cloudinary est utilisé pour ces médias, ne pas dupliquer inutilement cette sauvegarde locale.
 
 ## 7. Santé des conteneurs
 
@@ -140,9 +144,12 @@ La production refuse SQLite. `DATABASE_URL` doit pointer vers PostgreSQL sur le 
 
 Avant mise en ligne :
 
-- activer les sauvegardes automatiques de PostgreSQL ;
-- définir une rétention ;
-- effectuer au moins une restauration de test ;
+- conserver le volume PostgreSQL par défaut de Coolify ;
+- créer une sauvegarde planifiée PostgreSQL ;
+- envoyer une copie vers un stockage S3-compatible hors du VPS ;
+- définir une rétention locale et distante ;
+- déclencher un « Backup Now » avant la bascule ;
+- effectuer au moins une restauration de test dans une base jetable ;
 - conserver les identifiants PostgreSQL hors Git ;
 - ne pas exposer le port PostgreSQL publiquement sans nécessité.
 
@@ -153,6 +160,8 @@ Avant mise en ligne :
 - le cache Django ;
 - le broker Celery ;
 - le backend de résultat Celery.
+
+Utiliser la ressource Redis Coolify avec son stockage persistant `/data` et ne pas publier son port sur Internet. Le workflow de sauvegarde « base de données » de Coolify ne couvre pas Redis ; PostgreSQL et les documents privés restent les sources à sauvegarder impérativement. Redis doit toutefois conserver sa persistance afin qu'un simple remplacement de conteneur n'efface pas systématiquement les tâches en attente.
 
 `/readyz/` renvoie `503` si Redis ou PostgreSQL n'est pas disponible : le web ne doit pas être considéré comme prêt dans cet état.
 
@@ -182,9 +191,9 @@ Le déploiement n'est considéré prêt que lorsque les vérifications suivantes
 - téléchargement privé impossible sans autorisation ;
 - envoi Brevo fonctionnel ;
 - formulaire public protégé par Turnstile ;
-- worker Celery sain et traitement d'une tâche réelle ;
+- worker Celery sain et traitement d'une tâche réelle dans une file métier ;
 - sauvegarde PostgreSQL effectuée puis restauration de test ;
-- sauvegarde séparée de `/app/private_media` validée ;
+- sauvegarde S3-compatible de `/app/private_media` effectuée puis restauration de test ;
 - aucun secret présent dans les logs ou le dépôt.
 
 ## 12. Bascule depuis Render
