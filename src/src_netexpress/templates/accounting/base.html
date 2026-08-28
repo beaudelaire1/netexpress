@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="{% static 'css/accounting.css' %}">
 <link rel="stylesheet" href="{% static 'css/accounting-workspace.css' %}">
 <link rel="stylesheet" href="{% static 'css/accounting-enhancements.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting-ux-fixes.css' %}">
 <script src="{% static 'js/accounting.js' %}" defer></script>
 </head>
 <body>
@@ -25,6 +26,25 @@
   </div>
   <nav class="portal-tools" aria-label="Navigation du compte">
     {% if accounting_admin %}<a class="back-dashboard" href="{% url 'core:admin_dashboard' %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Tableau de bord</span></a>{% endif %}
+    {% if accounting_reviewer %}
+    <details class="accounting-contact">
+      <summary aria-label="Écrire à NetExpress"><i class="fa-regular fa-message" aria-hidden="true"></i><span>Écrire à NetExpress</span></summary>
+      <div class="accounting-contact-panel">
+        <h2>Message à NetExpress</h2>
+        <p>Utilisez cet espace pour signaler une pièce, poser une question ou demander une correction.</p>
+        <form method="post" action="{% url 'accounting:message_netexpress' %}">
+          {% csrf_token %}
+          <label for="accounting-message">Votre message</label>
+          <textarea id="accounting-message" name="message" maxlength="4000" required placeholder="Décrivez précisément votre demande…"></textarea>
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <div class="accounting-contact-actions">
+            <small>Le message est transmis dans la messagerie interne NetExpress.</small>
+            <button class="button" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer</button>
+          </div>
+        </form>
+      </div>
+    </details>
+    {% endif %}
     <details class="account-menu">
       <summary aria-label="Menu du compte de {{ user.get_full_name|default:user.username }}">
         <span class="account-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span>
