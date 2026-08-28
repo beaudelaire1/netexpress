@@ -1,5 +1,4 @@
 import io
-import csv
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
@@ -19,21 +18,24 @@ from django.utils.http import urlsafe_base64_encode
 
 from accounts.access import confirm_email
 from accounts.forms import ProfileForm, SignUpForm
-from accounts.models import Profile
 from accounting.forms import AccountingDocumentForm, SupplierInvoiceForm
 from accounting.models import AccountingDocument, InvoiceReview, SupplierInvoice
-from accounting.services import invoice_fingerprint, is_reviewed, csv_content
+from accounting.services import invoice_fingerprint, is_reviewed, issued_invoices
 from core.services.document_service import ClientDocumentService
 from devis.models import Client as Customer, Quote, QuoteItem
 from devis.services import create_invoice_from_quote, QuoteStatusError, QuoteAlreadyInvoicedError
-from factures.models import Invoice, InvoiceItem
+from factures.models import Invoice
 
 pytestmark = pytest.mark.django_db
 User = get_user_model()
 
 
 def make_user(role="accountant", verified=True):
-    user = User.objects.create_user(username=f"{role}_{User.objects.count()}", email=f"u{User.objects.count()}@example.test", password="LongSecurePassword854!")
+    user = User.objects.create_user(
+        username=f"{role}_{User.objects.count()}",
+        email=f"u{User.objects.count()}@example.test",
+        password="LongSecurePassword854!",
+    )
     profile = user.profile
     profile.role = role
     profile.save(update_fields=["role"])
@@ -46,7 +48,13 @@ def make_user(role="accountant", verified=True):
 def make_invoice(status="sent", quantity="0.50"):
     customer = Customer.objects.create(full_name="Client test", email="client@example.test")
     quote = Quote.objects.create(client=customer, status="accepted")
-    QuoteItem.objects.create(quote=quote, description="Nettoyage", quantity=Decimal(quantity), unit_price=100, tax_rate=20)
+    QuoteItem.objects.create(
+        quote=quote,
+        description="Nettoyage",
+        quantity=Decimal(quantity),
+        unit_price=100,
+        tax_rate=20,
+    )
     invoice = create_invoice_from_quote(quote).invoice
     invoice.status = status
     invoice.save(update_fields=["status"])
@@ -54,8 +62,15 @@ def make_invoice(status="sent", quantity="0.50"):
 
 
 def purchase_data(**changes):
-    return {"supplier_name": "Fournisseur", "reference": "FOUR-01", "issue_date": "2026-08-01",
-            "total_ttc": "120.00", "vat_amount": "20.00", "category": "supplies", **changes}
+    return {
+        "supplier_name": "Fournisseur",
+        "reference": "FOUR-01",
+        "issue_date": "2026-08-01",
+        "total_ttc": "120.00",
+        "vat_amount": "20.00",
+        "category": "supplies",
+        **changes,
+    }
 
 
 def upload(content=b"%PDF-1.4\nTest supplier\n%%EOF", filename="piece.pdf"):
@@ -63,8 +78,13 @@ def upload(content=b"%PDF-1.4\nTest supplier\n%%EOF", filename="piece.pdf"):
 
 
 def test_public_roles_cannot_escalate(client):
-    form = SignUpForm({"username": "attacker", "email": "attacker@example.test", "role": "admin_technical",
-        "password1": "LongSecurePassword854!", "password2": "LongSecurePassword854!"})
+    form = SignUpForm({
+        "username": "attacker",
+        "email": "attacker@example.test",
+        "role": "admin_technical",
+        "password1": "LongSecurePassword854!",
+        "password2": "LongSecurePassword854!",
+    })
     assert form.is_valid(), form.errors
     user = form.save()
     user.refresh_from_db()
@@ -77,8 +97,13 @@ def test_public_roles_cannot_escalate(client):
 
 
 def test_signup_http_backend_and_mail(client):
-    response = client.post(reverse("accounts:signup"), {"username": "new", "email": "new@example.test",
-        "role": "admin_technical", "password1": "LongSecurePassword854!", "password2": "LongSecurePassword854!"})
+    response = client.post(reverse("accounts:signup"), {
+        "username": "new",
+        "email": "new@example.test",
+        "role": "admin_technical",
+        "password1": "LongSecurePassword854!",
+        "password2": "LongSecurePassword854!",
+    })
     assert response.status_code == 302
     assert not User.objects.get(username="new").is_superuser
 
@@ -100,15 +125,30 @@ def test_email_claim_does_not_grant_documents():
 def test_invitation_single_use_and_role_redirect(client):
     user = make_user(verified=False)
     token = default_token_generator.make_token(user)
-    url = reverse("accounts:password_setup", args=[urlsafe_base64_encode(force_bytes(user.pk)), token])
-    response = client.post(url, {"new_password1": "AnotherSecure854!", "new_password2": "AnotherSecure854!"})
+    url = reverse(
+        "accounts:password_setup",
+        args=[urlsafe_base64_encode(force_bytes(user.pk)), token],
+    )
+    response = client.post(url, {
+        "new_password1": "AnotherSecure854!",
+        "new_password2": "AnotherSecure854!",
+    })
     assert response.status_code == 302 and response.url == "/comptabilite/"
     user.refresh_from_db()
     assert user.profile.has_verified_email
     assert not default_token_generator.check_token(user, token)
 
 
-@pytest.mark.parametrize("role,expected", [("client",403), ("worker",403), ("accountant",200), ("admin_business",200), ("admin_technical",200)])
+@pytest.mark.parametrize(
+    "role,expected",
+    [
+        ("client", 403),
+        ("worker", 403),
+        ("accountant", 200),
+        ("admin_business", 200),
+        ("admin_technical", 200),
+    ],
+)
 def test_role_access_matrix(client, role, expected):
     user = make_user(role)
     client.force_login(user)
@@ -130,7 +170,10 @@ def test_profile_and_forced_password_change_do_not_loop(client):
 
 def test_login_external_next_is_rejected(client):
     user = make_user("client")
-    response = client.post(reverse("accounts:login") + "?next=https://evil.example", {"username": user.username, "password": "LongSecurePassword854!"})
+    response = client.post(
+        reverse("accounts:login") + "?next=https://evil.example",
+        {"username": user.username, "password": "LongSecurePassword854!"},
+    )
     assert response.status_code == 302 and response.url == "/client/"
 
 
@@ -149,7 +192,10 @@ def test_numbers_after_999_and_soft_delete(kind):
     customer = Customer.objects.create(full_name="Test", email="test@example.test")
     model = Invoice if kind == "invoice" else Quote
     prefix = "FAC" if kind == "invoice" else "DEV"
-    fields = {"issue_date": date(2026, 1, 1), **({"client": customer} if kind == "quote" else {})}
+    fields = {
+        "issue_date": date(2026, 1, 1),
+        **({"client": customer} if kind == "quote" else {}),
+    }
     model.objects.create(number=f"{prefix}-2026-999", **fields)
     last = model.objects.create(number=f"{prefix}-2026-1000", **fields)
     last.delete()
@@ -166,6 +212,29 @@ def test_issued_visible_draft_hidden_archive_preserved(client):
     invoice.save(update_fields=["status"])
     invoice.delete()
     assert client.get(url).status_code == 200
+
+
+def test_accounting_hides_unfinished_client_invoices(client):
+    invoice = make_invoice()
+    user = make_user()
+    client.force_login(user)
+    detail_url = reverse("accounting:invoice_detail", args=[invoice.pk])
+    assert client.get(detail_url).status_code == 200
+
+    invoice.status = Invoice.InvoiceStatus.DRAFT
+    invoice.save(update_fields=["status"])
+    invoice.refresh_from_db()
+    assert invoice.issued_at is not None
+    assert client.get(detail_url).status_code == 404
+    assert not issued_invoices().filter(pk=invoice.pk).exists()
+
+    invoice.status = Invoice.InvoiceStatus.SENT
+    invoice.save(update_fields=["status"])
+    item = invoice.invoice_items.get()
+    item.description = ""
+    item.save(update_fields=["description"])
+    assert client.get(detail_url).status_code == 404
+    assert client.get(reverse("accounting:sales")).context["page"].paginator.count == 0
 
 
 def test_review_detects_modifications(client):
@@ -190,7 +259,10 @@ def test_review_detects_modifications(client):
 def test_supplier_upload_total_duplicate_and_private_download(client):
     user = make_user("admin_business")
     client.force_login(user)
-    response = client.post(reverse("accounting:supplier_add"), {**purchase_data(), "file": upload()})
+    response = client.post(
+        reverse("accounting:supplier_add"),
+        {**purchase_data(), "file": upload()},
+    )
     assert response.status_code == 302, response.content[:1000]
     purchase = SupplierInvoice.objects.get()
     assert purchase.total_ht == Decimal("100.00")
@@ -204,9 +276,20 @@ def test_supplier_upload_total_duplicate_and_private_download(client):
     assert not form.is_valid() and "file" in form.errors
 
 
-@pytest.mark.parametrize("file,total,vat", [(upload(b"<html>bad</html>"),"120","20"), (upload(filename="piece.html"),"120","20"), (upload(),"-1","0"), (upload(),"120","121")])
+@pytest.mark.parametrize(
+    "file,total,vat",
+    [
+        (upload(b"<html>bad</html>"), "120", "20"),
+        (upload(filename="piece.html"), "120", "20"),
+        (upload(), "-1", "0"),
+        (upload(), "120", "121"),
+    ],
+)
 def test_supplier_rejects_invalid_files_and_amounts(file, total, vat):
-    form = SupplierInvoiceForm(purchase_data(total_ttc=total, vat_amount=vat), {"file": file})
+    form = SupplierInvoiceForm(
+        purchase_data(total_ttc=total, vat_amount=vat),
+        {"file": file},
+    )
     assert not form.is_valid()
 
 
@@ -216,11 +299,17 @@ def test_supplier_control_edit_resets_review(client):
     client.post(reverse("accounting:supplier_add"), {**purchase_data(), "file": upload()})
     purchase = SupplierInvoice.objects.get()
     client.force_login(make_user())
-    client.post(reverse("accounting:review_supplier", args=[purchase.pk]), {"fingerprint": purchase.updated_at.isoformat()})
+    client.post(
+        reverse("accounting:review_supplier", args=[purchase.pk]),
+        {"fingerprint": purchase.updated_at.isoformat()},
+    )
     purchase.refresh_from_db()
     assert purchase.reviewed_at
     client.force_login(owner)
-    response = client.post(reverse("accounting:supplier_edit", args=[purchase.pk]), {**purchase_data(total_ttc="130"), "version": purchase.updated_at.isoformat()})
+    response = client.post(
+        reverse("accounting:supplier_edit", args=[purchase.pk]),
+        {**purchase_data(total_ttc="130"), "version": purchase.updated_at.isoformat()},
+    )
     assert response.status_code == 302
     purchase.refresh_from_db()
     assert purchase.reviewed_at is None and purchase.total_ttc == Decimal(130)
@@ -228,28 +317,52 @@ def test_supplier_control_edit_resets_review(client):
 
 def test_exports_period_formulas_zip_and_totals(client):
     client.force_login(make_user("admin_business"))
-    invoice = make_invoice()
-    client.post(reverse("accounting:supplier_add"), {**purchase_data(supplier_name="=CMD()"), "file": upload()})
+    make_invoice()
+    client.post(
+        reverse("accounting:supplier_add"),
+        {**purchase_data(supplier_name="=CMD()"), "file": upload()},
+    )
     client.force_login(make_user())
-    response = client.get(reverse("accounting:export"), {"date_from": "2026-01-01", "date_to": "2026-12-31"})
+    selection = {"date_from": "2026-01-01", "date_to": "2026-12-31"}
+    response = client.get(reverse("accounting:export"), selection)
     assert response.status_code == 200
-    assert "'=CMD()" in response.content.decode("utf-8-sig")
-    assert "120.00" in response.content.decode("utf-8-sig")
-    with patch.object(Invoice, "generate_pdf", return_value=b"%PDF-1.4 test"), patch("accounting.views.quote_pdf_content", return_value=b"%PDF-1.4 quote"):
-        response = client.get(reverse("accounting:export"), {"format": "zip", "date_from": "2026-01-01", "date_to": "2026-12-31"})
+    journal = response.content.decode("utf-8-sig")
+    assert "'=CMD()" in journal and "120.00" in journal
+
+    with patch.object(Invoice, "generate_pdf", return_value=b"%PDF-1.4 test"):
+        response = client.get(reverse("accounting:export"), {**selection, "format": "zip"})
         with zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content))) as archive:
-            assert len(archive.namelist()) == 5
-            assert "journal.csv" in archive.namelist()
-            assert "devis.csv" in archive.namelist()
-    response = client.get(reverse("accounting:dashboard"), {"date_from": "2026-01-01", "date_to": "2026-12-31"})
-    assert response.context["totals"]["purchases"] == Decimal(120)
-    assert response.context["totals"]["net_sales"] == Decimal(60)
-    assert client.get(reverse("accounting:export"), {"date_from": "2027-12-31", "date_to": "2026-01-01"}).status_code == 400
+            names = archive.namelist()
+            assert len(names) == 3
+            assert "journal.csv" in names
+            assert any(name.startswith("ventes/") for name in names)
+            assert any(name.startswith("achats/") for name in names)
+            assert "devis.csv" not in names
+            assert not any(name.startswith("devis/") for name in names)
+
+    response = client.get(reverse("accounting:dashboard"), selection)
+    totals = response.context["totals"]
+    assert totals["purchases"] == Decimal(120)
+    assert totals["purchases_ht"] == Decimal(100)
+    assert totals["purchase_vat"] == Decimal(20)
+    assert totals["net_sales"] == Decimal(60)
+    assert totals["net_sales_ht"] == Decimal(50)
+    assert totals["sales_vat"] == Decimal(10)
+    assert response.context["financial_series"]
+    assert client.get(
+        reverse("accounting:export"),
+        {"date_from": "2027-12-31", "date_to": "2026-01-01"},
+    ).status_code == 400
 
 
 def test_accountant_invite_disable(client):
     client.force_login(make_user("admin_business"))
-    response = client.post(reverse("accounting:accountants"), {"email": "cabinet@example.test", "first_name": "Anne", "last_name": "Test", "accounting_firm": "Cabinet Test"})
+    response = client.post(reverse("accounting:accountants"), {
+        "email": "cabinet@example.test",
+        "first_name": "Anne",
+        "last_name": "Test",
+        "accounting_firm": "Cabinet Test",
+    })
     assert response.status_code == 302
     user = User.objects.get(email="cabinet@example.test")
     assert user.profile.role == "accountant" and not user.is_staff and not user.has_usable_password()
@@ -258,75 +371,109 @@ def test_accountant_invite_disable(client):
     assert not user.is_active
 
 
-def test_admin_dashboard_has_accounting_navigation_and_kpis_before_actions(client):
+def test_admin_dashboard_has_accounting_navigation_and_modern_kpis(client):
     client.force_login(make_user("admin_business"))
     response = client.get(reverse("core:admin_dashboard"))
     assert response.status_code == 200
     html = response.content.decode()
-    # Shared desktop + mobile navigation survive the dashboard's own nav block.
     assert html.count('href="/comptabilite/"') >= 3
     assert html.index("Chiffre d'Affaires Total") < html.index("Actions Rapides") < html.index("Pièces et accès du cabinet")
     assert reverse("accounting:supplier_add") not in html
     assert reverse("accounting:document_add") not in html
+
     portal = client.get(reverse("accounting:dashboard")).content.decode()
     assert 'class="back-dashboard" href="/admin-dashboard/"' in portal
-    assert "Portail comptable" in portal and "NetExpress · Espace entreprise" in portal
-    assert portal.index('aria-label="Synthèse de la période"') < portal.index('aria-label="Transmettre des pièces"')
+    assert "Espace comptable" in portal and "NetExpress · Espace entreprise" in portal
+    assert 'aria-label="Indicateurs comptables de la période"' in portal
+    assert portal.count("data-accounting-chart") == 2
+    assert "Ventes HT" in portal and "TVA collectée" in portal
+    assert "Achats HT" in portal and "TVA sur achats" in portal
+    assert 'aria-label="Préparer des pièces"' in portal
 
 
-@pytest.mark.parametrize("role,allowed", [("admin_business", True), ("admin_technical", True), ("accountant", False), ("client", False), ("worker", False)])
+@pytest.mark.parametrize(
+    "role,allowed",
+    [
+        ("admin_business", True),
+        ("admin_technical", True),
+        ("accountant", False),
+        ("client", False),
+        ("worker", False),
+    ],
+)
 def test_only_company_can_deposit(client, role, allowed):
     client.force_login(make_user(role))
     for route in ("supplier_add", "document_add"):
         url = reverse(f"accounting:{route}")
         assert client.get(url).status_code == (200 if allowed else 403)
-        response = client.post(url, {"file": upload(f"%PDF-1.4 {role} {route}".encode())})
+        response = client.post(
+            url,
+            {"file": upload(f"%PDF-1.4 {role} {route}".encode())},
+        )
         assert response.status_code == (302 if allowed else 403), response.content[:1000]
 
 
-def test_supplier_file_only_preserves_unknowns_and_blocks_review(client):
-    client.force_login(make_user("admin_business"))
+def test_supplier_draft_is_private_until_complete(client):
+    admin = make_user("admin_business")
+    client.force_login(admin)
     response = client.post(reverse("accounting:supplier_add"), {"file": upload()})
     assert response.status_code == 302, response.content[:1500]
     purchase = SupplierInvoice.objects.get()
-    assert purchase.issue_date is None and purchase.total_ttc is None and purchase.vat_amount is None
-    assert not purchase.is_complete and purchase.total_ht is None
-    assert client.post(reverse("accounting:supplier_add"), {"file": upload(b"%PDF-1.4 Another invoice")}).status_code == 302
-    assert SupplierInvoice.objects.count() == 2  # Blank references are not duplicates.
-    client.force_login(make_user())
-    response = client.get(reverse("accounting:dashboard"))
-    assert response.context["totals"]["incomplete_purchases"] == 2
-    assert response.context["totals"]["purchases"] == 0
-    assert "À renseigner" in client.get(reverse("accounting:supplier_detail", args=[purchase.pk])).content.decode()
-    client.post(reverse("accounting:review_supplier", args=[purchase.pk]), {"fingerprint": purchase.updated_at.isoformat()})
-    purchase.refresh_from_db()
-    assert purchase.reviewed_at is None
-    rows = list(csv.DictReader(io.StringIO(csv_content([], [purchase]).decode("utf-8-sig")), delimiter=";"))
-    assert rows[0]["HT EUR"] == rows[0]["TTC EUR"] == rows[0]["TVA EUR"] == rows[0]["Date"] == ""
-    assert rows[0]["Contrôle"] == "À compléter"
+    assert not purchase.is_complete
+
+    admin_dashboard = client.get(reverse("accounting:dashboard"))
+    assert admin_dashboard.context["totals"]["incomplete_purchases"] == 1
+    assert client.get(reverse("accounting:supplier_detail", args=[purchase.pk])).status_code == 200
+    assert client.get(purchase.file.url).status_code == 200
+
+    accountant = make_user()
+    client.force_login(accountant)
+    dashboard = client.get(reverse("accounting:dashboard"))
+    assert dashboard.context["totals"]["incomplete_purchases"] == 0
+    assert dashboard.context["totals"]["purchases"] == 0
+    assert client.get(reverse("accounting:suppliers")).context["page"].paginator.count == 0
+    assert client.get(reverse("accounting:supplier_detail", args=[purchase.pk])).status_code == 404
+    assert client.get(purchase.file.url).status_code == 404
+    assert client.post(
+        reverse("accounting:review_supplier", args=[purchase.pk]),
+        {"fingerprint": purchase.updated_at.isoformat()},
+    ).status_code == 404
+    export = client.get(reverse("accounting:export"))
+    assert purchase.display_name not in export.content.decode("utf-8-sig")
 
 
 def test_supplier_optional_metadata_validation_and_completion(client):
     client.force_login(make_user("admin_business"))
     client.post(reverse("accounting:supplier_add"), {"file": upload()})
     purchase = SupplierInvoice.objects.get()
-    response = client.post(reverse("accounting:supplier_edit", args=[purchase.pk]), {
-        **purchase_data(vat_amount="0"), "version": purchase.updated_at.isoformat()})
+    response = client.post(
+        reverse("accounting:supplier_edit", args=[purchase.pk]),
+        {**purchase_data(vat_amount="0"), "version": purchase.updated_at.isoformat()},
+    )
     assert response.status_code == 302
     purchase.refresh_from_db()
     assert purchase.is_complete and purchase.total_ht == Decimal("120")
-    duplicate = SupplierInvoiceForm(purchase_data(supplier_name=" FOURNISSEUR "), {"file": upload(b"%PDF-1.4 different")})
+    duplicate = SupplierInvoiceForm(
+        purchase_data(supplier_name=" FOURNISSEUR "),
+        {"file": upload(b"%PDF-1.4 different")},
+    )
     assert not duplicate.is_valid()
+
     client.force_login(make_user())
     assert client.get(reverse("accounting:supplier_edit", args=[purchase.pk])).status_code == 403
     assert client.post(reverse("accounting:supplier_edit", args=[purchase.pk]), purchase_data()).status_code == 403
+    assert client.get(reverse("accounting:supplier_detail", args=[purchase.pk])).status_code == 200
+    assert client.get(purchase.file.url).status_code == 200
 
 
 @pytest.mark.parametrize("kind", [value for value, _ in AccountingDocument.Kind.choices])
 def test_company_document_then_cabinet_review_and_download(client, kind):
     owner = make_user("admin_business")
     client.force_login(owner)
-    response = client.post(reverse("accounting:document_add"), {"file": upload(filename="releve-aout.pdf"), "kind": kind})
+    response = client.post(
+        reverse("accounting:document_add"),
+        {"file": upload(filename="releve-aout.pdf"), "kind": kind},
+    )
     assert response.status_code == 302, response.content[:1500]
     document = AccountingDocument.objects.get()
     assert document.title == "releve-aout" and document.kind == kind
@@ -341,7 +488,10 @@ def test_company_document_then_cabinet_review_and_download(client, kind):
     assert client.post(reverse("accounting:document_edit", args=[document.pk]), {"title": "Changed"}).status_code == 403
     url = reverse("accounting:review_document", args=[document.pk])
     assert client.get(url).status_code == 405
-    assert client.post(url, {"fingerprint": document.updated_at.isoformat(), "note": "Pièce lisible"}).status_code == 302
+    assert client.post(
+        url,
+        {"fingerprint": document.updated_at.isoformat(), "note": "Pièce lisible"},
+    ).status_code == 302
     document.refresh_from_db()
     assert document.reviewed_by == cabinet and document.review_note == "Pièce lisible"
     assert client.get(reverse("accounting:documents"), {"pending": "1"}).context["page"].paginator.count == 0
@@ -360,11 +510,17 @@ def test_document_security_duplicates_and_stale_changes(client):
     client.post(reverse("accounting:review_document", args=[document.pk]), {"fingerprint": original_version})
     client.force_login(owner)
     document.refresh_from_db()
-    response = client.post(reverse("accounting:document_edit", args=[document.pk]), {"title": "Old edit", "version": original_version})
+    response = client.post(
+        reverse("accounting:document_edit", args=[document.pk]),
+        {"title": "Old edit", "version": original_version},
+    )
     assert response.status_code == 200 and response.context["form"].errors
     document.refresh_from_db()
     assert document.reviewed_at and document.title == "piece"
-    client.post(reverse("accounting:document_edit", args=[document.pk]), {"title": "New title", "version": document.updated_at.isoformat()})
+    client.post(
+        reverse("accounting:document_edit", args=[document.pk]),
+        {"title": "New title", "version": document.updated_at.isoformat()},
+    )
     document.refresh_from_db()
     assert document.title == "New title" and not document.reviewed_at and not document.review_note
     client.force_login(cabinet)
@@ -389,14 +545,29 @@ def test_company_cannot_perform_cabinet_controls(client):
     client.post(reverse("accounting:document_add"), {"file": upload(b"%PDF-1.4 bank")})
     purchase = SupplierInvoice.objects.get()
     document = AccountingDocument.objects.get()
-    for route, piece in [("review_invoice", invoice), ("review_supplier", purchase), ("review_document", document)]:
+    for route, piece in [
+        ("review_invoice", invoice),
+        ("review_supplier", purchase),
+        ("review_document", document),
+    ]:
         assert client.post(reverse(f"accounting:{route}", args=[piece.pk]), {}).status_code == 403
     assert not InvoiceReview.objects.exists()
     assert purchase.reviewed_at is None and document.reviewed_at is None
-    assert "Marquer comme vérifié" not in client.get(reverse("accounting:document_detail", args=[document.pk])).content.decode()
+    assert "Marquer comme vérifié" not in client.get(
+        reverse("accounting:document_detail", args=[document.pk])
+    ).content.decode()
 
 
-@pytest.mark.parametrize("content,filename", [(b"<html>bad</html>", "bad.pdf"), (b"%PDF-1.4", "bad.html"), (b"", "empty.pdf"), (b"%PDF-" + b"x" * (10 * 1024 * 1024), "large.pdf")], ids=["invalid-signature", "invalid-extension", "empty", "too-large"])
+@pytest.mark.parametrize(
+    "content,filename",
+    [
+        (b"<html>bad</html>", "bad.pdf"),
+        (b"%PDF-1.4", "bad.html"),
+        (b"", "empty.pdf"),
+        (b"%PDF-" + b"x" * (10 * 1024 * 1024), "large.pdf"),
+    ],
+    ids=["invalid-signature", "invalid-extension", "empty", "too-large"],
+)
 def test_document_rejects_invalid_uploads(content, filename):
     form = AccountingDocumentForm({}, {"file": upload(content, filename)})
     assert not form.is_valid() and "file" in form.errors
@@ -404,15 +575,26 @@ def test_document_rejects_invalid_uploads(content, filename):
 
 def test_document_filters_exports_and_no_effect_on_sales(client):
     client.force_login(make_user("admin_business"))
-    client.post(reverse("accounting:document_add"), {"file": upload(), "kind": "bank", "title": "=SUM(1)", "document_date": "2026-08-01"})
-    client.post(reverse("accounting:document_add"), {"file": upload(b"%PDF-1.4 old"), "kind": "contract", "document_date": "2025-08-01"})
+    client.post(
+        reverse("accounting:document_add"),
+        {"file": upload(), "kind": "bank", "title": "=SUM(1)", "document_date": "2026-08-01"},
+    )
+    client.post(
+        reverse("accounting:document_add"),
+        {"file": upload(b"%PDF-1.4 old"), "kind": "contract", "document_date": "2025-08-01"},
+    )
     client.force_login(make_user())
     selection = {"date_from": "2026-01-01", "date_to": "2026-12-31"}
     response = client.get(reverse("accounting:documents"), {**selection, "kind": "bank", "q": "SUM"})
     assert response.context["page"].paginator.count == 1
-    assert client.get(reverse("accounting:documents"), {**selection, "kind": "contract"}).context["page"].paginator.count == 0
+    assert client.get(
+        reverse("accounting:documents"),
+        {**selection, "kind": "contract"},
+    ).context["page"].paginator.count == 0
     totals = client.get(reverse("accounting:dashboard"), selection).context["totals"]
-    assert totals["documents"] == 1 and totals["pending_documents"] == 1 and totals["net_sales"] == totals["purchases"] == 0
+    assert totals["documents"] == 1
+    assert totals["pending_documents"] == 1
+    assert totals["net_sales"] == totals["purchases"] == 0
     response = client.get(reverse("accounting:export"), {**selection, "format": "zip"})
     with zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content))) as archive:
         assert len(archive.namelist()) == 2
@@ -420,26 +602,46 @@ def test_document_filters_exports_and_no_effect_on_sales(client):
         assert "'=SUM(1)" in archive.read("journal.csv").decode("utf-8-sig")
 
 
-def test_quotes_shared_automatically_readonly_and_draft_private(client):
+def test_quote_is_only_context_for_visible_invoice(client):
     invoice = make_invoice()
     quote = invoice.quote
-    draft = Quote.objects.create(client=quote.client, status="draft")
+    unrelated = Quote.objects.create(client=quote.client, status="sent")
+    QuoteItem.objects.create(
+        quote=unrelated,
+        description="Autre proposition",
+        quantity=1,
+        unit_price=50,
+        tax_rate=0,
+    )
+    unrelated.compute_totals()
+
     client.force_login(make_user())
-    page = client.get(reverse("accounting:quotes"))
-    assert page.status_code == 200 and page.context["page"].paginator.count == 1
-    assert client.get(reverse("accounting:quote_detail", args=[quote.pk])).status_code == 200
-    assert client.get(reverse("accounting:quote_detail", args=[draft.pk])).status_code == 404
-    assert client.get(reverse("accounting:quote_pdf", args=[draft.pk])).status_code == 404
+    dashboard_html = client.get(reverse("accounting:dashboard")).content.decode()
+    assert 'href="/comptabilite/devis/"' not in dashboard_html
+    invoice_html = client.get(reverse("accounting:invoice_detail", args=[invoice.pk])).content.decode()
+    assert reverse("accounting:quote_detail", args=[quote.pk]) in invoice_html
+
+    detail = client.get(reverse("accounting:quote_detail", args=[quote.pk]))
+    assert detail.status_code == 200
+    assert f"Facture {invoice.number}" in detail.content.decode()
+    assert client.get(reverse("accounting:quote_detail", args=[unrelated.pk])).status_code == 404
+    assert client.get(reverse("accounting:quote_pdf", args=[unrelated.pk])).status_code == 404
+
     before = (quote.total_ttc, quote.status, quote.pdf.name)
-    with patch("core.services.document_generator.DocumentGenerator.generate_quote_pdf", return_value=b"%PDF-1.4 quote") as generate:
+    with patch(
+        "core.services.document_generator.DocumentGenerator.generate_quote_pdf",
+        return_value=b"%PDF-1.4 quote",
+    ) as generate:
         assert client.get(reverse("accounting:quote_pdf", args=[quote.pk])).status_code == 200
         assert generate.call_args.kwargs == {"attach": False}
     quote.refresh_from_db()
     assert (quote.total_ttc, quote.status, quote.pdf.name) == before
-    response = client.get(reverse("accounting:export"), {"format": "quotes"})
-    assert quote.number in response.content.decode("utf-8-sig") and draft.number not in response.content.decode("utf-8-sig")
-    totals = client.get(reverse("accounting:dashboard")).context["totals"]
-    assert totals["net_sales"] == Decimal(60) and totals["quotes"] == 1
+
+    with patch.object(Invoice, "generate_pdf", return_value=b"%PDF-1.4 invoice"):
+        response = client.get(reverse("accounting:export"), {"format": "zip"})
+        with zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content))) as archive:
+            assert "devis.csv" not in archive.namelist()
+            assert not any(name.startswith("devis/") for name in archive.namelist())
 
 
 def test_demo_account_local_only_and_login(client, settings):
@@ -451,10 +653,14 @@ def test_demo_account_local_only_and_login(client, settings):
     assert user.profile.has_verified_email and user.profile.role == "accountant"
     assert not user.is_staff and not user.is_superuser
     password = output.getvalue().split("Mot de passe : ")[1].splitlines()[0]
-    response = client.post(reverse("accounts:login"), {"username": user.username, "password": password})
+    response = client.post(
+        reverse("accounts:login"),
+        {"username": user.username, "password": password},
+    )
     assert response.status_code == 302 and response.url == "/comptabilite/"
     html = client.get(response.url).content.decode()
-    assert reverse("accounting:document_add") not in html and reverse("accounting:supplier_add") not in html
+    assert reverse("accounting:document_add") not in html
+    assert reverse("accounting:supplier_add") not in html
     assert 'href="/admin-dashboard/"' not in html
     with pytest.raises(CommandError):
         call_command("create_accounting_demo", stdout=io.StringIO())
@@ -479,14 +685,22 @@ def test_get_cannot_mutate_and_private_legacy_media_blocked(client):
 def test_turnstile_failure_denies(settings):
     from django.test import RequestFactory
     from core.turnstile import verify_turnstile
+
     settings.TURNSTILE_SECRET_KEY = "test"
     with patch("core.turnstile.requests.post", side_effect=OSError):
-        assert not verify_turnstile(RequestFactory().post("/", {"cf-turnstile-response": "test"}))
+        assert not verify_turnstile(
+            RequestFactory().post("/", {"cf-turnstile-response": "test"})
+        )
 
 
 def test_pdf_fetcher_restricts_network_and_local_secrets():
     from core.services.document_generator import restricted_fetcher
-    for url in ["https://example.test/a.png", "http://169.254.169.254/", "file:///etc/passwd"]:
+
+    for url in [
+        "https://example.test/a.png",
+        "http://169.254.169.254/",
+        "file:///etc/passwd",
+    ]:
         with pytest.raises(ValueError):
             restricted_fetcher(url)
 
@@ -496,12 +710,14 @@ def test_pdf_fetcher_restricts_network_and_local_secrets():
 def test_concurrent_invoice_numbers():
     if connection.vendor != "postgresql":
         pytest.skip("PostgreSQL required for row-lock concurrency")
+
     def create(_):
         close_old_connections()
         try:
             return Invoice.objects.create().number
         finally:
             close_old_connections()
+
     with ThreadPoolExecutor(max_workers=5) as executor:
         numbers = list(executor.map(create, range(15)))
     assert len(set(numbers)) == 15
