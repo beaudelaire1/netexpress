@@ -2,417 +2,163 @@
 {% load static %}
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Devis {{ quote.number }}</title>
-
-    <style>
-        @page {
-            size: A4;
-            margin: 1.5cm;
-        }
-
-        
-        .watermark{
-            position: fixed;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-18deg);
-            font-size: 110px;
-            font-weight: 800;
-            letter-spacing: 10px;
-            color: rgba(16,65,48,0.10);
-            z-index: 0;
-            user-select:none;
-            pointer-events:none;
-            white-space: nowrap;
-        }
-        .page{
-            position: relative;
-            z-index: 1;
-        }
-
-        body {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            color: #1f2937;
-            font-size: 13px;
-        }
-
-        :root {
-            --primary-color: #104130;
-            --accent-color: #2d8a5e;
-            --border-color: #e5e7eb;
-            --light-bg: #f9fafb;
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 20px;
-            margin-bottom: 40px;
-        }
-
-        .logo img {
-            max-height: 55px;
-        }
-
-        .quote-title {
-            text-align: center;
-        }
-
-        .quote-title h1 {
-            font-size: 42px;
-            letter-spacing: 3px;
-            color: #e6f4ea;
-            margin: 0;
-        }
-
-        .quote-meta {
-            text-align: right;
-        }
-
-        .quote-meta strong {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--accent-color);
-        }
-
-        /* ===== ADDRESSES ===== */
-        .addresses {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .box {
-            flex: 1;
-            padding: 18px;
-            border-radius: 10px;
-            line-height: 1.6;
-        }
-
-        .sender {
-            background: var(--light-bg);
-            border-left: 4px solid #bdc3c7;
-        }
-
-        .client {
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .box-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #9ca3af;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .company {
-            font-weight: bold;
-            color: var(--primary-color);
-            font-size: 15px;
-        }
-
-        /* ===== TABLE ===== */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 35px;
-            border: 1px solid var(--border-color);
-        }
-
-        thead th {
-            background: var(--primary-color);
-            color: white;
-            padding: 12px;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        tbody td {
-            padding: 14px;
-            border-bottom: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-        }
-
-        tbody td:last-child {
-            border-right: none;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #f9fafb;
-        }
-
-        .right { text-align: right; }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-
-        /* ===== TOTALS ===== */
-        .footer-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-
-        .notes {
-            width: 50%;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .totals {
-            width: 40%;
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-        }
-
-        .row.final {
-            background: var(--primary-color);
-            color: white;
-            padding: 14px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        /* ===== FOOTER LEGAL ===== */
-        .legal {
-            position: fixed;
-            bottom: 1.5cm;
-            left: 1.5cm;
-            right: 1.5cm;
-            border-top: 1px solid var(--border-color);
-            padding-top: 12px;
-            font-size: 9px;
-            color: #9ca3af;
-            text-align: center;
-            line-height: 1.4;
-        }
-
-        /* ===== SIGNATURE SECTION ===== */
-        .signature-section {
-            margin-top: 30px;
-            margin-bottom: 60px;
-            border: 2px solid var(--primary-color);
-            border-radius: 10px;
-            padding: 15px;
-            background-color: #f0f8f5;
-            page-break-inside: avoid;
-            width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .signature-title {
-            font-weight: bold;
-            font-size: 14px;
-            color: var(--primary-color);
-            margin-bottom: 12px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .signature-instruction {
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 11px;
-            color: #374151;
-        }
-        
-        .signature-boxes {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-        }
-        
-        .signature-box {
-            flex: 1;
-            text-align: center;
-        }
-        
-        .signature-label {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-            font-size: 12px;
-        }
-        
-        .date-field {
-            margin-bottom: 8px;
-            font-size: 10px;
-        }
-        
-        .date-line {
-            border-bottom: 1px solid #333;
-            height: 20px;
-            margin: 3px 15px;
-        }
-        
-        .signature-field {
-            margin-top: 10px;
-            font-size: 10px;
-        }
-        
-        .signature-line {
-            border-bottom: 1px solid #333;
-            height: 60px;
-            margin: 8px 15px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Devis {{ quote.number }}</title>
 </head>
-
 <body>
-<div class="watermark">DEVIS</div>
-
-<!-- ===== HEADER ===== -->
-<div class="page">
-<div class="header">
-
-    <!-- LOGO -->
-    <div class="logo">
-        <img src="static/img/logo.png" alt="Nettoyage Express">
-        <!-- ou {{ logo_url }} si injecté depuis le service -->
+<div class="document-page quote-document">
+  <header class="document-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="static/img/logo.png" alt="{{ branding.name|default:'Nettoyage Express' }}">
+      <div>
+        <div class="brand-fallback">{{ branding.name|default:"Nettoyage Express" }}</div>
+        {% if branding.tagline %}<div class="brand-tagline">{{ branding.tagline }}</div>{% endif %}
+      </div>
     </div>
-
-    <!-- FACTURE CENTRÉE -->
-    <div class="quote-title">
-        <h1>DEVIS</h1>
+    <div class="document-heading">
+      <h1 class="document-type">DEVIS</h1>
+      <div class="document-number">{{ quote.number }}</div>
     </div>
+  </header>
 
-    <!-- INFOS -->
-    <div class="quote-meta">
-        <strong>N°</strong> {{ quote.number }}<br>
-        <strong>Date</strong> {{ quote.issue_date|date:"d/m/Y" }}<br>
-        {% if quote.command_ref %}
-            <br><strong>Bon de commande</strong> {{ quote.command_ref}}
-        {% endif %}
+  <section class="meta-strip">
+    <div class="meta-list">
+      <div>
+        <span class="meta-item-label">Émis le</span>
+        <span class="meta-item-value">{{ quote.issue_date|date:"d/m/Y" }}</span>
+      </div>
+      {% if quote.valid_until %}
+      <div>
+        <span class="meta-item-label">Valable jusqu'au</span>
+        <span class="meta-item-value">{{ quote.valid_until|date:"d/m/Y" }}</span>
+      </div>
+      {% endif %}
+      <div>
+        <span class="meta-item-label">Statut</span>
+        <span class="meta-item-value">{{ quote.get_status_display }}</span>
+      </div>
     </div>
-
-</div>
-
-<!-- ===== ADDRESSES ===== -->
-<div class="addresses">
-    <div class="box sender">
-        <div class="box-title">Émetteur</div>
-        <div class="company">{{ branding.name|default:"Nettoyage Express" }}</div>
-        {% for line in branding.address_lines %}
-            {{ line }}<br>
-        {% endfor %}
-        {% if branding.phone %}Tél: {{ branding.phone }}<br>{% endif %}
+    <div class="total-chip">
+      <span class="total-chip-label">Total TTC</span>
+      <span class="total-chip-value">{{ quote.total_ttc|floatformat:2 }} €</span>
     </div>
+  </section>
 
-    <div class="box client">
-        <div class="box-title">Facturé à</div>
-        <div class="company">{{ client_name }}</div>
-        {{ client_address|linebreaksbr }}<br>
-        {{ client_email }}
-    </div>
-</div>
+  <section class="content-section parties">
+    <article class="party-card issuer">
+      <h2 class="party-title">Émetteur</h2>
+      <div class="party-name">{{ branding.name|default:"Nettoyage Express" }}</div>
+      {% if branding.tagline %}<div class="party-tagline">{{ branding.tagline }}</div>{% endif %}
+      <div class="party-details">
+        {% for line in branding.address_lines %}{{ line }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+        {% if branding.phone %}{% if branding.address_lines %}<br>{% endif %}{{ branding.phone }}{% endif %}
+        {% if branding.email %}<br>{{ branding.email }}{% endif %}
+        {% if branding.siret %}<br>SIRET : {{ branding.siret }}{% endif %}
+        {% if branding.tva_intra %}<br>TVA : {{ branding.tva_intra }}{% endif %}
+      </div>
+    </article>
 
-<!-- ===== TABLE ===== -->
-<table>
-    <thead>
+    <article class="party-card recipient">
+      <h2 class="party-title">Destinataire</h2>
+      <div class="party-name">{% if client_company %}{{ client_company }}{% else %}{{ client_name }}{% endif %}</div>
+      <div class="party-details">
+        {% if client_company and client_name %}{{ client_name }}<br>{% endif %}
+        {% if client_address %}{{ client_address|linebreaksbr }}<br>{% endif %}
+        {% if client_email %}{{ client_email }}{% endif %}
+        {% if client_phone %}<br>{{ client_phone }}{% endif %}
+        {% if client_reference %}<br>Réf. client : {{ client_reference }}{% endif %}
+      </div>
+    </article>
+  </section>
+
+  <div class="status-row">
+    <span class="status-chip status-{{ quote.status }}">{{ quote.get_status_display }}</span>
+  </div>
+
+  <section class="content-section items-section">
+    <table class="items-table">
+      <thead>
         <tr>
-            <th>Description</th>
-            <th class="center">Qté</th>
-            <th class="right">Prix unit.</th>
-            <th class="right">Total HT</th>
+          <th class="col-description">Description</th>
+          <th class="col-qty align-center">Qté</th>
+          <th class="col-price align-right">PU HT</th>
+          <th class="col-tax align-center">TVA</th>
+          <th class="col-ht align-right">Total HT</th>
+          <th class="col-total align-right">Total TTC</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for row in rows %}
         <tr>
-            <td>{{ row.description }}</td>
-            <td class="center">{{ row.quantity|floatformat:0 }}</td>
-            <td class="right">{{ row.unit_price|floatformat:2 }} €</td>
-            <td class="right bold">{{ row.total_ht|floatformat:2 }} €</td>
+          <td><div class="item-description">{{ row.description }}</div></td>
+          <td class="align-center">{{ row.quantity|floatformat:-2 }}</td>
+          <td class="align-right money">{{ row.unit_price|floatformat:2 }} €</td>
+          <td class="align-center">{{ row.tax_rate|floatformat:2 }} %</td>
+          <td class="align-right money">{{ row.total_ht|floatformat:2 }} €</td>
+          <td class="align-right money">{{ row.total_ttc|floatformat:2 }} €</td>
         </tr>
+        {% empty %}
+        <tr><td colspan="6" class="no-data">Aucune prestation renseignée.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </section>
 
-<!-- ===== TOTALS ===== -->
-<div class="footer-section">
-    <div class="notes">
-        {% if quote.notes %}
-        <strong>Notes</strong><br>
-        {{ quote.notes|linebreaks }}<br><br>
-        {% endif %}
-        <strong>Conditions de paiement</strong><br>
-        {{ branding.payment_terms|default:"Paiement comptant à réception de facture" }}<br><br>
-        {% if quote.valid_until %}
-        <strong>Validité du devis</strong><br>
-        Jusqu'au {{ quote.valid_until|date:"d/m/Y" }}<br><br>
-        {% endif %}
-        <div class="amount-letters">
-            <strong>Montant en toutes lettres</strong><br>
-            <span>{{ quote.amount_letter }}</span>
-        </div>
+  <section class="content-section summary-layout">
+    <div class="summary-note">
+      {% if quote.notes %}<strong>Notes</strong><br>{{ quote.notes|linebreaksbr }}{% endif %}
     </div>
-
-    <div class="totals">
-        <div class="row">
-            <span>Total HT</span>
-            <span>{{ quote.total_ht|floatformat:2 }} €</span>
-        </div>
-        <div class="row">
-            <span>TVA ({{ tva_rate|floatformat:0 }}%)</span>
-            <span>{{ quote.tva|floatformat:2 }} €</span>
-        </div>
-        <div class="row final">
-            <span>NET À PAYER</span>
-            <span>{{ quote.total_ttc|floatformat:2 }} €</span>
-        </div>
+    <div class="totals-card">
+      <div class="total-row"><span>Total HT</span><span class="value">{{ quote.total_ht|floatformat:2 }} €</span></div>
+      <div class="total-row"><span>TVA</span><span class="value">{{ quote.tva|floatformat:2 }} €</span></div>
+      <div class="total-row grand-total"><span>Total TTC</span><span class="value">{{ quote.total_ttc|floatformat:2 }} €</span></div>
+      <div class="amount-words">Arrêté à la somme de : {{ quote.amount_letter }}</div>
     </div>
-</div>
+  </section>
 
-<!-- ===== SIGNATURE SECTION ===== -->
-<div class="signature-section">
-    <div class="signature-title">Acceptation du devis</div>
-    <div class="signature-instruction">
-        En signant ce devis, vous acceptez les conditions générales et autorisez le commencement des travaux.
+  {% if branding.payment_terms or branding.iban or branding.bic %}
+  <section class="content-section information-grid">
+    {% if branding.payment_terms %}
+    <article class="info-card">
+      <h3>Conditions de paiement</h3>
+      <p>{{ branding.payment_terms|linebreaksbr }}</p>
+    </article>
+    {% endif %}
+    {% if branding.iban or branding.bic %}
+    <article class="info-card">
+      <h3>Coordonnées bancaires</h3>
+      {% if branding.iban %}<div class="bank-row"><span class="bank-label">IBAN</span><span class="bank-value">{{ branding.iban }}</span></div>{% endif %}
+      {% if branding.bic %}<div class="bank-row"><span class="bank-label">BIC</span><span class="bank-value">{{ branding.bic }}</span></div>{% endif %}
+    </article>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section class="content-section signature-grid">
+    <div class="signature-card">
+      <strong>Bon pour accord</strong>
+      <span>Date, mention « Lu et approuvé » et signature du client</span>
     </div>
-    
-    <div class="signature-boxes">
-        <div class="signature-box">
-            <div class="signature-label">BON POUR ACCORD</div>
-            <div class="date-field">Date :</div>
-            <div class="date-line"></div>
-            <div class="signature-field">Signature du client :</div>
-            <div class="signature-line"></div>
-        </div>
-        
-        <div class="signature-box">
-            <div class="signature-label">{{ branding.name|default:"NETTOYAGE EXPRESS"|upper }}</div>
-            <div class="date-field">Date :</div>
-            <div class="date-line"></div>
-            <div class="signature-field">Signature :</div>
-            <div class="signature-line"></div>
-        </div>
+    <div class="signature-card">
+      <strong>{{ branding.name|default:"Nettoyage Express" }}</strong>
+      <span>Signature de l'émetteur</span>
     </div>
-</div>
+  </section>
 
-<!-- ===== FOOTER LEGAL ===== -->
-<div class="legal">
-    {{ branding.name|default:"Nettoyage Express" }} - 
-    {% for line in branding.address_lines %}{{ line }}{% if not forloop.last %}, {% endif %}{% endfor %} - 
-    Tél: {{ branding.phone|default:"05 94 30 23 68 / 06 94 46 20 12" }} - 
-    Email: {{ branding.email|default:"contact@nettoyageexpresse.fr" }}
-    {% if branding.siret %}<br>SIRET: {{ branding.siret }}{% endif %}
-    {% if branding.tva_intra %} - TVA Intracommunautaire: {{ branding.tva_intra }}{% endif %}
-    {% if branding.penalty_rate %}<br>Pénalités de retard: {{ branding.penalty_rate }} par mois{% endif %}
-</div>
-
+  <footer class="document-footer">
+    <div class="footer-block">
+      <div class="footer-brand">{{ branding.name|default:"Nettoyage Express" }}</div>
+      {% if branding.tagline %}{{ branding.tagline }}{% endif %}
+    </div>
+    <div class="footer-block">
+      {% if branding.siret %}<span class="footer-label">SIRET</span><br>{{ branding.siret }}{% endif %}
+      {% if branding.tva_intra %}<br><span class="footer-label">TVA</span> {{ branding.tva_intra }}{% endif %}
+    </div>
+    <div class="footer-block">
+      {% if branding.phone %}{{ branding.phone }}{% endif %}
+      {% if branding.email %}<br>{{ branding.email }}{% endif %}
+    </div>
+  </footer>
 </div>
 </body>
 </html>
