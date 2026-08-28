@@ -5,8 +5,8 @@ PROCESS_TYPE="${PROCESS_TYPE:-web}"
 
 case "$PROCESS_TYPE" in
   web)
-    # Les checks de configuration doivent échouer avant toute mise en trafic.
-    python manage.py check --deploy --fail-level ERROR
+    # Les checks de sécurité/configuration doivent échouer avant toute mise en trafic.
+    python manage.py check --deploy --fail-level WARNING
 
     # Le premier déploiement Coolify n'exécute pas toujours une commande de
     # pré-déploiement. Les migrations sont donc exécutées ici sous verrou
