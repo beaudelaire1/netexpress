@@ -44,7 +44,7 @@ class InvoicePdfService:
 
     template_name: str = "pdf/invoice_premium.html"
 
-    def generate(self, invoice) -> PdfFile:
+    def generate(self, invoice, *, extra_context: dict | None = None) -> PdfFile:
         if HTML is None:
             raise RuntimeError(
                 "WeasyPrint doit être installé pour générer les factures PDF."
@@ -133,6 +133,8 @@ class InvoicePdfService:
             "client_phone": client_phone,
             "client_reference": client_reference,
         }
+        if extra_context:
+            context.update(extra_context)
 
         html_string = render_to_string(self.template_name, context)
         base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
