@@ -1,12 +1,8 @@
 """
-core/services/pdf_generator.py
+Génération des documents PDF NetExpress via WeasyPrint.
 
-Génération de documents PDF premium (Devis / Facture) via WeasyPrint.
-
-Objectifs :
-- Rendu "document officiel" (luxe B2B)
-- Template HTML dédié (non dépendant du CSS web)
-- Logo + coordonnées + tableau des prestations + totaux + conditions + IBAN/BIC
+Le devis est rendu directement ici. La facture délègue à InvoicePdfService afin
+qu'il n'existe qu'une seule préparation du contexte facture dans l'application.
 """
 
 from __future__ import annotations
@@ -20,7 +16,7 @@ from django.template.loader import render_to_string
 
 try:
     from weasyprint import HTML, CSS  # type: ignore
-except Exception as exc:  # pragma: no cover
+except Exception:  # pragma: no cover
     HTML = None  # type: ignore
     CSS = None  # type: ignore
 
@@ -40,53 +36,53 @@ def _branding() -> Dict[str, Any]:
     return getattr(settings, "INVOICE_BRANDING", {}) or {}
 
 
-def render_quote_pdf(quote, *, extra_context: Optional[Dict[str, Any]] = None) -> PDFRenderResult:
+def render_quote_pdf(
+    quote,
+    *,
+    extra_context: Optional[Dict[str, Any]] = None,
+) -> PDFRenderResult:
     if HTML is None:
-        raise PDFGeneratorError("WeasyPrint n'est pas disponible. Installez weasyprint et ses dépendances système.")
+        raise PDFGeneratorError(
+            "WeasyPrint n'est pas disponible. Installez weasyprint et ses dépendances système."
+        )
 
-    ctx: Dict[str, Any] = {
+    context: Dict[str, Any] = {
         "doc_type": "quote",
         "quote": quote,
         "branding": _branding(),
     }
     if extra_context:
-        ctx.update(extra_context)
+        context.update(extra_context)
 
-    html = render_to_string("pdf/quote.html", ctx)
+    html = render_to_string("pdf/quote.html", context)
     base_url = str(getattr(settings, "BASE_DIR", Path.cwd()))
 
     css_path = Path(base_url) / "static" / "css" / "pdf.css"
     stylesheets = []
-    if css_path.exists():
+    if css_path.exists() and CSS is not None:
         stylesheets.append(CSS(filename=str(css_path)))
 
     pdf_bytes = HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)
-
     number = getattr(quote, "number", None) or f"DEV-{getattr(quote, 'pk', 'X')}"
     return PDFRenderResult(filename=f"{number}.pdf", content=pdf_bytes)
 
 
-def render_invoice_pdf(invoice, *, extra_context: Optional[Dict[str, Any]] = None) -> PDFRenderResult:
-    if HTML is None:
-        raise PDFGeneratorError("WeasyPrint n'est pas disponible. Installez weasyprint et ses dépendances système.")
+def render_invoice_pdf(
+    invoice,
+    *,
+    extra_context: Optional[Dict[str, Any]] = None,
+) -> PDFRenderResult:
+    """Point d'entrée compatible vers l'unique service de rendu facture."""
 
-    ctx: Dict[str, Any] = {
-        "doc_type": "invoice",
-        "invoice": invoice,
-        "branding": _branding(),
-    }
-    if extra_context:
-        ctx.update(extra_context)
+    from core.services.pdf_service import InvoicePdfService
 
-    html = render_to_string("pdf/invoice_premium.html", ctx)
-    base_url = str(getattr(settings, "BASE_DIR", Path.cwd()))
+    try:
+        result = InvoicePdfService().generate(invoice, extra_context=extra_context)
+    except RuntimeError as exc:
+        raise PDFGeneratorError(str(exc)) from exc
 
-    css_path = Path(base_url) / "static" / "css" / "pdf.css"
-    stylesheets = []
-    if css_path.exists():
-        stylesheets.append(CSS(filename=str(css_path)))
-
-    pdf_bytes = HTML(string=html, base_url=base_url).write_pdf(stylesheets=stylesheets)
-
-    number = getattr(invoice, "number", None) or f"FAC-{getattr(invoice, 'pk', 'X')}"
-    return PDFRenderResult(filename=f"{number}.pdf", content=pdf_bytes)
+    return PDFRenderResult(
+        filename=result.filename,
+        content=result.content,
+        mimetype=result.mimetype,
+    )
