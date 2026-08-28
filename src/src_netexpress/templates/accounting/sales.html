@@ -5,14 +5,10 @@
   <div>
     <p class="eyebrow">VENTES</p>
     <h1>Factures clients</h1>
-    <p class="subtitle">Cette liste contient uniquement les factures publiées pour la comptabilité : statut finalisable, client identifié, lignes valides et montant TTC positif. Les brouillons et factures incomplètes restent hors de l’espace cabinet.</p>
+    <p class="subtitle">Uniquement les factures publiées pour la comptabilité. Recherchez une pièce puis affinez par statut, contrôle, nature, montant ou présence d’un échange ouvert.</p>
   </div>
 </div>
-{% include 'accounting/period.html' %}
-<nav class="queue-filter" aria-label="Filtrer les factures clients">
-  <a href="{% querystring pending=None page=None %}" {% if not pending_only %}aria-current="page"{% endif %}>Toutes les factures</a>
-  <a href="{% querystring pending='1' page=None %}" {% if pending_only %}aria-current="page"{% endif %}>À contrôler{% if pending_only %} · {{ page.paginator.count }}{% endif %}</a>
-</nav>
+{% include 'accounting/_list_filters.html' %}
 <section class="panel table-wrap modern-panel">
 <table>
   <thead><tr><th>Facture</th><th>Client</th><th>Émission</th><th>TTC</th><th>Statut</th><th>Contrôle</th></tr></thead>
@@ -27,7 +23,7 @@
       <td><span class="badge {% if invoice.accounting_checked %}done{% else %}pending{% endif %}">{% if invoice.accounting_checked %}Contrôlé{% else %}À contrôler{% endif %}</span></td>
     </tr>
   {% empty %}
-    <tr><td colspan="6" class="empty"><h3>{% if pending_only %}Aucune facture n’attend de contrôle{% else %}Aucune facture publiée pour cette période{% endif %}</h3><p>{% if pending_only %}La file du cabinet est à jour.{% else %}Les brouillons et documents non finalisés ne sont pas exposés ici.{% endif %}</p></td></tr>
+    <tr><td colspan="6" class="empty"><h3>Aucune facture dans cette sélection</h3><p>Modifiez ou réinitialisez les filtres. Les brouillons et factures incomplètes ne sont jamais exposés au cabinet.</p></td></tr>
   {% endfor %}
   </tbody>
 </table>
