@@ -56,6 +56,12 @@
   font-size: 13pt;
 }
 
+/* Le libellé « Titulaire » doit rester sur une seule ligne dans le bloc RIB. */
+.bank-label {
+  flex-basis: 18mm;
+  white-space: nowrap;
+}
+
 @media print {
   .document-page {
     min-height: 279mm;
