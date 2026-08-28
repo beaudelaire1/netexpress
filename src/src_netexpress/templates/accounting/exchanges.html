@@ -7,7 +7,7 @@
   <div>
     <p class="eyebrow">COLLABORATION CABINET ↔ NETEXPRESS</p>
     <h1>Échanges</h1>
-    <p class="subtitle">Questions, demandes de correction et documents restent rattachés au même fil, avec un historique partagé et traçable.</p>
+    <p class="subtitle">Questions, demandes de correction et documents restent rattachés au même fil. Recherchez dans le sujet ou les messages, puis filtrez par statut, type, priorité, contexte, pièces jointes ou non-lus.</p>
   </div>
   <div class="actions">
     <a class="button secondary" href="{% url 'accounting:exchange_create' %}?mode=document"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> Mettre un document à disposition</a>
@@ -21,20 +21,11 @@
   <article class="exchange-stat"><span class="exchange-stat-icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span><div><small>Échanges ouverts</small><strong>{{ exchange_nav.open }}</strong><span>hors dossiers résolus</span></div></article>
 </section>
 
-<form method="get" class="exchange-filters" aria-label="Filtrer les échanges">
-  <div class="exchange-search-field">
-    <label for="exchange-q">Rechercher</label>
-    <div class="exchange-search-input"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="exchange-q" type="search" name="q" value="{{ query }}" placeholder="Sujet, facture, fournisseur, document…"></div>
-  </div>
-  <div><label for="exchange-status">Statut</label><select id="exchange-status" name="status"><option value="">Tous les statuts</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-  <div><label for="exchange-kind">Type</label><select id="exchange-kind" name="kind"><option value="">Tous les types</option>{% for value,label in kind_choices %}<option value="{{ value }}" {% if selected_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-  <label class="exchange-checkbox"><input type="checkbox" name="documents" value="1" {% if with_documents %}checked{% endif %}><span>Avec document</span></label>
-  <div class="actions"><button class="button secondary" type="submit">Filtrer</button>{% if query or selected_status or selected_kind or with_documents %}<a class="text-button" href="{% url 'accounting:exchanges' %}">Réinitialiser</a>{% endif %}</div>
-</form>
+{% include 'accounting/_list_filters.html' %}
 
 <section class="exchange-list" aria-label="Liste des échanges">
   {% for exchange in page %}
-  <a class="exchange-row-card {% if not exchange.is_read %}is-unread{% endif %}" href="{% url 'accounting:exchange_detail' exchange.pk %}">
+  <a class="exchange-row-card {% if not exchange.is_read %}is-unread{% endif %}" href="{% url 'accounting:exchange_detail' exchange.pk %}{% querystring %}">
     <div class="exchange-row-marker" aria-hidden="true">{% if not exchange.is_read %}<span></span>{% endif %}</div>
     <div class="exchange-row-main">
       <div class="exchange-row-topline">
@@ -58,7 +49,7 @@
   <div class="exchange-empty-state">
     <span class="exchange-empty-icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
     <h2>Aucun échange dans cette sélection</h2>
-    <p>Les demandes, réponses et documents partagés entre NetExpress et le cabinet apparaîtront ici.</p>
+    <p>Modifiez ou réinitialisez les critères. Les nouveaux échanges apparaîtront ici dès qu’ils seront créés.</p>
     <a class="button" href="{% url 'accounting:exchange_create' %}">Créer un échange</a>
   </div>
   {% endfor %}
