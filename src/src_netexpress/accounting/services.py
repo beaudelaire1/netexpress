@@ -108,11 +108,11 @@ def csv_content(sales, purchases, documents=()):
         review = getattr(invoice, "accounting_review", None)
         writer.writerow([csv_cell(v) for v in ["Avoir" if invoice.is_credit_note else "Vente", invoice.number, client,
             invoice.issue_date, invoice.due_date, *(format(sign * v, ".2f") for v in [invoice.total_ht, invoice.tva, invoice.total_ttc]),
-            invoice.get_status_display(), "Comptabilisé" if is_reviewed(invoice) else "À vérifier", review.note if review else ""]])
+            invoice.get_status_display(), "Contrôlé" if is_reviewed(invoice) else "À vérifier", review.note if review else ""]])
     for purchase in purchases:
         writer.writerow([csv_cell(v) for v in ["Achat", purchase.reference, purchase.supplier_name, purchase.issue_date,
             purchase.due_date, *(format(v, ".2f") if v is not None else "" for v in [purchase.total_ht, purchase.vat_amount, purchase.total_ttc]),
-            purchase.paid_on or "Non renseigné", "Comptabilisé" if purchase.reviewed_at else ("À vérifier" if purchase.is_complete else "À compléter"), purchase.notes]])
+            purchase.paid_on or "Non renseigné", "Contrôlé" if purchase.reviewed_at else ("À vérifier" if purchase.is_complete else "À compléter"), purchase.notes]])
     for document in documents:
         writer.writerow([csv_cell(v) for v in [document.get_kind_display(), document.title, "", document.document_date,
             "", "", "", "", "", "Vérifié" if document.reviewed_at else "À vérifier", document.notes]])

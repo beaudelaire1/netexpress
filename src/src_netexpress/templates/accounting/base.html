@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
 <title>{% block title %}Portail comptable{% endblock %} · NetExpress</title>
 <link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}"><link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
-<link rel="stylesheet" href="{% static 'css/accounting.css' %}"><link rel="stylesheet" href="{% static 'css/accounting-workspace.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting.css' %}"><link rel="stylesheet" href="{% static 'css/accounting-workspace.css' %}"><link rel="stylesheet" href="{% static 'css/accounting-enhancements.css' %}">
 <script src="{% static 'js/accounting.js' %}" defer></script>
 </head><body><a class="skip" href="#content">Aller au contenu</a>
 <header class="portal-topbar">
@@ -30,7 +30,7 @@
 {% if accounting_admin %}<a href="{% url 'accounting:accountants' %}" {% if '/acces/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Accès du cabinet</a>{% endif %}
 </nav>
 <div class="sidebar-note"><i class="fa-solid fa-link" aria-hidden="true"></i><strong>Un lien direct<br>avec votre cabinet.</strong><p>NetExpress transmet ses pièces. Le cabinet les retrouve, les contrôle et les récupère ici.</p></div>
-<div class="sidebar-signature"><span>Conçu par</span><strong>Trait d’Union Studio</strong></div>
+<div class="sidebar-signature"><span>Outil métier conçu par</span><strong>Trait d’Union Studio</strong><small>Architecture digitale sur mesure</small></div>
 <small class="confidential"><i class="fa-solid fa-lock" aria-hidden="true"></i> Espace privé · Accès nominatif</small>
 </aside><main id="content" class="acc-main">
 {% for message in messages %}<div class="notice {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}

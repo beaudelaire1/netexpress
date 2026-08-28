@@ -1,0 +1,248 @@
+/* Workflow enhancements layered on top of the existing accounting portal. */
+.workflow-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, .8fr);
+  gap: 22px;
+  margin: 0 0 26px;
+}
+.workflow-card,
+.progress-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 26px;
+  min-width: 0;
+}
+.workflow-card {
+  border-top: 3px solid var(--green);
+}
+.workflow-card h2,
+.progress-card h2 {
+  margin-bottom: 7px;
+}
+.workflow-intro {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 22px;
+  max-width: 720px;
+}
+.task-list {
+  display: grid;
+  gap: 10px;
+}
+.task-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 15px;
+  border: 1px solid #e3e9e5;
+  border-radius: 9px;
+  color: var(--ink);
+  background: #fbfcfa;
+}
+a.task-row:hover {
+  border-color: #b9cbbf;
+  background: #f3f7f2;
+  text-decoration: none;
+}
+.task-count {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: #e9f1e8;
+  color: var(--green);
+  font: 700 16px/1 Manrope, Inter, sans-serif;
+}
+.task-row strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+.task-row small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.task-arrow {
+  color: var(--green);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.task-row.is-muted {
+  background: #f7f8f6;
+  color: #50615a;
+}
+.task-row.is-muted .task-count {
+  background: #ecefeb;
+  color: #65746c;
+}
+.task-row.is-alert .task-count {
+  background: #fff1d7;
+  color: #886020;
+}
+.task-row.is-danger .task-count {
+  background: #fff0ec;
+  color: #993526;
+}
+.workflow-clear {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 18px;
+  background: #edf5ef;
+  border: 1px solid #cfe0d2;
+  border-radius: 9px;
+  color: #28543c;
+}
+.workflow-clear i {
+  margin-top: 2px;
+}
+.workflow-clear strong {
+  display: block;
+  margin-bottom: 2px;
+}
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: baseline;
+  margin-bottom: 18px;
+}
+.progress-score {
+  font: 650 30px/1 Manrope, Inter, sans-serif;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+.progress-score small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.progress-card > progress,
+.workload-row progress {
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8e3;
+}
+.progress-card > progress::-webkit-progress-bar,
+.workload-row progress::-webkit-progress-bar {
+  background: #e2e8e3;
+  border-radius: 999px;
+}
+.progress-card > progress::-webkit-progress-value,
+.workload-row progress::-webkit-progress-value {
+  background: var(--green);
+  border-radius: 999px;
+}
+.progress-card > progress::-moz-progress-bar,
+.workload-row progress::-moz-progress-bar {
+  background: var(--green);
+  border-radius: 999px;
+}
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 8px;
+}
+.workload-chart {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.workload-chart h3 {
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+.workload-row {
+  margin-top: 13px;
+}
+.workload-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.workload-label span:last-child {
+  color: var(--muted);
+  white-space: nowrap;
+}
+.metric-link {
+  display: block;
+  color: inherit;
+}
+.metric-link:hover {
+  text-decoration: none;
+}
+.metric-link .metric {
+  height: 100%;
+  transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.metric-link:hover .metric {
+  border-color: #b8c9bd;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 24px #173b2e0b;
+}
+.metric-link .metric p {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.metric-link .metric p i {
+  color: #8a9b91;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.metrics.workflow-metrics {
+  margin-bottom: 26px;
+}
+.queue-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -7px 0 20px;
+}
+.queue-filter a {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 11px;
+  background: white;
+  color: #4c6158;
+  font-size: 11px;
+}
+.queue-filter a:hover,
+.queue-filter a[aria-current="page"] {
+  border-color: #adc4b5;
+  background: #edf4ed;
+  color: var(--green);
+  text-decoration: none;
+}
+.sidebar-signature small {
+  line-height: 1.45;
+  max-width: 170px;
+}
+@media (max-width: 1180px) {
+  .workflow-hero { grid-template-columns: 1fr; }
+}
+@media (max-width: 750px) {
+  .workflow-card,
+  .progress-card { padding: 20px; }
+  .task-row { grid-template-columns: 38px minmax(0, 1fr); }
+  .task-count { width: 38px; height: 38px; }
+  .task-arrow { grid-column: 2; }
+  .progress-head { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .progress-score { font-size: 27px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .metric-link .metric { transition: none; }
+}
