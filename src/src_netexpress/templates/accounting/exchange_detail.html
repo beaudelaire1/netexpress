@@ -1,0 +1,86 @@
+{% extends 'accounting/base.html' %}
+{% block title %}{{ exchange.subject }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'accounting:exchanges' %}">← Échanges</a>
+<div class="page-heading exchange-detail-heading">
+  <div>
+    <div class="exchange-title-kicker"><span class="exchange-kind-chip">{{ exchange.get_kind_display }}</span>{% if exchange.priority == 'high' %}<span class="exchange-priority"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> Prioritaire</span>{% endif %}</div>
+    <h1>{{ exchange.subject }}</h1>
+    <p class="subtitle">Ouvert par {{ exchange.created_by.get_full_name|default:exchange.created_by.username|default:'Compte supprimé' }} · {{ exchange.created_at|date:'d/m/Y H:i' }}</p>
+  </div>
+  <div class="exchange-heading-status"><span class="exchange-status status-{{ exchange.status }}">{{ exchange.get_status_display }}</span></div>
+</div>
+
+{% if context_meta %}
+<section class="exchange-context-banner">
+  <span class="exchange-context-icon"><i class="fa-solid fa-link" aria-hidden="true"></i></span>
+  <div><small>PIÈCE LIÉE</small><strong>{{ context_meta.kind }} · {{ context_meta.reference }}</strong><span>{{ context_meta.detail }}{% if context_meta.amount %} · {{ context_meta.amount }}{% endif %}</span></div>
+  <a href="{{ context_meta.url }}">Consulter la pièce →</a>
+</section>
+{% endif %}
+
+<div class="exchange-detail-layout">
+  <section class="exchange-thread-column">
+    <div class="exchange-section-heading"><div><p class="eyebrow">CONVERSATION</p><h2>Historique partagé</h2></div><span>{{ exchange_messages|length }} message{{ exchange_messages|length|pluralize }}</span></div>
+
+    <div class="exchange-timeline">
+      {% for thread_message in exchange_messages %}
+      <article class="exchange-message {% if thread_message.author == user %}is-mine{% endif %}">
+        <div class="exchange-avatar" aria-hidden="true">{{ thread_message.author.first_name|default:thread_message.author.username|first|upper|default:'?' }}</div>
+        <div class="exchange-message-body">
+          <div class="exchange-message-meta">
+            <div><strong>{% if thread_message.author == user %}Vous{% else %}{{ thread_message.author.get_full_name|default:thread_message.author.username|default:'Compte supprimé' }}{% endif %}</strong><span>{% if thread_message.author.profile.role == 'accountant' %}Cabinet comptable{% else %}NetExpress{% endif %}</span></div>
+            <time datetime="{{ thread_message.created_at|date:'c' }}">{{ thread_message.created_at|date:'d/m/Y H:i' }}</time>
+          </div>
+          <div class="exchange-message-content">{{ thread_message.content|linebreaksbr }}</div>
+          {% if thread_message.visible_documents %}<div class="exchange-message-documents">{% for document in thread_message.visible_documents %}{% include 'accounting/_exchange_document_card.html' with document=document %}{% endfor %}</div>{% endif %}
+        </div>
+      </article>
+      {% empty %}
+      <div class="exchange-thread-empty"><i class="fa-regular fa-file-lines" aria-hidden="true"></i><p>Cet échange a été ouvert par la mise à disposition d’un document.</p></div>
+      {% endfor %}
+
+      {% if standalone_documents %}
+      <div class="exchange-system-divider"><span>Documents ajoutés hors message</span></div>
+      {% for document in standalone_documents %}{% include 'accounting/_exchange_document_card.html' with document=document %}{% endfor %}
+      {% endif %}
+    </div>
+
+    {% if exchange.status != 'resolved' %}
+    <section class="exchange-reply-card">
+      <div class="exchange-section-heading compact"><div><p class="eyebrow">RÉPONDRE</p><h2>Poursuivre l’échange</h2></div></div>
+      <form method="post" enctype="multipart/form-data" action="{% url 'accounting:exchange_reply' exchange.pk %}" class="exchange-reply-form">
+        {% csrf_token %}
+        <div class="exchange-field"><label for="{{ reply_form.content.id_for_label }}">{{ reply_form.content.label }}</label>{{ reply_form.content }}<small class="character-counter" data-counter-for="{{ reply_form.content.id_for_label }}">0 / 4000</small></div>
+        <details class="exchange-attachment-panel">
+          <summary><i class="fa-solid fa-paperclip" aria-hidden="true"></i> Joindre un document</summary>
+          <div class="exchange-attachment-fields">
+            <div class="exchange-upload-zone compact-zone" data-upload-zone tabindex="0" role="button" aria-controls="{{ reply_form.file.id_for_label }}"><strong>Sélectionner un document</strong><small>PDF, image, CSV, XLSX ou DOCX · 10 Mo</small>{{ reply_form.file }}<div class="exchange-file-selected" data-file-selected>Aucun fichier sélectionné</div></div>
+            <div class="exchange-form-grid"><div class="exchange-field"><label for="{{ reply_form.document_title.id_for_label }}">Titre</label>{{ reply_form.document_title }}</div><div class="exchange-field"><label for="{{ reply_form.document_type.id_for_label }}">Type</label>{{ reply_form.document_type }}</div>{% if reply_form.visibility %}<div class="exchange-field full"><label for="{{ reply_form.visibility.id_for_label }}">Visibilité</label>{{ reply_form.visibility }}</div>{% endif %}</div>
+          </div>
+        </details>
+        <div class="exchange-reply-actions"><span><i class="fa-solid fa-lock" aria-hidden="true"></i> Conversation privée</span><button class="button" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer</button></div>
+      </form>
+    </section>
+    {% else %}
+    <div class="exchange-resolved-panel"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><div><strong>Échange résolu</strong><span>Rouvrez-le si un nouvel élément doit être traité.</span></div><form method="post" action="{% url 'accounting:exchange_status' exchange.pk %}">{% csrf_token %}<input type="hidden" name="action" value="reopen"><button class="button secondary" type="submit">Rouvrir l’échange</button></form></div>
+    {% endif %}
+  </section>
+
+  <aside class="exchange-side-column">
+    <section class="panel exchange-side-card">
+      <p class="eyebrow">SUIVI</p><h2>État de l’échange</h2>
+      <dl class="exchange-mini-details"><dt>Statut</dt><dd><span class="exchange-status status-{{ exchange.status }}">{{ exchange.get_status_display }}</span></dd><dt>Type</dt><dd>{{ exchange.get_kind_display }}</dd><dt>Priorité</dt><dd>{{ exchange.get_priority_display }}</dd><dt>Dernière activité</dt><dd>{{ exchange.last_activity_at|date:'d/m/Y H:i' }}</dd></dl>
+      {% if exchange.status != 'resolved' %}<form method="post" action="{% url 'accounting:exchange_status' exchange.pk %}">{% csrf_token %}<input type="hidden" name="action" value="resolve"><button class="button secondary full-button" type="submit"><i class="fa-solid fa-check" aria-hidden="true"></i> Marquer comme résolu</button></form>{% endif %}
+    </section>
+
+    <section class="panel exchange-side-card">
+      <div class="exchange-side-title"><div><p class="eyebrow">DOCUMENTS</p><h2>{{ exchange_documents|length }} document{{ exchange_documents|length|pluralize }}</h2></div><i class="fa-regular fa-folder-open" aria-hidden="true"></i></div>
+      {% if exchange_documents %}<div class="exchange-side-doc-list">{% for document in exchange_documents %}<a href="{{ document.file.url }}"><span class="exchange-file-type">{{ document.extension }}</span><span><strong>{{ document.title }}</strong><small>{{ document.created_at|date:'d/m/Y' }}</small></span><i class="fa-solid fa-download" aria-hidden="true"></i></a>{% endfor %}</div>{% else %}<p class="subtitle">Aucun document n’a encore été partagé.</p>{% endif %}
+      {% if exchange.status != 'resolved' %}<details class="exchange-add-document"><summary>+ Mettre un document à disposition</summary><form method="post" enctype="multipart/form-data" action="{% url 'accounting:exchange_document_upload' exchange.pk %}">{% csrf_token %}<div class="exchange-field"><label for="{{ document_form.file.id_for_label }}">Document</label>{{ document_form.file }}</div><div class="exchange-field"><label for="{{ document_form.document_title.id_for_label }}">Titre</label>{{ document_form.document_title }}</div><div class="exchange-field"><label for="{{ document_form.document_type.id_for_label }}">Type</label>{{ document_form.document_type }}</div>{% if document_form.visibility %}<div class="exchange-field"><label for="{{ document_form.visibility.id_for_label }}">Visibilité</label>{{ document_form.visibility }}</div>{% endif %}<button class="button full-button" type="submit">Publier le document</button></form></details>{% endif %}
+    </section>
+
+    <section class="exchange-trust-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><div><strong>Traçabilité conservée</strong><span>Les messages ne sont pas modifiables depuis ce portail. Chaque dépôt reste associé à son auteur et à sa date.</span></div></section>
+  </aside>
+</div>
+{% endblock %}

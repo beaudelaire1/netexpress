@@ -9,8 +9,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from core.file_validation import validate_document
 from core.storage import private_storage
+from .exchange_file_validation import (
+    exchange_document_mime_type,
+    validate_exchange_document,
+)
 
 
 def exchange_document_upload_path(instance, filename):
@@ -38,9 +41,22 @@ class AccountingExchange(models.Model):
         HIGH = "high", "Haute"
 
     subject = models.CharField("Sujet", max_length=200)
-    kind = models.CharField("Type", max_length=30, choices=Kind.choices, default=Kind.QUESTION)
-    status = models.CharField("Statut", max_length=30, choices=Status.choices, default=Status.OPEN, db_index=True)
-    priority = models.CharField("Priorité", max_length=10, choices=Priority.choices, default=Priority.NORMAL)
+    kind = models.CharField(
+        "Type", max_length=30, choices=Kind.choices, default=Kind.QUESTION
+    )
+    status = models.CharField(
+        "Statut",
+        max_length=30,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    priority = models.CharField(
+        "Priorité",
+        max_length=10,
+        choices=Priority.choices,
+        default=Priority.NORMAL,
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -140,6 +156,15 @@ class AccountingExchange(models.Model):
         if not self.subject:
             raise ValidationError({"subject": "Le sujet de l'échange est obligatoire."})
 
+    @property
+    def context_object(self):
+        return (
+            self.invoice
+            or self.quote
+            or self.supplier_invoice
+            or self.accounting_document
+        )
+
     def __str__(self):
         return self.subject
 
@@ -209,8 +234,17 @@ class AccountingExchangeDocument(models.Model):
         on_delete=models.SET_NULL,
         related_name="accounting_exchange_documents",
     )
+    promoted_to = models.OneToOneField(
+        "accounting.AccountingDocument",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="source_exchange_document",
+    )
     title = models.CharField("Titre", max_length=200)
-    document_type = models.CharField("Type", max_length=30, choices=Type.choices, default=Type.OTHER)
+    document_type = models.CharField(
+        "Type", max_length=30, choices=Type.choices, default=Type.OTHER
+    )
     visibility = models.CharField(
         "Visibilité",
         max_length=20,
@@ -222,7 +256,7 @@ class AccountingExchangeDocument(models.Model):
         "Document",
         upload_to=exchange_document_upload_path,
         storage=private_storage,
-        validators=[validate_document],
+        validators=[validate_exchange_document],
     )
     original_filename = models.CharField(max_length=255, blank=True, editable=False)
     file_sha256 = models.CharField(max_length=64, blank=True, editable=False, db_index=True)
@@ -235,9 +269,9 @@ class AccountingExchangeDocument(models.Model):
         verbose_name = "document d'échange comptable"
         constraints = [
             models.UniqueConstraint(
-                fields=["file_sha256"],
+                fields=["exchange", "file_sha256"],
                 condition=~models.Q(file_sha256=""),
-                name="unique_accounting_exchange_document_hash",
+                name="unique_exchange_document_hash_per_thread",
             )
         ]
 
@@ -263,10 +297,9 @@ class AccountingExchangeDocument(models.Model):
         except (OSError, ValueError):
             pass
 
-        wrapped = getattr(self.file, "file", None)
-        content_type = getattr(wrapped, "content_type", "")
-        if content_type and not self.mime_type:
-            self.mime_type = str(content_type)[:120]
+        self.mime_type = exchange_document_mime_type(
+            self.original_filename or self.file.name
+        )[:120]
 
         if self.file_sha256:
             return
@@ -288,6 +321,10 @@ class AccountingExchangeDocument(models.Model):
             last_activity_at__lt=self.created_at,
         ).update(last_activity_at=self.created_at)
         return result
+
+    @property
+    def extension(self):
+        return Path(self.original_filename or self.file.name).suffix.lstrip(".").upper()
 
     def __str__(self):
         return self.title

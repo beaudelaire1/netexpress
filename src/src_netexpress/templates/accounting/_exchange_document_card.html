@@ -1,0 +1,22 @@
+<article class="exchange-document-card">
+  <div class="exchange-document-badge">{{ document.extension|default:'DOC' }}</div>
+  <div class="exchange-document-copy">
+    <div class="exchange-document-title-line">
+      <strong>{{ document.title }}</strong>
+      {% if document.visibility == 'netexpress_only' %}<span class="exchange-private-chip"><i class="fa-solid fa-lock" aria-hidden="true"></i> Interne NetExpress</span>{% endif %}
+    </div>
+    <span>{{ document.get_document_type_display }} · {{ document.file_size|filesizeformat|default:'Taille inconnue' }}</span>
+    <small>Ajouté par {{ document.uploaded_by.get_full_name|default:document.uploaded_by.username|default:'Compte supprimé' }} · {{ document.created_at|date:'d/m/Y H:i' }}</small>
+    {% if document.promoted_to %}<small class="exchange-promoted"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Classé dans les autres documents comptables</small>{% endif %}
+  </div>
+  <div class="exchange-document-actions">
+    <a class="button secondary compact" href="{{ document.file.url }}"><i class="fa-solid fa-download" aria-hidden="true"></i> Télécharger</a>
+    {% if accounting_admin %}
+      {% if document.promoted_to %}
+        <a class="text-button" href="{% url 'accounting:document_detail' document.promoted_to.pk %}">Voir au dossier</a>
+      {% else %}
+        <form method="post" action="{% url 'accounting:exchange_document_promote' exchange.pk document.pk %}">{% csrf_token %}<button class="text-button" type="submit">Ajouter au dossier comptable</button></form>
+      {% endif %}
+    {% endif %}
+  </div>
+</article>

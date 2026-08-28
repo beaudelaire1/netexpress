@@ -1,0 +1,24 @@
+<section class="exchange-dashboard-strip" aria-label="Collaboration comptable">
+  <div class="exchange-dashboard-head">
+    <div><p class="eyebrow">COLLABORATION</p><h2>Échanges cabinet ↔ NetExpress</h2><p>Les demandes et documents qui nécessitent une action restent visibles jusqu’à leur résolution.</p></div>
+    <div class="actions"><a class="button secondary" href="{% url 'accounting:exchange_create' %}?mode=document">Partager un document</a><a class="button" href="{% url 'accounting:exchanges' %}">Ouvrir les échanges</a></div>
+  </div>
+  <div class="exchange-dashboard-grid">
+    <div class="exchange-dashboard-metrics">
+      <article><small>À traiter par vous</small><strong>{{ exchange_dashboard.waiting }}</strong><span>{% if accounting_admin %}en attente de NetExpress{% else %}en attente du cabinet{% endif %}</span></article>
+      <article><small>Non lus</small><strong>{{ exchange_dashboard.unread }}</strong><span>activité nouvelle</span></article>
+      <article><small>Ouverts</small><strong>{{ exchange_dashboard.open }}</strong><span>hors échanges résolus</span></article>
+    </div>
+    <div class="exchange-dashboard-recent">
+      {% for exchange in exchange_dashboard.recent %}
+      <a href="{% url 'accounting:exchange_detail' exchange.pk %}" class="exchange-dashboard-row {% if not exchange.is_read %}is-unread{% endif %}">
+        <span class="exchange-dashboard-dot"></span>
+        <span><strong>{{ exchange.subject }}</strong><small>{% if exchange.context_meta %}{{ exchange.context_meta.kind }} · {{ exchange.context_meta.reference }}{% else %}Échange général{% endif %}</small></span>
+        <span class="exchange-status status-{{ exchange.status }}">{{ exchange.get_status_display }}</span>
+      </a>
+      {% empty %}
+      <div class="exchange-dashboard-empty"><i class="fa-regular fa-comments" aria-hidden="true"></i><span>Aucun échange pour le moment.</span></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

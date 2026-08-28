@@ -1,0 +1,60 @@
+{% extends 'accounting/base.html' %}
+{% block title %}{% if mode == 'document' %}Mettre un document à disposition{% else %}Nouvel échange{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'accounting:exchanges' %}">← Échanges</a>
+<div class="page-heading exchange-form-heading">
+  <div>
+    <p class="eyebrow">{% if mode == 'document' %}PARTAGE DOCUMENTAIRE{% else %}NOUVEL ÉCHANGE{% endif %}</p>
+    <h1>{% if mode == 'document' %}Mettre un document à disposition{% else %}Ouvrir un échange{% endif %}</h1>
+    <p class="subtitle">{% if accounting_admin %}Le cabinet retrouvera les éléments partagés dans son espace comptable sécurisé.{% else %}NetExpress recevra votre demande dans le même espace, sans rupture d’historique.{% endif %}</p>
+  </div>
+</div>
+
+{% if context_meta %}
+<section class="exchange-context-banner">
+  <span class="exchange-context-icon"><i class="fa-solid fa-link" aria-hidden="true"></i></span>
+  <div><small>CONTEXTE RATTACHÉ</small><strong>{{ context_meta.kind }} · {{ context_meta.reference }}</strong><span>{{ context_meta.detail }}{% if context_meta.amount %} · {{ context_meta.amount }}{% endif %}</span></div>
+  <a href="{{ context_meta.url }}">Voir la pièce</a>
+</section>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="exchange-create-layout">
+  {% csrf_token %}
+  <input type="hidden" name="mode" value="{{ mode }}">
+  {% if context_type %}<input type="hidden" name="context_type" value="{{ context_type }}"><input type="hidden" name="context_id" value="{{ context_id }}">{% endif %}
+
+  <section class="panel exchange-compose-card">
+    <div class="exchange-card-heading"><div><p class="eyebrow">CONTENU</p><h2>{% if mode == 'document' %}Présenter le document{% else %}Décrire la demande{% endif %}</h2></div><span class="exchange-step">01</span></div>
+    {{ form.non_field_errors }}
+    <div class="exchange-form-grid">
+      <div class="exchange-field full"><label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>{{ form.subject }}{{ form.subject.errors }}</div>
+      <div class="exchange-field"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label>{{ form.kind }}{{ form.kind.errors }}</div>
+      <div class="exchange-field"><label for="{{ form.priority.id_for_label }}">{{ form.priority.label }}</label>{{ form.priority }}{{ form.priority.errors }}</div>
+      <div class="exchange-field full"><label for="{{ form.message.id_for_label }}">{{ form.message.label }} <span>facultatif si un document est joint</span></label>{{ form.message }}<small class="character-counter" data-counter-for="{{ form.message.id_for_label }}">0 / 4000</small>{{ form.message.errors }}</div>
+    </div>
+  </section>
+
+  <section class="panel exchange-compose-card">
+    <div class="exchange-card-heading"><div><p class="eyebrow">DOCUMENT</p><h2>{% if mode == 'document' %}Document à publier{% else %}Ajouter une pièce si nécessaire{% endif %}</h2><p>Le fichier reste dans le stockage privé NetExpress et n’est jamais exposé par une URL publique.</p></div><span class="exchange-step">02</span></div>
+    <div class="exchange-upload-zone" data-upload-zone tabindex="0" role="button" aria-controls="{{ form.file.id_for_label }}">
+      <span class="exchange-upload-icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>
+      <strong>Déposer un document ici</strong>
+      <span>ou cliquer pour parcourir vos fichiers</span>
+      <small>PDF, JPEG, PNG, CSV, XLSX ou DOCX · 10 Mo maximum</small>
+      {{ form.file }}
+      <div class="exchange-file-selected" data-file-selected>Aucun fichier sélectionné</div>
+    </div>
+    {{ form.file.errors }}
+    <div class="exchange-form-grid exchange-document-meta">
+      <div class="exchange-field"><label for="{{ form.document_title.id_for_label }}">{{ form.document_title.label }}</label>{{ form.document_title }}{{ form.document_title.errors }}</div>
+      <div class="exchange-field"><label for="{{ form.document_type.id_for_label }}">{{ form.document_type.label }}</label>{{ form.document_type }}{{ form.document_type.errors }}</div>
+      {% if form.visibility %}<div class="exchange-field full"><label for="{{ form.visibility.id_for_label }}">{{ form.visibility.label }}</label>{{ form.visibility }}<small>{{ form.visibility.help_text }}</small>{{ form.visibility.errors }}</div>{% endif %}
+    </div>
+  </section>
+
+  <section class="exchange-submit-bar">
+    <div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span><strong>Espace privé et traçable.</strong> L’auteur, la date et les documents restent associés à cet échange.</span></div>
+    <div class="actions"><a class="button secondary" href="{% url 'accounting:exchanges' %}">Annuler</a><button class="button" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> {% if mode == 'document' %}Publier le document{% else %}Créer l’échange{% endif %}</button></div>
+  </section>
+</form>
+{% endblock %}

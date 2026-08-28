@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load static accounting_exchange_tags %}<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
@@ -11,9 +11,12 @@
 <link rel="stylesheet" href="{% static 'css/accounting-workspace.css' %}">
 <link rel="stylesheet" href="{% static 'css/accounting-enhancements.css' %}">
 <link rel="stylesheet" href="{% static 'css/accounting-ux-fixes.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting-exchanges.css' %}">
 <script src="{% static 'js/accounting.js' %}" defer></script>
+<script src="{% static 'js/accounting-exchanges.js' %}" defer></script>
 </head>
 <body>
+{% accounting_exchange_nav user as exchange_nav %}
 <a class="skip" href="#content">Aller au contenu</a>
 <header class="portal-topbar">
   <a class="portal-brand" href="{% if accounting_admin %}{% url 'core:admin_dashboard' %}{% else %}{% url 'accounting:dashboard' %}{% endif %}" aria-label="NetExpress — {% if accounting_admin %}Tableau de bord{% else %}Espace comptable{% endif %}">
@@ -26,25 +29,15 @@
   </div>
   <nav class="portal-tools" aria-label="Navigation du compte">
     {% if accounting_admin %}<a class="back-dashboard" href="{% url 'core:admin_dashboard' %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Tableau de bord</span></a>{% endif %}
-    {% if accounting_reviewer %}
-    <details class="accounting-contact">
-      <summary aria-label="Écrire à NetExpress"><i class="fa-regular fa-message" aria-hidden="true"></i><span>Écrire à NetExpress</span></summary>
-      <div class="accounting-contact-panel">
-        <h2>Message à NetExpress</h2>
-        <p>Utilisez cet espace pour signaler une pièce, poser une question ou demander une correction.</p>
-        <form method="post" action="{% url 'accounting:message_netexpress' %}">
-          {% csrf_token %}
-          <label for="accounting-message">Votre message</label>
-          <textarea id="accounting-message" name="message" maxlength="4000" required placeholder="Décrivez précisément votre demande…"></textarea>
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <div class="accounting-contact-actions">
-            <small>Le message est transmis dans la messagerie interne NetExpress.</small>
-            <button class="button" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer</button>
-          </div>
-        </form>
+    <details class="accounting-collab-menu">
+      <summary aria-label="Actions de collaboration"><i class="fa-regular fa-comments" aria-hidden="true"></i><span>Collaborer</span>{% if exchange_nav.unread %}<b>{{ exchange_nav.unread }}</b>{% endif %}</summary>
+      <div class="accounting-collab-panel">
+        <div class="accounting-collab-caption"><small>ESPACE PARTAGÉ</small><strong>{% if accounting_admin %}NetExpress ↔ cabinet{% else %}Cabinet ↔ NetExpress{% endif %}</strong><span>Messages et documents restent dans un historique sécurisé.</span></div>
+        <a href="{% url 'accounting:exchange_create' %}"><i class="fa-regular fa-message" aria-hidden="true"></i><span><strong>Nouvel échange</strong><small>Question, correction ou information</small></span></a>
+        <a href="{% url 'accounting:exchange_create' %}?mode=document"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><span><strong>Mettre un document à disposition</strong><small>PDF, image, CSV, Excel ou Word</small></span></a>
+        <a href="{% url 'accounting:exchanges' %}" class="accounting-collab-all"><i class="fa-regular fa-folder-open" aria-hidden="true"></i><span><strong>Voir tous les échanges</strong><small>{{ exchange_nav.open }} ouvert{{ exchange_nav.open|pluralize }} · {{ exchange_nav.waiting }} à traiter</small></span></a>
       </div>
     </details>
-    {% endif %}
     <details class="account-menu">
       <summary aria-label="Menu du compte de {{ user.get_full_name|default:user.username }}">
         <span class="account-avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span>
@@ -67,6 +60,7 @@
     <a href="{% url 'accounting:sales' %}" {% if '/ventes/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-file-invoice" aria-hidden="true"></i> Factures clients</a>
     <a href="{% url 'accounting:suppliers' %}" {% if '/achats/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-receipt" aria-hidden="true"></i> Factures fournisseurs</a>
     <a href="{% url 'accounting:documents' %}" {% if '/documents/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Autres documents</a>
+    <a href="{% url 'accounting:exchanges' %}" {% if '/echanges/' in request.path %}aria-current="page"{% endif %} class="sidebar-exchange-link"><i class="fa-regular fa-comments" aria-hidden="true"></i> Échanges {% if exchange_nav.unread %}<span class="sidebar-unread-badge">{{ exchange_nav.unread }}</span>{% endif %}</a>
     {% if accounting_admin %}<a href="{% url 'accounting:accountants' %}" {% if '/acces/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-user-lock" aria-hidden="true"></i> Accès du cabinet</a>{% endif %}
   </nav>
   <div class="sidebar-note">
@@ -79,6 +73,7 @@
 </aside>
 <main id="content" class="acc-main">
 {% for message in messages %}<div class="notice {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}
+{% if request.resolver_match.url_name == 'dashboard' %}{% accounting_exchange_dashboard user accounting_admin as exchange_dashboard %}{% include 'accounting/_exchange_dashboard_strip.html' %}{% endif %}
 {% block content %}{% endblock %}
 <footer class="acc-footer"><p>Préparation comptable · EUR. Les montants affichés ne constituent ni un bilan, ni un FEC, ni une déclaration de TVA.</p><span>NetExpress · Espace comptable</span></footer>
 </main>

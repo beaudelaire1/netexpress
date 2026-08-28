@@ -1,0 +1,52 @@
+name: Accounting exchanges
+
+on:
+  pull_request:
+    paths:
+      - 'src/src_netexpress/accounting/**'
+      - 'src/src_netexpress/core/private_files.py'
+      - 'src/src_netexpress/templates/accounting/**'
+      - 'src/src_netexpress/templates/emails/accounting_exchange_notification.html'
+      - 'src/src_netexpress/static/css/accounting-exchanges.css'
+      - 'src/src_netexpress/static/js/accounting-exchanges.js'
+      - 'src/src_netexpress/tests/test_accounting_exchange_*.py'
+      - '.github/workflows/accounting-exchanges.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: netexpress.settings.test
+    steps:
+      - name: Checkout pull request head
+        shell: bash
+        run: |
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.head.sha }}"
+          git checkout --detach FETCH_HEAD
+      - name: Python environment
+        shell: bash
+        run: |
+          python3 --version
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r src/src_netexpress/requirements/dev.txt
+      - name: Install WeasyPrint system libraries
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 libjpeg62-turbo libopenjp2-7
+      - name: Django checks
+        shell: bash
+        working-directory: src/src_netexpress
+        run: |
+          python3 manage.py makemigrations --check --dry-run
+          python3 manage.py check
+      - name: Accounting exchange tests
+        shell: bash
+        working-directory: src/src_netexpress
+        run: |
+          pytest tests/test_accounting_exchange_domain.py tests/test_accounting_exchange_workflow.py tests/test_accounting_portal_ux.py tests/test_accounting_security.py -q

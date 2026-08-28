@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<body style="margin:0;padding:0;background:#f4f6f3;font-family:Arial,Helvetica,sans-serif;color:#19343f;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6f3;padding:28px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #dce4df;border-radius:12px;overflow:hidden;">
+        <tr><td style="padding:22px 28px;background:#173f32;color:#ffffff;border-bottom:4px solid #2d8a5e;">
+          <div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#b9d6c7;">NetExpress · Espace comptable</div>
+          <div style="font-size:22px;font-weight:700;margin-top:6px;">Nouvelle activité comptable</div>
+        </td></tr>
+        <tr><td style="padding:28px;">
+          <p style="margin:0 0 18px;font-size:14px;line-height:1.6;">Bonjour {{ recipient.get_full_name|default:recipient.username }},</p>
+          <p style="margin:0 0 18px;font-size:14px;line-height:1.6;"><strong>{{ actor.get_full_name|default:actor.username }}</strong> a ajouté une nouvelle activité dans l’espace comptable : {{ event }}.</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;background:#f6f9f6;border-left:4px solid #176a52;border-radius:8px;">
+            <tr><td style="padding:16px 18px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#718075;">Échange</div>
+              <div style="font-size:16px;font-weight:700;margin-top:5px;">{{ exchange.subject }}</div>
+              {% if context_meta %}<div style="font-size:12px;color:#61727a;margin-top:6px;">{{ context_meta.kind }} · {{ context_meta.reference }}{% if context_meta.detail %} · {{ context_meta.detail }}{% endif %}</div>{% endif %}
+            </td></tr>
+          </table>
+          <p style="margin:22px 0;"><a href="{{ exchange_url }}" style="display:inline-block;padding:11px 17px;background:#176a52;color:#ffffff;text-decoration:none;border-radius:7px;font-size:13px;font-weight:700;">Ouvrir l’échange sécurisé</a></p>
+          <p style="margin:0;color:#6d7b73;font-size:11px;line-height:1.6;">Les documents ne sont pas joints à cet email. Ils restent disponibles uniquement dans l’espace comptable privé.</p>
+        </td></tr>
+        <tr><td style="padding:15px 28px;border-top:1px solid #e5eae6;color:#7a877f;font-size:10px;">NetExpress · Notification automatique de l’espace comptable.</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
