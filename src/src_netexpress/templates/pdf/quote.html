@@ -1,4 +1,3 @@
-{% load static %}
 <!doctype html>
 <html lang="fr">
 <head>
@@ -6,123 +5,170 @@
   <title>Devis {{ quote.number }}</title>
 </head>
 <body>
-  <div class="doc">
-    <div class="header">
-      <div>
-        {% if branding.logo_path %}
-          <img class="logo" src="file://{{ branding.logo_path }}" alt="Logo">
-        {% else %}
-          <div class="kicker">{{ branding.name|default:"NetExpress" }}</div>
-        {% endif %}
-        <div class="kicker">Devis</div>
-        <h1 class="title">{{ quote.number }}</h1>
-        <div class="small">Émis le {{ quote.issue_date|date:"d/m/Y" }}{% if quote.valid_until %} — Valable jusqu'au {{ quote.valid_until|date:"d/m/Y" }}{% endif %}</div>
+  <main class="document-page">
+    <header class="document-header">
+      <div class="brand-block">
+        <img class="brand-logo" src="static/img/logo.svg" alt="{{ branding.name|default:'NetExpress' }}">
+        <div>
+          <div class="brand-fallback">{{ branding.name|default:"NetExpress" }}</div>
+          {% if branding.tagline %}<div class="brand-tagline">{{ branding.tagline }}</div>{% endif %}
+        </div>
       </div>
+      <div class="document-heading">
+        <h1 class="document-type">DEVIS</h1>
+        <div class="document-number">{{ quote.number }}</div>
+      </div>
+    </header>
 
-      <div style="text-align:right">
-        <div class="badge">{{ branding.tagline|default:"Nettoyage de prestige" }}</div>
-        <div style="height:6mm"></div>
-        <div><strong>{{ branding.name|default:"NetExpress" }}</strong></div>
-        {% if branding.address_lines %}
-          <div class="small">
-            {% for l in branding.address_lines %}{{ l }}<br>{% endfor %}
-          </div>
-        {% else %}
-          <div class="small">{{ branding.address|linebreaksbr }}</div>
+    <section class="meta-strip">
+      <div class="meta-list">
+        <div>
+          <span class="meta-item-label">Date d'émission</span>
+          <span class="meta-item-value">{{ quote.issue_date|date:"d/m/Y" }}</span>
+        </div>
+        {% if quote.valid_until %}
+        <div>
+          <span class="meta-item-label">Valable jusqu'au</span>
+          <span class="meta-item-value">{{ quote.valid_until|date:"d/m/Y" }}</span>
+        </div>
         {% endif %}
-        <div class="small">
+        <div>
+          <span class="meta-item-label">Statut</span>
+          <span class="meta-item-value">{{ quote.get_status_display }}</span>
+        </div>
+      </div>
+      <div class="total-chip">
+        <span class="total-chip-label">Total TTC</span>
+        <span class="total-chip-value">{{ quote.total_ttc|floatformat:2 }} €</span>
+      </div>
+    </section>
+
+    <section class="content-section parties">
+      <article class="party-card issuer">
+        <h2 class="party-title">Émetteur</h2>
+        <div class="party-name">{{ branding.name|default:"NetExpress" }}</div>
+        {% if branding.tagline %}<div class="party-tagline">{{ branding.tagline }}</div>{% endif %}
+        <div class="party-details">
+          {% if branding.address_lines %}
+            {% for line in branding.address_lines %}{{ line }}<br>{% endfor %}
+          {% elif branding.address %}
+            {{ branding.address|linebreaksbr }}<br>
+          {% endif %}
           {% if branding.phone %}{{ branding.phone }}<br>{% endif %}
           {% if branding.email %}{{ branding.email }}{% endif %}
         </div>
-      </div>
-    </div>
+      </article>
 
-    <div class="hr"></div>
-
-    <div class="grid2">
-      <div class="panel">
-        <h3>Client</h3>
-        <div><strong>{{ quote.client.full_name }}</strong></div>
-        <div class="small">
+      <article class="party-card recipient">
+        <h2 class="party-title">Destinataire</h2>
+        <div class="party-name">{% if quote.client.company %}{{ quote.client.company }}{% else %}{{ quote.client.full_name }}{% endif %}</div>
+        <div class="party-details">
+          {% if quote.client.company and quote.client.full_name %}{{ quote.client.full_name }}<br>{% endif %}
+          {% if quote.client.address_line %}{{ quote.client.address_line }}<br>{% endif %}
+          {% if quote.client.zip_code or quote.client.city %}{{ quote.client.zip_code }} {{ quote.client.city }}<br>{% endif %}
           {% if quote.client.email %}{{ quote.client.email }}<br>{% endif %}
-          {% if quote.client.phone %}{{ quote.client.phone }}<br>{% endif %}
-          {% if quote.client.city %}{{ quote.client.city }}{% endif %}
+          {% if quote.client.phone %}{{ quote.client.phone }}{% endif %}
         </div>
-      </div>
+      </article>
+    </section>
 
-      <div class="panel">
-        <h3>Référence</h3>
-        <div class="small">
-          Statut : {{ quote.get_status_display }}<br>
-          Créé le : {{ quote.created_at|date:"d/m/Y H:i" }}
-        </div>
-      </div>
-    </div>
+    <section class="content-section items-section">
+      <table class="items-table" role="presentation">
+        <thead>
+          <tr>
+            <th class="col-description">Description</th>
+            <th class="col-qty align-center">Qté</th>
+            <th class="col-price align-right">Prix unit. HT</th>
+            <th class="col-tax align-center">TVA</th>
+            <th class="col-total align-right">Total TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in quote.quote_items.all %}
+          <tr>
+            <td>
+              <div class="item-description">
+                {% if item.description %}{{ item.description }}{% elif item.service %}{{ item.service.title }}{% else %}Prestation{% endif %}
+              </div>
+              {% if item.service and item.description and item.service.title != item.description %}
+                <div class="item-detail">{{ item.service.title }}</div>
+              {% endif %}
+            </td>
+            <td class="align-center">{{ item.quantity|floatformat:-2 }}</td>
+            <td class="align-right money">{{ item.unit_price|floatformat:2 }} €</td>
+            <td class="align-center">{{ item.tax_rate|floatformat:2 }} %</td>
+            <td class="align-right money">{{ item.total_ttc|floatformat:2 }} €</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="no-data">Aucune prestation chiffrée.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
 
-    <table class="table" role="presentation">
-      <thead>
-        <tr>
-          <th>Prestation</th>
-          <th class="right">Qté</th>
-          <th class="right">PU HT</th>
-          <th class="right">TVA</th>
-          <th class="right">Montant TTC</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for item in quote.quote_items.all %}
-        <tr>
-          <td>
-            <div><strong>{{ item.title|default:item.description }}</strong></div>
-            {% if item.description and item.title %}<div class="small">{{ item.description }}</div>{% endif %}
-          </td>
-          <td class="right">{{ item.quantity }}</td>
-          <td class="right">{{ item.unit_price|floatformat:2 }} €</td>
-          <td class="right">{{ item.tax_rate|floatformat:2 }} %</td>
-          <td class="right">{{ item.total_ttc|floatformat:2 }} €</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="small muted">Aucune prestation.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+    <section class="content-section summary-layout">
+      <div class="summary-note">
+        {% if quote.notes %}
+          <span class="eyebrow">Observations</span>
+          {{ quote.notes|linebreaksbr }}
+        {% elif quote.message %}
+          <span class="eyebrow">Objet du devis</span>
+          {{ quote.message|linebreaksbr }}
+        {% else %}
+          <span class="eyebrow">Document</span>
+          Les montants et prestations ci-dessus constituent la proposition commerciale associée à ce devis.
+        {% endif %}
+      </div>
+      <div class="totals-card">
+        <div class="total-row"><span>Total HT</span><span class="value">{{ quote.total_ht|floatformat:2 }} €</span></div>
+        <div class="total-row"><span>TVA</span><span class="value">{{ quote.tva|floatformat:2 }} €</span></div>
+        <div class="total-row grand-total"><span>Total TTC</span><span class="value">{{ quote.total_ttc|floatformat:2 }} €</span></div>
+      </div>
+    </section>
 
-    <div class="totals">
-      <div class="totals-box">
-        <div class="totals-row"><span class="muted">Total HT</span><span>{{ quote.total_ht|floatformat:2 }} €</span></div>
-        <div class="totals-row"><span class="muted">TVA</span><span>{{ quote.tva|floatformat:2 }} €</span></div>
-        <div class="totals-row total"><strong>Total TTC</strong><strong>{{ quote.total_ttc|floatformat:2 }} €</strong></div>
-      </div>
-    </div>
+    <section class="content-section information-grid">
+      <article class="info-card">
+        <h3>Conditions de paiement</h3>
+        <p>{{ branding.payment_terms|default:"Conditions de paiement à convenir selon la prestation." }}</p>
+      </article>
+      <article class="info-card">
+        <h3>Coordonnées bancaires</h3>
+        {% if branding.iban or branding.bic %}
+          {% if branding.iban %}<div class="bank-row"><span class="bank-label">IBAN</span><span class="bank-value">{{ branding.iban }}</span></div>{% endif %}
+          {% if branding.bic %}<div class="bank-row"><span class="bank-label">BIC</span><span class="bank-value">{{ branding.bic }}</span></div>{% endif %}
+        {% else %}
+          <p>Coordonnées communiquées lors de la validation du devis.</p>
+        {% endif %}
+      </article>
+    </section>
 
-    <div class="payment">
-      <div style="display:flex; justify-content:space-between; gap:10mm">
-        <div>
-          <h3>Conditions de paiement</h3>
-          <div class="small">
-            {{ branding.payment_terms|default:"Paiement : 30 jours après démarrage des travaux." }}
-          </div>
-        </div>
-        <div style="text-align:right">
-          <h3>Coordonnées bancaires</h3>
-          <div class="small">
-            {% if branding.iban %}<strong>IBAN</strong> : {{ branding.iban }}<br>{% endif %}
-            {% if branding.bic %}<strong>BIC</strong> : {{ branding.bic }}{% endif %}
-          </div>
-        </div>
+    <section class="content-section signature-grid">
+      <div class="signature-card">
+        <strong>Bon pour accord</strong>
+        <span>Date, mention « Lu et approuvé » et signature du client</span>
       </div>
-    </div>
+      <div class="signature-card">
+        <strong>{{ branding.name|default:"NetExpress" }}</strong>
+        <span>Signature de l'émetteur</span>
+      </div>
+    </section>
 
-    <div class="footer">
-      <div>
-        <div><strong>Mentions</strong></div>
-        <div>Devis non contractuel jusqu'à acceptation.</div>
+    <footer class="document-footer">
+      <div class="footer-block">
+        <div class="footer-brand">{{ branding.name|default:"NetExpress" }}</div>
+        {% if branding.tagline %}{{ branding.tagline }}{% endif %}
       </div>
-      <div style="text-align:right">
-        <div><strong>{{ branding.name|default:"NetExpress" }}</strong></div>
-        <div>{{ branding.email|default:"" }}</div>
+      <div class="footer-block">
+        <span class="footer-label">Coordonnées</span><br>
+        {% if branding.phone %}{{ branding.phone }}<br>{% endif %}
+        {% if branding.email %}{{ branding.email }}{% endif %}
       </div>
-    </div>
-  </div>
+      <div class="footer-block">
+        <span class="footer-label">Identification</span><br>
+        {% if branding.siret %}SIRET : {{ branding.siret }}{% endif %}
+        {% if branding.tva_intra %}<br>TVA : {{ branding.tva_intra }}{% endif %}
+      </div>
+    </footer>
+  </main>
 </body>
 </html>
