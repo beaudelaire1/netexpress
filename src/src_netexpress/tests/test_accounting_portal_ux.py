@@ -1,6 +1,5 @@
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
 
 import pytest
 from django.conf import settings
@@ -9,8 +8,8 @@ from django.urls import reverse
 
 from accounts.access import confirm_email
 from accounts.models import Profile
+from accounting.models import AccountingExchange
 from core.services import document_generator
-from messaging.models import Message
 
 
 pytestmark = pytest.mark.django_db
@@ -31,9 +30,8 @@ def make_user(role, *, username, email):
     return user
 
 
-@patch("messaging.signals.notification_service.notify_message_received")
-def test_accountant_can_message_netexpress_from_accounting_portal(notify_message, client):
-    admin = make_user(
+def test_accountant_collaboration_entry_points_are_visible_and_legacy_message_is_migrated(client):
+    make_user(
         Profile.ROLE_ADMIN_BUSINESS,
         username="netexpress-admin",
         email="admin@example.test",
@@ -50,29 +48,31 @@ def test_accountant_can_message_netexpress_from_accounting_portal(notify_message
     dashboard = client.get(reverse("accounting:dashboard"))
     assert dashboard.status_code == 200
     html = dashboard.content.decode("utf-8")
-    assert "Écrire à NetExpress" in html
-    assert 'name="message"' in html
+    assert "Collaborer" in html
+    assert "Nouvel échange" in html
+    assert "Mettre un document à disposition" in html
+    assert reverse("accounting:exchanges") in html
 
     response = client.post(
         reverse("accounting:message_netexpress"),
         {
             "message": "<script>alert(1)</script>\nMerci de vérifier FAC-2026-012.",
-            "next": reverse("accounting:dashboard"),
+            "next": "https://evil.example/phishing",
         },
     )
 
     assert response.status_code == 302
-    assert response.url == reverse("accounting:dashboard")
-    message = Message.objects.get(sender=accountant)
-    assert message.recipient == admin
-    assert message.subject == "Espace comptable — Cabinet Test"
-    assert "<script>" not in message.content
-    assert "&lt;script&gt;" in message.content
-    assert "FAC-2026-012" in message.content
-    notify_message.assert_called_once()
+    exchange = AccountingExchange.objects.get(created_by=accountant)
+    assert response.url == reverse("accounting:exchange_detail", args=[exchange.pk])
+    stored = exchange.messages.get().content
+    assert "<script>" in stored  # texte brut stocké, jamais marqué safe
+    detail = client.get(response.url).content.decode("utf-8")
+    assert "<script>alert(1)</script>" not in detail
+    assert "&lt;script&gt;" in detail
+    assert "FAC-2026-012" in detail
 
 
-def test_accounting_message_endpoint_is_accountant_only_and_blocks_open_redirect(client):
+def test_legacy_accounting_message_endpoint_remains_accountant_only(client):
     admin = make_user(
         Profile.ROLE_ADMIN_BUSINESS,
         username="business-admin",
@@ -84,20 +84,7 @@ def test_accounting_message_endpoint_is_accountant_only_and_blocks_open_redirect
         {"message": "Test"},
     )
     assert forbidden.status_code == 403
-    assert not Message.objects.exists()
-
-    accountant = make_user(
-        Profile.ROLE_ACCOUNTANT,
-        username="external-accountant",
-        email="external@example.test",
-    )
-    client.force_login(accountant)
-    response = client.post(
-        reverse("accounting:message_netexpress"),
-        {"message": "Message sûr", "next": "https://evil.example/phishing"},
-    )
-    assert response.status_code == 302
-    assert response.url == reverse("accounting:dashboard")
+    assert not AccountingExchange.objects.exists()
 
 
 def test_accounting_layout_defines_independent_scroll_regions():
@@ -110,6 +97,22 @@ def test_accounting_layout_defines_independent_scroll_regions():
     assert ".acc-main" in css
     assert "overflow-y: auto" in css
     assert "overscroll-behavior: contain" in css
+
+
+def test_accounting_exchange_design_uses_netexpress_palette_and_private_workspace_patterns():
+    css = (
+        Path(settings.BASE_DIR) / "static" / "css" / "accounting-exchanges.css"
+    ).read_text(encoding="utf-8")
+    base = (
+        Path(settings.BASE_DIR) / "templates" / "accounting" / "base.html"
+    ).read_text(encoding="utf-8")
+
+    assert "var(--green)" in css
+    assert "accounting-collab-menu" in css
+    assert "exchange-document-card" in css
+    assert "exchange-detail-layout" in css
+    assert "Trait d’Union Studio" in base
+    assert "accounting-exchanges.css" in base
 
 
 def test_pdf_layout_reserves_footer_margin_and_compacts_header():

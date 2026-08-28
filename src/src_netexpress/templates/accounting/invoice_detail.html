@@ -1,5 +1,7 @@
 {% extends 'accounting/base.html' %}
+{% load accounting_exchange_tags %}
 {% block content %}
+{% accounting_exchange_context invoice as exchange_context %}
 <a class="back-link" href="{% url 'accounting:sales' %}{% querystring %}">← Factures clients</a>
 <div class="page-heading">
   <div>
@@ -7,7 +9,10 @@
     <h1>{{ invoice.number }}</h1>
     <p class="subtitle">{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }}</p>
   </div>
-  <div class="actions"><a class="button" href="{% url 'accounting:invoice_pdf' invoice.pk %}"><i class="fa-solid fa-download" aria-hidden="true"></i> Télécharger le PDF</a></div>
+  <div class="actions">
+    <a class="button secondary" href="{% url 'accounting:exchange_create' %}?context_type=invoice&context_id={{ invoice.pk }}"><i class="fa-regular fa-message" aria-hidden="true"></i> Signaler / échanger</a>
+    <a class="button" href="{% url 'accounting:invoice_pdf' invoice.pk %}"><i class="fa-solid fa-download" aria-hidden="true"></i> Télécharger le PDF</a>
+  </div>
 </div>
 
 <div class="two-columns">
@@ -52,4 +57,6 @@
     <p class="subtitle">Le cabinet ne modifie jamais la facture. « Contrôlé » décrit uniquement le suivi dans cet espace.</p>
   </section>
 </div>
+
+{% include 'accounting/_exchange_context_card.html' with context_type='invoice' context_id=invoice.pk %}
 {% endblock %}

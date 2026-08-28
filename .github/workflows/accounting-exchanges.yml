@@ -1,0 +1,45 @@
+name: Accounting exchanges
+
+on:
+  pull_request:
+    paths:
+      - 'src/src_netexpress/accounting/**'
+      - 'src/src_netexpress/core/private_files.py'
+      - 'src/src_netexpress/templates/accounting/**'
+      - 'src/src_netexpress/templates/emails/accounting_exchange_notification.html'
+      - 'src/src_netexpress/static/css/accounting-exchanges.css'
+      - 'src/src_netexpress/static/js/accounting-exchanges.js'
+      - 'src/src_netexpress/tests/test_accounting_exchange_*.py'
+      - '.github/workflows/accounting-exchanges.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/src_netexpress
+    env:
+      DJANGO_SETTINGS_MODULE: netexpress.settings.test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: src/src_netexpress/requirements/dev.txt
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 libjpeg62-turbo libopenjp2-7
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements/dev.txt
+      - name: Django checks
+        run: |
+          python manage.py makemigrations --check --dry-run
+          python manage.py check
+      - name: Accounting exchange tests
+        run: |
+          pytest tests/test_accounting_exchange_domain.py tests/test_accounting_exchange_workflow.py tests/test_accounting_portal_ux.py tests/test_accounting_security.py -q

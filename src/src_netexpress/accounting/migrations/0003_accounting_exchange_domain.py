@@ -1,7 +1,7 @@
 # Generated manually for the accounting collaboration domain.
 
+import accounting.exchange_file_validation
 import accounting.exchange_models
-import core.file_validation
 import core.storage
 import django.db.models.deletion
 import django.utils.timezone
@@ -76,7 +76,7 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=200, verbose_name="Titre")),
                 ("document_type", models.CharField(choices=[("accountant_note", "Note du cabinet"), ("correction", "Document corrigé"), ("supporting_document", "Justificatif"), ("spreadsheet", "Tableau de travail"), ("letter", "Courrier"), ("other", "Autre document")], default="other", max_length=30, verbose_name="Type")),
                 ("visibility", models.CharField(choices=[("shared", "Partagé"), ("netexpress_only", "Interne NetExpress")], db_index=True, default="shared", max_length=20, verbose_name="Visibilité")),
-                ("file", models.FileField(storage=core.storage.PrivateStorage(), upload_to=accounting.exchange_models.exchange_document_upload_path, validators=[core.file_validation.validate_document], verbose_name="Document")),
+                ("file", models.FileField(storage=core.storage.PrivateStorage(), upload_to=accounting.exchange_models.exchange_document_upload_path, validators=[accounting.exchange_file_validation.validate_exchange_document], verbose_name="Document")),
                 ("original_filename", models.CharField(blank=True, editable=False, max_length=255)),
                 ("file_sha256", models.CharField(blank=True, db_index=True, editable=False, max_length=64)),
                 ("file_size", models.PositiveBigIntegerField(blank=True, editable=False, null=True)),
@@ -84,6 +84,7 @@ class Migration(migrations.Migration):
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("exchange", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="documents", to="accounting.accountingexchange")),
                 ("message", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="documents", to="accounting.accountingexchangemessage")),
+                ("promoted_to", models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="source_exchange_document", to="accounting.accountingdocument")),
                 ("uploaded_by", models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="accounting_exchange_documents", to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -93,7 +94,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="accountingexchangedocument",
-            constraint=models.UniqueConstraint(condition=models.Q(("file_sha256", ""), _negated=True), fields=("file_sha256",), name="unique_accounting_exchange_document_hash"),
+            constraint=models.UniqueConstraint(condition=models.Q(("file_sha256", ""), _negated=True), fields=("exchange", "file_sha256"), name="unique_exchange_document_hash_per_thread"),
         ),
         migrations.CreateModel(
             name="AccountingExchangeReadState",

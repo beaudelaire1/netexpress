@@ -1,12 +1,23 @@
 from django.urls import path
 
-from . import communication, views, workspace
+from . import communication, exchange_views, views, workspace
 
 app_name = "accounting"
 
 urlpatterns = [
     path("", workspace.dashboard, name="dashboard"),
     path("message-netexpress/", communication.send_message_to_netexpress, name="message_netexpress"),
+    path("echanges/", exchange_views.exchange_list, name="exchanges"),
+    path("echanges/nouveau/", exchange_views.exchange_create, name="exchange_create"),
+    path("echanges/<int:pk>/", exchange_views.exchange_detail, name="exchange_detail"),
+    path("echanges/<int:pk>/repondre/", exchange_views.exchange_reply, name="exchange_reply"),
+    path("echanges/<int:pk>/document/", exchange_views.exchange_document_upload, name="exchange_document_upload"),
+    path("echanges/<int:pk>/statut/", exchange_views.exchange_status, name="exchange_status"),
+    path(
+        "echanges/<int:pk>/document/<int:document_id>/classer/",
+        exchange_views.exchange_document_promote,
+        name="exchange_document_promote",
+    ),
     # Devis are accounting context only: no standalone collection is exposed.
     path("devis/<int:pk>/", views.quote_detail, name="quote_detail"),
     path("devis/<int:pk>/pdf/", views.quote_pdf, name="quote_pdf"),

@@ -1,0 +1,74 @@
+{% extends 'accounting/base.html' %}
+{% load accounting_exchange_tags %}
+{% block title %}Échanges comptables{% endblock %}
+{% block content %}
+{% accounting_exchange_nav user as exchange_nav %}
+<div class="page-heading accounting-heading exchange-page-heading">
+  <div>
+    <p class="eyebrow">COLLABORATION CABINET ↔ NETEXPRESS</p>
+    <h1>Échanges</h1>
+    <p class="subtitle">Questions, demandes de correction et documents restent rattachés au même fil, avec un historique partagé et traçable.</p>
+  </div>
+  <div class="actions">
+    <a class="button secondary" href="{% url 'accounting:exchange_create' %}?mode=document"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> Mettre un document à disposition</a>
+    <a class="button" href="{% url 'accounting:exchange_create' %}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nouvel échange</a>
+  </div>
+</div>
+
+<section class="exchange-stat-grid" aria-label="Synthèse des échanges">
+  <article class="exchange-stat"><span class="exchange-stat-icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></span><div><small>Non lus</small><strong>{{ exchange_nav.unread }}</strong><span>activité à consulter</span></div></article>
+  <article class="exchange-stat"><span class="exchange-stat-icon"><i class="fa-solid fa-inbox" aria-hidden="true"></i></span><div><small>À traiter par vous</small><strong>{{ exchange_nav.waiting }}</strong><span>{% if accounting_admin %}en attente de NetExpress{% else %}en attente du cabinet{% endif %}</span></div></article>
+  <article class="exchange-stat"><span class="exchange-stat-icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span><div><small>Échanges ouverts</small><strong>{{ exchange_nav.open }}</strong><span>hors dossiers résolus</span></div></article>
+</section>
+
+<form method="get" class="exchange-filters" aria-label="Filtrer les échanges">
+  <div class="exchange-search-field">
+    <label for="exchange-q">Rechercher</label>
+    <div class="exchange-search-input"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="exchange-q" type="search" name="q" value="{{ query }}" placeholder="Sujet, facture, fournisseur, document…"></div>
+  </div>
+  <div><label for="exchange-status">Statut</label><select id="exchange-status" name="status"><option value="">Tous les statuts</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <div><label for="exchange-kind">Type</label><select id="exchange-kind" name="kind"><option value="">Tous les types</option>{% for value,label in kind_choices %}<option value="{{ value }}" {% if selected_kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <label class="exchange-checkbox"><input type="checkbox" name="documents" value="1" {% if with_documents %}checked{% endif %}><span>Avec document</span></label>
+  <div class="actions"><button class="button secondary" type="submit">Filtrer</button>{% if query or selected_status or selected_kind or with_documents %}<a class="text-button" href="{% url 'accounting:exchanges' %}">Réinitialiser</a>{% endif %}</div>
+</form>
+
+<section class="exchange-list" aria-label="Liste des échanges">
+  {% for exchange in page %}
+  <a class="exchange-row-card {% if not exchange.is_read %}is-unread{% endif %}" href="{% url 'accounting:exchange_detail' exchange.pk %}">
+    <div class="exchange-row-marker" aria-hidden="true">{% if not exchange.is_read %}<span></span>{% endif %}</div>
+    <div class="exchange-row-main">
+      <div class="exchange-row-topline">
+        <span class="exchange-kind-chip">{{ exchange.get_kind_display }}</span>
+        {% if exchange.priority == 'high' %}<span class="exchange-priority"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> Prioritaire</span>{% endif %}
+      </div>
+      <h2>{{ exchange.subject }}</h2>
+      <div class="exchange-row-meta">
+        {% if exchange.context_meta %}<span><i class="fa-solid fa-link" aria-hidden="true"></i> {{ exchange.context_meta.kind }} · {{ exchange.context_meta.reference }}</span>{% else %}<span><i class="fa-regular fa-comments" aria-hidden="true"></i> Échange général</span>{% endif %}
+        <span>{{ exchange.message_count }} message{{ exchange.message_count|pluralize }}</span>
+        <span>{{ exchange.document_count }} document{{ exchange.document_count|pluralize }}</span>
+      </div>
+    </div>
+    <div class="exchange-row-side">
+      <span class="exchange-status status-{{ exchange.status }}">{{ exchange.get_status_display }}</span>
+      <time datetime="{{ exchange.last_activity_at|date:'c' }}">{{ exchange.last_activity_at|date:'d/m/Y H:i' }}</time>
+      <span class="exchange-open-link">Ouvrir <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+    </div>
+  </a>
+  {% empty %}
+  <div class="exchange-empty-state">
+    <span class="exchange-empty-icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
+    <h2>Aucun échange dans cette sélection</h2>
+    <p>Les demandes, réponses et documents partagés entre NetExpress et le cabinet apparaîtront ici.</p>
+    <a class="button" href="{% url 'accounting:exchange_create' %}">Créer un échange</a>
+  </div>
+  {% endfor %}
+</section>
+
+{% if page.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Pagination des échanges">
+  {% if page.has_previous %}<a href="{% querystring page=page.previous_page_number %}">← Précédent</a>{% endif %}
+  <span>Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="{% querystring page=page.next_page_number %}">Suivant →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+<section class="panel exchange-context-card">
+  <div class="exchange-context-card-head">
+    <div><p class="eyebrow">ÉCHANGES LIÉS</p><h2>Collaboration sur cette pièce</h2></div>
+    {% if exchange_context.open_count %}<span class="exchange-context-count">{{ exchange_context.open_count }} ouvert{{ exchange_context.open_count|pluralize }}</span>{% endif %}
+  </div>
+  {% if exchange_context.recent %}
+  <div class="exchange-context-list">
+    {% for item in exchange_context.recent %}
+    <a href="{% url 'accounting:exchange_detail' item.pk %}"><span><strong>{{ item.subject }}</strong><small>{{ item.get_kind_display }} · {{ item.last_activity_at|date:'d/m/Y H:i' }}</small></span><span class="exchange-status status-{{ item.status }}">{{ item.get_status_display }}</span></a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="subtitle">Aucune demande ou pièce complémentaire n’est rattachée à ce document.</p>
+  {% endif %}
+  <div class="exchange-context-actions">
+    <a class="button secondary" href="{% url 'accounting:exchange_create' %}?context_type={{ context_type }}&context_id={{ context_id }}"><i class="fa-regular fa-message" aria-hidden="true"></i> Ouvrir un échange</a>
+    <a class="text-button" href="{% url 'accounting:exchange_create' %}?mode=document&context_type={{ context_type }}&context_id={{ context_id }}">Mettre un document à disposition</a>
+  </div>
+</section>
