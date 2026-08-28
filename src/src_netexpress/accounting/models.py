@@ -143,3 +143,13 @@ class AccountingActivity(models.Model):
     class Meta:
         ordering = ["-created_at", "-pk"]
         verbose_name = "activité comptable"
+
+
+# Collaboration comptable bidirectionnelle. Les classes vivent dans un module
+# séparé pour maintenir la frontière entre le corpus comptable et les échanges.
+from .exchange_models import (  # noqa: E402,F401
+    AccountingExchange,
+    AccountingExchangeDocument,
+    AccountingExchangeMessage,
+    AccountingExchangeReadState,
+)
