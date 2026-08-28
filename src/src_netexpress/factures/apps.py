@@ -2,10 +2,9 @@
 Configuration de l’app ``factures``.
 
 Cette application contient l’implémentation moderne de la gestion des
-factures (factures multi‑lignes, statuts, génération de PDF).  Elle
+factures (factures multi-lignes, statuts, génération de PDF). Elle
 remplace l’ancienne app ``invoices`` et adopte la charte graphique et
-les conventions de 2025.  Le ``verbose_name`` est défini pour une
-apparition lisible dans l’interface d’administration.
+les conventions de 2025.
 """
 
 from django.apps import AppConfig
@@ -19,7 +18,7 @@ class FacturesConfig(AppConfig):
     verbose_name = "Factures"
 
     def ready(self) -> None:
-        try:
-            from . import signals  # noqa: F401
-        except Exception:
-            pass
+        # Les signaux font partie du cycle métier de facturation. Une erreur
+        # d'import doit empêcher le démarrage plutôt que désactiver
+        # silencieusement la finalisation automatique des factures.
+        from . import signals  # noqa: F401
