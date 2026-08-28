@@ -5,102 +5,157 @@
 
 {% block extra_head %}
   <script type="module" src="{% static 'js/quote_admin.js' %}"></script>
+  <style>
+    .quote-workspace { max-width: 1180px; margin: 0 auto; }
+    .quote-hero {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+      margin-bottom: 24px; padding: 24px 28px; border-radius: 18px;
+      background: linear-gradient(135deg, #063d2f 0%, #0b5d46 68%, #15775b 100%); color: #fff;
+    }
+    .quote-hero h1 { margin: 0 0 6px; color: #fff; }
+    .quote-hero p { margin: 0; color: rgba(255,255,255,.75); }
+    .quote-status {
+      display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+      color: #fff; font-size: .85rem; font-weight: 700; white-space: nowrap;
+    }
+    .quote-kpis { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-bottom: 22px; }
+    .quote-kpi { padding: 18px; border: 1px solid #d9e4de; border-radius: 14px; background: #f4f8f6; }
+    .quote-kpi span { display: block; color: #607068; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .quote-kpi output { display: block; margin-top: 5px; color: #0b1712; font-size: 1.35rem; font-weight: 800; }
+    .quote-kpi.is-total { background: #0b5d46; border-color: #0b5d46; }
+    .quote-kpi.is-total span, .quote-kpi.is-total output { color: #fff; }
+    .quote-panel { margin-bottom: 20px; padding: 22px; border: 1px solid #d9e4de; border-radius: 16px; background: #fff; }
+    .quote-panel h2 { margin: 0 0 18px; color: #063d2f; }
+    .quote-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 20px; }
+    .quote-field label { display:block; margin-bottom:6px; font-weight:700; color:#33443c; }
+    .quote-field input, .quote-field select, .quote-field textarea { width:100%; }
+    .quote-errors { margin: 0 0 6px; color: #b42318; font-size: .85rem; }
+    .quote-table-wrap { width: 100%; overflow-x: auto; }
+    .quote-table { min-width: 900px; margin: 0; }
+    .quote-table thead th { background: #063d2f; color: #fff; }
+    .quote-table td { vertical-align: middle; }
+    .quote-table .cell-total-ht { color: #0b5d46; font-weight: 800; white-space: nowrap; }
+    .quote-remove { border: 0; background: transparent; color: #b42318; font-size: 1.1rem; cursor: pointer; }
+    .quote-toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; margin-top:16px; }
+    .quote-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .quote-primary { background:#0b5d46 !important; border-color:#0b5d46 !important; color:#fff !important; }
+    .quote-secondary { border:1px solid #b7c9c0 !important; background:#f4f8f6 !important; color:#063d2f !important; }
+    @media (max-width: 760px) {
+      .quote-hero { flex-direction: column; }
+      .quote-kpis, .quote-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
-<section class="section">
-  <h1>Devis {{ quote.number }}</h1>
-  <p class="muted">
-    Client : {{ quote.client.full_name }} —
-    Statut : {{ quote.get_status_display }}
-  </p>
+<section class="section quote-workspace">
+  <header class="quote-hero">
+    <div>
+      <h1>Devis {{ quote.number }}</h1>
+      <p>{{ quote.client.full_name }}{% if quote.client.company %} · {{ quote.client.company }}{% endif %} · créé le {{ quote.created_at|date:"d/m/Y à H:i" }}</p>
+    </div>
+    <span class="quote-status">{{ quote.get_status_display }}</span>
+  </header>
+
+  <div class="quote-kpis" aria-label="Totaux du devis">
+    <div class="quote-kpi">
+      <span>Total HT</span>
+      <output id="total-ht-display">{{ quote.total_ht|floatformat:2 }} €</output>
+    </div>
+    <div class="quote-kpi">
+      <span>Total TVA</span>
+      <output id="total-tva-display">{{ quote.tva|floatformat:2 }} €</output>
+    </div>
+    <div class="quote-kpi is-total">
+      <span>Total TTC</span>
+      <output id="total-ttc-display">{{ quote.total_ttc|floatformat:2 }} €</output>
+    </div>
+  </div>
 
   <form method="post" id="quote-form">
     {% csrf_token %}
-    <div class="card">
+    {{ formset.management_form }}
+
+    {% if form.non_field_errors %}<div class="quote-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% if formset.non_form_errors %}<div class="quote-errors">{{ formset.non_form_errors }}</div>{% endif %}
+
+    <section class="quote-panel">
       <h2>Informations générales</h2>
-      <div class="row row-2">
+      <div class="quote-grid">
         {% for field in form %}
-          <div style="grid-column:span 1">
-            {{ field.errors }}
+          <div class="quote-field">
+            {% if field.errors %}<div class="quote-errors">{{ field.errors }}</div>{% endif %}
             {{ field.label_tag }}
             {{ field }}
+            {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
           </div>
         {% endfor %}
       </div>
-    </div>
+    </section>
 
-    <div class="card">
+    <section class="quote-panel">
       <h2>Lignes du devis</h2>
-      <table class="table" id="quote-items-table"
-             data-service-info-url="{% url 'devis:service_info' 0 %}">
-        <thead>
-          <tr>
-            <th>Service</th>
-            <th>Description</th>
-            <th>Quantité</th>
-            <th>PU HT</th>
-            <th>TVA %</th>
-            <th>Total HT</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="quote-items-body">
-          {{ formset.management_form }}
-          {% for form in formset %}
-            <tr class="quote-item-row">
-              <td>
-                {{ form.service }}
-              </td>
-              <td>
-                {{ form.description }}
-              </td>
-              <td>
-                {{ form.quantity }}
-              </td>
-              <td>
-                {{ form.unit_price }}
-              </td>
-              <td>
-                {{ form.tax_rate }}
-              </td>
-              <td class="cell-total-ht">0,00 €</td>
-              <td>
-                {% if form.instance.pk %}
-                  <button type="button" class="btn btn-link js-remove-row">✕</button>
-                {% endif %}
-                {{ form.DELETE }}
-              </td>
+      <div class="quote-table-wrap">
+        <table class="table quote-table" id="quote-items-table" data-service-info-url="{% url 'devis:service_info' 0 %}">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Description</th>
+              <th>Quantité</th>
+              <th>PU HT</th>
+              <th>TVA %</th>
+              <th>Total HT</th>
+              <th aria-label="Actions"></th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <button type="button" class="btn btn-secondary" id="add-line-btn">
-        + Ajouter une ligne
-      </button>
-    </div>
+          </thead>
+          <tbody id="quote-items-body">
+            {% for item_form in formset %}
+              <tr class="quote-item-row">
+                <td>{{ item_form.id }}{{ item_form.service }}</td>
+                <td>{{ item_form.description }}</td>
+                <td>{{ item_form.quantity }}</td>
+                <td>{{ item_form.unit_price }}</td>
+                <td>{{ item_form.tax_rate }}</td>
+                <td class="cell-total-ht">0,00 €</td>
+                <td>
+                  <button type="button" class="quote-remove js-remove-row" aria-label="Supprimer cette ligne">×</button>
+                  <span hidden>{{ item_form.DELETE }}</span>
+                  {% if item_form.errors %}<div class="quote-errors">{{ item_form.errors }}</div>{% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr id="quote-empty-state"><td colspan="7" class="muted">Aucune ligne. Ajoutez la première prestation.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-    <div class="card totals-card">
-      <h2>Totaux</h2>
-      <div class="totals-grid">
-        <div>
-          <label>Total HT</label>
-          <output id="total-ht-display">0,00 €</output>
-        </div>
-        <div>
-          <label>Total TVA</label>
-          <output id="total-tva-display">0,00 €</output>
-        </div>
-        <div>
-          <label>Total TTC</label>
-          <output id="total-ttc-display">0,00 €</output>
+      <template id="quote-item-template">
+        <tr class="quote-item-row">
+          <td>{{ formset.empty_form.id }}{{ formset.empty_form.service }}</td>
+          <td>{{ formset.empty_form.description }}</td>
+          <td>{{ formset.empty_form.quantity }}</td>
+          <td>{{ formset.empty_form.unit_price }}</td>
+          <td>{{ formset.empty_form.tax_rate }}</td>
+          <td class="cell-total-ht">0,00 €</td>
+          <td>
+            <button type="button" class="quote-remove js-remove-row" aria-label="Supprimer cette ligne">×</button>
+            <span hidden>{{ formset.empty_form.DELETE }}</span>
+          </td>
+        </tr>
+      </template>
+
+      <div class="quote-toolbar">
+        <button type="button" class="btn quote-secondary" id="add-line-btn">+ Ajouter une ligne</button>
+        <div class="quote-actions">
+          {% if quote.pdf %}
+            <a class="btn quote-secondary" href="{% url 'devis:download' quote.pk %}" target="_blank" rel="noopener">Ouvrir le PDF</a>
+          {% endif %}
+          <button type="submit" class="btn quote-primary">Enregistrer le devis</button>
         </div>
       </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Enregistrer le devis</button>
-    </div>
+    </section>
   </form>
 </section>
 {% endblock %}
