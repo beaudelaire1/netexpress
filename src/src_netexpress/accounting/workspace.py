@@ -1,24 +1,36 @@
 """Workflow-oriented views for the accounting portal.
 
-These views deliberately stay separate from the CRUD/review views in ``views.py``:
+These views deliberately stay separate from the CRUD views in ``views.py``:
 the goal is to improve the day-to-day workspace without changing the accounting
-models or the existing review responsibilities.
+models or the existing permissions.
 """
 from decimal import Decimal
+from urllib.parse import parse_qsl, urlencode
 
+from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Sum
-from django.shortcuts import render
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-from .models import AccountingActivity, AccountingDocument, SupplierInvoice
+from factures.models import Invoice
+from .forms import ReviewForm
+from .models import AccountingActivity, AccountingDocument, InvoiceReview, SupplierInvoice
 from .services import (
     incomplete_purchases,
+    invoice_fingerprint,
     is_reviewed,
+    log_activity,
     period_quotes,
     supporting_documents,
 )
 from .views import accounting_required, filtered, page_context
+
+RETURN_QUERY_KEYS = {"date_from", "date_to", "q", "pending", "incomplete", "kind", "page"}
 
 
 def _share(count, total):
@@ -32,6 +44,20 @@ def _reviewable_purchases(purchases):
     """Purchases the cabinet can actually process right now."""
     incomplete_ids = incomplete_purchases(purchases).values("pk")
     return purchases.filter(reviewed_at__isnull=True).exclude(pk__in=incomplete_ids)
+
+
+def _safe_return_query(raw):
+    """Keep only accounting list filters when returning from a detail review."""
+    if not raw:
+        return ""
+    pairs = [(key, value) for key, value in parse_qsl(raw, keep_blank_values=False) if key in RETURN_QUERY_KEYS]
+    return urlencode(pairs)
+
+
+def _redirect_detail(route_name, pk, request):
+    query = _safe_return_query(request.POST.get("return_query", ""))
+    url = reverse(route_name, kwargs={"pk": pk})
+    return redirect(f"{url}?{query}" if query else url)
 
 
 @accounting_required
@@ -66,7 +92,7 @@ def dashboard(request):
     totals["unresolved"] = totals["pending"] + totals["incomplete_purchases"]
     totals["count"] = sales.count() + purchases.count() + totals["documents"]
     totals["reviewed"] = max(totals["count"] - totals["unresolved"], 0)
-    totals["progress"] = round((totals["reviewed"] / totals["count"]) * 100) if totals["count"] else 100
+    totals["progress"] = round((totals["reviewed"] / totals["count"]) * 100) if totals["count"] else 0
     totals["overdue_purchases"] = purchases.filter(
         paid_on__isnull=True,
         due_date__lt=timezone.localdate(),
@@ -169,3 +195,77 @@ def suppliers(request):
             page=Paginator(purchases.select_related("created_by"), 40).get_page(request.GET.get("page")),
         ),
     )
+
+
+@accounting_required
+@require_POST
+@transaction.atomic
+def review_invoice(request, pk):
+    if request.accounting_admin:
+        return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
+    invoice = get_object_or_404(Invoice.all_objects.select_for_update(), pk=pk, issued_at__isnull=False)
+    form = ReviewForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Note de contrôle invalide.")
+    fingerprint = invoice_fingerprint(invoice)
+    if form.cleaned_data["fingerprint"] != fingerprint:
+        messages.error(request, "La facture a changé depuis l’ouverture. Relisez-la avant de la contrôler.")
+    else:
+        InvoiceReview.objects.update_or_create(
+            invoice=invoice,
+            defaults={
+                "fingerprint": fingerprint,
+                "note": form.cleaned_data["note"],
+                "reviewed_by": request.user,
+                "reviewed_at": timezone.now(),
+            },
+        )
+        log_activity(request.user, "Facture client contrôlée", invoice.number)
+        messages.success(request, "Facture marquée comme contrôlée dans le portail.")
+    return _redirect_detail("accounting:invoice_detail", pk, request)
+
+
+@accounting_required
+@require_POST
+@transaction.atomic
+def review_supplier(request, pk):
+    if request.accounting_admin:
+        return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
+    purchase = get_object_or_404(SupplierInvoice.objects.select_for_update(), pk=pk)
+    form = ReviewForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Note de contrôle invalide.")
+    if not purchase.is_complete:
+        messages.error(request, "Complétez le fournisseur, le numéro, la date, le TTC et la TVA avant le contrôle.")
+    elif form.cleaned_data["fingerprint"] != purchase.updated_at.isoformat():
+        messages.error(request, "La facture a changé. Relisez-la avant de la contrôler.")
+    else:
+        purchase.reviewed_at = timezone.now()
+        purchase.reviewed_by = request.user
+        purchase.review_note = form.cleaned_data["note"]
+        purchase.save(update_fields=["reviewed_at", "reviewed_by", "review_note", "updated_at"])
+        log_activity(request.user, "Facture fournisseur contrôlée", purchase)
+        messages.success(request, "Facture marquée comme contrôlée dans le portail.")
+    return _redirect_detail("accounting:supplier_detail", pk, request)
+
+
+@accounting_required
+@require_POST
+@transaction.atomic
+def review_document(request, pk):
+    if request.accounting_admin:
+        return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
+    document = get_object_or_404(AccountingDocument.objects.select_for_update(), pk=pk)
+    form = ReviewForm(request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Note de contrôle invalide.")
+    if form.cleaned_data["fingerprint"] != document.updated_at.isoformat():
+        messages.error(request, "Le document a changé. Relisez-le avant de le vérifier.")
+    else:
+        document.reviewed_at = timezone.now()
+        document.reviewed_by = request.user
+        document.review_note = form.cleaned_data["note"]
+        document.save(update_fields=["reviewed_at", "reviewed_by", "review_note", "updated_at"])
+        log_activity(request.user, "Document vérifié", document)
+        messages.success(request, "Document marqué comme vérifié dans le portail.")
+    return _redirect_detail("accounting:document_detail", pk, request)
