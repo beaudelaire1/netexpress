@@ -60,12 +60,15 @@ Variables spécifiques :
 ```env
 PROCESS_TYPE=worker
 RUN_MIGRATIONS_ON_START=false
+CELERY_QUEUES=celery,messaging,documents,notifications
 CELERY_LOG_LEVEL=INFO
 CELERY_WORKER_CONCURRENCY=2
 CELERY_MAX_TASKS_PER_CHILD=200
 ```
 
 Ne pas attribuer de domaine ni de port public au worker. Les formulaires NetExpress utilisent déjà des tâches Celery ; Redis sans worker ne constitue donc pas une architecture complète.
+
+Les routes Celery existantes envoient les tâches métier vers les files `messaging`, `documents` et `notifications`. Le worker doit donc consommer explicitement ces files, en plus de la file `celery` par défaut. Ne pas retirer une file de `CELERY_QUEUES` sans avoir d'abord vérifié qu'aucune tâche n'y est routée.
 
 ## 5. Variables obligatoires
 
