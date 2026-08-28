@@ -1,15 +1,9 @@
-// quote_admin.js — logique d'édition des devis (back-office)
-// Module ES6 chargé sur la page d'édition des devis.
-//
-// Responsabilités :
-// - Calculer les totaux HT / TVA / TTC en temps réel.
-// - Gérer l'ajout / suppression de lignes de devis.
-// - Pré-remplir la description lorsqu'un service est sélectionné via fetch JSON.
+// quote_admin.js — édition structurée des lignes de devis NetExpress.
 
 function parseNumber(value) {
-  const v = String(value || "").replace(/\s/g, "").replace(",", ".");
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+  const normalized = String(value || "").replace(/\s/g, "").replace(",", ".");
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
 }
 
 function formatCurrency(value) {
@@ -20,12 +14,19 @@ function formatCurrency(value) {
   }).format(value);
 }
 
+function rowIsDeleted(row) {
+  const deleteField = row.querySelector("input[type='checkbox'][name$='-DELETE']");
+  return Boolean(deleteField?.checked);
+}
+
 function recalcTotals() {
   const rows = document.querySelectorAll("tr.quote-item-row");
   let totalHt = 0;
   let totalTva = 0;
 
   rows.forEach((row) => {
+    if (rowIsDeleted(row)) return;
+
     const qtyInput = row.querySelector(".js-quantity");
     const unitInput = row.querySelector(".js-unit-price");
     const taxInput = row.querySelector(".js-tax-rate");
@@ -33,21 +34,18 @@ function recalcTotals() {
 
     if (!qtyInput || !unitInput || !taxInput || !cellTotalHt) return;
 
-    const qty = parseNumber(qtyInput.value);
-    const unit = parseNumber(unitInput.value);
-    const tax = parseNumber(taxInput.value);
-
-    const lineHt = qty * unit;
-    const lineTva = lineHt * (tax / 100);
+    const quantity = parseNumber(qtyInput.value);
+    const unitPrice = parseNumber(unitInput.value);
+    const taxRate = parseNumber(taxInput.value);
+    const lineHt = quantity * unitPrice;
+    const lineTva = lineHt * (taxRate / 100);
 
     totalHt += lineHt;
     totalTva += lineTva;
-
     cellTotalHt.textContent = formatCurrency(lineHt);
   });
 
   const totalTtc = totalHt + totalTva;
-
   const htDisplay = document.getElementById("total-ht-display");
   const tvaDisplay = document.getElementById("total-tva-display");
   const ttcDisplay = document.getElementById("total-ttc-display");
@@ -67,9 +65,8 @@ function attachRowEvents(row) {
 
   [qtyInput, unitInput, taxInput].forEach((input) => {
     if (!input) return;
-    ["input", "change"].forEach((evt) => {
-      input.addEventListener(evt, recalcTotals);
-    });
+    input.addEventListener("input", recalcTotals);
+    input.addEventListener("change", recalcTotals);
   });
 
   if (removeBtn) {
@@ -77,7 +74,7 @@ function attachRowEvents(row) {
       const deleteField = row.querySelector("input[type='checkbox'][name$='-DELETE']");
       if (deleteField) {
         deleteField.checked = true;
-        row.style.display = "none";
+        row.hidden = true;
       } else {
         row.remove();
       }
@@ -94,37 +91,53 @@ function attachRowEvents(row) {
       const baseUrl = table?.getAttribute("data-service-info-url");
       if (!baseUrl) return;
 
-      // L'URL est de la forme /devis/service/0/ — on remplace 0 par l'id
-      const url = baseUrl.replace(/0\/?$/, String(serviceId) + "/");
-
+      const url = baseUrl.replace(/0\/?$/, `${serviceId}/`);
       fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then((resp) => (resp.ok ? resp.json() : null))
+        .then((response) => (response.ok ? response.json() : null))
         .then((data) => {
-          if (!data) return;
-          if (!descriptionInput.value) {
+          if (data && !descriptionInput.value) {
             descriptionInput.value = data.title || "";
           }
         })
         .catch(() => {
-          // En cas d'erreur, on ne bloque pas l'utilisateur.
+          // Le préremplissage est une aide : une panne réseau ne bloque pas la saisie.
         });
     });
   }
 }
 
+function buildRowFromTemplate(formIndex) {
+  const template = document.getElementById("quote-item-template");
+  if (!(template instanceof HTMLTemplateElement)) return null;
+
+  const fragment = template.content.cloneNode(true);
+  const row = fragment.querySelector("tr.quote-item-row");
+  if (!row) return null;
+
+  row.querySelectorAll("input, select, textarea, label").forEach((element) => {
+    ["name", "id", "for"].forEach((attribute) => {
+      const value = element.getAttribute(attribute);
+      if (value) {
+        element.setAttribute(attribute, value.replace(/__prefix__/g, String(formIndex)));
+      }
+    });
+  });
+
+  const deleteField = row.querySelector("input[type='checkbox'][name$='-DELETE']");
+  if (deleteField) deleteField.checked = false;
+  return row;
+}
+
 function setupAddLineButton() {
   const addBtn = document.getElementById("add-line-btn");
   const tbody = document.getElementById("quote-items-body");
-  const totalFormsInput = tbody?.querySelector("input[name$='-TOTAL_FORMS']");
+  const totalFormsInput = document.querySelector("input[name$='-TOTAL_FORMS']");
   if (!addBtn || !tbody || !totalFormsInput) return;
 
   const managementPrefix = totalFormsInput.name.replace("-TOTAL_FORMS", "");
 
   addBtn.addEventListener("click", () => {
-    const maxFormsInput = document.querySelector(
-      `input[name='${managementPrefix}-MAX_NUM_FORMS']`
-    );
-
+    const maxFormsInput = document.querySelector(`input[name='${managementPrefix}-MAX_NUM_FORMS']`);
     const totalForms = parseInt(totalFormsInput.value, 10) || 0;
     const maxForms = maxFormsInput ? parseInt(maxFormsInput.value, 10) || 1000 : 1000;
 
@@ -133,34 +146,10 @@ function setupAddLineButton() {
       return;
     }
 
-    const templateRow = tbody.querySelector("tr.quote-item-row");
-    if (!templateRow) return;
+    const newRow = buildRowFromTemplate(totalForms);
+    if (!newRow) return;
 
-    const newRow = templateRow.cloneNode(true);
-    const regex = new RegExp(`${managementPrefix}-(\\d+)-`, "g");
-
-    newRow.querySelectorAll("input, select").forEach((el) => {
-      if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement)) return;
-      if (el.name) {
-        el.name = el.name.replace(regex, `${managementPrefix}-${totalForms}-`);
-      }
-      if (el.id) {
-        el.id = el.id.replace(regex, `${managementPrefix}-${totalForms}-`);
-      }
-
-      if (el.type === "checkbox") {
-        el.checked = false;
-      } else {
-        el.value = "";
-      }
-    });
-
-    // Les champs cachés DELETE doivent être décochés
-    const deleteField = newRow.querySelector("input[type='checkbox'][name$='-DELETE']");
-    if (deleteField) {
-      deleteField.checked = false;
-    }
-
+    document.getElementById("quote-empty-state")?.remove();
     tbody.appendChild(newRow);
     attachRowEvents(newRow);
     totalFormsInput.value = String(totalForms + 1);
@@ -169,12 +158,9 @@ function setupAddLineButton() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("tr.quote-item-row").forEach((row) => {
-    attachRowEvents(row);
-  });
+  document.querySelectorAll("tr.quote-item-row").forEach((row) => attachRowEvents(row));
   setupAddLineButton();
   recalcTotals();
 });
 
-// Export vide pour que le fichier soit traité comme module sans polluer le scope global.
 export {};
