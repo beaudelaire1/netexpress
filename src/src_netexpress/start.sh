@@ -26,8 +26,12 @@ case "$PROCESS_TYPE" in
     ;;
 
   worker)
+    # CELERY_TASK_ROUTES répartit actuellement les tâches sur les files
+    # messaging, documents et notifications. Un worker limité à la file
+    # Celery par défaut laisserait donc ces tâches en attente indéfiniment.
     exec celery -A netexpress worker \
       --hostname="worker@%h" \
+      --queues="${CELERY_QUEUES:-celery,messaging,documents,notifications}" \
       --loglevel="${CELERY_LOG_LEVEL:-INFO}" \
       --concurrency="${CELERY_WORKER_CONCURRENCY:-2}" \
       --max-tasks-per-child="${CELERY_MAX_TASKS_PER_CHILD:-200}"
