@@ -1,14 +1,20 @@
 """Formulaires pour la soumission de devis."""
 
+import logging
 from decimal import Decimal
 from typing import Optional
 
 from django import forms
+from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 
 from core.forms import HoneypotMixin, validate_uploaded_images
+from core.services.pdf_generator import render_quote_pdf
 from services.models import Service
 from .models import Client, Quote, QuoteRequest, QuoteRequestPhoto, QuoteItem
+
+logger = logging.getLogger(__name__)
+
 
 class MultiFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -76,7 +82,6 @@ class DevisForm(HoneypotMixin, forms.Form):
             }
         ),
     )
-
     address = forms.CharField(
         label="Adresse",
         max_length=255,
@@ -88,7 +93,6 @@ class DevisForm(HoneypotMixin, forms.Form):
             }
         ),
     )
-
     preferred_date = forms.DateField(
         label="Date souhaitée (optionnel)",
         required=False,
@@ -111,16 +115,15 @@ class DevisForm(HoneypotMixin, forms.Form):
         ),
     )
 
-    # Champs supplémentaires pour correspondre au cahier des charges 2025.
     SERVICE_TYPES = [
         ("nettoyage", "Nettoyage"),
         ("espaces_verts", "Espaces verts"),
         ("renovation", "Rénovation"),
     ]
     URGENCY_LEVELS = [
-        ("standard", "Standard (sous 1 semaine)"),
-        ("express", "Express (48 h)"),
-        ("immediat", "Immédiat (24 h)"),
+        ("standard", "Standard (sous 1 semaine)"),
+        ("express", "Express (48 h)"),
+        ("immediat", "Immédiat (24 h)"),
     ]
 
     service_type = forms.ChoiceField(
@@ -130,14 +133,12 @@ class DevisForm(HoneypotMixin, forms.Form):
             attrs={"class": "select", "required": True, "aria-required": "true"}
         ),
     )
-
     surface = forms.IntegerField(
         label="Surface (m²)",
         min_value=1,
         widget=forms.HiddenInput(),
         required=False,
     )
-
     urgency = forms.ChoiceField(
         label="Urgence",
         choices=URGENCY_LEVELS,
@@ -156,41 +157,33 @@ class DevisForm(HoneypotMixin, forms.Form):
         return self.cleaned_data.get("images")
 
     def save(self) -> Quote:
-        """Crée un ``Client`` et un ``Quote`` à partir des données du formulaire."""
+        """Crée un client et un devis à partir des données du formulaire public."""
+
         cleaned = self.cleaned_data
         service: Optional[Service] = cleaned.get("service")  # type: ignore[assignment]
 
-        # Construit le message final en incluant les champs personnalisés si fournis
         message = cleaned.get("message", "")
         extra_lines = []
-        # Ajout de la surface
         surface_val = cleaned.get("surface")
         if surface_val:
-            extra_lines.append(f"Surface : {surface_val} m²")
-        # Ajout de l'urgence
+            extra_lines.append(f"Surface : {surface_val} m²")
         urgency_val = cleaned.get("urgency")
         if urgency_val:
-            # Convertit la clé en libellé pour l'enregistrement
             urgency_label = dict(self.URGENCY_LEVELS).get(urgency_val, urgency_val)
-            extra_lines.append(f"Urgence : {urgency_label}")
-        # Ajout du type de service
+            extra_lines.append(f"Urgence : {urgency_label}")
         service_type_val = cleaned.get("service_type")
         if service_type_val:
             service_label = dict(self.SERVICE_TYPES).get(service_type_val, service_type_val)
-            extra_lines.append(f"Type de service : {service_label}")
-        # Préfixe le message si des informations supplémentaires sont présentes
+            extra_lines.append(f"Type de service : {service_label}")
         if extra_lines:
             message = "\n".join(extra_lines) + "\n\n" + message
 
-        # Infos complémentaires client (sans migration modèle)
         address_val = cleaned.get("address")
         if address_val:
             message = f"Adresse : {address_val}\n" + message
         preferred_date_val = cleaned.get("preferred_date")
         if preferred_date_val:
             message = f"Date souhaitée : {preferred_date_val}\n" + message
-        
-
 
         client = Client.objects.create(
             full_name=cleaned["full_name"],
@@ -209,14 +202,22 @@ class DevisForm(HoneypotMixin, forms.Form):
             total_ttc=Decimal("0.00"),
         )
 
-        if hasattr(quote, "compute_totals") and callable(getattr(quote, "compute_totals")):
-            quote.compute_totals()  # type: ignore[call-arg]
+        quote.compute_totals()
 
-        if hasattr(quote, "generate_pdf") and callable(getattr(quote, "generate_pdf")):
-            try:
-                quote.generate_pdf(attach=True)  # type: ignore[call-arg]
-            except ImportError:
-                pass
+        # Une seule chaîne de rendu pour tous les devis : WeasyPrint + pdf/quote.html.
+        # L'ancien Quote.generate_pdf() ReportLab reste compatible avec le modèle,
+        # mais n'est plus utilisé dans le parcours public.
+        try:
+            pdf_result = render_quote_pdf(quote)
+            quote.pdf.save(
+                pdf_result.filename,
+                ContentFile(pdf_result.content),
+                save=True,
+            )
+        except Exception:
+            # La demande reste enregistrée même si la génération documentaire échoue.
+            # L'erreur est tracée afin d'être visible en exploitation.
+            logger.exception("Échec de génération du PDF pour le devis %s", quote.pk)
 
         return quote
 
@@ -256,11 +257,19 @@ class QuoteRequestForm(HoneypotMixin, forms.ModelForm):
 
 
 class QuoteAdminForm(forms.ModelForm):
-    """Formulaire d'édition des métadonnées d'un devis côté back‑office."""
+    """Formulaire d'édition des métadonnées d'un devis côté back-office."""
 
     class Meta:
         model = Quote
-        fields = ["client", "quote_request", "status", "issue_date", "valid_until", "message", "notes"]
+        fields = [
+            "client",
+            "quote_request",
+            "status",
+            "issue_date",
+            "valid_until",
+            "message",
+            "notes",
+        ]
 
 
 class QuoteItemForm(forms.ModelForm):
