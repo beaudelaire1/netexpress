@@ -28,6 +28,12 @@ def _share(count, total):
     return round((count / total) * 100)
 
 
+def _reviewable_purchases(purchases):
+    """Purchases the cabinet can actually process right now."""
+    incomplete_ids = incomplete_purchases(purchases).values("pk")
+    return purchases.filter(reviewed_at__isnull=True).exclude(pk__in=incomplete_ids)
+
+
 @accounting_required
 def dashboard(request):
     form, sales, purchases = filtered(request)
@@ -51,14 +57,15 @@ def dashboard(request):
 
     totals["net_sales"] = totals["sales"] - totals["credits"]
     totals["purchases"] = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal(0)
-    totals["pending_purchases"] = purchases.filter(reviewed_at__isnull=True).count()
     totals["incomplete_purchases"] = incomplete_purchases(purchases).count()
+    totals["pending_purchases"] = _reviewable_purchases(purchases).count()
     totals["documents"] = documents.count()
     totals["quotes"] = quotes.count()
     totals["pending_documents"] = documents.filter(reviewed_at__isnull=True).count()
     totals["pending"] = totals["pending_sales"] + totals["pending_purchases"] + totals["pending_documents"]
+    totals["unresolved"] = totals["pending"] + totals["incomplete_purchases"]
     totals["count"] = sales.count() + purchases.count() + totals["documents"]
-    totals["reviewed"] = max(totals["count"] - totals["pending"], 0)
+    totals["reviewed"] = max(totals["count"] - totals["unresolved"], 0)
     totals["progress"] = round((totals["reviewed"] / totals["count"]) * 100) if totals["count"] else 100
     totals["overdue_purchases"] = purchases.filter(
         paid_on__isnull=True,
@@ -72,7 +79,7 @@ def dashboard(request):
             "share": _share(totals["pending_sales"], totals["pending"]),
         },
         {
-            "label": "Factures fournisseurs",
+            "label": "Factures fournisseurs prêtes",
             "count": totals["pending_purchases"],
             "share": _share(totals["pending_purchases"], totals["pending"]),
         },
@@ -130,5 +137,35 @@ def sales(request):
             form=form,
             page=page,
             pending_only=pending_only,
+        ),
+    )
+
+
+@accounting_required
+def suppliers(request):
+    """Purchase list with mutually exclusive 'reviewable' and 'incomplete' queues."""
+    form, _, purchases = filtered(request)
+    pending_only = request.GET.get("pending") == "1"
+    incomplete_only = request.GET.get("incomplete") == "1"
+
+    if incomplete_only:
+        purchases = incomplete_purchases(purchases)
+    elif pending_only:
+        purchases = _reviewable_purchases(purchases)
+
+    total = purchases.aggregate(total=Sum("total_ttc"))["total"] or Decimal(0)
+    incomplete_count = incomplete_purchases(purchases).count()
+
+    return render(
+        request,
+        "accounting/suppliers.html",
+        page_context(
+            request,
+            form=form,
+            total=total,
+            incomplete_count=incomplete_count,
+            pending_only=pending_only,
+            incomplete_only=incomplete_only,
+            page=Paginator(purchases.select_related("created_by"), 40).get_page(request.GET.get("page")),
         ),
     )
