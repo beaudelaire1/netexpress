@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="{% static 'css/accounting-enhancements.css' %}">
 <link rel="stylesheet" href="{% static 'css/accounting-ux-fixes.css' %}">
 <link rel="stylesheet" href="{% static 'css/accounting-exchanges.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounting-search.css' %}">
 <script src="{% static 'js/accounting.js' %}" defer></script>
 <script src="{% static 'js/accounting-exchanges.js' %}" defer></script>
 </head>
@@ -29,6 +30,17 @@
   </div>
   <nav class="portal-tools" aria-label="Navigation du compte">
     {% if accounting_admin %}<a class="back-dashboard" href="{% url 'core:admin_dashboard' %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Tableau de bord</span></a>{% endif %}
+    <details class="accounting-search-menu">
+      <summary aria-label="Rechercher dans l’espace comptable"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>Rechercher</span></summary>
+      <form class="accounting-search-popover" method="get" action="{% url 'accounting:search' %}" role="search">
+        <label for="accounting-quick-search">Rechercher dans tout l’espace comptable</label>
+        <div class="quick-search-row">
+          <input id="accounting-quick-search" type="search" name="q" value="{% if request.resolver_match.url_name == 'search' %}{{ request.GET.q }}{% endif %}" maxlength="100" placeholder="Facture, client, fournisseur, document…">
+          <button class="button" type="submit" aria-label="Lancer la recherche"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </div>
+        <a href="{% url 'accounting:search' %}">Recherche avancée et filtres →</a>
+      </form>
+    </details>
     <details class="accounting-collab-menu">
       <summary aria-label="Actions de collaboration"><i class="fa-regular fa-comments" aria-hidden="true"></i><span>Collaborer</span>{% if exchange_nav.unread %}<b>{{ exchange_nav.unread }}</b>{% endif %}</summary>
       <div class="accounting-collab-panel">
@@ -57,6 +69,7 @@
   <p class="eyebrow">COMPTABILITÉ</p>
   <nav aria-label="Comptabilité">
     <a href="{% url 'accounting:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Vue d’ensemble</a>
+    <a href="{% url 'accounting:search' %}" {% if request.resolver_match.url_name == 'search' %}aria-current="page"{% endif %}><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Recherche</a>
     <a href="{% url 'accounting:sales' %}" {% if '/ventes/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-file-invoice" aria-hidden="true"></i> Factures clients</a>
     <a href="{% url 'accounting:suppliers' %}" {% if '/achats/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-receipt" aria-hidden="true"></i> Factures fournisseurs</a>
     <a href="{% url 'accounting:documents' %}" {% if '/documents/' in request.path %}aria-current="page"{% endif %}><i class="fa-solid fa-folder-open" aria-hidden="true"></i> Autres documents</a>

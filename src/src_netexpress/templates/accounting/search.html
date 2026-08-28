@@ -1,0 +1,144 @@
+{% extends 'accounting/base.html' %}
+{% block title %}Recherche comptable{% endblock %}
+{% block content %}
+<div class="page-heading accounting-search-heading">
+  <div>
+    <p class="eyebrow">RECHERCHE TRANSVERSALE</p>
+    <h1>Retrouver une pièce ou un échange</h1>
+    <p class="subtitle">Recherchez sans connaître à l’avance la rubrique : numéro de facture, client, fournisseur, référence, document ou contenu d’un échange.</p>
+  </div>
+</div>
+
+<form method="get" class="accounting-global-search" role="search" aria-label="Recherche dans l’espace comptable">
+  <div class="accounting-global-query">
+    <label for="accounting-search-q">Recherche</label>
+    <div class="accounting-search-control">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input id="accounting-search-q" type="search" name="q" value="{{ query }}" maxlength="100" placeholder="FAC-2026-014, client, fournisseur, mot-clé…">
+    </div>
+  </div>
+  <div>
+    <label for="accounting-search-scope">Dans</label>
+    <select id="accounting-search-scope" name="scope">
+      {% for value,label in scopes %}<option value="{{ value }}" {% if scope == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="accounting-search-from">Du</label>
+    <input id="accounting-search-from" type="date" name="date_from" value="{{ raw_date_from }}">
+  </div>
+  <div>
+    <label for="accounting-search-to">Au</label>
+    <input id="accounting-search-to" type="date" name="date_to" value="{{ raw_date_to }}">
+  </div>
+  <div class="accounting-global-actions">
+    <button class="button" type="submit"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Rechercher</button>
+    {% if filters_active %}<a class="button secondary" href="{% url 'accounting:search' %}">Réinitialiser</a>{% endif %}
+  </div>
+</form>
+
+{% if filter_error %}<div class="notice error" role="alert">{{ filter_error }}</div>{% endif %}
+
+{% if not filter_error %}
+<div class="accounting-search-summary">
+  <div>
+    <strong>{{ total_count }}</strong>
+    <span>résultat{{ total_count|pluralize }}{% if query %} pour « {{ query }} »{% endif %}</span>
+  </div>
+  <nav aria-label="Répartition des résultats">
+    <a href="{% querystring scope='sales' %}">Clients <b>{{ counts.sales }}</b></a>
+    <a href="{% querystring scope='suppliers' %}">Fournisseurs <b>{{ counts.suppliers }}</b></a>
+    <a href="{% querystring scope='documents' %}">Documents <b>{{ counts.documents }}</b></a>
+    <a href="{% querystring scope='exchanges' %}">Échanges <b>{{ counts.exchanges }}</b></a>
+  </nav>
+</div>
+
+{% if scope == 'all' or scope == 'sales' %}
+<section class="accounting-result-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">VENTES</p><h2>Factures clients <span>{{ counts.sales }}</span></h2></div>
+    <a href="{% url 'accounting:sales' %}{% if query %}?q={{ query|urlencode }}{% endif %}">Ouvrir la liste →</a>
+  </div>
+  <div class="accounting-result-list">
+    {% for invoice in result.sales %}
+    <a class="accounting-result-card" href="{% url 'accounting:invoice_detail' invoice.pk %}">
+      <span class="accounting-result-icon"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></span>
+      <span class="accounting-result-main"><strong>{{ invoice.number }}</strong><small>{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }}</small></span>
+      <span class="accounting-result-value">{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €<small>{{ invoice.get_status_display }}</small></span>
+      <span class="badge {% if invoice.accounting_checked %}done{% else %}pending{% endif %}">{% if invoice.accounting_checked %}Contrôlé{% else %}À contrôler{% endif %}</span>
+    </a>
+    {% empty %}<div class="accounting-result-empty">Aucune facture client ne correspond à cette recherche.</div>{% endfor %}
+  </div>
+  {% if counts.sales > result_limit %}<p class="accounting-result-more">Les {{ result_limit }} premiers résultats sont affichés. Affinez la recherche ou ouvrez la liste complète.</p>{% endif %}
+</section>
+{% endif %}
+
+{% if scope == 'all' or scope == 'suppliers' %}
+<section class="accounting-result-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">ACHATS</p><h2>Factures fournisseurs <span>{{ counts.suppliers }}</span></h2></div>
+    <a href="{% url 'accounting:suppliers' %}{% if query %}?q={{ query|urlencode }}{% endif %}">Ouvrir la liste →</a>
+  </div>
+  <div class="accounting-result-list">
+    {% for purchase in result.suppliers %}
+    <a class="accounting-result-card" href="{% url 'accounting:supplier_detail' purchase.pk %}">
+      <span class="accounting-result-icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
+      <span class="accounting-result-main"><strong>{{ purchase.display_name }}</strong><small>{{ purchase.reference|default:'Référence à compléter' }} · {{ purchase.issue_date|date:'d/m/Y'|default:'Date à renseigner' }}</small></span>
+      <span class="accounting-result-value">{% if purchase.total_ttc != None %}{{ purchase.total_ttc|floatformat:2 }} €{% else %}—{% endif %}<small>{{ purchase.get_category_display }}</small></span>
+      <span class="badge {% if purchase.reviewed_at %}done{% else %}pending{% endif %}">{% if purchase.reviewed_at %}Contrôlé{% elif purchase.is_complete %}À contrôler{% else %}Brouillon{% endif %}</span>
+    </a>
+    {% empty %}<div class="accounting-result-empty">Aucune facture fournisseur ne correspond à cette recherche.</div>{% endfor %}
+  </div>
+  {% if counts.suppliers > result_limit %}<p class="accounting-result-more">Les {{ result_limit }} premiers résultats sont affichés. Affinez la recherche ou ouvrez la liste complète.</p>{% endif %}
+</section>
+{% endif %}
+
+{% if scope == 'all' or scope == 'documents' %}
+<section class="accounting-result-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">DOSSIER</p><h2>Autres documents <span>{{ counts.documents }}</span></h2></div>
+    <a href="{% url 'accounting:documents' %}{% if query %}?q={{ query|urlencode }}{% endif %}">Ouvrir la liste →</a>
+  </div>
+  <div class="accounting-result-list">
+    {% for document in result.documents %}
+    <a class="accounting-result-card" href="{% url 'accounting:document_detail' document.pk %}">
+      <span class="accounting-result-icon"><i class="fa-regular fa-folder-open" aria-hidden="true"></i></span>
+      <span class="accounting-result-main"><strong>{{ document.title }}</strong><small>{{ document.get_kind_display }} · {{ document.document_date|date:'d/m/Y' }}</small></span>
+      <span class="accounting-result-value"><small>Déposé par</small>{{ document.created_by.get_full_name|default:document.created_by.username|default:'Compte supprimé' }}</span>
+      <span class="badge {% if document.reviewed_at %}done{% else %}pending{% endif %}">{% if document.reviewed_at %}Vérifié{% else %}À vérifier{% endif %}</span>
+    </a>
+    {% empty %}<div class="accounting-result-empty">Aucun document ne correspond à cette recherche.</div>{% endfor %}
+  </div>
+  {% if counts.documents > result_limit %}<p class="accounting-result-more">Les {{ result_limit }} premiers résultats sont affichés. Affinez la recherche ou ouvrez la liste complète.</p>{% endif %}
+</section>
+{% endif %}
+
+{% if scope == 'all' or scope == 'exchanges' %}
+<section class="accounting-result-section">
+  <div class="section-heading">
+    <div><p class="eyebrow">COLLABORATION</p><h2>Échanges <span>{{ counts.exchanges }}</span></h2></div>
+    <a href="{% url 'accounting:exchanges' %}{% if query %}?q={{ query|urlencode }}{% endif %}">Ouvrir les échanges →</a>
+  </div>
+  <div class="accounting-result-list">
+    {% for exchange in result.exchanges %}
+    <a class="accounting-result-card" href="{% url 'accounting:exchange_detail' exchange.pk %}">
+      <span class="accounting-result-icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
+      <span class="accounting-result-main"><strong>{{ exchange.subject }}</strong><small>{% if exchange.search_context %}{{ exchange.search_context.kind }} · {{ exchange.search_context.reference }} · {% endif %}{{ exchange.last_activity_at|date:'d/m/Y H:i' }}</small></span>
+      <span class="accounting-result-value"><small>{{ exchange.get_kind_display }}</small>{{ exchange.get_priority_display }}</span>
+      <span class="exchange-status status-{{ exchange.status }}">{{ exchange.get_status_display }}</span>
+    </a>
+    {% empty %}<div class="accounting-result-empty">Aucun échange ne correspond à cette recherche.</div>{% endfor %}
+  </div>
+  {% if counts.exchanges > result_limit %}<p class="accounting-result-more">Les {{ result_limit }} premiers résultats sont affichés. Affinez la recherche ou ouvrez la liste complète.</p>{% endif %}
+</section>
+{% endif %}
+
+{% if not total_count %}
+<div class="accounting-search-empty">
+  <span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span>
+  <h2>Aucun résultat</h2>
+  <p>Essayez un numéro de pièce, le nom du client ou du fournisseur, une référence ou un terme présent dans un échange.</p>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}
