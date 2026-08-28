@@ -1,13 +1,13 @@
 from django.urls import path
-from . import views
+from . import views, workspace
 
 app_name = "accounting"
 urlpatterns = [
-    path("", views.dashboard, name="dashboard"),
+    path("", workspace.dashboard, name="dashboard"),
     path("devis/", views.quotes, name="quotes"),
     path("devis/<int:pk>/", views.quote_detail, name="quote_detail"),
     path("devis/<int:pk>/pdf/", views.quote_pdf, name="quote_pdf"),
-    path("ventes/", views.sales, name="sales"),
+    path("ventes/", workspace.sales, name="sales"),
     path("ventes/<int:pk>/", views.invoice_detail, name="invoice_detail"),
     path("ventes/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
     path("ventes/<int:pk>/controle/", views.review_invoice, name="review_invoice"),
