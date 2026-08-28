@@ -45,7 +45,7 @@
       {% endif %}
     </div>
     <div class="total-chip">
-      <span class="total-chip-label">Net à payer</span>
+      <span class="total-chip-label">{% if invoice.is_credit_note %}Total de l’avoir{% else %}Net à payer{% endif %}</span>
       <span class="total-chip-value">{{ invoice.total_ttc|floatformat:2 }} €</span>
     </div>
   </section>
@@ -123,7 +123,7 @@
     </div>
   </section>
 
-  {% if invoice.payment_terms or branding.payment_terms or branding.iban or branding.bic %}
+  {% if invoice.payment_terms or branding.payment_terms or branding.bank_account_name or branding.iban or branding.bic %}
   <section class="content-section information-grid">
     {% if invoice.payment_terms or branding.payment_terms %}
     <article class="info-card">
@@ -131,9 +131,10 @@
       <p>{% if invoice.payment_terms %}{{ invoice.payment_terms|linebreaksbr }}{% else %}{{ branding.payment_terms|linebreaksbr }}{% endif %}</p>
     </article>
     {% endif %}
-    {% if branding.iban or branding.bic %}
-    <article class="info-card">
+    {% if branding.bank_account_name or branding.iban or branding.bic %}
+    <article class="info-card bank-card">
       <h3>Coordonnées bancaires</h3>
+      {% if branding.bank_account_name %}<div class="bank-row"><span class="bank-label">Titulaire</span><span class="bank-value">{{ branding.bank_account_name }}</span></div>{% endif %}
       {% if branding.iban %}<div class="bank-row"><span class="bank-label">IBAN</span><span class="bank-value">{{ branding.iban }}</span></div>{% endif %}
       {% if branding.bic %}<div class="bank-row"><span class="bank-label">BIC</span><span class="bank-value">{{ branding.bic }}</span></div>{% endif %}
     </article>

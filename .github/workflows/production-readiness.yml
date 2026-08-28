@@ -1,0 +1,95 @@
+name: Production readiness
+
+on:
+  pull_request:
+    paths:
+      - 'src/src_netexpress/Dockerfile'
+      - 'src/src_netexpress/start.sh'
+      - 'src/src_netexpress/deploy/**'
+      - 'src/src_netexpress/netexpress/settings/**'
+      - 'src/src_netexpress/core/management/commands/deploy_migrate.py'
+      - 'src/src_netexpress/templates/pdf/**'
+      - 'src/src_netexpress/static/css/pdf*.css'
+      - 'src/src_netexpress/tests/test_production_readiness.py'
+      - 'src/src_netexpress/.env.example'
+      - '.github/workflows/production-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: netexpress
+          POSTGRES_USER: netexpress
+          POSTGRES_PASSWORD: ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U netexpress -d netexpress"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SETTINGS_MODULE: netexpress.settings.test
+      DJANGO_SECRET_KEY: 'Q7!4vN2#zL9@xK6$pR1&mT8*eW5_yC3+uF0=hJ7%qS4!dB9'
+      SITE_URL: https://example.test
+      DATABASE_URL: postgresql://netexpress:ci-password@127.0.0.1:5432/netexpress
+      REDIS_URL: redis://127.0.0.1:6379/0
+      BREVO_API_KEY: ci-brevo-key
+      DEFAULT_FROM_EMAIL: ci@example.test
+      TURNSTILE_SITE_KEY: ci-turnstile-site
+      TURNSTILE_SECRET_KEY: ci-turnstile-secret
+      COMPANY_SIRET: '000 000 000 00000'
+      BANK_ACCOUNT_NAME: NetExpress CI
+      BANK_ACCOUNT_NUMBER: GB82 WEST 1234 5698 7654 32
+      COMPANY_BIC: DEUTDEFF
+
+    defaults:
+      run:
+        working-directory: src/src_netexpress
+
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v4
+
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: src/src_netexpress/requirements/*.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements/dev.txt
+
+      - name: Django migrations consistency
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Production security check
+        env:
+          DJANGO_SETTINGS_MODULE: netexpress.settings.prod
+        run: python manage.py check --deploy --fail-level WARNING
+
+      - name: Production readiness tests
+        run: pytest tests/test_production_readiness.py -q
+
+      - name: Build production Docker image
+        run: docker build --pull -t netexpress-production-readiness .
