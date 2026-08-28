@@ -152,7 +152,7 @@ def test_quote_editor_can_create_first_line_and_recalculate(client):
     assert quote.total_ttc == Decimal("90.00")
 
 
-def test_quote_pdf_responses_are_not_publicly_cacheable(client):
+def test_quote_pdf_responses_are_not_publicly_cacheable(client, monkeypatch):
     quote = make_quote()
     user = User.objects.create_superuser(
         username="pdf-admin",
@@ -161,14 +161,8 @@ def test_quote_pdf_responses_are_not_publicly_cacheable(client):
     )
     client.force_login(user)
 
-    # Le moteur WeasyPrint est volontairement simulé ici : ce test porte sur
-    # la politique HTTP, pas sur les bibliothèques système du runner.
-    original = Quote.generate_pdf
-    Quote.generate_pdf = lambda self, attach=False: b"%PDF-test"
-    try:
-        response = client.get(reverse("devis:download", args=[quote.pk]))
-    finally:
-        Quote.generate_pdf = original
+    monkeypatch.setattr(Quote, "generate_pdf", lambda self, attach=False: b"%PDF-test")
+    response = client.get(reverse("devis:download", args=[quote.pk]))
 
     assert response.status_code == 200
     assert response["Cache-Control"] == "private, no-store"
