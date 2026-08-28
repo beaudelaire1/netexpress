@@ -18,12 +18,14 @@ class Profile(models.Model):
     et la synchronisation des permissions.
     """
 
+    ROLE_ACCOUNTANT = "accountant"
     ROLE_CLIENT = "client"
     ROLE_WORKER = "worker"
     ROLE_ADMIN_BUSINESS = "admin_business"
     ROLE_ADMIN_TECHNICAL = "admin_technical"
 
     ROLE_CHOICES = [
+        (ROLE_ACCOUNTANT, "Comptable"),
         (ROLE_CLIENT, "Client"),
         (ROLE_WORKER, "Ouvrier"),
         (ROLE_ADMIN_BUSINESS, "Administrateur Business"),
@@ -32,6 +34,16 @@ class Profile(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CLIENT)
+    client = models.ForeignKey("devis.Client", null=True, blank=True, on_delete=models.SET_NULL, related_name="portal_profiles")
+    verified_email = models.EmailField(blank=True)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    accounting_firm = models.CharField("Cabinet comptable", max_length=200, blank=True)
+
+    @property
+    def has_verified_email(self):
+        return bool(self.email_verified_at and self.verified_email and
+                    self.verified_email.casefold() == self.user.email.strip().casefold())
+
     phone = models.CharField(max_length=50, blank=True)
     
     # Force password change on first login

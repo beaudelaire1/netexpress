@@ -60,11 +60,8 @@ def create_invoice_from_quote(quote: Union[int, Quote], command_ref: str = "") -
       recalcul éventuel.
     - Le statut du devis est passé à ``INVOICED``.
     """
-    # Normaliser l'entrée
-    if isinstance(quote, int):
-        q = Quote.objects.select_related("client").get(pk=quote)
-    else:
-        q = quote
+    quote_id = quote if isinstance(quote, int) else quote.pk
+    q = Quote.objects.select_for_update().get(pk=quote_id)
 
     # Vérifier le statut
     if q.status != Quote.QuoteStatus.ACCEPTED:
@@ -73,7 +70,7 @@ def create_invoice_from_quote(quote: Union[int, Quote], command_ref: str = "") -
         )
 
     # Vérifier qu'on ne facture pas deux fois le même devis
-    if q.invoices.exists():
+    if Invoice.all_objects.filter(quote=q).exists():
         raise QuoteAlreadyInvoicedError(
             f"Une facture existe déjà pour le devis {q.pk}."
         )
@@ -103,16 +100,15 @@ def create_invoice_from_quote(quote: Union[int, Quote], command_ref: str = "") -
         description = item.description or (
             item.service.title if item.service else ""
         )
-        # InvoiceItem.quantity est un entier ; on arrondit la quantité
-        # du devis à l'entier le plus proche.
-        quantity_int = int(round(Decimal(item.quantity)))
         InvoiceItem.objects.create(
             invoice=invoice,
             description=description,
-            quantity=quantity_int,
+            quantity=item.quantity,
             unit_price=item.unit_price,
             tax_rate=item.tax_rate,
         )
+
+    invoice.compute_totals()
 
     # Mettre à jour le statut du devis
     q.status = Quote.QuoteStatus.INVOICED

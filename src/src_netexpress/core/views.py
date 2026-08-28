@@ -28,20 +28,18 @@ from factures.models import Invoice
 from tasks.models import Task
 from messaging.models import EmailMessage
 from .services.document_service import ClientDocumentService
+from accounts.access import verified_client_id, portal_user_for_client
 from .decorators import client_portal_required, worker_portal_required, admin_portal_required
 
 
 def _get_client_portal_user(client):
     """Return the portal account matching a client email, if any."""
-    return User.objects.filter(email__iexact=client.email).select_related('profile').first()
+    return portal_user_for_client(client)
 
 
 def _get_client_portal_record(user):
     """Return the latest client record linked to the authenticated portal user."""
-    user_email = (getattr(user, "email", "") or "").strip()
-    if not user_email:
-        return None
-    return Client.objects.filter(email__iexact=user_email).order_by("-created_at").first()
+    return Client.objects.filter(pk=verified_client_id(user)).first()
 
 
 def _sum_amount(queryset, field_name):
@@ -1381,7 +1379,7 @@ def admin_clients_list(request):
     search_query = request.GET.get('q', '').strip()
     filter_type = request.GET.get('filter', '')
     
-    portal_user_subquery = User.objects.filter(email__iexact=OuterRef('email'))
+    portal_user_subquery = User.objects.filter(profile__client_id=OuterRef('pk'), profile__role='client')
     revenue_subquery = Invoice.objects.filter(
         quote__client=OuterRef('pk')
     ).values('quote__client').annotate(

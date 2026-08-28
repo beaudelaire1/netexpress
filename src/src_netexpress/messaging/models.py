@@ -11,6 +11,8 @@ le corps, une éventuelle pièce jointe et l'état d'envoi.  La méthode
 from __future__ import annotations
 
 from django.db import models
+from core.storage import private_storage
+from core.file_validation import validate_document
 from django.utils import timezone
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
@@ -58,7 +60,7 @@ class EmailMessage(models.Model):
     subject = models.CharField(max_length=255)
     body = models.TextField(help_text="Contenu HTML généré par les templates prédéfinis.")
     attachment = models.FileField(
-        upload_to="messages/attachments",
+        upload_to="messages/attachments", storage=private_storage, validators=[validate_document],
         blank=True,
         null=True,
         help_text="Fichier à joindre au message, facultatif."

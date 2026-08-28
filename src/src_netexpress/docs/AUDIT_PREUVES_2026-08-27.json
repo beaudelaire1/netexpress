@@ -1,0 +1,1043 @@
+{
+  "audit_date": "2026-08-27",
+  "commit": "685eac927d6211c295bdec76e2d0628ecaa9929f",
+  "branch": "for_prod",
+  "environment": {
+    "os": "Windows",
+    "python": "3.14.2",
+    "django": "5.2.13",
+    "docker_image_target_python": "3.11",
+    "docker_build_tested": false,
+    "application_network_blocked": true,
+    "test_database": "SQLite in-memory"
+  },
+  "reproductions": {
+    "signup": {
+      "http_status": 500,
+      "created": true,
+      "is_superuser": true,
+      "is_staff": true,
+      "login_status": 302,
+      "admin_page_status": 200
+    },
+    "user_profile_creation": {
+      "profile_created_by_signal": false
+    },
+    "login_redirect": {
+      "status": 302,
+      "location": "https://example.invalid/audit"
+    },
+    "unverified_email_access": {
+      "signup_form_valid": true,
+      "can_read_existing_quote": true,
+      "quote_in_queryset": true
+    },
+    "fractional_conversion": {
+      "quote_total": "50.00",
+      "invoice_quantity": 0,
+      "invoice_total_before_recompute": "50.00",
+      "invoice_total_after_recompute": "0.00"
+    },
+    "DEV_numbering": {
+      "error": "IntegrityError",
+      "detail": "UNIQUE constraint failed: devis_quote.number"
+    },
+    "DEV_soft_delete_numbering": {
+      "error": "IntegrityError"
+    },
+    "FAC_numbering": {
+      "error": "IntegrityError",
+      "detail": "UNIQUE constraint failed: factures_invoice.number"
+    },
+    "FAC_soft_delete_numbering": {
+      "error": "IntegrityError"
+    },
+    "celery": {
+      "default_worker_queues": [
+        "celery"
+      ],
+      "contact_task_queue": "notifications"
+    },
+    "healthcheck": {
+      "localhost_http": {
+        "status": 400,
+        "location": null
+      },
+      "domain_http": {
+        "status": 301,
+        "location": "https://nettoyageexpresse.fr/healthz/"
+      },
+      "domain_proxy_https": {
+        "status": 200,
+        "location": null
+      }
+    }
+  },
+  "historical_secrets_redacted": [
+    {
+      "revision": "8eeec91c^",
+      "file": "src/src_netexpress/.env",
+      "readable": true,
+      "variables": [
+        {
+          "variable": "SECRET_KEY",
+          "non_placeholder": false
+        },
+        {
+          "variable": "EMAIL_HOST_PASSWORD",
+          "non_placeholder": false
+        }
+      ]
+    },
+    {
+      "revision": "867f0b2c^",
+      "file": "src/src_netexpress/.env.local",
+      "readable": true,
+      "variables": [
+        {
+          "variable": "DJANGO_SECRET_KEY",
+          "non_placeholder": true
+        },
+        {
+          "variable": "DATABASE_URL",
+          "non_placeholder": false
+        },
+        {
+          "variable": "BREVO_SMTP_PASSWORD",
+          "non_placeholder": true
+        },
+        {
+          "variable": "BREVO_API_KEY",
+          "non_placeholder": true
+        }
+      ]
+    }
+  ],
+  "python_local_installed": {
+    "packages_scanned": 64,
+    "raw_advisories": 55,
+    "distinct_package_advisories": 42,
+    "affected_packages": [
+      {
+        "name": "bleach",
+        "version": "6.3.0",
+        "advisories": [
+          {
+            "id": "GHSA-g75f-g53v-794x",
+            "aliases": [],
+            "fix_versions": []
+          },
+          {
+            "id": "GHSA-gj48-438w-jh9v",
+            "aliases": [],
+            "fix_versions": [
+              "6.4.0"
+            ]
+          },
+          {
+            "id": "GHSA-8rfp-98v4-mmr6",
+            "aliases": [],
+            "fix_versions": [
+              "6.4.0"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "click",
+        "version": "8.3.2",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-2132",
+            "aliases": [
+              "GHSA-47fr-3ffg-hgmw",
+              "CVE-2026-7246"
+            ],
+            "fix_versions": [
+              "8.3.3"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "django",
+        "version": "5.2.13",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-50",
+            "aliases": [
+              "BIT-django-2026-35192",
+              "CVE-2026-35192",
+              "GHSA-7h2m-m8vj-598h"
+            ],
+            "fix_versions": [
+              "5.2.14",
+              "6.0.5"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-55",
+            "aliases": [
+              "CVE-2026-6907",
+              "BIT-django-2026-6907",
+              "GHSA-5hrc-gvxj-w55p"
+            ],
+            "fix_versions": [
+              "5.2.14",
+              "6.0.5"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-54",
+            "aliases": [
+              "GHSA-w26r-rmm8-9c29",
+              "BIT-django-2026-5766",
+              "CVE-2026-5766"
+            ],
+            "fix_versions": [
+              "5.2.14",
+              "6.0.5"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-199",
+            "aliases": [
+              "BIT-django-2026-6873",
+              "GHSA-h7pc-vwp9-298g",
+              "CVE-2026-6873"
+            ],
+            "fix_versions": [
+              "5.2.15",
+              "6.0.6"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-197",
+            "aliases": [
+              "GHSA-qpc8-7fxc-cm4p",
+              "CVE-2026-35193",
+              "BIT-django-2026-35193"
+            ],
+            "fix_versions": [
+              "5.2.15",
+              "6.0.6"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-200",
+            "aliases": [
+              "BIT-django-2026-7666",
+              "CVE-2026-7666",
+              "GHSA-mm6v-q8q9-pgcf"
+            ],
+            "fix_versions": [
+              "5.2.15",
+              "6.0.6"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-198",
+            "aliases": [
+              "GHSA-923m-gv2p-w5qp",
+              "BIT-django-2026-48587",
+              "CVE-2026-48587"
+            ],
+            "fix_versions": [
+              "5.2.15",
+              "6.0.6"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-201",
+            "aliases": [
+              "GHSA-8cjm-8mp7-r2xf",
+              "CVE-2026-8404",
+              "BIT-django-2026-8404"
+            ],
+            "fix_versions": [
+              "5.2.15",
+              "6.0.6"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2090",
+            "aliases": [
+              "CVE-2026-48588",
+              "BIT-django-2026-48588",
+              "GHSA-3h9f-r86x-qvjx"
+            ],
+            "fix_versions": [
+              "5.2.16",
+              "6.0.7"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2092",
+            "aliases": [
+              "BIT-django-2026-53878",
+              "GHSA-8qcx-xf44-272x",
+              "CVE-2026-53878"
+            ],
+            "fix_versions": [
+              "5.2.16",
+              "6.0.7"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2091",
+            "aliases": [
+              "BIT-django-2026-53877",
+              "CVE-2026-53877",
+              "GHSA-crhf-3pfg-w68w"
+            ],
+            "fix_versions": [
+              "5.2.16",
+              "6.0.7"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3717",
+            "aliases": [
+              "CVE-2026-15830"
+            ],
+            "fix_versions": [
+              "5.2.17",
+              "6.0.8"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "idna",
+        "version": "3.11",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-215",
+            "aliases": [
+              "CVE-2026-45409",
+              "GHSA-65pc-fj4g-8rjx"
+            ],
+            "fix_versions": [
+              "3.15"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "pillow",
+        "version": "12.2.0",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-2253",
+            "aliases": [
+              "GHSA-8v84-f9pq-wr9x",
+              "CVE-2026-54059",
+              "BIT-pillow-2026-54059"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2255",
+            "aliases": [
+              "GHSA-45hq-cxwh-f6vc",
+              "CVE-2026-55379",
+              "BIT-pillow-2026-55379"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2257",
+            "aliases": [
+              "GHSA-4x4j-2g7c-83w6",
+              "CVE-2026-55798"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2256",
+            "aliases": [
+              "CVE-2026-55380",
+              "BIT-pillow-2026-55380",
+              "GHSA-phj9-mv4w-65pm"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2254",
+            "aliases": [
+              "BIT-pillow-2026-54060",
+              "CVE-2026-54060",
+              "GHSA-5x94-69rx-g8h2"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3453",
+            "aliases": [
+              "GHSA-9hw9-ch79-4vh6",
+              "CVE-2026-59205",
+              "BIT-pillow-2026-59205"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3451",
+            "aliases": [
+              "GHSA-6r8x-57c9-28j4",
+              "CVE-2026-59199",
+              "BIT-pillow-2026-59199"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3452",
+            "aliases": [
+              "CVE-2026-59203",
+              "GHSA-pg7v-jwj7-p798",
+              "BIT-pillow-2026-59203"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3454",
+            "aliases": [
+              "BIT-pillow-2026-59197",
+              "CVE-2026-59197",
+              "GHSA-xj96-63gp-2gmr"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3495",
+            "aliases": [
+              "BIT-pillow-2026-59200",
+              "GHSA-jjj6-mw9f-p565",
+              "CVE-2026-59200"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3496",
+            "aliases": [
+              "BIT-pillow-2026-59204",
+              "CVE-2026-59204",
+              "GHSA-vjc4-5qp5-m44j"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3494",
+            "aliases": [
+              "BIT-pillow-2026-59198",
+              "GHSA-fj7v-r99m-22gq",
+              "CVE-2026-59198"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3493",
+            "aliases": [
+              "CVE-2026-54058",
+              "GHSA-62p4-gmf7-7g93",
+              "BIT-pillow-2026-54058"
+            ],
+            "fix_versions": [
+              "12.3.0"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "pip",
+        "version": "25.3",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-196",
+            "aliases": [
+              "CVE-2026-8643",
+              "GHSA-wf93-45jw-7689"
+            ],
+            "fix_versions": [
+              "26.1.2"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-1796",
+            "aliases": [
+              "GHSA-6vgw-5pg2-w6jp",
+              "CVE-2026-1703"
+            ],
+            "fix_versions": [
+              "26.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2875",
+            "aliases": [
+              "GHSA-58qw-9mgm-455v",
+              "CVE-2026-3219"
+            ],
+            "fix_versions": [
+              "26.1"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-2876",
+            "aliases": [
+              "GHSA-jp4c-xjxw-mgf9",
+              "CVE-2026-6357"
+            ],
+            "fix_versions": [
+              "26.1"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3721",
+            "aliases": [
+              "CVE-2026-13346"
+            ],
+            "fix_versions": [
+              "26.2"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sqlparse",
+        "version": "0.5.5",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-3698",
+            "aliases": [
+              "CVE-2026-59893",
+              "GHSA-prg7-hcfm-mfcr"
+            ],
+            "fix_versions": [
+              "0.6.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3697",
+            "aliases": [
+              "GHSA-f2ff-p2ww-7p4p",
+              "CVE-2026-71491"
+            ],
+            "fix_versions": [
+              "0.6.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3699",
+            "aliases": [
+              "GHSA-pwgv-4x5q-6m9f",
+              "CVE-2026-54284"
+            ],
+            "fix_versions": [
+              "0.6.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-3696",
+            "aliases": [
+              "GHSA-3496-9g83-7v6x",
+              "CVE-2026-59894"
+            ],
+            "fix_versions": [
+              "0.6.0"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "urllib3",
+        "version": "2.6.3",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-142",
+            "aliases": [
+              "GHSA-mf9v-mfxr-j63j",
+              "CVE-2026-44432"
+            ],
+            "fix_versions": [
+              "2.7.0"
+            ]
+          },
+          {
+            "id": "PYSEC-2026-141",
+            "aliases": [
+              "GHSA-qccp-gfcp-xxvc",
+              "CVE-2026-44431"
+            ],
+            "fix_versions": [
+              "2.7.0"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "weasyprint",
+        "version": "68.1",
+        "advisories": [
+          {
+            "id": "PYSEC-2026-3412",
+            "aliases": [
+              "CVE-2026-49452",
+              "GHSA-jhhc-3hcp-qhm5"
+            ],
+            "fix_versions": []
+          }
+        ]
+      }
+    ]
+  },
+  "python_fresh_prod_resolution_windows_py314": {
+    "packages_scanned": 59,
+    "raw_advisories": 0,
+    "distinct_package_advisories": 0,
+    "affected_packages": []
+  },
+  "npm": {
+    "vulnerability_counts": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 2,
+      "critical": 0,
+      "total": 2
+    },
+    "packages": [
+      {
+        "name": "nanoid",
+        "severity": "high",
+        "range": "<=3.3.17",
+        "fix_available": true,
+        "advisory_urls": [
+          "https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+          "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+        ]
+      },
+      {
+        "name": "postcss",
+        "severity": "high",
+        "range": "<=8.5.22",
+        "fix_available": true,
+        "advisory_urls": [
+          "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+          "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "syntax_python_files": 229,
+    "syntax_errors": 0,
+    "django_check": "passed",
+    "makemigrations_check_dry_run": "passed",
+    "migrate_disposable_sqlite": "passed",
+    "django_check_deploy_synthetic_prod": "passed",
+    "collectstatic_temporary_directory": "passed",
+    "static_files_copied": 475,
+    "pip_check": "passed"
+  },
+  "tests": {
+    "primary": {
+      "status": "stopped_after_time_limit",
+      "duration_seconds": 925,
+      "complete_summary_available": false,
+      "reason": "Full suite exceeded 15 minutes. The separately completed 201-test subset is reported."
+    },
+    "unit_subset": {
+      "status": "failed",
+      "collected": 201,
+      "passed": 131,
+      "failed": 68,
+      "setup_errors": 2,
+      "warnings": 47,
+      "duration_seconds": 50.93,
+      "excluded": [
+        "tests/*properties.py",
+        "tests/test_role_based_access.py"
+      ],
+      "failures": [
+        {
+          "test": "tests.test_admin_portal_units.TestAdminDashboardKPIs.test_conversion_rate_calculation",
+          "kind": "failure",
+          "message": "AssertionError: 0.0 != 66.66666666666666 within 1 places (66.66666666666666 difference)"
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminDashboardKPIs.test_revenue_calculations",
+          "kind": "failure",
+          "message": "AssertionError: Decimal('0.0') != Decimal('100.00')"
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminDashboardKPIs.test_task_completion_rate_calculation",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminDashboardKPIs.test_worker_performance_stats",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminTaskCreationFlow.test_admin_create_task_page_includes_company_siret",
+          "kind": "failure",
+          "message": "AssertionError: '' is not true"
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminGlobalPlanningView.test_date_range_filtering",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminGlobalPlanningView.test_status_distribution_calculation",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminGlobalPlanningView.test_unassigned_tasks_identification",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminGlobalPlanningView.test_worker_planning_organization",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminGlobalPlanningView.test_workload_percentage_calculation",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminPortalAccessControl.test_admin_portal_comprehensive_data_access",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_admin_portal_units.TestAdminPortalAccessControl.test_document_validation_functionality",
+          "kind": "failure",
+          "message": "AssertionError: <Quote: Devis DEV-2026-001 pour Test Client> not found in []"
+        },
+        {
+          "test": "tests.test_admin_worker_creation.TestAdministratorOnlyWorkerCreation.test_django_admin_permission_system",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_admin_worker_creation.TestAdministratorOnlyWorkerCreation.test_superuser_can_create_workers",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_admin_worker_creation.TestAdministratorOnlyWorkerCreation.test_staff_user_can_create_workers",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_admin_worker_creation.TestWorkerCreationIntegration.test_admin_interface_worker_creation",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_create_and_send_campaign",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_create_campaign",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_create_campaign_api_error",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_create_campaign_with_list_ids",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_delete_campaign",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_get_campaign",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_list_campaigns",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_send_campaign",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_campaigns.BrevoCampaignServiceTest.test_service_initialization",
+          "kind": "failure",
+          "message": "TypeError: 'Mock' object does not support item assignment"
+        },
+        {
+          "test": "tests.test_brevo_email_service.BrevoEmailServiceTest.test_send_email",
+          "kind": "failure",
+          "message": "AssertionError: False is not true"
+        },
+        {
+          "test": "tests.test_brevo_email_service.BrevoEmailServiceTest.test_send_email_with_attachment",
+          "kind": "failure",
+          "message": "AssertionError: False is not true"
+        },
+        {
+          "test": "tests.test_brevo_email_service.BrevoEmailServiceTest.test_send_with_django_template",
+          "kind": "failure",
+          "message": "AssertionError: False is not true"
+        },
+        {
+          "test": "tests.test_brevo_email_service.BrevoEmailServiceTest.test_service_initialization",
+          "kind": "failure",
+          "message": "AssertionError: unexpectedly None"
+        },
+        {
+          "test": "tests.test_complete_workflows.TestClientWorkflow.test_complete_client_workflow",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_complete_workflows.TestWorkerWorkflow.test_complete_worker_workflow",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_complete_workflows.TestAdminWorkflow.test_complete_admin_workflow",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_complete_workflows.TestCrossPortalIntegration.test_cross_portal_message_flow",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_complete_workflows.TestCrossPortalIntegration.test_notification_system_integration",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_complete_workflows.TestCrossPortalIntegration.test_session_tracking_integration",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_complete_workflows.TestWorkflowErrorHandling.test_invalid_document_access",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_complete_workflows.TestWorkflowErrorHandling.test_unauthorized_portal_access",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_complete_workflows.TestWorkflowErrorHandling.test_workflow_with_missing_data",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_functional_erp.TestERPPermissions.test_dashboard_access_restrictions",
+          "kind": "error",
+          "message": "failed on setup with \"django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile.\""
+        },
+        {
+          "test": "tests.test_functional_erp.TestERPPermissions.test_client_data_isolation",
+          "kind": "error",
+          "message": "failed on setup with \"django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile.\""
+        },
+        {
+          "test": "tests.test_functional_erp.TestERPWorkflow.test_full_cycle_quote_to_task",
+          "kind": "failure",
+          "message": "AssertionError: assert Decimal('1000.00') == Decimal('1200.00')\n +  where Decimal('1000.00') = <Invoice: Facture FAC-2026-001>.total_ttc\n +  and   Decimal('1200.00') = Decimal('1200.00')"
+        },
+        {
+          "test": "tests.test_messaging_units.MessagingViewTests.test_internal_message_compose_get",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_messaging_units.MessagingViewTests.test_internal_message_compose_post",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_messaging_units.MessagingViewTests.test_internal_message_list_authenticated",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_messaging_units.MessagingViewTests.test_message_detail_access_control",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_messaging_units.MessagingViewTests.test_message_detail_marks_as_read",
+          "kind": "failure",
+          "message": "axes.exceptions.AxesBackendRequestParameterRequired: AxesBackend requires a request as an argument to authenticate"
+        },
+        {
+          "test": "tests.test_models.test_task_is_due_soon[0--1-3-False]",
+          "kind": "failure",
+          "message": "assert True is False\n +  where True = is_due_soon(3)\n +    where is_due_soon = <Task: Préparer le chantier (En retard)>.is_due_soon"
+        },
+        {
+          "test": "tests.test_models.test_service_slug_uniqueness",
+          "kind": "failure",
+          "message": "django.db.utils.IntegrityError: UNIQUE constraint failed: services_service.title"
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_client_portal_signature_completion",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_client_portal_signature_initiation",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_client_portal_signature_workflow_access",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_notification_integration_on_signature",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_pdf_generation_on_signature",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_signature_workflow_access_control",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_signature_workflow_error_handling",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_signature_workflow_expiration_handling",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_signature_workflow_quote_status_validation",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_signature_integration_units.SignatureIntegrationTests.test_signed_document_access_through_portal",
+          "kind": "failure",
+          "message": "django.contrib.auth.models.User.profile.RelatedObjectDoesNotExist: User has no profile."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_htmx_task_completion_response",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_task_completion_access_control",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_task_completion_already_completed",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_task_completion_workflow",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_worker_dashboard_access_control",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_worker_dashboard_statistics",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_worker_dashboard_task_filtering",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_worker_dashboard_task_status_separation",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_worker_schedule_view_rendering",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalUnitTests.test_worker_task_events_api",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalViewTests.test_worker_dashboard_view_context",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        },
+        {
+          "test": "tests.test_worker_portal_units.WorkerPortalViewTests.test_worker_schedule_view_context",
+          "kind": "failure",
+          "message": "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use assigned_to.set() instead."
+        }
+      ]
+    },
+    "historical_suite": {
+      "status": "collection_failed",
+      "error": "ModuleNotFoundError: No module named crm"
+    }
+  }
+}

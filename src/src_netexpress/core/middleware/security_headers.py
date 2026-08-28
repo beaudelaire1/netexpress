@@ -30,7 +30,7 @@ DEFAULT_CSP = (
     "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
     "img-src 'self' data: https:; "
     "connect-src 'self' https://challenges.cloudflare.com; "
-    "frame-src https://challenges.cloudflare.com; "
+    "frame-src 'self' https://challenges.cloudflare.com; "
     "frame-ancestors 'none'; "
     "form-action 'self'; "
     "base-uri 'self'; "
@@ -59,4 +59,11 @@ class SecurityHeadersMiddleware:
         if self.permissions_policy and "Permissions-Policy" not in response:
             response["Permissions-Policy"] = self.permissions_policy
 
+        if response.get("Content-Type", "").split(";")[0] == "application/pdf":
+            response["X-Frame-Options"] = "SAMEORIGIN"
+            response["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'self'; sandbox"
+            response["Cache-Control"] = "private, no-store"
+        if request.path.startswith(("/comptabilite/", "/client/", "/worker/", "/admin-dashboard/", "/accounts/", "/documents/prives/")):
+            response["Cache-Control"] = "private, no-store"
+            response["X-Robots-Tag"] = "noindex, nofollow"
         return response

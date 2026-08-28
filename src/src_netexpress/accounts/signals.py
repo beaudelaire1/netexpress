@@ -23,10 +23,12 @@ ROLE_GROUP_MAPPING = {
     Profile.ROLE_ADMIN_TECHNICAL: 'AdminTechnical',
     Profile.ROLE_WORKER: 'Workers',
     Profile.ROLE_CLIENT: 'Clients',
+    Profile.ROLE_ACCOUNTANT: 'Accountants',
 }
 
 # Définition des permissions par rôle
 ROLE_PERMISSIONS = {
+    Profile.ROLE_ACCOUNTANT: {"models": [], "is_staff": False, "is_superuser": False},
     Profile.ROLE_ADMIN_TECHNICAL: {
         # Accès complet à tout (superuser)
         'grant_all': True,
@@ -44,7 +46,7 @@ ROLE_PERMISSIONS = {
             ('factures', 'invoice', ['add', 'change', 'view', 'delete']),
             ('factures', 'invoiceitem', ['add', 'change', 'view', 'delete']),
             # Clients
-            ('clients', 'client', ['add', 'change', 'view', 'delete']),
+            ('devis', 'client', ['add', 'change', 'view', 'delete']),
             # Tasks
             ('tasks', 'task', ['add', 'change', 'view', 'delete']),
             # Services
@@ -148,7 +150,7 @@ def setup_user_permissions(user, role):
     
     # Sauvegarder les modifications de l'utilisateur
     if fields_to_update:
-        user.save(update_fields=fields_to_update)
+        type(user).objects.filter(pk=user.pk).update(**{field: getattr(user, field) for field in fields_to_update})
         logger.info(f"[PERMISSIONS] User {user.username}: updated {fields_to_update}")
     
     # Si superuser (admin_technical), pas besoin de permissions individuelles
@@ -194,53 +196,18 @@ def setup_role_groups():
 
 
 @receiver(post_save, sender=Profile)
-def sync_permissions_on_profile_save(sender, instance, created, **kwargs):
-    """
-    Synchronise automatiquement les permissions de l'utilisateur
-    lorsque son profil est créé ou modifié.
-    """
-    if instance.user_id:
-        try:
-            setup_user_permissions(instance.user, instance.role)
-            logger.info(f"[SIGNAL] Profile saved for {instance.user.username}, role={instance.role}")
-        except Exception as e:
-            # Ne pas bloquer la sauvegarde si les permissions échouent
-            logger.warning(f"[SIGNAL] Error syncing permissions for {instance.user.username}: {e}")
+def sync_permissions_on_profile_save(sender, instance, created, update_fields=None, raw=False, **kwargs):
+    if not raw and instance.user_id and (created or update_fields is None or "role" in update_fields):
+        setup_user_permissions(instance.user, instance.role)
 
 
 User = get_user_model()
 
-@receiver(post_save, sender=User)
-def ensure_profile_exists(sender, instance, created, **kwargs):
-    """
-    S'assure qu'un profil existe pour chaque utilisateur.
-    
-    Pour les superusers/staff sans profil, crée automatiquement un profil
-    avec le rôle approprié.
-    """
-    try:
-        # Vérifier si le profil existe
-        if hasattr(instance, 'profile'):
-            profile = instance.profile
-            # Si l'utilisateur est devenu superuser, mettre à jour le rôle
-            if instance.is_superuser and profile.role != Profile.ROLE_ADMIN_TECHNICAL:
-                profile.role = Profile.ROLE_ADMIN_TECHNICAL
-                profile.save(update_fields=['role'])
-                logger.info(f"[SIGNAL] Updated {instance.username} to admin_technical (is_superuser=True)")
-            # Si l'utilisateur est staff mais pas superuser et pas de rôle admin
-            elif instance.is_staff and not instance.is_superuser and profile.role not in [Profile.ROLE_ADMIN_BUSINESS, Profile.ROLE_ADMIN_TECHNICAL]:
-                profile.role = Profile.ROLE_ADMIN_BUSINESS
-                profile.save(update_fields=['role'])
-                logger.info(f"[SIGNAL] Updated {instance.username} to admin_business (is_staff=True)")
-    except Profile.DoesNotExist:
-        # Créer un nouveau profil
-        if instance.is_superuser:
-            role = Profile.ROLE_ADMIN_TECHNICAL
-        elif instance.is_staff:
-            role = Profile.ROLE_ADMIN_BUSINESS
-        else:
-            role = Profile.ROLE_CLIENT
-        
-        Profile.objects.create(user=instance, role=role)
-        logger.info(f"[SIGNAL] Created profile for {instance.username} with role={role}")
 
+@receiver(post_save, sender=User)
+def ensure_profile_exists(sender, instance, created, raw=False, **kwargs):
+    if raw:
+        return
+    role = (Profile.ROLE_ADMIN_TECHNICAL if instance.is_superuser else
+            Profile.ROLE_ADMIN_BUSINESS if instance.is_staff else Profile.ROLE_CLIENT)
+    Profile.objects.get_or_create(user=instance, defaults={"role": role})

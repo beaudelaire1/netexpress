@@ -15,10 +15,17 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
+from core.private_files import download_private_document
+from core.health import ready
+from core.public_media import public_image
 
 sitemaps = {"static": StaticViewSitemap}
 
 urlpatterns = [
+    path("readyz/", ready, name="ready"),
+    path("media/<path:name>", public_image, name="public_media"),
+    path("comptabilite/", include("accounting.urls")),
+    path("documents/prives/<path:name>", download_private_document, name="private_document"),
     # Health check — no DB, no auth, returns 200 instantly
     path("healthz/", lambda request: JsonResponse({"status": "ok"})),
 

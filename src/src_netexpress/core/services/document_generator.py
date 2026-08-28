@@ -12,11 +12,26 @@ from django.contrib.staticfiles import finders
 
 try:
     from weasyprint import HTML, CSS
-except ImportError:
+except (ImportError, OSError):
     HTML = None
     CSS = None
 
 logger = logging.getLogger(__name__)
+
+def restricted_fetcher(url, *args, **kwargs):
+    """PDF resources may only come from project static directories, never the network."""
+    from urllib.parse import urlparse, unquote
+    from urllib.request import url2pathname
+    from weasyprint import default_url_fetcher
+    parsed = urlparse(url)
+    if parsed.scheme != "file" or parsed.netloc not in ("", "localhost"):
+        raise ValueError("Ressource PDF distante interdite")
+    path = Path(url2pathname(unquote(parsed.path))).resolve()
+    roots = [Path(settings.BASE_DIR) / "static", Path(settings.STATIC_ROOT)]
+    if not any(path.is_relative_to(root.resolve()) for root in roots):
+        raise ValueError("Ressource PDF hors du répertoire statique")
+    return default_url_fetcher(path.as_uri())
+
 
 @dataclass(frozen=True)
 class PdfFile:
@@ -134,9 +149,9 @@ class DocumentGenerator:
                     css_path = None
         
         if css_path and CSS is not None:
-            stylesheets.append(CSS(filename=str(css_path)))
+            stylesheets.append(CSS(filename=str(css_path), url_fetcher=restricted_fetcher))
 
-        pdf_bytes = HTML(string=html_string, base_url=str(base_dir)).write_pdf(stylesheets=stylesheets)
+        pdf_bytes = HTML(string=html_string, base_url=str(base_dir), url_fetcher=restricted_fetcher).write_pdf(stylesheets=stylesheets)
         number = getattr(obj, "number", None) or f"{prefix}-{getattr(obj, 'pk', 'X')}"
         
         return PdfFile(filename=f"{number}.pdf", content=pdf_bytes)

@@ -12,6 +12,7 @@ from django.shortcuts import redirect
 
 
 # Rôles applicatifs (cf. accounts.models.Profile)
+ROLE_ACCOUNTANT = "accountant"
 ROLE_CLIENT = "client"
 ROLE_WORKER = "worker"
 ROLE_ADMIN_BUSINESS = "admin_business"
@@ -47,7 +48,7 @@ def get_user_role(user) -> str:
     
     # PRIORITÉ 2: profile.role EST LA SOURCE DE VÉRITÉ
     # Si le rôle est explicitement défini dans le profil, l'utiliser
-    if profile_role and profile_role in [ROLE_ADMIN_BUSINESS, ROLE_ADMIN_TECHNICAL, ROLE_WORKER, ROLE_CLIENT]:
+    if profile_role and profile_role in [ROLE_ADMIN_BUSINESS, ROLE_ADMIN_TECHNICAL, ROLE_WORKER, ROLE_CLIENT, ROLE_ACCOUNTANT]:
         return profile_role
     
     # PRIORITÉ 3: Fallback legacy (pour utilisateurs sans profil configuré)
@@ -80,6 +81,7 @@ def get_portal_home_url(user) -> str:
     return {
         ROLE_ADMIN_TECHNICAL: "/admin-dashboard/",  # Changé de /gestion/ vers /admin-dashboard/
         ROLE_ADMIN_BUSINESS: "/admin-dashboard/",
+        ROLE_ACCOUNTANT: "/comptabilite/",
         ROLE_WORKER: "/worker/",
         ROLE_CLIENT: "/client/",
     }.get(role, "/")
@@ -101,6 +103,8 @@ def get_portal_area_from_url(path: str) -> str | None:
 
     Retourne: 'client' | 'worker' | 'admin_dashboard' | 'gestion' | None
     """
+    if path.startswith("/comptabilite/"):
+        return "accounting"
     if path.startswith("/client/"):
         return "client"
     if path.startswith("/worker/"):
@@ -134,10 +138,13 @@ def user_can_access_portal_area(user, portal_area: str) -> bool:
 
     # Les admin techniques et superusers ont accès à /gestion/ ET /admin-dashboard/
     if role == ROLE_ADMIN_TECHNICAL or getattr(user, 'is_superuser', False):
-        return portal_area in {"gestion", "admin_dashboard"}
+        return portal_area in {"gestion", "admin_dashboard", "accounting"}
 
     if role == ROLE_ADMIN_BUSINESS:
-        return portal_area in {"admin_dashboard", "gestion"}
+        return portal_area in {"admin_dashboard", "gestion", "accounting"}
+
+    if role == ROLE_ACCOUNTANT:
+        return portal_area == "accounting"
 
     if role == ROLE_WORKER:
         return portal_area == "worker"

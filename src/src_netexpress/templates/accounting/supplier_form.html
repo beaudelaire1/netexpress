@@ -1,0 +1,15 @@
+{% extends 'accounting/base.html' %}{% block title %}Déposer une facture{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'accounting:suppliers' %}">← Factures fournisseurs</a>
+<div class="page-heading"><div><p class="eyebrow">DÉPÔT SIMPLIFIÉ</p><h1>{% if purchase.pk %}Compléter la facture{% else %}Votre facture, tout simplement.{% endif %}</h1><p class="subtitle">Déposez le fichier. Les détails peuvent attendre.</p></div><a class="subtle" href="{% url 'accounting:document_add' %}">Ce n’est pas une facture ? Ajouter un autre document →</a></div>
+<div class="two-columns form-layout">
+<form method="post" enctype="multipart/form-data" class="panel document-form" data-upload-form>
+{% csrf_token %}<input type="hidden" name="version" value="{{ purchase.updated_at.isoformat }}">{{ form.non_field_errors }}
+<div class="upload-area"><div class="upload-heading"><span class="upload-icon"><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i></span><div><h2>La pièce originale</h2><p>Un PDF ou une photo lisible de la facture.</p></div></div>{% if purchase.pk %}<p><a href="{{ purchase.file.url }}">Télécharger la pièce actuelle ↗</a> · Sans nouveau fichier, elle est conservée.</p>{% endif %}{% include 'accounting/field.html' with field=form.file %}<p class="file-selection" data-file-selection role="status" aria-live="polite"></p></div>
+<h2 class="form-section-title">Si vous les avez sous la main</h2>
+<div class="form-grid">{% include 'accounting/field.html' with field=form.supplier_name %}{% include 'accounting/field.html' with field=form.total_ttc %}</div>
+<details class="optional-details" {% if form.errors or purchase.pk %}open{% endif %}><summary>Détails de la facture <span>Facultatifs au dépôt</span></summary><div class="form-grid">{% for field in form.detail_fields %}{% include 'accounting/field.html' %}{% endfor %}</div></details>
+<div class="actions"><button class="button" type="submit">{% if purchase.pk %}Enregistrer les modifications{% else %}Déposer la facture{% endif %}</button><a class="subtle" href="{% url 'accounting:suppliers' %}">Annuler</a></div>
+<p class="form-reassurance"><i class="fa-solid fa-lock" aria-hidden="true"></i> Visible uniquement par le cabinet et les administrateurs.</p>
+</form>
+<aside class="panel guidance"><p class="eyebrow">VOUS DÉPOSEZ. LE DOSSIER AVANCE.</p><h2>Une pièce aujourd’hui,<br>une relance en moins.</h2><ol class="guidance-steps"><li><strong>Ajoutez le fichier.</strong><p>C’est la seule information nécessaire pour commencer.</p></li><li><strong>Complétez à votre rythme.</strong><p>NetExpress renseigne les informations manquantes. Le cabinet consulte et contrôle le dossier.</p></li><li><strong>Gardez un suivi clair.</strong><p>La facture reste « À compléter » jusqu’à la saisie du fournisseur, du numéro, de la date, du TTC et de la TVA.</p></li></ol><div class="guidance-note">Aucun montant n’est deviné. Les doublons sont détectés et toute modification remet le contrôle en attente.</div></aside>
+</div>{% endblock %}

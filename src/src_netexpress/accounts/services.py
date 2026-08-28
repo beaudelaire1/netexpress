@@ -77,13 +77,20 @@ class ClientAccountCreationService:
         last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
 
         created = False
-        existing_user = User.objects.filter(email__iexact=client_email).first()
+        candidates = list(User.objects.filter(email__iexact=client_email)[:2])
+        if len(candidates) > 1:
+            raise ValidationError("Plusieurs comptes utilisent cet email. Corrigez les doublons avant activation.")
+        existing_user = candidates[0] if candidates else None
         if existing_user:
             if existing_user.is_staff or existing_user.is_superuser:
                 raise ValidationError("Un compte administrateur utilise déjà cet email. Choisissez un email client dédié.")
             existing_role = getattr(getattr(existing_user, 'profile', None), 'role', Profile.ROLE_CLIENT)
-            if existing_role in {Profile.ROLE_WORKER, Profile.ROLE_ADMIN_BUSINESS, Profile.ROLE_ADMIN_TECHNICAL}:
+            if existing_role in {Profile.ROLE_WORKER, Profile.ROLE_ACCOUNTANT, Profile.ROLE_ADMIN_BUSINESS, Profile.ROLE_ADMIN_TECHNICAL}:
                 raise ValidationError("Cet email est déjà utilisé par un compte interne. Impossible d'activer un portail client dessus.")
+            if not existing_user.is_active:
+                raise ValidationError("Ce compte est désactivé. Une réactivation explicite est nécessaire.")
+            if existing_user.profile.client_id not in (None, client.pk):
+                raise ValidationError("Ce compte est déjà associé à un autre client.")
             user = existing_user
         else:
             username = ClientAccountCreationService._generate_username(client_email)
@@ -120,6 +127,7 @@ class ClientAccountCreationService:
             },
         )
 
+        profile.client = client
         profile.role = Profile.ROLE_CLIENT
         profile.phone = getattr(client, 'phone', '')
         profile.notification_preferences = {

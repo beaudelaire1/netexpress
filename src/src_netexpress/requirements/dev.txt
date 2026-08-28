@@ -1,17 +1,4 @@
--r base.txt
-pytest>=8.3
-pytest-django>=4.8
-hypothesis>=6.0
-
-# Ajout 2025 : ReportLab et Jazzmin ne sont pas installés par défaut dans
-# cet environnement afin de réduire les dépendances et d’éviter les
-# erreurs liées à l’absence de modules système.  Si vous souhaitez
-# générer des PDF ou améliorer le thème de l’administration, installez
-# manuellement les paquets ci‑dessous :
-
-num2words==0.5.14
-numpy==2.2.2
-packaging==24.2
-sqlparse==0.5.3
-tzdata==2024.2
-whitenoise==6.9.0
+-r prod.lock
+pytest==9.0.3
+pytest-django==4.12.0
+hypothesis==6.151.9
