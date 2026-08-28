@@ -5,7 +5,7 @@ from urllib.parse import parse_qsl, urlencode
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.http import HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -243,8 +243,10 @@ def suppliers(request):
 def review_invoice(request, pk):
     if request.accounting_admin:
         return HttpResponseForbidden("Le contrôle comptable est réservé au cabinet.")
-    visible = get_object_or_404(issued_invoices().only("pk"), pk=pk)
-    invoice = get_object_or_404(Invoice.all_objects.select_for_update(), pk=visible.pk)
+    visible_pk = issued_invoices().filter(pk=pk).values_list("pk", flat=True).first()
+    if visible_pk is None:
+        raise Http404("Facture introuvable.")
+    invoice = get_object_or_404(Invoice.all_objects.select_for_update(), pk=visible_pk)
     form = ReviewForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest("Note de contrôle invalide.")
