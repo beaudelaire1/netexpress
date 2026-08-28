@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 
 from django import forms
@@ -14,7 +15,13 @@ from .models import (
     AccountingExchangeDocument,
     SupplierInvoice,
 )
-from .services import complete_purchases, incomplete_purchases, is_reviewed, issued_invoices
+from .services import (
+    ACCOUNTING_VISIBLE_INVOICE_STATUSES,
+    complete_purchases,
+    incomplete_purchases,
+    is_reviewed,
+    issued_invoices,
+)
 
 
 REVIEW_CHOICES = (
@@ -24,14 +31,25 @@ REVIEW_CHOICES = (
 )
 
 EXCHANGE_LINK_CHOICES = (
-    ("", "Tous"),
+    ("", "Avec ou sans échange"),
     ("open", "Avec échange ouvert"),
     ("none", "Sans échange"),
 )
 
+VISIBLE_INVOICE_STATUS_CHOICES = tuple(
+    (value, label)
+    for value, label in Invoice.InvoiceStatus.choices
+    if value in ACCOUNTING_VISIBLE_INVOICE_STATUSES
+)
+
 
 class BaseAccountingFilterForm(forms.Form):
-    q = forms.CharField(label="Recherche", required=False, max_length=100)
+    q = forms.CharField(
+        label="Recherche",
+        required=False,
+        max_length=100,
+        widget=forms.SearchInput(attrs={"autocomplete": "off"}),
+    )
     date_from = forms.DateField(
         label="Du",
         required=False,
@@ -81,10 +99,11 @@ class BaseAccountingFilterForm(forms.Form):
             display = raw
             if getattr(field, "choices", None):
                 display = dict(field.choices).get(raw, raw)
+            elif isinstance(field, forms.BooleanField):
+                display = "Oui"
             elif name in {"date_from", "date_to"}:
                 try:
-                    parsed = timezone.datetime.strptime(raw, "%Y-%m-%d")
-                    display = parsed.strftime("%d/%m/%Y")
+                    display = datetime.strptime(raw, "%Y-%m-%d").strftime("%d/%m/%Y")
                 except ValueError:
                     pass
             elif name in {"amount_min", "amount_max"}:
@@ -110,7 +129,7 @@ class SalesFilterForm(BaseAccountingFilterForm):
     status = forms.ChoiceField(
         label="Statut facture",
         required=False,
-        choices=(("", "Tous les statuts"),) + tuple(Invoice.InvoiceStatus.choices),
+        choices=(("", "Tous les statuts"),) + VISIBLE_INVOICE_STATUS_CHOICES,
     )
     review = forms.ChoiceField(label="Contrôle", required=False, choices=REVIEW_CHOICES)
     document_type = forms.ChoiceField(
