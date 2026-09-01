@@ -1,0 +1,9 @@
+# Les scripts exécutés dans les conteneurs Linux doivent garder des fins de
+# ligne LF. Un CRLF dans le shebang fait chercher au noyau un interpréteur
+# nommé "/bin/sh\r", et le conteneur meurt sur un message trompeur :
+#
+#   exec ./start.sh: no such file or directory
+#
+# Le dépôt stocke déjà du LF, mais rien n'empêchait un commit fait depuis
+# Windows d'y figer du CRLF. Cette règle rend cela impossible.
+*.sh text eol=lf
