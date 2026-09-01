@@ -19,7 +19,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from core.services.pdf_generator import render_quote_pdf
+from core.services.document_generator import DocumentGenerator
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
@@ -34,7 +34,9 @@ def send_quote_pdf_email(self, quote_id: int) -> None:
     except Exception:
         pass
 
-    pdf_res = render_quote_pdf(quote)
+    # generate_pdf plutôt que generate_quote_pdf : cette pièce jointe ne doit pas
+    # réécrire le PDF stocké sur le devis. Même gabarit et même préfixe.
+    pdf_res = DocumentGenerator.generate_pdf(quote, "pdf/quote_premium.html", "DEV")
 
     # Build email html
     context = {
