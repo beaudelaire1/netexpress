@@ -47,7 +47,7 @@ jobs:
 
     env:
       DJANGO_SETTINGS_MODULE: netexpress.settings.test
-      DJANGO_SECRET_KEY: 'Q7!4vN2#zL9@xK6$pR1&mT8*eW5_yC3+uF0=hJ7%qS4!dB9'
+      DJANGO_SECRET_KEY: 'Q7!4vN2#zL9@xK6$pR1&mT8*eW5_yC3+uF0=hJ7%qS4!dB9#gX2'
       SITE_URL: https://example.test
       DATABASE_URL: postgresql://netexpress:ci-password@127.0.0.1:5432/netexpress
       REDIS_URL: redis://127.0.0.1:6379/0
