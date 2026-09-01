@@ -1,26 +1,74 @@
+# Banc d'essai local de l'image de production.
+#
+# La cible OVH/Coolify utilise des ressources managées pour PostgreSQL et Redis,
+# hors de ce fichier. Ce Compose n'existe donc que pour construire l'image et la
+# faire tourner pour de vrai avant de la confier à Coolify : c'est le seul
+# moyen de vérifier que pip, WeasyPrint, collectstatic et Gunicorn aboutissent
+# sous Python 3.12.
+#
+# Les versions de PostgreSQL et Redis reproduisent celles créées sur le VPS.
+#
+#   cp coolify.env .env && docker compose up --build
+#   curl -fsS http://127.0.0.1:8000/readyz/
+#
+# SECURE_SSL_REDIRECT est actif en production : en HTTP local tout est redirigé
+# en 301, sauf /healthz/ et /readyz/. Pour parcourir une page, simuler le proxy :
+#
+#   curl -H 'X-Forwarded-Proto: https' -H 'Host: www.nettoyageexpresse.fr' \
+#        http://127.0.0.1:8000/
+
 x-app: &app
   build: .
+  # Nom d'image partagé : web et worker doivent tourner sur exactement le même
+  # artefact, comme en production. Sans cette clé, Compose construit une image
+  # par service et un `build web` laisse le worker sur une version périmée.
+  image: netexpress:local
   restart: unless-stopped
   environment: &environment
     DJANGO_SETTINGS_MODULE: netexpress.settings.prod
+
     DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?}
     SITE_URL: ${SITE_URL:?}
     ALLOWED_HOSTS: ${ALLOWED_HOSTS:-}
     CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+
     DATABASE_URL: postgresql://netexpress:${POSTGRES_PASSWORD:?}@db:5432/netexpress
     REDIS_URL: redis://redis:6379/0
+
     BREVO_API_KEY: ${BREVO_API_KEY:?}
     DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?}
     DEFAULT_FROM_NAME: ${DEFAULT_FROM_NAME:-Nettoyage Express}
     CONTACT_RECEIVER_EMAIL: ${CONTACT_RECEIVER_EMAIL:?}
     CONTACT_CC_EMAIL: ${CONTACT_CC_EMAIL:-}
     TASK_NOTIFICATION_EMAIL: ${TASK_NOTIFICATION_EMAIL:?}
+
     TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:?}
     TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?}
-    CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
-    CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
-    CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
-    PORT: "8000"
+
+    # Obligatoires depuis que prod.py refuse d'émettre des factures sans
+    # identité légale ni coordonnées de règlement. L'IBAN est validé par sa
+    # clé modulo 97 au démarrage : une valeur bidon fait échouer le conteneur.
+    COMPANY_SIRET: ${COMPANY_SIRET:?}
+    BANK_ACCOUNT_NAME: ${BANK_ACCOUNT_NAME:?}
+    BANK_ACCOUNT_NUMBER: ${BANK_ACCOUNT_NUMBER:?}
+    COMPANY_BIC: ${COMPANY_BIC:-}
+
+    COMPANY_NAME: ${COMPANY_NAME:-Nettoyage Express}
+    COMPANY_TAGLINE: ${COMPANY_TAGLINE:-}
+    COMPANY_ADDRESS_LINE1: ${COMPANY_ADDRESS_LINE1:-}
+    COMPANY_ADDRESS_LINE2: ${COMPANY_ADDRESS_LINE2:-}
+    COMPANY_TVA: ${COMPANY_TVA:-}
+    COMPANY_PHONE: ${COMPANY_PHONE:-}
+    COMPANY_EMAIL: ${COMPANY_EMAIL:-}
+    COMPANY_PAYMENT_TERMS: ${COMPANY_PAYMENT_TERMS:-}
+    COMPANY_PENALTY_RATE: ${COMPANY_PENALTY_RATE:-}
+
+    MEDIA_ROOT: /app/media
+    PRIVATE_MEDIA_ROOT: /app/private_media
+
+    # Cloudinary reste optionnel et ne sert qu'aux images publiques. Déclarer
+    # CLOUDINARY_CLOUD_NAME bascule le stockage par défaut : ne pas définir la
+    # variable du tout est plus sûr que la laisser vide.
   volumes:
     - private_media:/app/private_media
     - public_media:/app/media
@@ -28,52 +76,71 @@ x-app: &app
     - no-new-privileges:true
 
 services:
+  # start.sh applique les migrations via deploy_migrate, sous verrou consultatif
+  # PostgreSQL. C'est ce qui remplace l'ancien service `migrate` : le verrou rend
+  # l'opération sûre même si plusieurs conteneurs démarrent ensemble.
   web:
     <<: *app
-    expose: ["8000"]
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-  migrate:
-    <<: *app
-    restart: "no"
-    command: ["python", "manage.py", "migrate", "--noinput"]
-    healthcheck:
-      disable: true
+    environment:
+      <<: *environment
+      PROCESS_TYPE: web
+      RUN_MIGRATIONS_ON_START: "true"
+      PORT: "8000"
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+      WEB_THREADS: ${WEB_THREADS:-4}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-120}
+      GUNICORN_GRACEFUL_TIMEOUT: ${GUNICORN_GRACEFUL_TIMEOUT:-30}
+    # Bouclage uniquement : ce banc d'essai n'a rien à exposer sur le réseau.
+    # Port hôte paramétrable : sur un serveur où Coolify tourne déjà, le 8000
+    # est occupé par son tableau de bord.
+    ports:
+      - "127.0.0.1:${WEB_HOST_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
-  worker:
-    <<: *app
-    command: ["celery", "-A", "netexpress", "worker", "--loglevel=info", "--concurrency=2", "-Q", "celery,notifications,documents,messaging"]
-    healthcheck:
-      test: ["CMD-SHELL", "celery -A netexpress inspect ping -d celery@$$HOSTNAME --timeout=5 | grep -q pong"]
-      interval: 60s
-      timeout: 10s
-      start_period: 45s
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
       redis:
         condition: service_healthy
+
+  # Même image, même environnement métier. Seul PROCESS_TYPE change : start.sh
+  # lance Celery au lieu de Gunicorn. Le worker génère les PDF et envoie les
+  # courriels, d'où le besoin de l'identité légale et des accès Brevo.
+  worker:
+    <<: *app
+    environment:
+      <<: *environment
+      PROCESS_TYPE: worker
+      RUN_MIGRATIONS_ON_START: "false"
+      CELERY_QUEUES: ${CELERY_QUEUES:-celery,messaging,documents,notifications}
+      CELERY_LOG_LEVEL: ${CELERY_LOG_LEVEL:-INFO}
+      CELERY_WORKER_CONCURRENCY: ${CELERY_WORKER_CONCURRENCY:-2}
+      CELERY_MAX_TASKS_PER_CHILD: ${CELERY_MAX_TASKS_PER_CHILD:-200}
+    # Attendre que le web ait migré : sa sonde /readyz/ ne passe au vert
+    # qu'une fois PostgreSQL et Redis réellement joignables.
+    depends_on:
+      web:
+        condition: service_healthy
+
   db:
-    image: postgres:17-bookworm
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: netexpress
       POSTGRES_USER: netexpress
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    # PostgreSQL 18 a changé de convention : le montage se fait sur
+    # /var/lib/postgresql, pas sur son sous-répertoire data. L'ancien chemin
+    # fait échouer le conteneur au démarrage. C'est aussi ce que fait Coolify
+    # pour la ressource managée.
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U netexpress -d netexpress"]
       interval: 5s
       timeout: 5s
       retries: 20
+
   redis:
-    image: redis:7.4-bookworm
+    image: redis:7.2
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
     volumes:
