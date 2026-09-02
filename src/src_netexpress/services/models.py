@@ -85,7 +85,11 @@ class Category(models.Model):
             except Category.DoesNotExist:
                 generate = True
         if generate and self.name:
-            base_slug = _slugify(self.name, allow_unicode=True)
+            # ASCII imposé : la route de détail utilise le convertisseur <slug:…>
+            # de Django, limité à [-a-zA-Z0-9_]+. Un slug accentué se crée sans
+            # erreur mais rend la page injoignable, et fait échouer le reverse
+            # depuis la liste — donc une 500 sur tout le catalogue.
+            base_slug = _slugify(self.name, allow_unicode=False)
             slug = base_slug
             counter = 1
             # Ensure the slug is unique.  Exclude the current record when updating.
@@ -226,7 +230,9 @@ class Service(models.Model):
             except Service.DoesNotExist:
                 generate = True
         if generate and self.title:
-            base_slug = _slugify(self.title, allow_unicode=True)
+            # Voir Category.save : le convertisseur <slug:…> de la route de
+            # détail n'accepte pas les caractères accentués.
+            base_slug = _slugify(self.title, allow_unicode=False)
             slug = base_slug
             counter = 1
             while Service.objects.filter(slug=slug).exclude(pk=self.pk).exists():
