@@ -86,10 +86,19 @@
                 <i class="fas fa-user" aria-hidden="true"></i>
                 <span>Profil</span>
               </a>
-              <a class="account-dropdown-link logout" href="{% url 'logout' %}">
-                <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
-                <span>Déconnexion</span>
-              </a>
+              {% comment %}
+                Déconnexion en POST vers accounts:logout, jamais par un lien GET :
+                custom_logout est décorée require_http_methods(["POST"]) et répond
+                405 à un GET. Un lien empêcherait aussi de protéger l'action par
+                jeton CSRF.
+              {% endcomment %}
+              <form method="post" action="{% url 'accounts:logout' %}" class="account-dropdown-logout-form">
+                {% csrf_token %}
+                <button type="submit" class="account-dropdown-link logout">
+                  <i class="fas fa-right-from-bracket" aria-hidden="true"></i>
+                  <span>Déconnexion</span>
+                </button>
+              </form>
             </div>
           </details>
         {% else %}

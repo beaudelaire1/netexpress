@@ -189,6 +189,23 @@ img {
   color: #8a2c2c;
 }
 
+/* La déconnexion passe par un bouton dans un formulaire POST, pas par un lien.
+   Ces règles lui retirent l'habillage natif du navigateur pour qu'il se
+   confonde avec les entrées voisines du menu. */
+.account-dropdown-logout-form {
+  margin: 0;
+}
+
+button.account-dropdown-link {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
 /* Style pour l'icône de la marque dans la navbar */
 .brand-icon {
   font-size: 1.5rem;
