@@ -1,0 +1,12 @@
+[Unit]
+Description=Sauvegarde NetExpress quotidienne
+
+[Timer]
+# 03h15 heure locale : le serveur est en Amerique/Cayenne, creux d'activite.
+OnCalendar=*-*-* 03:15:00
+# Rattrape l'execution si la machine etait eteinte a l'heure prevue.
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

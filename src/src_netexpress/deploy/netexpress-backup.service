@@ -1,0 +1,8 @@
+[Unit]
+Description=Sauvegarde NetExpress (base PostgreSQL et documents)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/netexpress-backup.sh
