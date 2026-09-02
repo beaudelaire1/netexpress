@@ -556,3 +556,59 @@ fieldset h2 {
 .submit-row input[type="submit"]:hover {
   background-color: var(--ne-hover) !important;
 }
+/* ==========================================================================
+   Neutralisation du mode sombre de Bootstrap
+   ==========================================================================
+
+   AdminLTE pose data-bs-theme="dark" sur <html> dès que le système du visiteur
+   demande un thème sombre. Bootstrap résout alors --bs-body-bg à #212529.
+
+   Or tout ce fichier suppose un fond clair : il force les cartes en blanc et le
+   texte en #333. Les deux se superposaient, et l'écran de connexion affichait
+   du #333 sur du #212529 — un contraste d'environ 1,2 pour 1, là où les règles
+   d'accessibilité en demandent 4,5.
+
+   On ramène donc les surfaces au clair plutôt que de repeindre chaque élément
+   au cas par cas. C'est cohérent avec l'identité claire du site.
+
+   Un vrai thème sombre reste possible, mais il demande de reprendre ce fichier
+   en s'appuyant sur les variables Bootstrap au lieu de couleurs figées. */
+
+[data-bs-theme="dark"] {
+  --bs-body-bg: #ffffff;
+  --bs-body-color: #333333;
+  --bs-body-color-rgb: 51, 51, 51;
+  --bs-body-bg-rgb: 255, 255, 255;
+
+  --bs-emphasis-color: #111111;
+  --bs-emphasis-color-rgb: 17, 17, 17;
+
+  --bs-secondary-bg: #f4f6f5;
+  --bs-secondary-bg-rgb: 244, 246, 245;
+  --bs-secondary-color: rgba(51, 51, 51, .75);
+
+  --bs-tertiary-bg: #f8f9fa;
+  --bs-tertiary-bg-rgb: 248, 249, 250;
+  --bs-tertiary-color: rgba(51, 51, 51, .5);
+
+  --bs-border-color: #dee2e6;
+  --bs-border-color-translucent: rgba(0, 0, 0, .1);
+
+  --bs-heading-color: inherit;
+  --bs-link-color: var(--ne-primary);
+  --bs-link-hover-color: var(--ne-hover);
+
+  color-scheme: light;
+}
+
+/* Le corps de la carte de connexion : c'est lui qui portait le fond noir,
+   la règle existante ne repeignant que .card. */
+.login-card-body,
+.register-card-body {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+}
+
+.login-box-msg {
+  color: #333333 !important;
+}
