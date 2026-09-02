@@ -9,8 +9,10 @@
   {% if service.image %}
     <img src="{{ service.image.url }}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
   {% else %}
-    {# Image de remplacement locale si aucune image n'est associée au service.  On choisit un visuel
-       cohérent en fonction de la catégorie du service pour éviter les dépendances à Unsplash. #}
+    {% comment %}
+      Image de remplacement locale si aucune image n'est associée au service.  On choisit un visuel
+      cohérent en fonction de la catégorie du service pour éviter les dépendances à Unsplash.
+    {% endcomment %}
     {% if service.category.slug == 'espaces-verts' %}
       <img src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
     {% elif service.category.slug == 'peinture' %}

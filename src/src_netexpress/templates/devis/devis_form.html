@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 
-{#
+{% comment %}
   Formulaire public de devis conforme au cahier des charges.  Il
   utilise ``DevisForm`` et ajoute un slider pour la surface.  Un
   élément caché ``id_surface`` est mis à jour via le script pour
   transmettre la valeur au backend.  Les champs sont organisés en
   grille responsive.
-#}
+{% endcomment %}
 
 {% block title %}Demande de devis — NetExpress{% endblock %}
 
