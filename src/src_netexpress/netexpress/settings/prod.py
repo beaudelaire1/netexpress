@@ -139,7 +139,10 @@ if (
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        # Variante tolérante : voir core.storage. Jazzmin référence un
+        # répertoire que le manifeste ne peut pas contenir, ce qui rendait
+        # /gestion/ inaccessible en 500.
+        "BACKEND": "core.storage.ToleranteStaticFilesStorage"
     },
 }
 
