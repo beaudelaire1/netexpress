@@ -1,33 +1,103 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Connexion — NetExpress{% endblock %}
+
+{% block title %}Connexion — Nettoyage Express{% endblock %}
+
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/backoffice.css' %}">
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
 {% endblock %}
+
 {% block content %}
-<div class="bo-shell" style="max-width:960px;margin:24px auto;">
-  <main class="bo-main" style="grid-template-columns:1fr;">
-    <section class="bo-card" style="max-width:520px;margin:0 auto;">
-      <h1 style="margin:0 0 6px;">Connexion</h1>
-      <p class="muted" style="margin:0 0 18px;">Accédez à votre tableau de bord avec votre email client ou votre identifiant de compte.</p>
-      <form method="post">
-        {% csrf_token %}
-        <div class="bo-form">
-          {{ form.non_field_errors }}
-          <label>{{ form.username.label }}</label>
-          {{ form.username }}
-          <label style="margin-top:12px;">Mot de passe</label>
-          {{ form.password }}
-          <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px; align-items:flex-start;">
-            {% include "core/partials/turnstile_widget.html" %}
-            <div style="display:flex; gap:10px; align-items:center;">
-              <button class="bo-btn" type="submit">Se connecter</button>
-              <a class="bo-btn is-ghost" href="{% url 'core:home' %}">Retour</a>
-            </div>
-          </div>
+<div class="auth-shell">
+
+  <aside class="auth-aside">
+    <div class="auth-aside-brand">
+      <img src="{% static 'img/logo.png' %}" alt="" aria-hidden="true" onerror="this.style.display='none'">
+      <span>Nettoyage Express</span>
+    </div>
+
+    <div>
+      <h1 class="auth-aside-title">Votre espace,<br>vos documents.</h1>
+      <p class="auth-aside-lede">
+        Devis, factures et suivi de vos interventions, réunis au même endroit.
+      </p>
+
+      <ul class="auth-aside-list">
+        <li>
+          <i class="fas fa-file-signature" aria-hidden="true"></i>
+          <span>Consultez et validez vos devis en ligne</span>
+        </li>
+        <li>
+          <i class="fas fa-receipt" aria-hidden="true"></i>
+          <span>Retrouvez vos factures à tout moment</span>
+        </li>
+        <li>
+          <i class="fas fa-comments" aria-hidden="true"></i>
+          <span>Échangez directement avec nos équipes</span>
+        </li>
+      </ul>
+    </div>
+
+    <p class="auth-aside-foot">
+      Espaces verts · Nettoyage · Peinture · Bricolage<br>
+      Matoury, Guyane
+    </p>
+  </aside>
+
+  <main class="auth-panel">
+    <h2 class="auth-panel-title">Connexion</h2>
+    <p class="auth-panel-lede">
+      Utilisez votre adresse email ou votre identifiant de compte.
+    </p>
+
+    {# Erreurs globales : identifiants refusés, compte verrouillé par Axes. #}
+    {% if form.non_field_errors %}
+      <div class="auth-alert" role="alert">
+        <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+        <div>
+          {% for erreur in form.non_field_errors %}<p style="margin:0">{{ erreur }}</p>{% endfor %}
         </div>
-      </form>
-    </section>
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="auth-field">
+        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+        {{ form.username }}
+        {% for erreur in form.username.errors %}
+          <p class="auth-field-error">{{ erreur }}</p>
+        {% endfor %}
+      </div>
+
+      <div class="auth-field">
+        <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+        {{ form.password }}
+        {% for erreur in form.password.errors %}
+          <p class="auth-field-error">{{ erreur }}</p>
+        {% endfor %}
+        {% comment %}
+          Sans ce lien, un client qui oublie son mot de passe n'a aucune issue
+          depuis cette page : la route existait déjà mais n'était exposée nulle part.
+        {% endcomment %}
+        <div class="auth-row">
+          <a class="auth-link" href="{% url 'password_reset' %}">Mot de passe oublié ?</a>
+        </div>
+      </div>
+
+      <div class="auth-turnstile">
+        {% include "core/partials/turnstile_widget.html" %}
+      </div>
+
+      <button class="auth-submit" type="submit">Se connecter</button>
+    </form>
+
+    <p class="auth-foot">
+      Pas encore de compte ?
+      <a href="{% url 'accounts:signup' %}">Créer un compte</a>
+    </p>
   </main>
+
 </div>
 {% endblock %}
