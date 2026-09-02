@@ -10,24 +10,31 @@
     <img src="{{ service.image.url }}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
   {% else %}
     {% comment %}
-      Image de remplacement locale si aucune image n'est associée au service.  On choisit un visuel
-      cohérent en fonction de la catégorie du service pour éviter les dépendances à Unsplash.
+      Image de repli quand la prestation n'en porte aucune, choisie selon la
+      catégorie. Chacune doit exister dans static/img : en production, le
+      stockage à manifeste lève une ValueError sur un fichier absent, ce qui
+      transforme la fiche en erreur 500 plutôt qu'en image manquante.
     {% endcomment %}
     {% if service.category.slug == 'espaces-verts' %}
-      <img src="{% static 'img/000033825_900x500_c.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+      <img src="{% static 'img/realisations/espaces_verts_1.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+    {% elif service.category.slug == 'nettoyage' %}
+      <img src="{% static 'img/realisations/nettoyage_1.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
     {% elif service.category.slug == 'peinture' %}
-      <img src="{% static 'img/peinture.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'bricolage' %}
-      <img src="{% static 'img/brico.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'elagage' %}
-      <img src="{% static 'img/elagage.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+      <img src="{% static 'img/realisations/renovation_1.png' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
     {% else %}
-      <img src="{% static 'img/service-1.svg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
+      <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
     {% endif %}
   {% endif %}
   <p>{{ service.description }}</p>
   <p><strong>Catégorie&nbsp;:</strong> {{ service.category.name }}</p>
-  <p class="meta"><strong>Prix&nbsp;:</strong> À partir de {{ service.base_price }} € — durée ~{{ service.duration_minutes }} min.</p>
+  {% comment %}
+    base_price a été retiré du modèle par la migration 0003 : la ligne
+    affichait « À partir de  € ». Le prix dépend du métrage et se fixe au
+    devis ; on n'annonce donc que l'unité de chiffrage et la durée indicative.
+  {% endcomment %}
+  <p class="meta">
+    <strong>Chiffrage&nbsp;:</strong> au {{ service.unit_type }} — durée indicative ~{{ service.duration_minutes }} min.
+  </p>
 
   {% if service.tasks.all %}
     <h3>Checklist</h3>
