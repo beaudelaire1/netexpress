@@ -178,6 +178,21 @@ class Service(models.Model):
         """
         return self.image_alt.strip() or self.title
 
+    @property
+    def duration_display(self) -> str:
+        """Durée lisible : « 4 h », « 1 h 30 » ou « 45 min ».
+
+        Le calcul vit ici plutôt que dans le gabarit : les filtres de template
+        ne savent pas diviser, et une prestation de 480 minutes annoncée telle
+        quelle oblige le visiteur à convertir de tête.
+        """
+        minutes = self.duration_minutes or 0
+        if minutes < 60:
+            return f"{minutes} min"
+
+        heures, reste = divmod(minutes, 60)
+        return f"{heures} h" if reste == 0 else f"{heures} h {reste:02d}"
+
     def get_absolute_url(self) -> str:
         """
         Retourne l'URL canonique pour accéder à la fiche de ce service.

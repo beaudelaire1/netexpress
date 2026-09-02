@@ -1,50 +1,129 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ service.title }} — NetExpress{% endblock %}
+{% block title %}{{ service.title }} — Nettoyage Express{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/service-detail.css' %}">
+<meta name="description" content="{{ service.short_description|default:service.title }}">
+{% endblock %}
 
 {% block content %}
-<section class="section">
-  <h1>{{ service.title }}</h1>
-  {% if service.image %}
-    <img src="{{ service.image.url }}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-  {% else %}
-    {% comment %}
-      Image de repli quand la prestation n'en porte aucune, choisie selon la
-      catégorie. Chacune doit exister dans static/img : en production, le
-      stockage à manifeste lève une ValueError sur un fichier absent, ce qui
-      transforme la fiche en erreur 500 plutôt qu'en image manquante.
-    {% endcomment %}
-    {% if service.category.slug == 'espaces-verts' %}
-      <img src="{% static 'img/realisations/espaces_verts_1.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'nettoyage' %}
-      <img src="{% static 'img/realisations/nettoyage_1.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% elif service.category.slug == 'peinture' %}
-      <img src="{% static 'img/realisations/renovation_1.png' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% else %}
-      <img src="{% static 'img/default_service.jpg' %}" alt="{{ service.display_alt }}" style="max-width:100%; border-radius:16px; box-shadow: var(--shadow-1); margin-bottom:20px;">
-    {% endif %}
-  {% endif %}
-  <p>{{ service.description }}</p>
-  <p><strong>Catégorie&nbsp;:</strong> {{ service.category.name }}</p>
-  {% comment %}
-    base_price a été retiré du modèle par la migration 0003 : la ligne
-    affichait « À partir de  € ». Le prix dépend du métrage et se fixe au
-    devis ; on n'annonce donc que l'unité de chiffrage et la durée indicative.
-  {% endcomment %}
-  <p class="meta">
-    <strong>Chiffrage&nbsp;:</strong> au {{ service.unit_type }} — durée indicative ~{{ service.duration_minutes }} min.
+
+<header class="fiche-hero">
+  <p class="fiche-fil">
+    <a href="{% url 'services:list' %}">Nos services</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'services:list' %}?category={{ service.category.slug }}">{{ service.category.name }}</a>
   </p>
+  <h1>{{ service.title }}</h1>
+</header>
 
-  {% if service.tasks.all %}
-    <h3>Checklist</h3>
-    <ul>
-      {% for task in service.tasks.all %}
-        <li>{{ task.name }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+<div class="fiche">
+  <div class="fiche-corps">
 
-  <a class="btn btn-primary" href="{% url 'devis:request_quote' %}?service={{ service.slug }}">Demander un devis</a>
-</section>
+    <div>
+      <figure class="fiche-visuel">
+        {% if service.image %}
+          <img src="{{ service.image.url }}" alt="{{ service.display_alt }}">
+        {% else %}
+          {% comment %}
+            Repli par catégorie, sur les photographies réelles de la racine
+            static/img. Les fichiers de static/img/realisations/ sont des
+            gabarits vides — fond gris hachuré — et donnaient une fiche
+            visuellement muette.
+
+            Chaque fichier doit exister : en production, le stockage à
+            manifeste lève une ValueError sur un fichier absent, ce qui
+            transforme la fiche en 500 plutôt qu'en image manquante.
+
+            Le bricolage n'a pas de visuel propre ; la photo de rénovation est
+            la plus proche du geste.
+          {% endcomment %}
+          {% if service.category.slug == 'espaces-verts' %}
+            <img src="{% static 'img/espace-verts.jpg' %}" alt="{{ service.display_alt }}">
+          {% elif service.category.slug == 'nettoyage' %}
+            <img src="{% static 'img/nettoyage.jpg' %}" alt="{{ service.display_alt }}">
+          {% else %}
+            <img src="{% static 'img/renovation.jpg' %}" alt="{{ service.display_alt }}">
+          {% endif %}
+        {% endif %}
+      </figure>
+
+      <div class="fiche-texte">
+        {% if service.short_description %}
+          <p><strong>{{ service.short_description }}</strong></p>
+        {% endif %}
+        {{ service.description|linebreaks }}
+      </div>
+
+      {% if service.tasks.all %}
+        <h2 class="fiche-sous-titre">Déroulé de l'intervention</h2>
+        <ol class="fiche-etapes">
+          {% for task in service.tasks.all %}
+            <li>{{ task.name }}</li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </div>
+
+    <aside class="fiche-panneau">
+      <p class="fiche-panneau-titre">En bref</p>
+
+      <div class="fiche-faits">
+        <div class="fiche-fait">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          <span>
+            <span class="fiche-fait-libelle">Catégorie</span>
+            <span class="fiche-fait-valeur">{{ service.category.name }}</span>
+          </span>
+        </div>
+        <div class="fiche-fait">
+          <i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>
+          <span>
+            <span class="fiche-fait-libelle">Chiffrage</span>
+            <span class="fiche-fait-valeur">au {{ service.unit_type }}</span>
+          </span>
+        </div>
+        <div class="fiche-fait">
+          <i class="fa-regular fa-clock" aria-hidden="true"></i>
+          <span>
+            <span class="fiche-fait-libelle">Durée indicative</span>
+            <span class="fiche-fait-valeur">environ {{ service.duration_display }}</span>
+          </span>
+        </div>
+      </div>
+
+      <a class="fiche-cta" href="{% url 'devis:request_quote' %}?service={{ service.slug }}">
+        Demander un devis
+      </a>
+      {% comment %}
+        Le prix n'est pas affiché : il dépend du métrage et de l'état des lieux.
+        L'annoncer « à partir de » sans visite produirait des attentes que le
+        devis contredirait.
+      {% endcomment %}
+      <p class="fiche-mention">Devis gratuit et sans engagement, établi après visite.</p>
+    </aside>
+
+  </div>
+
+  {% with voisines=service.category.services.all %}
+    {% if voisines|length > 1 %}
+      <section class="fiche-voisines">
+        <h2 class="fiche-sous-titre" style="margin-top:0">Dans la même catégorie</h2>
+        <div class="fiche-voisines-grille">
+          {% for voisine in voisines %}
+            {% if voisine.pk != service.pk and voisine.is_active %}
+              <a class="fiche-voisine" href="{{ voisine.get_absolute_url }}">
+                <span class="fiche-voisine-titre">{{ voisine.title }}</span>
+                <span class="fiche-voisine-texte">{{ voisine.short_description|truncatewords:16 }}</span>
+              </a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  {% endwith %}
+</div>
+
 {% endblock %}

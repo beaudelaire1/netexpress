@@ -1,0 +1,293 @@
+/* ==========================================================================
+   Fiche de prestation
+   Reprend les jetons de style.css : --primary-green, --accent-green,
+   --shadow-soft, --font-head. Rien n'est redéfini en dur.
+   ========================================================================== */
+
+.fiche {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 72px;
+}
+
+/* --- Bandeau ------------------------------------------------------------- */
+
+.fiche-hero {
+  position: relative;
+  padding: 64px 24px 56px;
+  margin-bottom: 44px;
+  background-image:
+    linear-gradient(rgba(16, 65, 48, .88), rgba(16, 65, 48, .94)),
+    url("../img/hero_bg.png");
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  text-align: center;
+}
+
+.fiche-fil {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .72);
+  margin-bottom: .9rem;
+}
+
+.fiche-fil a {
+  color: rgba(255, 255, 255, .82);
+  text-decoration: none;
+}
+
+.fiche-fil a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.fiche-hero h1 {
+  font-family: var(--font-head);
+  font-size: clamp(2.1rem, 4.4vw, 3.2rem);
+  line-height: 1.14;
+  margin: 0 auto;
+  max-width: 20ch;
+  font-weight: 600;
+}
+
+/* --- Corps : contenu + panneau ------------------------------------------- */
+
+.fiche-corps {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .9fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.fiche-visuel {
+  margin: 0 0 30px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  aspect-ratio: 16 / 9;
+}
+
+.fiche-visuel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fiche-texte {
+  font-size: 1.06rem;
+  line-height: 1.75;
+  color: var(--text-main);
+}
+
+.fiche-texte p {
+  margin: 0 0 1.1rem;
+}
+
+.fiche-sous-titre {
+  font-family: var(--font-head);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--primary-green);
+  margin: 38px 0 18px;
+}
+
+/* --- Déroulé de l'intervention ------------------------------------------- */
+
+.fiche-etapes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: etape;
+  display: grid;
+  gap: 12px;
+}
+
+.fiche-etapes li {
+  counter-increment: etape;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 15px 18px;
+  background: var(--white);
+  border: 1px solid rgba(16, 65, 48, .09);
+  border-radius: var(--radius);
+  transition: border-color .18s ease, transform .18s ease;
+}
+
+.fiche-etapes li:hover {
+  border-color: rgba(45, 138, 94, .45);
+  transform: translateX(3px);
+}
+
+/* Le rang vient du compteur CSS : la checklist est ordonnée en base, et le
+   numéro doit suivre l'ordre d'affichage sans être écrit dans le gabarit. */
+.fiche-etapes li::before {
+  content: counter(etape);
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-green);
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+/* --- Panneau latéral ----------------------------------------------------- */
+
+.fiche-panneau {
+  position: sticky;
+  top: 96px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  padding: 26px 24px;
+}
+
+.fiche-panneau-titre {
+  font-size: .78rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 18px;
+  font-weight: 700;
+}
+
+.fiche-faits {
+  margin: 0 0 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.fiche-fait {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+}
+
+.fiche-fait i {
+  margin-top: .2rem;
+  color: var(--accent-green);
+  width: 18px;
+  text-align: center;
+}
+
+.fiche-fait-libelle {
+  display: block;
+  font-size: .78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.fiche-fait-valeur {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.fiche-cta {
+  display: block;
+  width: 100%;
+  padding: .9rem 1rem;
+  border-radius: 10px;
+  background: var(--primary-green);
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: background .18s ease;
+}
+
+.fiche-cta:hover {
+  background: var(--accent-green);
+}
+
+.fiche-cta:focus-visible {
+  outline: 3px solid rgba(45, 138, 94, .45);
+  outline-offset: 2px;
+}
+
+.fiche-mention {
+  margin: 12px 0 0;
+  font-size: .8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --- Prestations voisines ------------------------------------------------ */
+
+.fiche-voisines {
+  margin-top: 64px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(16, 65, 48, .1);
+}
+
+.fiche-voisines-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.fiche-voisine {
+  display: block;
+  padding: 20px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.fiche-voisine:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.fiche-voisine-titre {
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: .4rem;
+}
+
+.fiche-voisine-texte {
+  font-size: .9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* --- Petits écrans -------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .fiche-corps {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  /* Le panneau cesse d'être collant : en une seule colonne il suivrait le
+     défilement en masquant le contenu qu'il est censé accompagner. */
+  .fiche-panneau {
+    position: static;
+  }
+
+  .fiche-hero {
+    padding: 44px 20px 40px;
+    margin-bottom: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fiche-etapes li,
+  .fiche-voisine,
+  .fiche-cta {
+    transition: none;
+  }
+}
