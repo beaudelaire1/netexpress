@@ -375,19 +375,46 @@ TINYMCE_MESSAGING_CONFIG = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ============================================================
-# 📧 CONFIGURATION EMAIL (optionnel)
+# 📧 CONFIGURATION EMAIL
 # ============================================================
 
-EMAIL_BACKEND = os.getenv(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend'
-)
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+# Le transport par défaut est le SMTP standard de Django. Il fonctionne avec
+# n'importe quel hébergeur de messagerie (Brevo, OVH, IONOS, Gmail…) et ne
+# dépend d'aucune API propriétaire. Le backend API Brevo reste disponible en
+# posant EMAIL_BACKEND=core.backends.brevo_backend.BrevoEmailBackend.
+#
+# Les anciens noms BREVO_SMTP_* restent acceptés comme alias afin de ne pas
+# casser les environnements déjà déployés.
+
+SMTP_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+BREVO_EMAIL_BACKEND = 'core.backends.brevo_backend.BrevoEmailBackend'
+
+
+def _email_env(name, legacy=None, default=''):
+    """Lit une variable email, avec repli sur son ancien nom BREVO_SMTP_*."""
+    value = os.getenv(name)
+    if not value and legacy:
+        value = os.getenv(legacy)
+    return (value or default).strip()
+
+
+def _email_flag(name, legacy=None, default='False'):
+    return _email_env(name, legacy, default).lower() in ('1', 'true', 'yes', 'on')
+
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', SMTP_EMAIL_BACKEND).strip()
+EMAIL_HOST = _email_env('EMAIL_HOST', 'BREVO_SMTP_HOST', 'smtp-relay.brevo.com')
+EMAIL_PORT = int(_email_env('EMAIL_PORT', 'BREVO_SMTP_PORT', '587'))
+# TLS (STARTTLS, port 587) et SSL (port 465) s'excluent : Django refuse les
+# deux à la fois. Un SSL demandé explicitement l'emporte.
+EMAIL_USE_SSL = _email_flag('EMAIL_USE_SSL', 'BREVO_SMTP_USE_SSL', 'False')
+EMAIL_USE_TLS = (not EMAIL_USE_SSL) and _email_flag('EMAIL_USE_TLS', 'BREVO_SMTP_USE_TLS', 'True')
+EMAIL_HOST_USER = _email_env('EMAIL_HOST_USER', 'BREVO_SMTP_LOGIN')
+EMAIL_HOST_PASSWORD = _email_env('EMAIL_HOST_PASSWORD', 'BREVO_SMTP_PASSWORD')
+# Sans délai, un relais injoignable bloque le fil web jusqu'au timeout système.
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '30'))
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@nettoyageexpresse.fr')
+DEFAULT_FROM_NAME = os.getenv('DEFAULT_FROM_NAME', 'Nettoyage Express')
 SITE_URL = (os.getenv('SITE_URL', '') or '').rstrip('/')
 
 # Destinataires des notifications internes (chargés depuis l'environnement)
@@ -398,13 +425,19 @@ CONTACT_RECEIVER_EMAIL = os.getenv('CONTACT_RECEIVER_EMAIL', '')
 CONTACT_CC_EMAIL = os.getenv('CONTACT_CC_EMAIL', '')
 TASK_NOTIFICATION_EMAIL = os.getenv('TASK_NOTIFICATION_EMAIL', '')
 
+# Les notifications des formulaires publics partent dans le fil de la requête
+# par défaut. Les confier à Celery suppose un worker réellement en marche :
+# sans lui, la tâche reste en file et le courriel n'arrive jamais.
+NOTIFY_EMAILS_ASYNC = os.getenv('NOTIFY_EMAILS_ASYNC', 'False').lower() in ('1', 'true', 'yes', 'on')
+
 # ============================================================
 # 📧 BREVO API CONFIGURATION
 # ============================================================
 
-# Brevo API configuration for transactional emails
-BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
-USE_BREVO_API = bool(BREVO_API_KEY)
+# Optionnel : ne sert que si EMAIL_BACKEND pointe sur BREVO_EMAIL_BACKEND.
+# L'envoi SMTP n'en a aucun besoin.
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
+USE_BREVO_API = EMAIL_BACKEND == BREVO_EMAIL_BACKEND
 
 # ============================================================
 # 🛡️ CLOUDFLARE TURNSTILE (anti-bot)

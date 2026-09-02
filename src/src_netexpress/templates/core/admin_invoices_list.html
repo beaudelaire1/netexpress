@@ -74,17 +74,18 @@
                           <p>Échéance : {{ invoice.due_date|date:"d/m/Y" }}</p>
                         {% endif %}
                       </div>
-                      {% if invoice.quote %}
-                        <div class="mt-1 flex items-center text-sm text-gray-500">
+                      <div class="mt-1 flex items-center text-sm text-gray-500">
+                        <i class="fas fa-user mr-1"></i>
+                        <p>{{ invoice.client.full_name|default:"Client non renseigné" }}</p>
+                        <span class="mx-2">•</span>
+                        {% if invoice.quote %}
                           <i class="fas fa-file-alt mr-1"></i>
                           <p>Basée sur le devis {{ invoice.quote.number }}</p>
-                          {% if invoice.quote.client %}
-                            <span class="mx-2">•</span>
-                            <i class="fas fa-user mr-1"></i>
-                            <p>{{ invoice.quote.client.full_name }}</p>
-                          {% endif %}
-                        </div>
-                      {% endif %}
+                        {% else %}
+                          <i class="fas fa-bolt mr-1"></i>
+                          <p>Facture directe</p>
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
                   <div class="flex items-center space-x-4">

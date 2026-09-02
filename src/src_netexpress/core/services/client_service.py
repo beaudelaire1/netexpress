@@ -102,7 +102,7 @@ class ClientService:
             dict: Statistiques du client
         """
         quotes = Quote.objects.filter(client=client)
-        invoices = Invoice.objects.filter(quote__client=client)
+        invoices = Invoice.objects.filter(client=client)
         portal_documents = ClientPortalDocument.objects.filter(client=client, is_published=True)
         portal_user = portal_user_for_client(client)
         
@@ -281,7 +281,7 @@ class ClientService:
             })
         
         # Factures
-        invoices = Invoice.objects.filter(quote__client=client).select_related('quote').order_by('-created_at')[:limit]
+        invoices = Invoice.objects.filter(client=client).select_related('quote').order_by('-created_at')[:limit]
         for invoice in invoices:
             history.append({
                 'type': 'invoice',

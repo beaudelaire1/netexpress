@@ -25,7 +25,7 @@ def log_activity(user, action, target=""):
 
 
 def invoice_fingerprint(invoice):
-    client = invoice.quote.client if invoice.quote_id else None
+    client = invoice.client
     payload = {
         "number": invoice.number,
         "date": str(invoice.issue_date),
@@ -70,7 +70,7 @@ def issued_invoices():
         Invoice.all_objects.filter(
             issued_at__isnull=False,
             status__in=ACCOUNTING_VISIBLE_INVOICE_STATUSES,
-            quote__client__isnull=False,
+            client__isnull=False,
             invoice_items__isnull=False,
             total_ttc__gt=0,
         )
@@ -79,7 +79,7 @@ def issued_invoices():
         .exclude(invoice_items__quantity__lte=0)
         .exclude(invoice_items__unit_price__lt=0)
         .exclude(invoice_items__tax_rate__lt=0)
-        .select_related("quote__client", "accounting_review")
+        .select_related("client", "accounting_review")
         .prefetch_related("invoice_items")
         .distinct()
     )
@@ -169,7 +169,7 @@ def period_documents(data):
     if query:
         sales = sales.filter(
             Q(number__icontains=query)
-            | Q(quote__client__full_name__icontains=query)
+            | Q(client__full_name__icontains=query)
         )
         purchases = purchases.filter(
             Q(supplier_name__icontains=query) | Q(reference__icontains=query)
@@ -219,7 +219,7 @@ def csv_content(sales, purchases, documents=()):
     )
     for invoice in sales:
         sign = Decimal(-1) if invoice.is_credit_note else Decimal(1)
-        client = invoice.quote.client.full_name
+        client = invoice.client.full_name
         review = getattr(invoice, "accounting_review", None)
         writer.writerow(
             [

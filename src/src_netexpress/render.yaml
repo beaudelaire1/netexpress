@@ -47,9 +47,20 @@ services:
       - key: CSRF_TRUSTED_ORIGINS
         value: https://www.nettoyageexpresse.fr,https://nettoyageexpresse.fr,https://netexpress.onrender.com
       
-      # === EMAIL (Brevo API) ===
+      # === EMAIL (SMTP standard, hébergeur au choix) ===
+      # Les identifiants du relais restent dans le Dashboard Render.
       - key: EMAIL_BACKEND
-        value: core.backends.brevo_backend.BrevoEmailBackend
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
       - key: DEFAULT_FROM_EMAIL
         value: contact@nettoyageexpresse.fr
       - key: DEFAULT_FROM_NAME

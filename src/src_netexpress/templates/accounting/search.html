@@ -63,7 +63,7 @@
     {% for invoice in result.sales %}
     <a class="accounting-result-card" href="{% url 'accounting:invoice_detail' invoice.pk %}">
       <span class="accounting-result-icon"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></span>
-      <span class="accounting-result-main"><strong>{{ invoice.number }}</strong><small>{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }}</small></span>
+      <span class="accounting-result-main"><strong>{{ invoice.number }}</strong><small>{{ invoice.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }}</small></span>
       <span class="accounting-result-value">{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €<small>{{ invoice.get_status_display }}</small></span>
       <span class="badge {% if invoice.accounting_checked %}done{% else %}pending{% endif %}">{% if invoice.accounting_checked %}Contrôlé{% else %}À contrôler{% endif %}</span>
     </a>

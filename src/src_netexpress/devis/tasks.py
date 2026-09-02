@@ -14,12 +14,17 @@ except Exception:  # Celery non installé -> fallback
             return fn
         return _decorator
 
+import logging
+
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from core.notifications import send_notification
 from core.services.document_generator import DocumentGenerator
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
@@ -68,28 +73,32 @@ def send_quote_pdf_email(self, quote_id: int) -> None:
     email.send(fail_silently=False)
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
-def send_quote_request_received(self, quote_request_id: int) -> None:
-    """Confirme au client + notifie l'admin (template premium)."""
-    from devis.models import QuoteRequest
+def send_quote_request_notification(quote_request_id: int) -> None:
+    """Confirme la réception au demandeur puis prévient le gestionnaire."""
+    from devis.models import QuoteRequest  # import local : évite un cycle
 
-    qr = QuoteRequest.objects.get(pk=quote_request_id)
+    try:
+        qr = QuoteRequest.objects.get(pk=quote_request_id)
+    except QuoteRequest.DoesNotExist:
+        logger.warning("Demande de devis %s introuvable : rien à notifier", quote_request_id)
+        return
+
     branding = getattr(settings, "INVOICE_BRANDING", {}) or {}
-
-    site_url = getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/")
-    admin_dashboard_url = site_url + "/dashboard/"
-    admin_request_url = site_url + "/admin/devis/quoterequest/"
+    site_url = (getattr(settings, "SITE_URL", "") or "http://localhost:8000").rstrip("/")
+    reference = f"REQ-{qr.pk:05d}"
 
     # -------------------------
-    # 1) Email client (confirmation)
+    # 1) Accusé de réception au demandeur
     # -------------------------
     if qr.email:
-        context = {
-            "quote_request": qr,
-            "branding": branding,
-            "cta_url": site_url + "/devis/nouveau/",
-        }
-        html = render_to_string("emails/new_quote.html", context)
+        html = render_to_string(
+            "emails/new_quote.html",
+            {
+                "quote_request": qr,
+                "branding": branding,
+                "cta_url": site_url + "/devis/nouveau/",
+            },
+        )
         email = EmailMessage(
             subject="Votre demande de devis a bien été reçue",
             body=html,
@@ -100,36 +109,69 @@ def send_quote_request_received(self, quote_request_id: int) -> None:
         email.send(fail_silently=False)
 
     # -------------------------
-    # 2) Email admin (notification premium)
+    # 2) Notification interne
     # -------------------------
     admin_email = getattr(settings, "TASK_NOTIFICATION_EMAIL", None)
     if not admin_email:
+        logger.error(
+            "Demande de devis %s enregistrée mais non notifiée : "
+            "TASK_NOTIFICATION_EMAIL n'est pas configuré.",
+            quote_request_id,
+        )
         return
 
+    # Les libellés lisent les champs réels de QuoteRequest : les anciens
+    # `topic`, `zip_code` et `city` n'existent pas sur ce modèle et laissaient
+    # la moitié du récapitulatif vide.
     rows = [
-        {"label": "Type de service", "value": getattr(qr, "topic", None) or "Demande de devis"},
-        {"label": "Client", "value": getattr(qr, "client_name", None) or "—"},
-        {"label": "Téléphone", "value": getattr(qr, "phone", None) or "—"},
-        {"label": "Email", "value": getattr(qr, "email", None) or "—"},
-        {"label": "Commune", "value": f"{getattr(qr, 'zip_code', '')} {getattr(qr, 'city', '')}".strip() or "—"},
+        {"label": "Type de service", "value": qr.get_service_type_display() or "Non précisé"},
+        {"label": "Client", "value": qr.client_name or "—"},
+        {"label": "Téléphone", "value": qr.phone or "—"},
+        {"label": "Email", "value": qr.email or "—"},
+        {"label": "Adresse", "value": qr.address or "—"},
+        {"label": "Surface", "value": f"{qr.surface} m²" if qr.surface else "—"},
+        {"label": "Délai souhaité", "value": qr.get_deadline_display() or "—"},
     ]
+    if qr.preferred_date:
+        rows.append({"label": "Date souhaitée", "value": qr.preferred_date.strftime("%d/%m/%Y")})
 
-    ctx_admin = {
-        "brand": branding.get("name", "NETTOYAGE EXPRESS"),
-        "title": "Nouvelle demande de devis",
-        "headline": "Nouvelle demande de devis reçue",
-        "intro": "Une nouvelle demande a été soumise via le formulaire du site. Voici le récapitulatif.",
-        "rows": rows,
-        "action_url": admin_request_url,
-        "action_label": "Ouvrir dans l'admin",
-        "reference": f"REQ-{qr.pk}",
-    }
-    html_admin = render_to_string("emails/notification_generic.html", ctx_admin)
+    html_admin = render_to_string(
+        "emails/notification_generic.html",
+        {
+            "brand": branding.get("name", "NETTOYAGE EXPRESS"),
+            "title": "Nouvelle demande de devis",
+            "headline": "Nouvelle demande de devis reçue",
+            "intro": "Une nouvelle demande a été soumise via le formulaire du site. Voici le récapitulatif.",
+            "rows": rows,
+            "action_url": site_url + "/admin/devis/quoterequest/",
+            "action_label": "Ouvrir dans l'admin",
+            "reference": reference,
+        },
+    )
     em = EmailMessage(
-        subject=f"[NetExpress] Nouvelle demande de devis (REQ-{qr.pk})",
+        subject=f"[Nettoyage Express] Nouvelle demande de devis ({reference})",
         body=html_admin,
         to=[admin_email],
         from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+        # Répondre au courriel écrit directement au demandeur.
+        reply_to=[qr.email] if qr.email else None,
     )
     em.content_subtype = "html"
     em.send(fail_silently=False)
+    logger.info("Notification de demande de devis %s envoyée à %s", reference, admin_email)
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
+def send_quote_request_received(self, quote_request_id: int) -> None:
+    """Variante Celery, utilisée uniquement si NOTIFY_EMAILS_ASYNC est actif."""
+    return send_quote_request_notification(quote_request_id)
+
+
+def notify_new_quote_request(quote_request_id: int) -> bool:
+    """Point d'entrée unique de la vue publique. True si la notification est partie."""
+    return send_notification(
+        f"demande de devis {quote_request_id}",
+        send_quote_request_notification,
+        args=(quote_request_id,),
+        celery_task=send_quote_request_received,
+    )

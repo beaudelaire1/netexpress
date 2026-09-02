@@ -89,8 +89,8 @@ def search(request):
             if query:
                 sales = sales.filter(
                     Q(number__icontains=query)
-                    | Q(quote__client__full_name__icontains=query)
-                    | Q(quote__client__email__icontains=query)
+                    | Q(client__full_name__icontains=query)
+                    | Q(client__email__icontains=query)
                     | Q(invoice_items__description__icontains=query)
                 ).distinct()
             counts["sales"] = sales.count()
@@ -127,7 +127,7 @@ def search(request):
 
         if scope in {"all", "exchanges"}:
             exchanges = AccountingExchange.objects.select_related(
-                "invoice__quote__client",
+                "invoice__client",
                 "quote__client",
                 "supplier_invoice",
                 "accounting_document",
@@ -142,7 +142,7 @@ def search(request):
                     Q(subject__icontains=query)
                     | Q(messages__content__icontains=query)
                     | Q(invoice__number__icontains=query)
-                    | Q(invoice__quote__client__full_name__icontains=query)
+                    | Q(invoice__client__full_name__icontains=query)
                     | Q(quote__number__icontains=query)
                     | Q(quote__client__full_name__icontains=query)
                     | Q(supplier_invoice__supplier_name__icontains=query)

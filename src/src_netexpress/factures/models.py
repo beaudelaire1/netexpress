@@ -48,6 +48,14 @@ class Invoice(SoftDeleteMixin, models.Model):
 
     # Référence en chaîne => évite tout import circulaire
     quote = models.ForeignKey("devis.Quote", on_delete=models.SET_NULL, null=True, blank=True, related_name="invoices")
+    client = models.ForeignKey(
+        "devis.Client",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invoices",
+        help_text="Client facturé. Repris du devis lorsque la facture en découle.",
+    )
     command_ref = models.CharField(max_length=100, blank=True, help_text="Référence bon de commande client.")
 
     number = models.CharField(
@@ -83,6 +91,7 @@ class Invoice(SoftDeleteMixin, models.Model):
         indexes = [
             models.Index(fields=["number", "issue_date"]),
             models.Index(fields=["status"]),
+            models.Index(fields=["client"]),
         ]
         verbose_name = _("facture")
         verbose_name_plural = _("factures")
@@ -100,6 +109,12 @@ class Invoice(SoftDeleteMixin, models.Model):
     def save(self, *args, **kwargs):
         from core.numbering import save_numbered_document
         changed = []
+        # Une facture issue d'un devis hérite du client de celui-ci : le champ
+        # ``client`` reste ainsi la source unique de vérité pour l'affichage,
+        # les emails et la comptabilité, quel que soit le mode de création.
+        if not self.client_id and self.quote_id:
+            self.client_id = self.quote.client_id
+            changed.append("client")
         if self.status == self.InvoiceStatus.AVOIR and not self.is_credit_note:
             self.is_credit_note = True
             changed.append("is_credit_note")

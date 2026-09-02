@@ -16,8 +16,8 @@
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Facture {{ invoice.number }}</h1>
             <p class="text-gray-600">
-              {% if invoice.quote and invoice.quote.client %}
-                {{ invoice.quote.client.full_name }}
+              {% if invoice.client %}
+                {{ invoice.client.full_name }}
               {% else %}
                 Client non défini
               {% endif %}
@@ -52,9 +52,9 @@
             <div>
               <label class="text-xs text-gray-500 uppercase">Client</label>
               <p class="text-gray-800">
-                {% if invoice.quote and invoice.quote.client %}
-                  <a href="{% url 'core:admin_client_detail' invoice.quote.client.pk %}" class="text-ne-primary-600 hover:underline">
-                    {{ invoice.quote.client.full_name }}
+                {% if invoice.client %}
+                  <a href="{% url 'core:admin_client_detail' invoice.client.pk %}" class="text-ne-primary-600 hover:underline">
+                    {{ invoice.client.full_name }}
                   </a>
                 {% else %}
                   N/A
@@ -139,7 +139,7 @@
             Lignes de facture
           </h2>
           
-          {% if invoice.quote and invoice.quote.items.all %}
+          {% if invoice.invoice_items.all %}
           <div class="overflow-x-auto">
             <table class="min-w-full">
               <thead>
@@ -152,19 +152,14 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                {% for item in invoice.quote.items.all %}
+                {% for item in invoice.invoice_items.all %}
                 <tr>
                   <td class="px-4 py-3">
-                    <span class="font-medium text-gray-800">
-                      {% if item.service %}{{ item.service.title }}{% else %}{{ item.description }}{% endif %}
-                    </span>
-                    {% if item.description and item.service %}
-                    <p class="text-sm text-gray-500">{{ item.description }}</p>
-                    {% endif %}
+                    <span class="font-medium text-gray-800">{{ item.description|default:"Prestation" }}</span>
                   </td>
                   <td class="px-4 py-3 text-center">{{ item.quantity }}</td>
                   <td class="px-4 py-3 text-right">{{ item.unit_price }} €</td>
-                  <td class="px-4 py-3 text-right text-gray-500">{{ item.tva_rate }}%</td>
+                  <td class="px-4 py-3 text-right text-gray-500">{{ item.tax_rate }}%</td>
                   <td class="px-4 py-3 text-right font-medium">{{ item.total_ht }} €</td>
                 </tr>
                 {% endfor %}

@@ -81,14 +81,23 @@ DJANGO_SECRET_KEY
 SITE_URL
 DATABASE_URL
 REDIS_URL
-BREVO_API_KEY
+EMAIL_HOST
+EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD
 DEFAULT_FROM_EMAIL
+CONTACT_RECEIVER_EMAIL
 TURNSTILE_SITE_KEY
 TURNSTILE_SECRET_KEY
 COMPANY_SIRET
 BANK_ACCOUNT_NAME
 BANK_ACCOUNT_NUMBER
 ```
+
+Le courrier part par SMTP standard : n'importe quel hébergeur de messagerie convient (Brevo, OVH, IONOS…), aucune API propriétaire n'est requise. `EMAIL_PORT` vaut 587 et `EMAIL_USE_TLS` vaut `True` par défaut ; pour un relais en SSL implicite, poser `EMAIL_PORT=465` et `EMAIL_USE_SSL=True`. La production refuse de démarrer si le chiffrement est désactivé des deux côtés, car les identifiants du relais transiteraient en clair.
+
+Pour revenir à l'API Brevo, poser `EMAIL_BACKEND=core.backends.brevo_backend.BrevoEmailBackend` et `BREVO_API_KEY` à la place des trois variables SMTP.
+
+Une fois déployé, `python manage.py send_test_email` affiche le transport réellement actif et envoie un message de contrôle.
 
 `COMPANY_BIC` reste facultatif ; s'il est renseigné, son format est contrôlé. `BANK_ACCOUNT_NUMBER` est validé avec la clé de contrôle IBAN et est ensuite formaté pour l'affichage sur les PDF.
 
@@ -189,7 +198,8 @@ Le déploiement n'est considéré prêt que lorsque les vérifications suivantes
 - conversion en facture test ;
 - contrôle visuel du PDF : identité, SIRET, montants, titulaire, IBAN et BIC éventuel ;
 - téléchargement privé impossible sans autorisation ;
-- envoi Brevo fonctionnel ;
+- envoi de courriel fonctionnel (`python manage.py send_test_email`) ;
+- formulaire de contact public : le message arrive bien sur `CONTACT_RECEIVER_EMAIL` ;
 - formulaire public protégé par Turnstile ;
 - worker Celery sain et traitement d'une tâche réelle dans une file métier ;
 - sauvegarde PostgreSQL effectuée puis restauration de test ;

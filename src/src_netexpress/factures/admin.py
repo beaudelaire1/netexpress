@@ -38,9 +38,9 @@ class InvoiceAdminForm(forms.ModelForm):
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     form = InvoiceAdminForm
-    list_display = ("number", "quote", "status", "issue_date", "total_ttc", "pdf_link")
+    list_display = ("number", "client", "quote", "status", "issue_date", "total_ttc", "pdf_link")
     list_filter = ("status", "issue_date")
-    search_fields = ("number", "quote__client__full_name")
+    search_fields = ("number", "client__full_name")
     readonly_fields = ("total_ht", "tva", "total_ttc", "issue_date", "created_at")
     actions = ["generate_pdfs", "send_invoices"]
 

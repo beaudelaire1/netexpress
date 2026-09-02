@@ -45,7 +45,7 @@ def accounting_exchange_dashboard(user, accounting_admin=False):
         last_read_at__gte=OuterRef("last_activity_at"),
     )
     queryset = AccountingExchange.objects.select_related(
-        "invoice__quote__client",
+        "invoice__client",
         "quote__client",
         "supplier_invoice",
         "accounting_document",

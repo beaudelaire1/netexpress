@@ -277,7 +277,7 @@
         </div>
 
         <!-- Client Information -->
-        {% if invoice.quote and invoice.quote.client %}
+        {% if invoice.client %}
         <div class="bg-white rounded-lg shadow">
           <div class="px-6 py-4 border-b border-gray-200">
             <h2 class="text-lg font-medium text-gray-900">Informations client</h2>
@@ -286,24 +286,24 @@
             <dl class="space-y-3">
               <div>
                 <dt class="text-sm font-medium text-gray-500">Nom</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ invoice.quote.client.full_name }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ invoice.client.full_name }}</dd>
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-500">Email</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ invoice.quote.client.email }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ invoice.client.email }}</dd>
               </div>
-              {% if invoice.quote.client.phone %}
+              {% if invoice.client.phone %}
               <div>
                 <dt class="text-sm font-medium text-gray-500">Téléphone</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ invoice.quote.client.phone }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ invoice.client.phone }}</dd>
               </div>
               {% endif %}
-              {% if invoice.quote.client.address_line %}
+              {% if invoice.client.address_line %}
               <div>
                 <dt class="text-sm font-medium text-gray-500">Adresse</dt>
                 <dd class="mt-1 text-sm text-gray-900">
-                  {{ invoice.quote.client.address_line }}<br>
-                  {% if invoice.quote.client.zip_code %}{{ invoice.quote.client.zip_code }} {% endif %}{{ invoice.quote.client.city }}
+                  {{ invoice.client.address_line }}<br>
+                  {% if invoice.client.zip_code %}{{ invoice.client.zip_code }} {% endif %}{{ invoice.client.city }}
                 </dd>
               </div>
               {% endif %}

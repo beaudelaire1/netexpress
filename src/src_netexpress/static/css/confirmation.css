@@ -1,0 +1,350 @@
+/* ==========================================================================
+   Pages de confirmation des formulaires publics (contact, demande de devis)
+   --------------------------------------------------------------------------
+   S'appuie sur les jetons de base.css (--brand, --radius, --shadow-*) pour
+   rester dans la charte du site : vert profond, ivoire, cartes arrondies.
+   ========================================================================== */
+
+.confirm {
+  --confirm-gap: 28px;
+  display: grid;
+  gap: var(--confirm-gap);
+  padding: 40px 0 24px;
+  max-width: 940px;
+  margin: 0 auto;
+}
+
+/* --- Carte principale : l'accusé de réception ---------------------------- */
+
+/* Le rayon reprend exactement celui de .animated-border (style.css) : le
+   masque du liseré animé est calé dessus, un rayon différent le décadre. */
+.confirm-card {
+  position: relative;
+  background:
+    radial-gradient(720px 260px at 50% -40%, rgba(13, 90, 67, .10), transparent 70%),
+    var(--card);
+  border-radius: 18px;
+  box-shadow: var(--shadow-2);
+  padding: 56px 32px 36px;
+  text-align: center;
+}
+
+.confirm-seal {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #e8f4ee, #dce7de);
+  box-shadow: 0 10px 24px rgba(13, 90, 67, .18);
+}
+
+.confirm-seal svg {
+  width: 52px;
+  height: 52px;
+  overflow: visible;
+}
+
+.confirm-seal-ring,
+.confirm-seal-check {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.confirm-seal-ring {
+  stroke-width: 2.5;
+  stroke-opacity: .35;
+  /* Le tracé fait ~145 unités : on le masque entièrement avant de le dérouler. */
+  stroke-dasharray: 145;
+  stroke-dashoffset: 145;
+  animation: confirm-draw .55s ease-out forwards;
+}
+
+.confirm-seal-check {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: confirm-draw .4s ease-out .35s forwards;
+}
+
+@keyframes confirm-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.confirm-eyebrow {
+  margin: 0 0 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.confirm-title {
+  margin: 0 0 14px;
+  font-size: clamp(28px, 4.2vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--brand-900);
+}
+
+.confirm-lead {
+  margin: 0 auto;
+  max-width: 58ch;
+  font-size: 1.08rem;
+  color: var(--muted);
+}
+
+.confirm-lead strong {
+  color: var(--ink);
+}
+
+/* --- Récapitulatif : référence, sujet, horodatage ------------------------ */
+
+.confirm-receipt {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 28px 0 12px;
+  padding: 0;
+  background: rgba(13, 90, 67, .12);
+  border: 1px solid rgba(13, 90, 67, .12);
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.confirm-receipt-item {
+  background: var(--accent-ivory);
+  padding: 16px 18px;
+}
+
+.confirm-receipt dt {
+  margin: 0 0 4px;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.confirm-receipt dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.confirm-ref {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .95rem;
+  letter-spacing: .04em;
+}
+
+.confirm-receipt-note {
+  margin: 0;
+  font-size: .9rem;
+  color: var(--muted);
+}
+
+/* --- Étapes de traitement ------------------------------------------------ */
+
+.confirm-section-title {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  color: var(--brand-900);
+}
+
+.confirm-steps,
+.confirm-reach {
+  background: var(--card);
+  border: 1px solid rgba(16, 20, 24, .08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  padding: 28px 28px 24px;
+}
+
+.confirm-steps-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.confirm-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 16px;
+  padding: 0 0 22px;
+}
+
+/* Le trait qui relie les jalons s'arrête au dernier. */
+.confirm-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 38px;
+  bottom: 4px;
+  width: 2px;
+  background: rgba(13, 90, 67, .18);
+}
+
+.confirm-step-marker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--muted);
+  border: 2px solid rgba(13, 90, 67, .18);
+}
+
+.confirm-step.is-done .confirm-step-marker {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.confirm-step.is-current .confirm-step-marker {
+  background: #fff;
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 0 0 5px var(--ring);
+}
+
+.confirm-step-body h3 {
+  margin: 8px 0 4px;
+  font-size: 1.02rem;
+  color: var(--ink);
+}
+
+.confirm-step-body p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --- Contacts directs ---------------------------------------------------- */
+
+.confirm-reach-lead {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* Deux colonnes fixes plutôt qu'un auto-fit : à quatre tuiles, l'adresse
+   électronique complète ne tient pas dans une colonne étroite et se coupe en
+   plein milieu d'un mot. */
+.confirm-reach-list {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.confirm-reach-tile {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(13, 90, 67, .14);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+a.confirm-reach-tile:hover,
+a.confirm-reach-tile:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--brand);
+  box-shadow: var(--shadow-1);
+}
+
+.confirm-reach-icon {
+  grid-row: 1 / span 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--brand-soft);
+  color: var(--brand-700);
+}
+
+.confirm-reach-label {
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.confirm-reach-value {
+  font-weight: 600;
+  line-height: 1.35;
+  /* break-word (et non anywhere) : la coupure ne se fait qu'en dernier
+     recours, jamais au milieu d'un mot qui tiendrait sur la ligne suivante. */
+  overflow-wrap: break-word;
+}
+
+/* --- Actions de sortie --------------------------------------------------- */
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.confirm-btn-primary {
+  background: var(--brand);
+}
+
+.confirm-btn-ghost {
+  background: transparent;
+  color: var(--brand-700);
+  border: 1px solid rgba(13, 90, 67, .28);
+}
+
+.confirm-btn-ghost:hover {
+  background: var(--brand-soft);
+  color: var(--brand-900);
+}
+
+/* --- Adaptations ---------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .confirm-card { padding: 44px 20px 28px; }
+  .confirm-receipt { grid-template-columns: 1fr; }
+  .confirm-reach-list { grid-template-columns: 1fr; }
+  .confirm-steps,
+  .confirm-reach { padding: 22px 18px 20px; }
+  .confirm-actions .btn { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-seal-ring,
+  .confirm-seal-check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .confirm-reach-tile { transition: none; }
+  a.confirm-reach-tile:hover { transform: none; }
+}

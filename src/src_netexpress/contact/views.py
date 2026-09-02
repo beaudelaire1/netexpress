@@ -2,18 +2,24 @@
 Vues pour le formulaire de contact.
 
 - Sauvegarde du message
-- Notification admin asynchrone via Celery
+- Notification interne au gestionnaire (voir ``contact.tasks``)
 - Contexte JS : correspondance Commune <-> Code postal (Guyane)
 """
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from .forms import ContactForm
 from .tasks import notify_new_contact
+
+# Clé de session servant à transmettre le récapitulatif du message à la page
+# de confirmation. Un redirect ne peut rien porter d'autre, et repasser
+# l'identifiant dans l'URL exposerait les messages des autres visiteurs.
+CONTACT_CONFIRMATION_SESSION_KEY = "contact_confirmation"
 
 
 GUYANE_COMMUNES = {
@@ -55,21 +61,17 @@ def contact_view(request):
         if form.is_valid():
             msg = form.save()
 
-            # Pour le développement, envoi synchrone direct
-            try:
-                # Essayer d'abord l'envoi asynchrone avec Celery
-                notify_new_contact.delay(msg.pk)
-            except Exception:
-                # Fallback synchrone si Celery n'est pas disponible
-                try:
-                    # Appel direct de la fonction (synchrone)
-                    from .tasks import notify_new_contact
-                    notify_new_contact(msg.pk)
-                except Exception as e:
-                    # Si l'envoi échoue complètement, on continue quand même
-                    print(f"Erreur envoi email: {e}")
+            # Le message est enregistré : un échec d'envoi est journalisé côté
+            # serveur, pas répercuté sur le visiteur, dont la demande est bien
+            # arrivée.
+            notify_new_contact(msg.pk)
 
-            messages.success(request, "Votre message a bien été envoyé.")
+            request.session[CONTACT_CONFIRMATION_SESSION_KEY] = {
+                "reference": f"MSG-{msg.pk:05d}",
+                "first_name": msg.full_name.split(" ")[0],
+                "email": msg.email,
+                "topic": msg.get_topic_display(),
+            }
             return redirect(reverse("contact:success"))
     else:
         form = ContactForm()
@@ -85,4 +87,15 @@ def contact_view(request):
 
 
 def contact_success(request):
-    return render(request, "contact/contact_success.html", {})
+    # Consommé une seule fois : un rechargement de la page ne doit pas
+    # ré-afficher un accusé de réception qui n'a plus lieu d'être.
+    confirmation = request.session.pop(CONTACT_CONFIRMATION_SESSION_KEY, None)
+
+    return render(
+        request,
+        "contact/contact_success.html",
+        {
+            "confirmation": confirmation,
+            "branding": getattr(settings, "INVOICE_BRANDING", {}) or {},
+        },
+    )

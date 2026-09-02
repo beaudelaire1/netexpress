@@ -15,8 +15,8 @@
             Modifier la Facture {{ invoice.number }}
           </h1>
           <p class="text-gray-600 mt-1">
-            {% if invoice.quote and invoice.quote.client %}
-              Client: {{ invoice.quote.client.full_name }} — 
+            {% if invoice.client %}
+              Client: {{ invoice.client.full_name }} — 
             {% endif %}
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
               {% if invoice.status == 'draft' %}bg-gray-100 text-gray-800

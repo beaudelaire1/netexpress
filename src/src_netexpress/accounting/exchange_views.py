@@ -83,7 +83,7 @@ def exchange_list(request):
     """List collaboration threads with role-aware métier filters."""
     queryset = AccountingExchange.objects.select_related(
         "created_by",
-        "invoice__quote__client",
+        "invoice__client",
         "quote__client",
         "supplier_invoice",
         "accounting_document",
@@ -189,7 +189,7 @@ def exchange_detail(request, pk):
     exchange = get_object_or_404(
         AccountingExchange.objects.select_related(
             "created_by",
-            "invoice__quote__client",
+            "invoice__client",
             "quote__client",
             "supplier_invoice",
             "accounting_document",

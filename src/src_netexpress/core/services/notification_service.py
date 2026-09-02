@@ -326,8 +326,8 @@ class NotificationService:
             )
         
         # If client has a user account, notify them
-        if hasattr(invoice, 'quote') and invoice.quote and hasattr(invoice.quote.client, 'user') and invoice.quote.client.user:
-            client_user = invoice.quote.client.user
+        client_user = getattr(invoice.client, 'user', None) if invoice.client else None
+        if client_user:
             self.create_ui_notification(
                 user=client_user,
                 title=f"Nouvelle facture: {invoice.number}",

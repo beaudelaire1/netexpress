@@ -160,7 +160,7 @@ class AnalyticsService:
         client_revenue = Invoice.objects.filter(
             status__in=[Invoice.InvoiceStatus.PAID, Invoice.InvoiceStatus.PARTIAL]
         ).values(
-            'quote__client__full_name', 'quote__client__company'
+            'client__full_name', 'client__company'
         ).annotate(
             total=Sum('total_ttc'),
             invoice_count=Count('id')
@@ -268,7 +268,7 @@ class AnalyticsService:
         """
         return Invoice.objects.filter(
             status__in=[Invoice.InvoiceStatus.OVERDUE, Invoice.InvoiceStatus.SENT]
-        ).select_related('quote__client').order_by('due_date')
+        ).select_related('client').order_by('due_date')
     
     @staticmethod
     def get_services_demand() -> list:
@@ -298,7 +298,7 @@ class ReportingService:
         invoices = Invoice.objects.filter(
             issue_date__gte=start_date,
             issue_date__lte=end_date
-        ).select_related('quote__client').order_by('issue_date')
+        ).select_related('client').order_by('issue_date')
         
         total_ht = invoices.aggregate(total=Sum('total_ht'))['total'] or Decimal('0.00')
         total_tva = invoices.aggregate(total=Sum('tva'))['total'] or Decimal('0.00')

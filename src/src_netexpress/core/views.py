@@ -681,7 +681,7 @@ def admin_dashboard(request):
         
         # Recent activity - optimized with select_related
         recent_quotes = Quote.objects.select_related('client', 'service').order_by('-created_at')[:5]
-        recent_invoices = Invoice.objects.select_related('quote', 'quote__client').order_by('-created_at')[:5]
+        recent_invoices = Invoice.objects.select_related('quote', 'client').order_by('-created_at')[:5]
         recent_tasks = Task.objects.prefetch_related('assigned_to').order_by('-created_at')[:5]
         
         # Status distributions - optimized with single aggregation
@@ -780,7 +780,7 @@ def admin_dashboard(request):
         ).select_related('client', 'service').order_by('-created_at')
         recent_invoices_qs = Invoice.objects.filter(
             pk__in=cached_data['recent_invoices_ids']
-        ).select_related('quote', 'quote__client').order_by('-created_at')
+        ).select_related('quote', 'client').order_by('-created_at')
         recent_tasks_qs = Task.objects.filter(
             pk__in=cached_data['recent_tasks_ids']
         ).prefetch_related('assigned_to').order_by('-created_at')
@@ -1381,14 +1381,14 @@ def admin_clients_list(request):
     
     portal_user_subquery = User.objects.filter(profile__client_id=OuterRef('pk'), profile__role='client')
     revenue_subquery = Invoice.objects.filter(
-        quote__client=OuterRef('pk')
-    ).values('quote__client').annotate(
+        client=OuterRef('pk')
+    ).values('client').annotate(
         total=Sum('total_ttc')
     ).values('total')[:1]
     open_balance_subquery = Invoice.objects.filter(
-        quote__client=OuterRef('pk'),
+        client=OuterRef('pk'),
         status__in=[Invoice.InvoiceStatus.SENT, Invoice.InvoiceStatus.PARTIAL, Invoice.InvoiceStatus.OVERDUE],
-    ).values('quote__client').annotate(
+    ).values('client').annotate(
         total=Sum('total_ttc')
     ).values('total')[:1]
     clients = Client.objects.all()
@@ -1726,7 +1726,7 @@ def admin_invoices_list(request):
     """Admin Portal invoices management view with pagination."""
     from django.core.paginator import Paginator
     
-    invoices = Invoice.objects.select_related('quote', 'quote__client').order_by('-issue_date')
+    invoices = Invoice.objects.select_related('quote', 'client').order_by('-issue_date')
     paginator = Paginator(invoices, 25)  # 25 invoices per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -1893,7 +1893,7 @@ def admin_client_detail(request, pk):
     quotes = Quote.objects.filter(client=client).select_related('service').order_by('-issue_date')
     
     # Factures associées (via quote)
-    invoices = Invoice.objects.filter(quote__client=client).select_related('quote').order_by('-issue_date')
+    invoices = Invoice.objects.filter(client=client).select_related('quote').order_by('-issue_date')
     
     # Vérifier si un User existe avec cet email
     user_account = _get_client_portal_user(client)
@@ -2041,7 +2041,7 @@ def admin_quote_detail(request, pk):
 def admin_invoice_detail(request, pk):
     """Admin Portal invoice detail view."""
     invoice = get_object_or_404(
-        Invoice.objects.select_related('quote', 'quote__client'),
+        Invoice.objects.select_related('quote', 'client'),
         pk=pk
     )
     
@@ -2082,7 +2082,7 @@ def admin_edit_invoice(request, pk):
     from django.forms import inlineformset_factory
     from factures.models import Invoice, InvoiceItem
     
-    invoice = get_object_or_404(Invoice.objects.select_related('quote', 'quote__client'), pk=pk)
+    invoice = get_object_or_404(Invoice.objects.select_related('quote', 'client'), pk=pk)
     
     # Form pour la facture
     class InvoiceEditForm(forms.ModelForm):
@@ -2170,16 +2170,16 @@ def admin_send_invoice_email(request, pk):
     
     logger = logging.getLogger(__name__)
     invoice = get_object_or_404(
-        Invoice.objects.select_related('quote', 'quote__client'), 
+        Invoice.objects.select_related('quote', 'client'), 
         pk=pk
     )
     
     # Récupérer les infos client
     client_email = ''
     client_name = 'Client'
-    if invoice.quote and invoice.quote.client:
-        client_email = invoice.quote.client.email or ''
-        client_name = invoice.quote.client.full_name
+    if invoice.client:
+        client_email = invoice.client.email or ''
+        client_name = invoice.client.full_name
     
     if request.method == 'POST':
         recipient_email = request.POST.get('recipient_email', '').strip()
@@ -2582,7 +2582,7 @@ def admin_export_report(request):
         report = ReportingService.generate_revenue_report(start_date, end_date)
         writer.writerow(['Numero', 'Date', 'Client', 'Montant HT', 'TVA', 'Montant TTC', 'Statut'])
         for inv in report['invoices']:
-            client_name = inv.quote.client.full_name if inv.quote and inv.quote.client else 'N/A'
+            client_name = inv.client.full_name if inv.client else 'N/A'
             writer.writerow([
                 inv.number,
                 inv.issue_date.strftime('%d/%m/%Y'),

@@ -356,8 +356,8 @@ def filtered_sales(request):
     if data.get("q"):
         queryset = queryset.filter(
             Q(number__icontains=data["q"])
-            | Q(quote__client__full_name__icontains=data["q"])
-            | Q(quote__client__email__icontains=data["q"])
+            | Q(client__full_name__icontains=data["q"])
+            | Q(client__email__icontains=data["q"])
             | Q(invoice_items__description__icontains=data["q"])
         ).distinct()
     if data.get("status"):
@@ -480,7 +480,7 @@ def filtered_exchanges(request, queryset):
             Q(subject__icontains=data["q"])
             | Q(messages__content__icontains=data["q"])
             | Q(invoice__number__icontains=data["q"])
-            | Q(invoice__quote__client__full_name__icontains=data["q"])
+            | Q(invoice__client__full_name__icontains=data["q"])
             | Q(quote__number__icontains=data["q"])
             | Q(quote__client__full_name__icontains=data["q"])
             | Q(supplier_invoice__supplier_name__icontains=data["q"])

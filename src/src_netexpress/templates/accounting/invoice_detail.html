@@ -7,7 +7,7 @@
   <div>
     <p class="eyebrow">{% if invoice.is_credit_note %}AVOIR{% else %}FACTURE CLIENT{% endif %}</p>
     <h1>{{ invoice.number }}</h1>
-    <p class="subtitle">{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }}</p>
+    <p class="subtitle">{{ invoice.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }}</p>
   </div>
   <div class="actions">
     <a class="button secondary" href="{% url 'accounting:exchange_create' %}?context_type=invoice&context_id={{ invoice.pk }}"><i class="fa-regular fa-message" aria-hidden="true"></i> Signaler / échanger</a>

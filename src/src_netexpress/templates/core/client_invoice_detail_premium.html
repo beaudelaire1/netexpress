@@ -167,29 +167,29 @@
           </div>
         </section>
 
-        {% if invoice.quote and invoice.quote.client %}
+        {% if invoice.client %}
           <section class="portal-premium-surface p-6 lg:p-7">
             <p class="portal-premium-kicker text-ne-primary-700">Coordonnées</p>
             <h2 class="mt-3 text-2xl font-semibold text-slate-900">Informations client</h2>
             <div class="mt-6 space-y-4 text-sm text-slate-600">
               <div>
                 <p class="portal-premium-label">Nom</p>
-                <p class="mt-2 text-base font-semibold text-slate-900">{{ invoice.quote.client.full_name }}</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">{{ invoice.client.full_name }}</p>
               </div>
               <div>
                 <p class="portal-premium-label">Email</p>
-                <p class="mt-2"><a href="mailto:{{ invoice.quote.client.email }}" class="font-medium text-ne-primary-700 hover:underline">{{ invoice.quote.client.email }}</a></p>
+                <p class="mt-2"><a href="mailto:{{ invoice.client.email }}" class="font-medium text-ne-primary-700 hover:underline">{{ invoice.client.email }}</a></p>
               </div>
-              {% if invoice.quote.client.phone %}
+              {% if invoice.client.phone %}
                 <div>
                   <p class="portal-premium-label">Téléphone</p>
-                  <p class="mt-2 text-base font-semibold text-slate-900">{{ invoice.quote.client.phone }}</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ invoice.client.phone }}</p>
                 </div>
               {% endif %}
-              {% if invoice.quote.client.address_line %}
+              {% if invoice.client.address_line %}
                 <div>
                   <p class="portal-premium-label">Adresse</p>
-                  <p class="mt-2 text-base font-semibold text-slate-900">{{ invoice.quote.client.address_line }}{% if invoice.quote.client.zip_code or invoice.quote.client.city %}<br>{{ invoice.quote.client.zip_code }} {{ invoice.quote.client.city }}{% endif %}</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ invoice.client.address_line }}{% if invoice.client.zip_code or invoice.client.city %}<br>{{ invoice.client.zip_code }} {{ invoice.client.city }}{% endif %}</p>
                 </div>
               {% endif %}
             </div>

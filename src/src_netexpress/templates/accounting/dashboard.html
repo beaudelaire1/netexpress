@@ -248,7 +248,7 @@
       <a class="document-row" href="{% url 'accounting:invoice_detail' invoice.pk %}">
         <div>
           <strong>{{ invoice.number }}</strong>
-          <small>{{ invoice.quote.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }} · {{ invoice.get_status_display }}</small>
+          <small>{{ invoice.client.full_name }} · {{ invoice.issue_date|date:'d/m/Y' }} · {{ invoice.get_status_display }}</small>
         </div>
         <b>{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €</b>
       </a>

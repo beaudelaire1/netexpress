@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 def _safe_client_name(invoice):
     """Extrait le nom du client de manière sécurisée."""
     try:
-        if hasattr(invoice, 'quote') and invoice.quote and hasattr(invoice.quote, 'client'):
-            client = invoice.quote.client
+        client = getattr(invoice, 'client', None)
+        if client:
             return getattr(client, 'full_name', '') or getattr(client, 'name', '') or 'Client'
     except Exception:
         pass
@@ -36,10 +36,9 @@ class EmailService:
         """Récupère les destinataires de la facture."""
         recipients = []
         try:
-            if hasattr(invoice, 'quote') and invoice.quote and hasattr(invoice.quote, 'client'):
-                client = invoice.quote.client
-                if hasattr(client, 'email') and client.email:
-                    recipients.append(client.email)
+            client = getattr(invoice, 'client', None)
+            if client and getattr(client, 'email', ''):
+                recipients.append(client.email)
         except Exception as e:
             logger.error(f"Error getting invoice recipients: {e}")
         return recipients

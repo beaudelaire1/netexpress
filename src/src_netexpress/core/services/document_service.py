@@ -69,12 +69,12 @@ class ClientDocumentService:
         if user.is_staff or user.is_superuser:
             return Invoice.objects.all()
         
-        # For client users, filter by email through quote relationship
+        # For client users, filter on the invoice's own client
         client_id = verified_client_id(user)
         if not client_id:
             return Invoice.objects.none()
         
-        return Invoice.objects.filter(quote__client_id=client_id, issued_at__isnull=False)
+        return Invoice.objects.filter(client_id=client_id, issued_at__isnull=False)
     
     @staticmethod
     def can_access_quote(user: User, quote: Quote) -> bool:
@@ -104,11 +104,13 @@ class ClientDocumentService:
         if user.is_staff or user.is_superuser:
             return True
         
-        # Client users can only access invoices linked to their quotes
-        if not invoice.quote or not invoice.issued_at:
+        # Une facture n'est visible du client qu'une fois émise, qu'elle
+        # découle d'un devis ou qu'elle ait été établie directement.
+        if not invoice.issued_at:
             return False
         
-        return ClientDocumentService.can_access_quote(user, invoice.quote)
+        client_id = verified_client_id(user)
+        return bool(client_id) and invoice.client_id == client_id
 
     @staticmethod
     def can_access_portal_document(user: User, document: ClientPortalDocument) -> bool:

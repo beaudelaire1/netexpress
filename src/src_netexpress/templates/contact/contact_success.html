@@ -1,25 +1,132 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Message envoyé — NetExpress{% endblock %}
+{% block title %}Message bien reçu — Nettoyage Express{% endblock %}
+{% block og_title %}Message bien reçu — Nettoyage Express{% endblock %}
+{% block meta_description %}Votre message a bien été transmis à l'équipe Nettoyage Express. Nous vous répondons sous 24 à 48 heures ouvrées.{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/confirmation.css' %}">
+  {# Une page de confirmation n'a rien à faire dans un index de recherche. #}
+  <meta name="robots" content="noindex, follow">
+{% endblock %}
 
 {% block content %}
-<section class="section" style="text-align:center">
-  <h1>Merci pour votre message !</h1>
-  <p class="lead">Nous avons bien reçu votre demande et reviendrons vers vous dans les meilleurs délais.</p>
-  <p>En attendant, n'hésitez pas à nous joindre directement :</p>
-  <ul style="list-style:none; padding:0; margin:1rem 0; font-size:1.1rem">
-    {% if branding.name %}
-      <li><strong>{{ branding.name }}</strong></li>
+<section class="confirm" aria-labelledby="confirm-title">
+
+  <article class="confirm-card animated-border">
+    <div class="confirm-seal" aria-hidden="true">
+      <svg viewBox="0 0 52 52" role="presentation" focusable="false">
+        <circle class="confirm-seal-ring" cx="26" cy="26" r="23" />
+        <path class="confirm-seal-check" d="M15 27.5 22.5 35 37.5 19" />
+      </svg>
+    </div>
+
+    <p class="confirm-eyebrow">Demande enregistrée</p>
+
+    <h1 class="confirm-title" id="confirm-title">
+      {% if confirmation.first_name %}
+        Merci {{ confirmation.first_name }}, votre message est bien arrivé.
+      {% else %}
+        Merci, votre message est bien arrivé.
+      {% endif %}
+    </h1>
+
+    <p class="confirm-lead">
+      Notre équipe l'a reçu et le traite depuis Matoury. Vous recevez une réponse
+      <strong>sous 24 à 48 heures ouvrées</strong>{% if confirmation.email %}, à l'adresse
+      <strong>{{ confirmation.email }}</strong>{% endif %}.
+    </p>
+
+    {% if confirmation %}
+      <dl class="confirm-receipt">
+        <div class="confirm-receipt-item">
+          <dt>Référence</dt>
+          <dd><span class="confirm-ref">{{ confirmation.reference }}</span></dd>
+        </div>
+        <div class="confirm-receipt-item">
+          <dt>Sujet</dt>
+          <dd>{{ confirmation.topic }}</dd>
+        </div>
+        <div class="confirm-receipt-item">
+          <dt>Reçu le</dt>
+          <dd>{% now "j F Y" %} à {% now "H\hi" %}</dd>
+        </div>
+      </dl>
+      <p class="confirm-receipt-note">
+        Conservez cette référence : elle nous permet de retrouver votre demande en un instant.
+      </p>
     {% endif %}
-    {% if branding.address_lines %}
-      {% for line in branding.address_lines %}
-        <li>{{ line }}</li>
-      {% endfor %}
-    {% endif %}
-    {% if branding.phone %}
-      <li>Téléphone : {{ branding.phone }}</li>
-    {% endif %}
-  </ul>
-  <a class="btn btn-primary" href="{% url 'core:home' %}">Retour à l'accueil</a>
+  </article>
+
+  <section class="confirm-steps" aria-labelledby="confirm-steps-title">
+    <h2 class="confirm-section-title" id="confirm-steps-title">Ce qui se passe maintenant</h2>
+    <ol class="confirm-steps-list">
+      <li class="confirm-step is-done">
+        <span class="confirm-step-marker" aria-hidden="true"><i class="fas fa-check"></i></span>
+        <div class="confirm-step-body">
+          <h3>Message reçu</h3>
+          <p>Votre demande est enregistrée et transmise au responsable concerné.</p>
+        </div>
+      </li>
+      <li class="confirm-step is-current">
+        <span class="confirm-step-marker" aria-hidden="true">2</span>
+        <div class="confirm-step-body">
+          <h3>Étude de votre besoin</h3>
+          <p>Nous vérifions nos disponibilités et préparons une proposition adaptée à votre situation.</p>
+        </div>
+      </li>
+      <li class="confirm-step">
+        <span class="confirm-step-marker" aria-hidden="true">3</span>
+        <div class="confirm-step-body">
+          <h3>Notre réponse</h3>
+          <p>Un membre de l'équipe vous rappelle ou vous écrit, avec un devis si votre demande le justifie.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="confirm-reach" aria-labelledby="confirm-reach-title">
+    <h2 class="confirm-section-title" id="confirm-reach-title">Besoin d'une réponse immédiate&#8239;?</h2>
+    <p class="confirm-reach-lead">Nous sommes joignables du lundi au samedi.</p>
+
+    <ul class="confirm-reach-list">
+      <li>
+        <a class="confirm-reach-tile" href="tel:+594594302368">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-phone"></i></span>
+          <span class="confirm-reach-label">Bureau</span>
+          <span class="confirm-reach-value">05 94 30 23 68</span>
+        </a>
+      </li>
+      <li>
+        <a class="confirm-reach-tile" href="tel:+594694462012">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-mobile-alt"></i></span>
+          <span class="confirm-reach-label">Mobile</span>
+          <span class="confirm-reach-value">06 94 46 20 12</span>
+        </a>
+      </li>
+      <li>
+        <a class="confirm-reach-tile" href="mailto:{{ branding.email|default:'contact@nettoyageexpresse.fr' }}">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+          <span class="confirm-reach-label">Email</span>
+          <span class="confirm-reach-value">{{ branding.email|default:"contact@nettoyageexpresse.fr" }}</span>
+        </a>
+      </li>
+      <li>
+        <div class="confirm-reach-tile confirm-reach-tile--static">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></span>
+          <span class="confirm-reach-label">Atelier</span>
+          <span class="confirm-reach-value">753, Chemin de la Désirée<br>97351 Matoury</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <nav class="confirm-actions" aria-label="Poursuivre la visite">
+    <a class="btn confirm-btn-primary" href="{% url 'core:home' %}">Retour à l'accueil</a>
+    <a class="btn confirm-btn-ghost" href="{% url 'services:list' %}">Découvrir nos prestations</a>
+    <a class="btn confirm-btn-ghost" href="{% url 'devis:request_quote' %}">Demander un devis</a>
+  </nav>
+
 </section>
 {% endblock %}

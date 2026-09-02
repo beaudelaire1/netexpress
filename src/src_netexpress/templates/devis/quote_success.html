@@ -1,12 +1,135 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Demande envoyée — NetExpress{% endblock %}
+{% block title %}Demande de devis reçue — Nettoyage Express{% endblock %}
+{% block og_title %}Demande de devis reçue — Nettoyage Express{% endblock %}
+{% block meta_description %}Votre demande de devis a bien été transmise à Nettoyage Express. Nous revenons vers vous sous 24 à 48 heures ouvrées.{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/confirmation.css' %}">
+  {# Une page de confirmation n'a rien à faire dans un index de recherche. #}
+  <meta name="robots" content="noindex, follow">
+{% endblock %}
 
 {% block content %}
-<section class="section">
-  <h1>Merci !</h1>
-  <p class="lead">Votre demande de devis a été transmise. Notre équipe vous répondra dans les plus brefs délais.</p>
-  <p>N'hésitez pas à consulter nos services et à utiliser le formulaire de contact pour toute question complémentaire.</p>
-  <a class="btn btn-primary" href="/">Retour à l'accueil</a>
+<section class="confirm" aria-labelledby="confirm-title">
+
+  <article class="confirm-card animated-border">
+    <div class="confirm-seal" aria-hidden="true">
+      <svg viewBox="0 0 52 52" role="presentation" focusable="false">
+        <circle class="confirm-seal-ring" cx="26" cy="26" r="23" />
+        <path class="confirm-seal-check" d="M15 27.5 22.5 35 37.5 19" />
+      </svg>
+    </div>
+
+    <p class="confirm-eyebrow">Demande de devis enregistrée</p>
+
+    <h1 class="confirm-title" id="confirm-title">
+      {% if confirmation.first_name %}
+        Merci {{ confirmation.first_name }}, nous étudions votre demande.
+      {% else %}
+        Merci, nous étudions votre demande.
+      {% endif %}
+    </h1>
+
+    <p class="confirm-lead">
+      Votre demande est arrivée chez nous. Vous recevez votre proposition chiffrée
+      <strong>sous 24 à 48 heures ouvrées</strong>{% if confirmation.email %}, à l'adresse
+      <strong>{{ confirmation.email }}</strong>{% endif %}.
+    </p>
+
+    {% if confirmation %}
+      <dl class="confirm-receipt">
+        <div class="confirm-receipt-item">
+          <dt>Référence</dt>
+          <dd><span class="confirm-ref">{{ confirmation.reference }}</span></dd>
+        </div>
+        <div class="confirm-receipt-item">
+          <dt>Prestation</dt>
+          <dd>{{ confirmation.service|default:"À préciser ensemble" }}</dd>
+        </div>
+        <div class="confirm-receipt-item">
+          <dt>Délai souhaité</dt>
+          <dd>{{ confirmation.deadline|default:"Non précisé" }}</dd>
+        </div>
+      </dl>
+      <p class="confirm-receipt-note">
+        Conservez cette référence&nbsp;: elle nous permet de retrouver votre demande en un instant.
+        {% if confirmation.photos %}
+          {{ confirmation.photos }} pièce{{ confirmation.photos|pluralize }} jointe{{ confirmation.photos|pluralize }} bien reçue{{ confirmation.photos|pluralize }}.
+        {% endif %}
+      </p>
+    {% endif %}
+  </article>
+
+  <section class="confirm-steps" aria-labelledby="confirm-steps-title">
+    <h2 class="confirm-section-title" id="confirm-steps-title">Ce qui se passe maintenant</h2>
+    <ol class="confirm-steps-list">
+      <li class="confirm-step is-done">
+        <span class="confirm-step-marker" aria-hidden="true"><i class="fas fa-check"></i></span>
+        <div class="confirm-step-body">
+          <h3>Demande reçue</h3>
+          <p>Votre demande est enregistrée avec les éléments que vous nous avez transmis.</p>
+        </div>
+      </li>
+      <li class="confirm-step is-current">
+        <span class="confirm-step-marker" aria-hidden="true">2</span>
+        <div class="confirm-step-body">
+          <h3>Chiffrage</h3>
+          <p>Nous évaluons le travail à prévoir et nos disponibilités. Un appel de précision est parfois nécessaire.</p>
+        </div>
+      </li>
+      <li class="confirm-step">
+        <span class="confirm-step-marker" aria-hidden="true">3</span>
+        <div class="confirm-step-body">
+          <h3>Votre devis</h3>
+          <p>Vous recevez un devis détaillé par courriel, à valider en ligne si la proposition vous convient.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="confirm-reach" aria-labelledby="confirm-reach-title">
+    <h2 class="confirm-section-title" id="confirm-reach-title">Une précision à nous transmettre&#8239;?</h2>
+    <p class="confirm-reach-lead">Nous sommes joignables du lundi au samedi.</p>
+
+    <ul class="confirm-reach-list">
+      <li>
+        <a class="confirm-reach-tile" href="tel:+594594302368">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-phone"></i></span>
+          <span class="confirm-reach-label">Bureau</span>
+          <span class="confirm-reach-value">05 94 30 23 68</span>
+        </a>
+      </li>
+      <li>
+        <a class="confirm-reach-tile" href="tel:+594694462012">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-mobile-alt"></i></span>
+          <span class="confirm-reach-label">Mobile</span>
+          <span class="confirm-reach-value">06 94 46 20 12</span>
+        </a>
+      </li>
+      <li>
+        <a class="confirm-reach-tile" href="mailto:{{ branding.email|default:'contact@nettoyageexpresse.fr' }}">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+          <span class="confirm-reach-label">Email</span>
+          <span class="confirm-reach-value">{{ branding.email|default:"contact@nettoyageexpresse.fr" }}</span>
+        </a>
+      </li>
+      <li>
+        <div class="confirm-reach-tile confirm-reach-tile--static">
+          <span class="confirm-reach-icon" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></span>
+          <span class="confirm-reach-label">Atelier</span>
+          <span class="confirm-reach-value">753, Chemin de la Désirée<br>97351 Matoury</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <nav class="confirm-actions" aria-label="Poursuivre la visite">
+    <a class="btn confirm-btn-primary" href="{% url 'core:home' %}">Retour à l'accueil</a>
+    <a class="btn confirm-btn-ghost" href="{% url 'services:list' %}">Découvrir nos prestations</a>
+    <a class="btn confirm-btn-ghost" href="{% url 'contact:contact' %}">Nous écrire</a>
+  </nav>
+
 </section>
 {% endblock %}

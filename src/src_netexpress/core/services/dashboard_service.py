@@ -100,7 +100,7 @@ class DashboardService:
             QuerySet: Factures récentes
         """
         return Invoice.objects.select_related(
-            'quote', 'quote__client'
+            'quote', 'client'
         ).order_by('-issue_date', '-created_at')[:limit]
     
     @staticmethod

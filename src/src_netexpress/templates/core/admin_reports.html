@@ -124,7 +124,7 @@
               </a>
             </td>
             <td class="px-4 py-3 text-sm">{{ invoice.issue_date|date:"d/m/Y" }}</td>
-            <td class="px-4 py-3">{{ invoice.quote.client.full_name|default:"N/A" }}</td>
+            <td class="px-4 py-3">{{ invoice.client.full_name|default:"N/A" }}</td>
             <td class="px-4 py-3 text-right">{{ invoice.total_ht }} €</td>
             <td class="px-4 py-3 text-right text-gray-500">{{ invoice.tva }} €</td>
             <td class="px-4 py-3 text-right font-semibold">{{ invoice.total_ttc }} €</td>

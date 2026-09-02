@@ -84,13 +84,21 @@ def _send_created_notification(invoice: Invoice) -> None:
         to=[recipient],
     )
     email.content_subtype = "html"
-    email.send(fail_silently=True)
+    # Un échec ne doit pas annuler la création de la facture, mais il doit
+    # laisser une trace : avec fail_silently seul, une notification perdue
+    # était indétectable.
+    try:
+        email.send(fail_silently=False)
+    except Exception:
+        logger.exception(
+            "Notification de création non envoyée pour la facture %s", invoice.pk
+        )
 
 
 def _finalize_created_invoice(invoice_id: int) -> None:
     """Finalise une facture après validation de sa transaction de création."""
     try:
-        invoice = Invoice.objects.select_related("quote", "quote__client").get(pk=invoice_id)
+        invoice = Invoice.objects.select_related("quote", "client").get(pk=invoice_id)
 
         _copy_quote_items_if_needed(invoice)
 

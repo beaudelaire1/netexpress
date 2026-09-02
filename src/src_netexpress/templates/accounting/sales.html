@@ -16,7 +16,7 @@
   {% for invoice in page %}
     <tr>
       <td><a href="{% url 'accounting:invoice_detail' invoice.pk %}{% querystring %}">{{ invoice.number }}</a>{% if invoice.is_credit_note %}<small>Avoir</small>{% endif %}</td>
-      <td>{{ invoice.quote.client.full_name }}</td>
+      <td>{{ invoice.client.full_name }}</td>
       <td>{{ invoice.issue_date|date:'d/m/Y' }}</td>
       <td class="money">{% if invoice.is_credit_note %}−{% endif %}{{ invoice.total_ttc|floatformat:2 }} €</td>
       <td>{{ invoice.get_status_display }}</td>

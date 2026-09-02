@@ -230,9 +230,9 @@
               {{ forloop.counter }}
             </span>
             <div>
-              <span class="font-medium text-gray-800">{{ client.quote__client__full_name }}</span>
-              {% if client.quote__client__company %}
-              <p class="text-xs text-gray-500">{{ client.quote__client__company }}</p>
+              <span class="font-medium text-gray-800">{{ client.client__full_name }}</span>
+              {% if client.client__company %}
+              <p class="text-xs text-gray-500">{{ client.client__company }}</p>
               {% endif %}
             </div>
           </div>
@@ -331,7 +331,7 @@
           {% for invoice in overdue_invoices %}
           <tr class="hover:bg-red-50">
             <td class="px-4 py-3 font-mono text-sm">{{ invoice.number }}</td>
-            <td class="px-4 py-3">{{ invoice.quote.client.full_name|default:"N/A" }}</td>
+            <td class="px-4 py-3">{{ invoice.client.full_name|default:"N/A" }}</td>
             <td class="px-4 py-3 text-right font-semibold text-red-600">{{ invoice.total_ttc }} €</td>
             <td class="px-4 py-3 text-center text-sm">{{ invoice.due_date|date:"d/m/Y" }}</td>
             <td class="px-4 py-3 text-center">

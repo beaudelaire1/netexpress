@@ -104,11 +104,41 @@ CACHES = {
     }
 }
 
-EMAIL_BACKEND = "core.backends.brevo_backend.BrevoEmailBackend"
-BREVO_API_KEY = required("BREVO_API_KEY")
+# Transport du courrier. Le SMTP standard est le défaut : il ne dépend d'aucune
+# API propriétaire et fonctionne avec le relais de n'importe quel hébergeur de
+# messagerie. Le backend API Brevo reste disponible en le nommant explicitement.
+# Dans les deux cas, la production échoue fermée : pas de repli console, qui
+# ferait « réussir » des envois qui ne partent nulle part.
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", SMTP_EMAIL_BACKEND).strip()  # noqa: F405
 BREVO_CONSOLE_FALLBACK = False
+
+if EMAIL_BACKEND == BREVO_EMAIL_BACKEND:  # noqa: F405
+    BREVO_API_KEY = required("BREVO_API_KEY")
+elif EMAIL_BACKEND == SMTP_EMAIL_BACKEND:  # noqa: F405
+    EMAIL_HOST = required("EMAIL_HOST")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = required("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = required("EMAIL_HOST_PASSWORD")
+    EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "30"))
+    # Une session en clair enverrait les identifiants et le contenu des messages
+    # sans chiffrement : on exige STARTTLS (587) ou SSL (465).
+    if not EMAIL_USE_TLS and not EMAIL_USE_SSL:  # noqa: F405
+        raise ImproperlyConfigured(
+            "EMAIL_USE_TLS ou EMAIL_USE_SSL est obligatoire en production : "
+            "un envoi SMTP en clair expose les identifiants du relais."
+        )
+else:
+    raise ImproperlyConfigured(
+        f"EMAIL_BACKEND={EMAIL_BACKEND!r} n'est pas utilisable en production. "
+        f"Utilisez {SMTP_EMAIL_BACKEND!r} (SMTP) ou {BREVO_EMAIL_BACKEND!r} (API Brevo)."  # noqa: F405
+    )
+
 DEFAULT_FROM_EMAIL = required("DEFAULT_FROM_EMAIL")
 DEFAULT_FROM_NAME = os.getenv("DEFAULT_FROM_NAME", "Nettoyage Express")
+
+# Sans destinataire, la notification de contact est calculée puis jetée : le
+# message reste en base et personne n'est prévenu. On refuse de démarrer.
+CONTACT_RECEIVER_EMAIL = required("CONTACT_RECEIVER_EMAIL")
 
 TURNSTILE_REQUIRED = True
 TURNSTILE_SITE_KEY = required("TURNSTILE_SITE_KEY")

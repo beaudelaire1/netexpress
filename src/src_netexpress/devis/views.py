@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.forms import inlineformset_factory
@@ -15,6 +16,7 @@ from .models import QuoteRequest, Quote, QuoteItem, QuoteRequestPhoto, QuoteVali
 from .services import create_invoice_from_quote
 from core.services.document_generator import DocumentGenerator
 from .email_service import send_quote_email
+from .tasks import notify_new_quote_request
 from devis.application.quote_validation import (
     QuoteNotValidatableError,
     QuoteValidationExpiredError,
@@ -23,6 +25,11 @@ from devis.application.quote_validation import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Clé de session servant à transmettre le récapitulatif à la page de
+# confirmation. Un redirect ne peut rien porter d'autre, et repasser
+# l'identifiant dans l'URL exposerait les demandes des autres visiteurs.
+QUOTE_CONFIRMATION_SESSION_KEY = "quote_confirmation"
 
 
 @require_http_methods(["GET", "POST"])
@@ -45,7 +52,18 @@ def public_devis(request):
             for f in files:
                 photo = QuoteRequestPhoto.objects.create(image=f)
                 qr.photos.add(photo)
-            messages.success(request, "Votre demande de devis a bien été envoyée.")
+            # La demande est enregistrée : un échec d'envoi est journalisé
+            # côté serveur, pas répercuté sur le visiteur.
+            notify_new_quote_request(qr.pk)
+
+            request.session[QUOTE_CONFIRMATION_SESSION_KEY] = {
+                "reference": f"REQ-{qr.pk:05d}",
+                "first_name": qr.client_name.split(" ")[0],
+                "email": qr.email,
+                "service": qr.get_service_type_display(),
+                "deadline": qr.get_deadline_display(),
+                "photos": qr.photos.count(),
+            }
             return redirect("devis:quote_success")
     else:
         valid_services = dict(QuoteRequest.ServiceType.choices)
@@ -69,7 +87,18 @@ def public_devis(request):
 
 
 def quote_success(request):
-    return render(request, "devis/quote_success.html")
+    # Consommé une seule fois : un rechargement ne doit pas ré-afficher un
+    # accusé de réception qui n'a plus lieu d'être.
+    confirmation = request.session.pop(QUOTE_CONFIRMATION_SESSION_KEY, None)
+
+    return render(
+        request,
+        "devis/quote_success.html",
+        {
+            "confirmation": confirmation,
+            "branding": getattr(settings, "INVOICE_BRANDING", {}) or {},
+        },
+    )
 
 
 @staff_member_required
