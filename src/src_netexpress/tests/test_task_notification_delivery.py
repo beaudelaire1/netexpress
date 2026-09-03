@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -54,10 +54,15 @@ class TaskNotificationDeliveryTests(TestCase):
 
     @override_settings(TASK_NOTIFICATION_EMAIL="operations@example.test")
     def test_status_change_uses_explicit_internal_recipient(self):
-        task = self._task(title="Transition test")
+        model_today = date.today()
+        task = Task.objects.create(
+            title="Transition test",
+            start_date=model_today + timedelta(days=2),
+            due_date=model_today + timedelta(days=7),
+        )
         mail.outbox.clear()
 
-        task.start_date = self.today
+        task.start_date = model_today
         task.save()
 
         self.assertEqual(len(mail.outbox), 1)
