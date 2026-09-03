@@ -141,7 +141,7 @@ def notify_task_assignment(
     pk_set,
     **kwargs,
 ) -> None:
-    """Notifie uniquement les nouvelles affectations de travailleurs."""
+    """Crée la notification UI et l'e-mail lors d'une nouvelle affectation."""
     if action != "post_add" or not pk_set:
         return
 
@@ -158,11 +158,37 @@ def notify_task_assignment(
     for task, worker in assignments:
         if not getattr(worker, "is_active", False):
             continue
+
         try:
-            notification_service.notify_task_assignment(task, worker)
+            notification_service.create_ui_notification(
+                user=worker,
+                title=f"Nouvelle tâche assignée: {task.title}",
+                message=f"Une nouvelle tâche '{task.title}' vous a été assignée.",
+                notification_type="task_assigned",
+                link_url="/worker/dashboard/",
+            )
         except Exception:
             logger.exception(
-                "Task assignment notification failed | task_id=%s | user_id=%s",
+                "Task assignment UI notification failed | task_id=%s | user_id=%s",
                 task.pk,
                 worker.pk,
             )
+
+        if worker.email:
+            sent = EmailNotificationService.send_with_template(
+                to_email=worker.email,
+                subject=f"Nouvelle tâche assignée: {task.title}",
+                template_name="emails/task_assignment.html",
+                context={
+                    "task": task,
+                    "worker": worker,
+                    "company_name": "NetExpress",
+                },
+            )
+            if not sent:
+                logger.warning(
+                    "Task assignment email was not delivered | task_id=%s | user_id=%s | recipient=%s",
+                    task.pk,
+                    worker.pk,
+                    worker.email,
+                )
