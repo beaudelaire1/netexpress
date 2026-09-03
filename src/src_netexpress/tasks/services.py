@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 import logging
+from typing import Dict, List, Optional, Tuple
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 logger = logging.getLogger(__name__)
@@ -18,13 +19,14 @@ class NotificationRow:
     value: str
 
 
-class EmailNotificationService:
-    """Service d'envoi d'e-mails PREMIUM (HTML uniquement).
+def get_task_notification_recipient() -> Optional[str]:
+    """Retourne le destinataire explicite des notifications internes de tâches."""
+    recipient = (getattr(settings, "TASK_NOTIFICATION_EMAIL", "") or "").strip()
+    return recipient or None
 
-    - jamais bloquant
-    - jamais crashant
-    - log les erreurs en production
-    """
+
+class EmailNotificationService:
+    """Service d'envoi d'e-mails HTML non bloquant et observable."""
 
     @classmethod
     def send_with_template(
@@ -34,78 +36,73 @@ class EmailNotificationService:
         template_name: str,
         context: dict,
         attachments: Optional[List[Tuple[str, bytes]]] = None,
-    ) -> None:
-        """Send an email using a Django template, preferring Brevo API.
-        
-        Parameters
-        ----------
-        to_email : str
-            Recipient email address
-        subject : str
-            Email subject
-        template_name : str
-            Django template path (e.g., "emails/task_assignment.html")
-        context : dict
-            Template context
-        attachments : list of tuple, optional
-            List of (filename, content_bytes) tuples
+    ) -> bool:
+        """Envoie un e-mail à partir d'un template Django.
+
+        Brevo API est utilisé lorsqu'il est explicitement configuré. En cas
+        d'échec, le backend e-mail Django sert de repli. La méthode ne propage
+        pas les erreurs de transport : elle les journalise et retourne False.
         """
-        from django.template.loader import render_to_string
-        from django.utils.html import strip_tags
-        
-        # Try to use Brevo with Django template if configured
-        if getattr(settings, "EMAIL_BACKEND", "").endswith("BrevoEmailBackend"):
-            try:
-                from core.services.brevo_email_service import BrevoEmailService
-                
-                brevo = BrevoEmailService()
-                if brevo.api_instance:
-                    sent = brevo.send_with_django_template(
-                        to_email=to_email,
-                        subject=subject,
-                        template_name=template_name,
-                        context=context,
-                        attachments=attachments,
+        try:
+            if getattr(settings, "EMAIL_BACKEND", "").endswith("BrevoEmailBackend"):
+                try:
+                    from core.services.brevo_email_service import BrevoEmailService
+
+                    brevo = BrevoEmailService()
+                    if brevo.api_instance:
+                        sent = brevo.send_with_django_template(
+                            to_email=to_email,
+                            subject=subject,
+                            template_name=template_name,
+                            context=context,
+                            attachments=attachments,
+                        )
+                        if sent:
+                            return True
+                        logger.warning(
+                            "Brevo API returned an unsuccessful result; falling back to Django email | to=%s | subject=%s",
+                            to_email,
+                            subject,
+                        )
+                except Exception:
+                    logger.exception(
+                        "Brevo API notification failed; falling back to Django email | to=%s | subject=%s",
+                        to_email,
+                        subject,
                     )
-                    if sent:
-                        return
-            except Exception as exc:
+
+            html_body = render_to_string(template_name, context)
+            # Render the text version as a sanity check for malformed template output
+            # and to keep behaviour aligned with the other notification service.
+            strip_tags(html_body)
+
+            email = EmailMessage(
+                subject=subject,
+                body=html_body,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com"),
+                to=[to_email],
+            )
+            email.content_subtype = "html"
+
+            for filename, content in attachments or []:
+                email.attach(filename, content)
+
+            sent_count = email.send(fail_silently=False)
+            if sent_count < 1:
                 logger.error(
-                    "Failed to send email via Brevo (falling back to SMTP): %s | to=%s | subject=%s",
-                    exc,
+                    "Notification email backend accepted no message | to=%s | subject=%s",
                     to_email,
                     subject,
                 )
-        
-        # Fallback: use Django mail
-        html_body = render_to_string(template_name, context)
-        text_body = strip_tags(html_body)
-        
-        # Use the generic send logic
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
-        
-        email = EmailMessage(
-            subject=subject,
-            body=html_body,
-            from_email=from_email,
-            to=[to_email],
-        )
-        email.content_subtype = "html"
-        
-        # Add attachments if provided
-        if attachments:
-            for filename, content in attachments:
-                email.attach(filename, content)
-        
-        try:
-            email.send()
-        except Exception as exc:
-            logger.error(
-                "EmailNotificationService.send_with_template FAILED (ignored): %s | to=%s | subject=%s",
-                exc,
+                return False
+            return True
+        except Exception:
+            logger.exception(
+                "EmailNotificationService.send_with_template failed | to=%s | subject=%s",
                 to_email,
                 subject,
             )
+            return False
 
     @staticmethod
     def send(
@@ -117,37 +114,44 @@ class EmailNotificationService:
         rows: Optional[List[Dict[str, str]]] = None,
         action_url: Optional[str] = None,
         action_label: Optional[str] = None,
-    ) -> None:
-        brand = getattr(settings, "INVOICE_BRANDING", {}).get("name", "Nettoyage Express")
-
-        html = render_to_string(
-            "emails/notification_generic.html",
-            {
-                "brand": brand.upper(),
-                "headline": headline,
-                "intro": intro,
-                "rows": rows or [],
-                "action_url": action_url,
-                "action_label": action_label,
-            },
-        )
-
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com")
-
-        email = EmailMessage(
-            subject=subject,
-            body=html,
-            from_email=from_email,
-            to=[to],
-        )
-        email.content_subtype = "html"
-
+    ) -> bool:
+        """Envoie une notification générique et retourne son état réel."""
         try:
-            email.send()  # ⚠️ PAS fail_silently
-        except Exception as exc:
-            logger.error(
-                "EmailNotificationService.send FAILED (ignored): %s | to=%s | subject=%s",
-                exc,
+            html = render_to_string(
+                "emails/notification_generic.html",
+                {
+                    "brand": getattr(settings, "INVOICE_BRANDING", {}).get(
+                        "name", "Nettoyage Express"
+                    ).upper(),
+                    "headline": headline,
+                    "intro": intro,
+                    "rows": rows or [],
+                    "action_url": action_url,
+                    "action_label": action_label,
+                },
+            )
+
+            email = EmailMessage(
+                subject=subject,
+                body=html,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com"),
+                to=[to],
+            )
+            email.content_subtype = "html"
+
+            sent_count = email.send(fail_silently=False)
+            if sent_count < 1:
+                logger.error(
+                    "Notification email backend accepted no message | to=%s | subject=%s",
+                    to,
+                    subject,
+                )
+                return False
+            return True
+        except Exception:
+            logger.exception(
+                "EmailNotificationService.send failed | to=%s | subject=%s",
                 to,
                 subject,
             )
+            return False
